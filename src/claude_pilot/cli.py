@@ -12,7 +12,13 @@ import click
 from click import ClickException
 
 from claude_pilot import config
-from claude_pilot.updater import get_current_version, get_latest_version, perform_update
+from claude_pilot.initializer import InitStatus, ProjectInitializer
+from claude_pilot.updater import (
+    MergeStrategy,
+    get_current_version,
+    get_latest_version,
+    perform_update,
+)
 
 # =============================================================================
 # OUTPUT UTILITIES
@@ -100,36 +106,87 @@ def version() -> None:
 
 
 @main.command()
+@click.argument(
+    "path",
+    type=click.Path(path_type=Path),
+    default=".",
+)
+@click.option(
+    "--lang",
+    type=click.Choice(["en", "ko", "ja"]),
+    help="Language for the project (en/ko/ja)",
+)
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Force re-initialization even if already initialized",
+)
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    help="Non-interactive mode (for CI/CD)",
+)
+def init(path: Path, lang: str | None, force: bool, yes: bool) -> None:
+    """
+    Initialize claude-pilot in a project directory.
+
+    Creates the .claude/ and .pilot/ directory structure with all necessary
+    template files for Claude Code development workflow.
+    """
+    initializer = ProjectInitializer(
+        target_dir=path,
+        language=lang,
+        force=force,
+        yes=yes,
+    )
+    status = initializer.initialize()
+
+    if status == InitStatus.FAILED:
+        raise ClickException("Initialization failed")
+    if status == InitStatus.SKIPPED:
+        click.echo("Initialization skipped.")
+
+
+@main.command()
 @click.option(
     "--target-dir",
     type=click.Path(exists=True, path_type=Path),
     default=None,
     help="Target directory for update (default: current directory)",
 )
-def update(target_dir: Path | None) -> None:
+@click.option(
+    "--strategy",
+    type=click.Choice(["auto", "manual"]),
+    default="auto",
+    help="Merge strategy: auto (default) or manual",
+)
+def update(target_dir: Path | None, strategy: str) -> None:
     """
     Update claude-pilot to the latest version.
 
-    Downloads and updates all managed files from the remote repository.
+    Updates all managed files from bundled package templates.
     User-owned files are preserved.
     """
     print_banner()
-    status = perform_update(target_dir)
+    merge_strategy = MergeStrategy(strategy)
+    status = perform_update(target_dir, merge_strategy)
     if status == "updated":
-        click.echo()
-        info("Updated files:")
-        click.echo("  - Commands (00-03, 90-92)")
-        click.echo("  - Templates (CONTEXT-tier2, CONTEXT-tier3)")
-        click.echo("  - Hooks")
-        click.echo()
-        info("Preserved files (your changes):")
-        click.echo("  - CLAUDE.md")
-        click.echo("  - AGENTS.md")
-        click.echo("  - .pilot/")
-        click.echo("  - .claude/settings.json")
-        click.echo("  - Custom commands")
-        click.echo()
-        success("Update complete!")
+        if strategy == "auto":
+            click.echo()
+            info("Updated files:")
+            click.echo("  - Commands (00-03, 90-92)")
+            click.echo("  - Templates (CONTEXT-tier2, CONTEXT-tier3)")
+            click.echo("  - Hooks")
+            click.echo()
+            info("Preserved files (your changes):")
+            click.echo("  - CLAUDE.md")
+            click.echo("  - AGENTS.md")
+            click.echo("  - .pilot/")
+            click.echo("  - .claude/settings.json")
+            click.echo("  - Custom commands")
+            click.echo()
+            success("Update complete!")
 
 
 # =============================================================================

@@ -1,19 +1,37 @@
 """
 Update functionality for claude-pilot.
 
-This module handles downloading files from the remote repository
-and updating the local installation.
+This module handles updating managed files from bundled package templates,
+with support for different merge strategies and backup management.
 """
 
 from __future__ import annotations
 
+import importlib.resources  # noqa: F401
+import shutil
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
-from typing import Literal
+from typing import Any
 
 import click
-import requests
 
 from claude_pilot import config
+
+
+class MergeStrategy(str, Enum):
+    """Merge strategy for updates."""
+
+    AUTO = "auto"
+    MANUAL = "manual"
+
+
+class UpdateStatus(str, Enum):
+    """Status of update process."""
+
+    ALREADY_CURRENT = "already_current"
+    UPDATED = "updated"
+    FAILED = "failed"
 
 
 def get_current_version(target_dir: Path | None = None) -> str:
@@ -36,90 +54,283 @@ def get_current_version(target_dir: Path | None = None) -> str:
 
 def get_latest_version() -> str:
     """
-    Get the latest version from the remote repository.
+    Get the latest version from the package.
 
     Returns:
-        The latest version string, or the local VERSION if fetch fails.
+        The latest version string (from package).
     """
-    try:
-        response = requests.get(
-            f"{config.REPO_BASE}/.claude/.pilot-version",
-            timeout=config.REQUEST_TIMEOUT,
-        )
-        if response.status_code == 200:
-            return response.text.strip()
-    except requests.RequestException:
-        click.secho("! Could not fetch latest version from remote", fg="yellow")
     return config.VERSION
 
 
-def download_file(
-    src_path: str,
-    dest_path: str,
-    target_dir: Path | None = None,
+def create_backup(target_dir: Path) -> Path:
+    """
+    Create a backup of the .claude directory.
+
+    Args:
+        target_dir: Target directory containing .claude/.
+
+    Returns:
+        Path to the backup directory.
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_dir = target_dir / ".claude-backups" / timestamp
+    claude_dir = target_dir / ".claude"
+
+    # Ensure backup parent directory exists
+    backup_dir.parent.mkdir(parents=True, exist_ok=True)
+
+    if claude_dir.exists():
+        shutil.copytree(claude_dir, backup_dir)
+        click.secho(f"i Backup created: {backup_dir.name}", fg="blue")
+
+    return backup_dir
+
+
+def cleanup_old_backups(target_dir: Path, keep: int = 5) -> list[Path]:
+    """
+    Remove old backups, keeping only the most recent ones.
+
+    Args:
+        target_dir: Target directory containing backups.
+        keep: Number of backups to keep.
+
+    Returns:
+        List of removed backup paths.
+    """
+    backups_dir = target_dir / ".claude-backups"
+    if not backups_dir.exists():
+        return []
+
+    backups = sorted(
+        [d for d in backups_dir.iterdir() if d.is_dir()],
+        key=lambda x: x.stat().st_mtime,
+        reverse=True,
+    )
+
+    removed = []
+    for old_backup in backups[keep:]:
+        shutil.rmtree(old_backup)
+        removed.append(old_backup)
+
+    if removed:
+        click.secho(f"i Removed {len(removed)} old backup(s)", fg="blue")
+
+    return removed
+
+
+def copy_template_from_package(
+    src: Any,
+    dest: Path,
 ) -> bool:
     """
-    Download a single file from the remote repository.
+    Copy a single template file from package to destination.
 
     Args:
-        src_path: Source path in the remote repository.
-        dest_path: Destination path relative to target directory.
-        target_dir: Optional target directory. Defaults to current working directory.
+        src: Source template path (Traversable).
+        dest: Destination file path.
 
     Returns:
-        True if download succeeded, False otherwise.
+        True if successful, False otherwise.
     """
-    if target_dir is None:
-        target_dir = config.get_target_dir()
-    dest_full = target_dir / dest_path
-
-    # Create directory if needed
-    dest_full.parent.mkdir(parents=True, exist_ok=True)
-
-    # Download file
-    url = f"{config.REPO_RAW}/{src_path}"
     try:
-        response = requests.get(url, timeout=config.REQUEST_TIMEOUT)
-        if response.status_code == 200:
-            dest_full.write_text(response.text)
-            return True
-    except requests.RequestException:
-        pass
-    return False
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        with src.open("rb") as f_src:
+            dest.write_bytes(f_src.read())
+        return True
+    except (OSError, IOError):
+        return False
 
 
-def update_files(
-    target_dir: Path | None = None,
+def copy_templates_from_package(
+    target_dir: Path,
 ) -> tuple[int, int]:
     """
-    Download all managed files from the remote repository.
+    Copy all template files from the bundled package.
 
     Args:
-        target_dir: Optional target directory. Defaults to current working directory.
+        target_dir: Target directory for templates.
 
     Returns:
-        A tuple of (success_count, fail_count).
+        Tuple of (success_count, fail_count).
     """
-    if target_dir is None:
-        target_dir = config.get_target_dir()
-
-    click.secho("i Downloading claude-pilot managed files...", fg="blue")
-
+    templates_path = config.get_templates_path()
     success_count = 0
     fail_count = 0
 
-    for src_path, dest_path in config.MANAGED_FILES:
-        if download_file(src_path, dest_path, target_dir):
+    for src_path in templates_path.rglob("*"):
+        if not src_path.is_file():
+            continue
+
+        # Get relative path from templates root
+        src_str = str(src_path)
+        templates_str = str(templates_path)
+        if src_str.startswith(templates_str):
+            rel_path_str = src_str[len(templates_str):].lstrip("/")
+        else:
+            rel_path_str = src_str
+        rel_path = Path(rel_path_str)
+
+        # Determine destination path
+        if not rel_path.parts:
+            continue
+
+        if rel_path.parts[0] == "CLAUDE.md.template":
+            dest_path = target_dir / "CLAUDE.md"
+        else:
+            # Use the full relative path (includes .claude/ or .pilot/)
+            dest_path = target_dir / rel_path
+
+        # Skip user files
+        if any(str(dest_path).endswith(f) for f in config.USER_FILES):
+            # Check if file exists and is user-owned
+            if dest_path.exists():
+                continue
+
+        if copy_template_from_package(src_path, dest_path):
             success_count += 1
         else:
             fail_count += 1
-            click.secho(f"! Failed to download: {src_path}", fg="yellow")
 
-    click.secho(f"i Downloaded: {success_count} files", fg="blue")
+    return success_count, fail_count
+
+
+def perform_auto_update(target_dir: Path) -> UpdateStatus:
+    """
+    Perform automatic update with merge.
+
+    Args:
+        target_dir: Target directory for update.
+
+    Returns:
+        UpdateStatus indicating result.
+    """
+    # Create backup
+    create_backup(target_dir)
+
+    # Copy templates from package
+    click.secho("i Updating managed files...", fg="blue")
+    success_count, fail_count = copy_templates_from_package(target_dir)
+
+    click.secho(f"i Updated: {success_count} files", fg="blue")
     if fail_count > 0:
         click.secho(f"! Failed: {fail_count} files", fg="yellow")
 
-    return success_count, fail_count
+    # Cleanup old backups (keep last 5)
+    cleanup_old_backups(target_dir, keep=5)
+
+    # Save version
+    save_version(config.VERSION, target_dir)
+
+    return UpdateStatus.UPDATED
+
+
+def generate_manual_merge_guide(target_dir: Path) -> Path:
+    """
+    Generate a manual merge guide for the user.
+
+    Args:
+        target_dir: Target directory.
+
+    Returns:
+        Path to the generated guide file.
+    """
+    guide_path = target_dir / ".claude-backups" / "MANUAL_MERGE_GUIDE.md"
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    content = f"""# Manual Merge Guide
+Generated: {timestamp}
+Version: {config.VERSION}
+
+## Overview
+This guide will help you manually merge the latest claude-pilot templates into your project.
+
+## Step 1: Review Backup
+A backup has been created. Check the `.claude-backups/` directory.
+
+## Step 2: Review Changes
+Compare your current files with the latest templates:
+
+```bash
+# View bundled templates location
+python3 -c "import importlib.resources; print(importlib.resources.files('claude_pilot/templates'))"
+```
+
+## Step 3: Manual Merge Commands
+For each managed file, decide how to merge:
+
+### Commands (.claude/commands/)
+```bash
+# Compare and merge specific command
+diff .claude-backups/<timestamp>/commands/00_plan.md .claude/commands/00_plan.md
+```
+
+### Templates (.claude/templates/)
+```bash
+# Compare and merge template
+diff .claude-backups/<timestamp>/templates/CONTEXT.md.template .claude/templates/CONTEXT.md.template
+```
+
+### Hooks (.claude/scripts/hooks/)
+```bash
+# Compare and merge hook
+diff .claude-backups/<timestamp>/scripts/hooks/typecheck.sh .claude/scripts/hooks/typecheck.sh
+```
+
+## Step 4: Update Version
+After merging, update the version file:
+```bash
+echo "{config.VERSION}" > .claude/.pilot-version
+```
+
+## Rollback
+If you need to rollback:
+```bash
+# Restore from backup
+rm -rf .claude
+cp -r .claude-backups/<timestamp> .claude
+```
+
+## Managed Files
+The following files are managed by claude-pilot:
+"""
+    for src, dest in config.MANAGED_FILES:
+        content += f"- `{dest}`\n"
+
+    content += """
+## Preserved Files
+These files are never overwritten:
+"""
+    for user_file in config.USER_FILES:
+        content += f"- `{user_file}`\n"
+
+    guide_path.write_text(content)
+    return guide_path
+
+
+def perform_manual_update(target_dir: Path) -> UpdateStatus:
+    """
+    Perform manual update (generate guide only).
+
+    Args:
+        target_dir: Target directory for update.
+
+    Returns:
+        UpdateStatus indicating result.
+    """
+    # Create backup
+    create_backup(target_dir)
+
+    # Generate manual merge guide
+    guide_path = generate_manual_merge_guide(target_dir)
+
+    click.secho(f"i Manual merge guide generated: {guide_path}", fg="blue")
+    click.secho("", fg="blue")
+    click.secho("Next steps:", fg="blue")
+    click.secho("  1. Review the backup and merge guide", fg="blue")
+    click.secho("  2. Manually merge the changes", fg="blue")
+    click.secho("  3. Update version: echo '" + config.VERSION + "' > .claude/.pilot-version", fg="blue")
+
+    return UpdateStatus.UPDATED
 
 
 def save_version(
@@ -184,20 +395,19 @@ def check_update_needed(target_dir: Path | None = None) -> bool:
     return current != latest
 
 
-UpdateStatus = Literal["already_current", "updated", "failed"]
-
-
 def perform_update(
     target_dir: Path | None = None,
+    strategy: MergeStrategy = MergeStrategy.AUTO,
 ) -> UpdateStatus:
     """
     Perform the update process.
 
     Args:
         target_dir: Optional target directory. Defaults to current working directory.
+        strategy: Merge strategy to use (auto or manual).
 
     Returns:
-        Status of the update: "already_current", "updated", or "failed".
+        Status of the update.
     """
     if target_dir is None:
         target_dir = config.get_target_dir()
@@ -207,26 +417,15 @@ def perform_update(
 
     if current_version == latest_version:
         click.secho(f"✓ Already up to date (v{latest_version})", fg="green")
-        return "already_current"
+        return UpdateStatus.ALREADY_CURRENT
 
-    click.secho(f"i Updating from v{current_version} to v{latest_version}...", fg="blue")
+    click.secho(
+        f"i Updating from v{current_version} to v{latest_version}...",
+        fg="blue",
+    )
 
-    # Download managed files
-    success_count, fail_count = update_files(target_dir)
+    # Perform update based on strategy
+    if strategy == MergeStrategy.MANUAL:
+        return perform_manual_update(target_dir)
 
-    if fail_count > 0 and success_count == 0:
-        click.secho(
-            "Error: Failed to download any files. Please check your internet connection.",
-            fg="red",
-            err=True,
-        )
-        return "failed"
-
-    # Cleanup deprecated files
-    cleanup_deprecated_files(target_dir)
-
-    # Save version
-    save_version(latest_version, target_dir)
-    click.secho(f"✓ Updated to version {latest_version}", fg="green")
-
-    return "updated"
+    return perform_auto_update(target_dir)

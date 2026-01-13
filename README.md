@@ -7,17 +7,15 @@
 ## Quick Start
 
 ```bash
-# One-line install (curl)
+# Install CLI globally
 curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash
 
-# Or clone and install
-git clone https://github.com/changoo89/claude-pilot.git
-cd claude-pilot
-./install.sh
+# Initialize in your project
+cd your-project
+claude-pilot init .
 
-# Or copy to existing project
-cp -r .claude /path/to/your/project/
-cp CLAUDE.md /path/to/your/project/
+# Start planning
+claude-pilot version
 ```
 
 ---
@@ -55,15 +53,14 @@ cp CLAUDE.md /path/to/your/project/
 ```
 claude-pilot/
 ├── README.md
-├── install.sh              # One-line installation
-├── pyproject.toml          # Python CLI package config
-├── mcp.json                # Recommended MCP servers
+├── install.sh              # One-line CLI installer
+├── pyproject.toml          # Python package config
 ├── CLAUDE.md               # Main project guide
 ├── AGENTS.md               # Agent configuration
 ├── .claude/
 │   ├── settings.json       # Hooks, LSP, language config
 │   ├── commands/           # Slash commands (7)
-│   ├── templates/          # CONTEXT.md, SKILL.md, PRP.md, Tier templates
+│   ├── templates/          # CONTEXT.md, SKILL.md, Tier templates
 │   └── scripts/hooks/      # Typecheck, lint, todos, branch
 ├── .pilot/                 # Plan management
 │   └── plan/
@@ -71,14 +68,23 @@ claude-pilot/
 │       ├── in_progress/    # Active plans
 │       ├── done/           # Completed plans
 │       └── active/         # Branch pointers
-├── src/                    # Python CLI source
-│   └── claude_pilot/       # CLI package
-│       ├── __init__.py
-│       ├── __main__.py
-│       ├── cli.py          # Click commands
-│       ├── config.py       # Configuration
-│       └── updater.py      # Update logic
-└── examples/               # Sample configurations
+└── src/                    # Python CLI source
+    └── claude_pilot/       # CLI package
+        ├── __init__.py
+        ├── __main__.py
+        ├── cli.py          # Click commands (init, update, version)
+        ├── config.py       # Configuration constants
+        ├── initializer.py   # Project initialization
+        ├── updater.py      # Update logic with merge strategies
+        └── templates/      # Bundled template files
+            ├── .claude/     # Template files
+            │   ├── commands/
+            │   ├── templates/
+            │   ├── scripts/hooks/
+            │   └── settings.json
+            ├── .pilot/
+            │   └── plan/
+            └── CLAUDE.md.template
 ```
 
 ---
@@ -122,109 +128,117 @@ Automation at key points:
 
 ## Installation
 
-### Option 1: One-line Install (Recommended)
+### Step 1: Install CLI (One-time)
+
+Install the claude-pilot CLI globally using pipx or pip:
 
 ```bash
-# Install to current directory
+# One-line install (automatically detects pipx or pip)
 curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash
 
-# Update existing installation
-curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash -s -- update
+# Or manually with pipx (recommended)
+pipx install claude-pilot
 
-# Check version
-curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash -s -- version
+# Or with pip
+pip3 install --user claude-pilot
 ```
 
-**Why curl?**
-- No git clone required
-- Single command installation
-- Safe updates that preserve your customizations
-- Works in any directory
+**What gets installed:**
+- `claude-pilot` command globally available
+- Templates bundled in package (offline-capable)
+- No project files modified yet
 
-The installer will:
-1. Download claude-pilot core files
-2. Create `.claude/` directory structure
-3. Set up `.pilot/` for plan management
-4. Initialize version tracking
+### Step 2: Initialize Your Project
 
-**After installation:**
+Navigate to your project and initialize:
+
 ```bash
-# For new projects, start planning
-/00_plan "your first feature"
+cd your-project
 
-# For existing projects, initialize documentation
-/92_init
+# Initialize with interactive language selection
+claude-pilot init .
+
+# Or specify language directly
+claude-pilot init . --lang en
+
+# Or non-interactive mode (for CI/CD)
+claude-pilot init . -y --lang en
 ```
 
-### Option 2: Clone and Install
+**What gets created:**
+- `.claude/` - Commands, templates, hooks, settings
+- `.pilot/` - Plan management directories
+- `CLAUDE.md` - Project documentation template
+- Configured with your selected language
+
+### Step 3: Update (Optional)
+
+Update to the latest version:
 
 ```bash
-git clone https://github.com/changoo89/claude-pilot.git
-cd claude-pilot && ./install.sh
+# Auto merge (default - preserves your files)
+claude-pilot update
+
+# Manual merge (generates guide for manual review)
+claude-pilot update --manual
 ```
 
-### Option 3: Manual Install
+**What gets updated:**
+- Core commands (00-03, 90-92)
+- Templates and hooks
+- Version tracking
+
+**What gets preserved:**
+- Your `CLAUDE.md` customizations
+- Your `.claude/settings.json`
+- Your `.pilot/` plans
+- Custom commands you've added
+
+### Manual Install (Alternative)
+
+If you prefer manual setup or can't use the installer:
 
 ```bash
-# Clone the template
+# Clone the repository
 git clone https://github.com/changoo89/claude-pilot.git
 cd claude-pilot
 
-# Copy to your project
-cp -r .claude /path/to/your/project/
-cp CLAUDE.md /path/to/your/project/
-cp AGENTS.md /path/to/your/project/
-
-# Edit CLAUDE.md with your project info
-nano /path/to/your/project/CLAUDE.md
-```
-
-### Option 4: Python CLI (New!)
-
-After installing with any method above, you can also install the Python CLI:
-
-```bash
-# Install via pip (from project directory)
+# Install CLI
 pip3 install .
 
-# Usage
-claude-pilot version    # Show version info
-claude-pilot update     # Update managed files
+# Initialize in your project
+cd your-project
+claude-pilot init .
 ```
-
-**CLI Benefits:**
-- Simple, memorable commands
-- No need to remember long curl commands
-- Works alongside the bash install.sh
-
-**Note:** The CLI is optional - the bash `install.sh` continues to work for all operations.
 
 ---
 
 ## Updates
 
-claude-pilot supports safe updates that preserve your customizations:
+Update claude-pilot to the latest version:
 
 ```bash
-# Option 1: Using the CLI (if installed)
+# Auto merge (recommended)
 claude-pilot update
 
-# Option 2: Using curl (original method)
-curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash -s -- update
+# Manual merge (review changes before applying)
+claude-pilot update --strategy manual
+
+# Show version info
+claude-pilot version
 ```
 
-**What gets updated:**
-- Core commands (00_plan, 01_confirm, 02_execute, 03_close, 90_review, 91_document)
-- Guides and templates
-- Hooks scripts
-- Version tracking
+**Auto Merge** (default):
+- Creates backup in `.claude-backups/`
+- Updates all managed files
+- Preserves your customizations
+- Keeps last 5 backups
 
-**What gets preserved:**
-- Your `CLAUDE.md` customizations
-- Your `AGENTS.md` configuration
-- Your `.pilot/` plans and data
-- Your `.claude/settings.json` settings
-- Custom commands you've added
+**Manual Merge**:
+- Creates backup
+- Generates merge guide in `.claude-backups/MANUAL_MERGE_GUIDE.md`
+- You review and merge changes manually
+- Provides rollback instructions
 
 ---
 
@@ -272,17 +286,33 @@ Edit `.claude/settings.json` hooks section:
 
 ## Usage Examples
 
+### Initialize New Project
+
+```bash
+# Navigate to your project
+cd your-project
+
+# Initialize (interactive - will prompt for language)
+claude-pilot init .
+
+# Or with language specified
+claude-pilot init . --lang en
+
+# For CI/CD (non-interactive)
+claude-pilot init . -y --lang en
+```
+
 ### Initialize Existing Project
 
 ```bash
-# In Claude Code - for projects that already have code
-/92_init
+# Navigate to your existing project
+cd existing-project
 
-# Automatically:
-# - Analyzes project structure and tech stack
-# - Creates CLAUDE.md (merging if exists)
-# - Creates docs/ai-context/ with 3 supporting files
-# - Creates Tier 2 CONTEXT.md for selected components
+# Initialize (will detect existing files)
+claude-pilot init .
+
+# If already initialized, use --force to reinitialize
+claude-pilot init . --force
 ```
 
 ### Start a New Feature

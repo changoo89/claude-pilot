@@ -7,10 +7,12 @@ repository URLs, and managed file lists.
 
 from __future__ import annotations
 
+import importlib.resources
 from pathlib import Path
+from typing import Any
 
 # Version information
-VERSION = "1.7.0"
+VERSION = "2.0.0"
 VERSION_FILE = ".claude/.pilot-version"
 
 # Remote repository URLs
@@ -88,3 +90,26 @@ def get_version_file_path(target_dir: Path | None = None) -> Path:
     if target_dir is None:
         target_dir = get_target_dir()
     return target_dir / VERSION_FILE
+
+
+def get_templates_path() -> Any:
+    """
+    Get the path to the bundled templates directory.
+
+    Returns:
+        Traversable path to the templates directory in the package.
+    """
+    return importlib.resources.files("claude_pilot") / "templates"
+
+
+def get_template_path(template_name: str) -> Any:
+    """
+    Get the path to a specific template file.
+
+    Args:
+        template_name: Name of the template file (e.g., ".claude/commands/00_plan.md")
+
+    Returns:
+        Traversable path to the template file.
+    """
+    return get_templates_path() / template_name

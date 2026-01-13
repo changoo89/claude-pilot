@@ -12,6 +12,24 @@ build/
 .next/
 out/
 
+# Python build artifacts
+*.egg-info/
+*.egg
+*.whl
+.eggs/
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+
+# PyPI/twine
+.pypirc
+
+# Local deploy docs (contains sensitive info)
+DEPLOY.local.md
+.deploy/
+
 # Environment
 .env
 .env.local

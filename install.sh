@@ -21,7 +21,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Version
-VERSION="1.1.0"
+VERSION="1.2.0"
 
 # Remote repository URLs
 REPO_BASE="https://raw.githubusercontent.com/changoo89/claude-pilot/main"
@@ -166,7 +166,6 @@ declare -a MANAGED_FILES=(
     # Guides
     ".claude/guides/review-extensions.md:.claude/guides/review-extensions.md"
     # Templates
-    ".claude/templates/PRP.md.template:.claude/templates/PRP.md.template"
     ".claude/templates/CONTEXT.md.template:.claude/templates/CONTEXT.md.template"
     ".claude/templates/SKILL.md.template:.claude/templates/SKILL.md.template"
     # Hooks

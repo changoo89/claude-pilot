@@ -1,12 +1,12 @@
 ---
-description: Execute the current in-progress plan with Ralph Loop TDD pattern
+description: Execute a plan (auto-moves pending to in-progress) with Ralph Loop TDD pattern
 argument-hint: "[--no-docs] [--wt] - optional flags: --no-docs skips auto-documentation, --wt enables worktree mode"
 allowed-tools: Read, Glob, Grep, Edit, Write, Bash(*), AskUserQuestion
 ---
 
 # /02_execute
 
-_Execute the current in-progress plan using Ralph Loop TDD pattern - iterate until all tests pass._
+_Execute a pending or in-progress plan using Ralph Loop TDD pattern - iterate until all tests pass._
 
 ---
 
@@ -178,9 +178,14 @@ echo "Selected plan: $PLAN_PATH"
 
 ## Step 1.5: Move Plan to In-Progress
 
-> **Principle**: If plan is in pending/, move it to in_progress/ first.
+> **Principle**: Auto-detect and move plans from pending/ to in_progress/.
+>
+> **Behavior**:
+> - If plan path contains `/pending/`, automatically move to `in_progress/`
+> - If plan is already in `in_progress/`, no action needed
+> - This enables the workflow: `/01_confirm` (creates in pending/) → `/02_execute` (moves to in_progress/)
 
-### 0.5.1 Check if Plan is in Pending
+### 1.5.1 Check if Plan is in Pending
 
 ```bash
 if printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then

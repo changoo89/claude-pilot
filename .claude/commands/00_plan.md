@@ -17,6 +17,26 @@ _Explore the codebase, gather requirements through dialogue, and design a SPEC-F
 - **Collaborative**: Dialogue with user to clarify ambiguities.
 - **Executable Output**: Result sufficient for `/01_confirm`.
 
+> **⚠️ CRITICAL CONSTRAINT**
+> ```
+> ╔═══════════════════════════════════════════════════════════╗
+> ║  DO NOT START IMPLEMENTATION DURING /00_plan             ║
+> ║  - NO code editing tools (Edit, Write, replace_content)   ║
+> ║  - NO test writing                                         ║
+> ║  - NO file creation (except via /01_confirm)              ║
+> ║                                                           ║
+> ║  This command is for:                                     ║
+> ║  ✅ Exploration (Glob, Grep, Read)                        ║
+> ║  ✅ Analysis (find_symbol, find_referencing_symbols)      ║
+> ║  ✅ Planning (PRP definition, architecture)               ║
+> ║  ✅ Dialogue (AskUserQuestion)                            ║
+> ║                                                           ║
+> ║  Implementation starts ONLY after:                        ║
+> ║  1. User runs /01_confirm (saves plan to pending/)        ║
+> ║  2. User runs /02_execute (begins TDD cycle)             ║
+> ╚═══════════════════════════════════════════════════════════╝
+> ```
+
 ---
 
 ## Inputs
@@ -83,7 +103,14 @@ Use AskUserQuestion with consolidated block:
 
 Restate requirements, get confirmation.
 
----
+> **🔄 REMINDER: PLANNING PHASE**
+> ```
+> You are still in /00_plan (planning mode).
+> ✅ OK: Requirements gathering, clarification, PRP definition
+> ❌ NOT OK: Writing code, editing files, running tests
+>
+> Next: /01_confirm saves the plan → /02_execute begins implementation
+> ```
 
 ## Step 2: PRP Definition
 
@@ -152,7 +179,15 @@ SC-{N}: {Description}
 
 **Resource Constraints**: [API limits, quotas]
 
----
+> **🔄 REMINDER: PLANNING PHASE**
+> ```
+> You are still in /00_plan (planning mode).
+> ✅ OK: Defining success criteria, test scenarios, constraints
+> ❌ NOT OK: Writing tests, implementing features, editing files
+>
+> Next: Continue to Step 3 (Architecture), then Step 4 (Present Plan)
+> After plan approved: /01_confirm → /02_execute for implementation
+> ```
 
 ## Step 3: Architecture & Design
 
@@ -187,7 +222,15 @@ SC-{N}: {Description}
 - **Approach B**: Pros/Cons
 - **Chosen**: [Reason]
 
----
+> **🔄 REMINDER: PLANNING PHASE**
+> ```
+> You are still in /00_plan (planning mode).
+> ✅ OK: Architecture design, data structures, module boundaries
+> ❌ NOT OK: Creating files, implementing modules, writing code
+>
+> Next: Step 4 (Present Plan Summary) - present plan in conversation
+> After user approval: /01_confirm saves to pending/
+> ```
 
 ## Step 4: Present Plan Summary
 
@@ -267,6 +310,34 @@ After presenting the complete plan, provide:
 - Brief recap of the approach
 - Confirmation that no files have been created
 - Next step instruction
+
+### 4.3 User Confirmation Gate
+
+> **⛔ USER CONFIRMATION REQUIRED**
+> ```
+> ╔═══════════════════════════════════════════════════════════╗
+> ║  STOP HERE - AWAIT USER APPROVAL                         ║
+> ╠═══════════════════════════════════════════════════════════╣
+> ║                                                           ║
+> ║  Current Status:                                          ║
+> ║  ✅ Plan complete (in conversation only)                 ║
+> ║  ✅ No files created yet                                 ║
+> ║  ✅ Ready for review                                     ║
+> ║                                                           ║
+> ║  User Action Required:                                   ║
+> ║                                                          ║
+> ║  IF the plan looks correct:                              ║
+> ║    → Run /01_confirm to save plan to pending/            ║
+> ║                                                           ║
+> ║  IF changes needed:                                       ║
+> ║    → Request modifications (stay in /00_plan)            ║
+> ║                                                           ║
+> ║  DO NOT proceed to implementation until:                 ║
+> ║    1. User runs /01_confirm (creates plan file)          ║
+> ║    2. User runs /02_execute (begins TDD cycle)          ║
+> ║                                                           ║
+> ╚═══════════════════════════════════════════════════════════╝
+> ```
 
 ---
 

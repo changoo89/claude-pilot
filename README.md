@@ -298,11 +298,11 @@ Edit `.claude/settings.json` hooks section:
 ```
 User Request
     ↓
-/00_plan → Creates PRP in .pilot/plan/pending/
+/00_plan → Designs plan in conversation (no file)
     ↓
 Manual Review/Edit
     ↓
-/01_confirm → Moves to .pilot/plan/in_progress/
+/01_confirm → Saves plan to .pilot/plan/pending/
 ```
 
 ### 2. Execution Phase

@@ -66,7 +66,7 @@ PLAN_PATH="${EXPLICIT_PATH}"
     KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')" && \
     ACTIVE_PTR=".pilot/plan/active/${KEY}.txt" && [ -f "$ACTIVE_PTR" ] && PLAN_PATH="$(cat "$ACTIVE_PTR")"
 [ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t .pilot/plan/in_progress/*.md 2>/dev/null | head -1)"
-[ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "No plan found. Run /00_plan then /01_confirm" >&2; exit 1; }
+[ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "No plan found. Run /00_plan, then /01_confirm or /02_execute (auto-detects pending plans)" >&2; exit 1; }
 echo "Selected: $PLAN_PATH"
 ```
 

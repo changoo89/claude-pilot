@@ -44,7 +44,7 @@ npm run lint
 ## Development Workflow
 
 1. **Plan**: Use `/00_plan` to create SPEC-First execution plans
-2. **Confirm**: Use `/01_confirm` to approve and start execution
+2. **Confirm**: Use `/01_confirm` to save plan to pending/ (optional)
 3. **Execute**: Use `/02_execute` to implement with TDD
 4. **Review**: Use `/90_review` for multi-angle code analysis
 5. **Document**: Use `/91_document` to sync documentation

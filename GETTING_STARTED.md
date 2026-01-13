@@ -142,7 +142,7 @@ chmod +x .claude/scripts/hooks/*.sh
 ```
 0. /92_init   → Initialize 3-Tier Documentation (for existing projects)
 1. /00_plan   → Create SPEC-First execution plan (read-only exploration)
-2. /01_confirm → Approve plan and move to in-progress
+2. /01_confirm → Save plan to pending/ (optional, /02_execute can auto-detect)
 3. /02_execute → Implement with Ralph Loop + TDD
 4. /90_review  → Multi-angle code review
 5. /91_document → Sync 3-Tier documentation

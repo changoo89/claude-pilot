@@ -19,7 +19,7 @@ _Explore codebase, gather requirements, and design SPEC-First execution plan._
 > **⚠️ CRITICAL**: DO NOT start implementation during /00_plan.
 > - ❌ NO code editing, test writing, or file creation
 > - ✅ OK: Exploration (Glob, Grep, Read), Analysis, Planning, Dialogue
-> - Implementation starts ONLY after `/01_confirm` → `/02_execute`
+> - Implementation starts ONLY after plan is saved (via `/01_confirm` → `/02_execute` or `/02_execute` directly from pending/)
 
 ---
 
@@ -152,7 +152,7 @@ New files, existing modifications, integration points
 > Status: ✅ Plan complete (conversation only), ✅ No files created, ✅ Ready for review
 > - IF correct → Run `/01_confirm` to save to `pending/`
 > - IF changes → Request modifications
-> DO NOT proceed until: `/01_confirm` → `/02_execute`
+> To execute: `/01_confirm` then `/02_execute`, OR `/02_execute` directly if plan in `pending/`
 
 ---
 

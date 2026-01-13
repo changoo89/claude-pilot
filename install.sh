@@ -21,7 +21,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Version
-VERSION="1.6.0"
+VERSION="1.7.0"
 
 # Remote repository URLs
 REPO_BASE="https://raw.githubusercontent.com/changoo89/claude-pilot/main"

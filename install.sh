@@ -47,7 +47,7 @@ print_banner() {
  | (__| | (_| | |_| | (_| |  __/_____| |_) | | | (_) | |_
   \___|_|\__,_|\__,_|\__,_|\___|     | .__/|_|_|\___/ \__|
                                      |_|
-                         Your Claude Code Copilot
+                         Your Claude Code Pilot
 EOF
     echo -e "${NC}"
     echo -e "${GREEN}claude-pilot v${VERSION}${NC}"
@@ -163,10 +163,13 @@ declare -a MANAGED_FILES=(
     ".claude/commands/03_close.md:.claude/commands/03_close.md"
     ".claude/commands/90_review.md:.claude/commands/90_review.md"
     ".claude/commands/91_document.md:.claude/commands/91_document.md"
+    ".claude/commands/92_init.md:.claude/commands/92_init.md"
     # Guides
     ".claude/guides/review-extensions.md:.claude/guides/review-extensions.md"
     # Templates
     ".claude/templates/CONTEXT.md.template:.claude/templates/CONTEXT.md.template"
+    ".claude/templates/CONTEXT-tier2.md.template:.claude/templates/CONTEXT-tier2.md.template"
+    ".claude/templates/CONTEXT-tier3.md.template:.claude/templates/CONTEXT-tier3.md.template"
     ".claude/templates/SKILL.md.template:.claude/templates/SKILL.md.template"
     # Hooks
     ".claude/scripts/hooks/typecheck.sh:.claude/scripts/hooks/typecheck.sh"
@@ -408,9 +411,9 @@ do_update() {
 
     echo ""
     info "Updated files:"
-    echo "  - Commands (00-03, 90-91)"
+    echo "  - Commands (00-03, 90-92)"
     echo "  - Guides"
-    echo "  - Templates"
+    echo "  - Templates (CONTEXT-tier2, CONTEXT-tier3)"
     echo "  - Hooks"
     echo ""
     info "Preserved files (your changes):"

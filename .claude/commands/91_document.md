@@ -17,8 +17,8 @@ _Update documentation with full auto-sync and hierarchical CONTEXT.md management
 - **Zero Intervention**: Complete documentation update without user interaction
 - **Keep in Sync**: Documentation reflects actual implementation state
 
-> Reference: [context-engineering-intro](https://github.com/coleam00/context-engineering-intro)
-> Principle: "Context is the only lever for output quality"
+> Reference: [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
+> Principle: 3-Tier Documentation System - Foundation/Component/Feature hierarchy
 
 ---
 
@@ -97,7 +97,56 @@ Identify:
 | Slash Commands | Command changes |
 | Project Structure | New folders |
 
-### 2.2 Verification
+### 2.2 docs/ai-context/ Updates
+
+Update the three Tier 1 supporting documents:
+
+#### docs/ai-context/project-structure.md
+
+When project structure changes:
+- New folders created
+- Technology stack changes
+- Key files added/removed
+
+```bash
+# Detect changes
+git diff --name-only HEAD~5..HEAD | grep -E '^src/|^lib/'
+```
+
+Update:
+- Technology Stack table
+- Directory Layout diagram
+- Key Files table
+
+#### docs/ai-context/system-integration.md
+
+When component interactions change:
+- New integration patterns
+- Cross-component dependencies
+- Data flow changes
+
+```bash
+# Detect import changes
+git diff HEAD~5..HEAD | grep -E '^import|^require'
+```
+
+Update:
+- Component Interactions diagram
+- Data Flow section
+- Integration Points table
+
+#### docs/ai-context/docs-overview.md
+
+When CONTEXT.md files are added/removed:
+- Update Tier 2/3 lists
+- Update document map
+
+```bash
+# Find all CONTEXT.md files
+find . -name "CONTEXT.md" -type f | sort
+```
+
+### 2.3 Verification
 
 ```bash
 # Update last-updated
@@ -112,93 +161,132 @@ npx tsc --noEmit
 ## Step 3: Context Engineering (Folder-Level CONTEXT.md)
 
 > **Principle**: Targeted context > massive monolithic docs
+> **3-Tier System**: Tier 2 (Component) vs Tier 3 (Feature)
 
 ### 3.1 Identify Meaningful Folders
 
 Scan for folders that should have CONTEXT.md:
 
-| Folder Pattern | Criteria |
-|---------------|----------|
-| `lib/`, `src/` | Core library modules |
-| `lib/*/`, `src/*/` | Sub-modules with 3+ files |
-| `components/*/` | Component groups |
-| `pages/api/` | API routes |
-| `types/` | Type definitions |
-| Any folder | 3+ related files |
+| Folder Pattern | Criteria | Tier |
+|---------------|----------|------|
+| `lib/`, `src/`, `app/` | Core library modules | Tier 2 |
+| `lib/*/`, `src/*/` | Sub-modules with 3+ files | Tier 2 |
+| `components/*/` | Component groups | Tier 2 |
+| `features/*/` | Feature implementations | Tier 3 |
+| `pages/api/` | API routes | Tier 2 |
+| `hooks/`, `utils/` | Utility folders | Tier 2 |
+| `types/` | Type definitions | Tier 2 |
+| Deep nested (`*/*/*/`) | Specific features | Tier 3 |
 
-### 3.2 CONTEXT.md Template
+### 3.2 Determine Tier Level
 
-For each meaningful folder, create/update:
+**Tier 2 (Component)** - Use for:
+- Major architectural components
+- Cross-cutting modules (utils, hooks, types)
+- Integration points
+- Folders with sub-folders
+
+**Tier 3 (Feature)** - Use for:
+- Specific feature implementations
+- Deep nested folders (3+ levels)
+- Individual components within larger modules
+- Focused functionality
+
+```bash
+# Tier detection logic
+FOLDER_DEPTH=$(echo "$FOLDER" | tr '/' '\n' | wc -l)
+PARENT_FILES=$(find "$(dirname "$FOLDER")" -maxdepth 1 -type f | wc -l)
+
+# Tier 3: Deep nesting OR in a features/ folder
+if [ $FOLDER_DEPTH -ge 3 ] || [[ "$FOLDER" =~ features/ ]]; then
+    TIER="tier3"
+else
+    TIER="tier2"
+fi
+```
+
+### 3.3 CONTEXT.md Templates
+
+#### Tier 2 Template (Component)
+
+Use `.claude/templates/CONTEXT-tier2.md.template`
+
+For architectural components and major modules:
+
+| Section | Content Source |
+|---------|----------------|
+| Purpose | Folder name and files analysis |
+| Key Component Structure | Directory scan |
+| Implementation Highlights | Code pattern analysis |
+| Integration Points | Import/export analysis |
+| Development Guidelines | Best practices from code |
 
 ```markdown
-# {Folder Name} Context
+# {Component Name} - Component Context (Tier 2)
 
-> Last updated: {YYYY-MM-DD}
+> Purpose: Component-level architecture and integration
+> Last Updated: {YYYY-MM-DD}
+> Tier: 2 (Component)
 
 ## Purpose
+{Component responsibility}
 
-{1-2 sentences describing folder's responsibility}
+## Key Component Structure
+{Directory layout, key files}
 
-## Quick Reference (L0)
-
-### Key Files
-| File | Purpose |
-|------|---------|
-| {file1} | {description} |
-| {file2} | {description} |
-
-### Common Tasks
-- **Task 1**: Description → Command/Reference
-- **Task 2**: Description → Command/Reference
-
-## Architecture (L1)
-
-### Component Relationships
-```
-[Component A] → [Component B] → [Component C]
-```
-
-### Data Flow
-1. Input from [Source]
-2. Processed by [Component]
-3. Output to [Destination]
-
-## Implementation Details (L2)
-
-### Patterns Used
-- **Pattern**: [Name] - Purpose and usage
-
-### Dependencies
-```typescript
-// Internal
-import { something } from '../related-module'
-
-// External
-import { library } from 'external-package'
-```
+## Implementation Highlights
+{Core patterns, architectural decisions}
 
 ## Integration Points
+{Dependencies, dependents}
 
-- **Imports from**: {folders}
-- **Exports to**: {folders}
-
-## Common Pitfalls
-
-### Don't
-- ❌ [Common mistake]
-
-### Do
-- ✅ [Best practice]
+## Development Guidelines
+{When to work here, constraints}
 ```
 
-### 3.3 Auto-Update Rules
+#### Tier 3 Template (Feature)
 
-| Trigger | Action |
-|---------|--------|
-| New file added | Add to Key Files table |
-| File deleted | Remove from Key Files |
-| New pattern | Add to Patterns section |
-| Import changes | Update Integration Points |
+Use `.claude/templates/CONTEXT-tier3.md.template`
+
+For specific features and deep implementations:
+
+| Section | Content Source |
+|---------|----------------|
+| Architecture & Patterns | Code structure analysis |
+| Integration & Performance | Dependency and performance analysis |
+| Implementation Decisions | Decision log |
+| Code Examples | Common patterns extracted |
+
+```markdown
+# {Feature Name} - Feature Context (Tier 3)
+
+> Purpose: Feature-level implementation details
+> Last Updated: {YYYY-MM-DD}
+> Tier: 3 (Feature)
+
+## Architecture & Patterns
+{Design patterns, data flow, state}
+
+## Integration & Performance
+{Dependencies, performance characteristics}
+
+## Implementation Decisions
+{Decision log, trade-offs}
+
+## Code Examples
+{Common usage, edge cases}
+```
+
+### 3.4 Auto-Update Rules
+
+| Trigger | Action | Tier |
+|---------|--------|------|
+| New file added | Add to Key Files table | Both |
+| File deleted | Remove from Key Files | Both |
+| New pattern | Add to Patterns section | Both |
+| Import changes | Update Integration Points | Tier 2 |
+| Performance change | Update Performance section | Tier 3 |
+| Decision made | Add to Decision Log | Tier 3 |
 
 ---
 
@@ -258,9 +346,19 @@ Update `$RUN_DIR/ralph-loop-log.md`:
 - CLAUDE.md (last-updated: YYYY-MM-DD)
 - {list of sections updated}
 
-## Context Engineering
-- Created: {new CONTEXT.md files}
-- Updated: {modified CONTEXT.md files}
+## docs/ai-context/ Updates
+- project-structure.md (technology stack, directory layout)
+- system-integration.md (component interactions)
+- docs-overview.md (document map, Tier 2/3 lists)
+
+## Context Engineering (3-Tier)
+### Tier 2 (Component) - Created/Updated:
+- {component}/CONTEXT.md
+- {component}/CONTEXT.md
+
+### Tier 3 (Feature) - Created/Updated:
+- {feature}/CONTEXT.md
+- {feature}/CONTEXT.md
 
 ## TDD Artifacts Archived
 - test-scenarios.md
@@ -269,8 +367,9 @@ Update `$RUN_DIR/ralph-loop-log.md`:
 
 ## Verification
 - [ ] CLAUDE.md syntax valid
+- [ ] docs/ai-context/ files valid
 - [ ] All CONTEXT.md files valid
-- [ ] No broken links
+- [ ] Tier 2/3 templates applied correctly
 
 Ready for: /03_close
 ```
@@ -328,6 +427,9 @@ All modes execute full sync - no partial options.
 
 ## References
 
-- **Context Engineering**: `.claude/guides/context-engineering.md`
-- **CONTEXT Template**: `.claude/templates/CONTEXT.md.template`
-- **Ralph Loop TDD**: `.claude/guides/ralph-loop-tdd.md`
+- **3-Tier Docs**: [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
+- **Tier 2 Template**: `.claude/templates/CONTEXT-tier2.md.template`
+- **Tier 3 Template**: `.claude/templates/CONTEXT-tier3.md.template`
+- **General Template**: `.claude/templates/CONTEXT.md.template` (L0/L1/L2 system)
+- **Init Command**: `/92_init` (initialize 3-Tier system for existing projects)
+- **Review Extensions**: `.claude/guides/review-extensions.md`

@@ -288,11 +288,6 @@ claude-pilot synthesizes best practices from these projects:
   - Ralph Loop autonomous iteration
   - Todo continuation enforcement
 
-### Techniques
-
-- **[Ralph Wiggum Technique](https://github.com/ghuntley/how-to-ralph-wiggum)**
-  - TDD-based backpressure pattern
-
 ### Official Resources
 
 - **[Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)**

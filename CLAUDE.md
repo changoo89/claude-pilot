@@ -282,9 +282,8 @@ See `.claude/settings.json` for MCP configuration.
 
 ## Related Documentation
 
-- [Context Engineering Guide](.claude/guides/context-engineering.md)
-- [Ralph Loop TDD Guide](.claude/guides/ralph-loop-tdd.md)
-- [PRP Template](.claude/templates/PRP.md.template)
+- [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit) - 3-Tier Documentation System
+- [Review Extensions Guide](.claude/guides/review-extensions.md)
 
 ---
 

@@ -283,7 +283,6 @@ See `.claude/settings.json` for MCP configuration.
 ## Related Documentation
 
 - [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit) - 3-Tier Documentation System
-- [Review Extensions Guide](.claude/guides/review-extensions.md)
 
 ---
 

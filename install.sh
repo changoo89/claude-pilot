@@ -164,8 +164,6 @@ declare -a MANAGED_FILES=(
     ".claude/commands/90_review.md:.claude/commands/90_review.md"
     ".claude/commands/91_document.md:.claude/commands/91_document.md"
     ".claude/commands/92_init.md:.claude/commands/92_init.md"
-    # Guides
-    ".claude/guides/review-extensions.md:.claude/guides/review-extensions.md"
     # Templates
     ".claude/templates/CONTEXT.md.template:.claude/templates/CONTEXT.md.template"
     ".claude/templates/CONTEXT-tier2.md.template:.claude/templates/CONTEXT-tier2.md.template"
@@ -348,6 +346,68 @@ show_version() {
 }
 
 # =============================================================================
+# CLI INSTALLATION
+# =============================================================================
+
+# Check if Python and pip are available
+check_python_pip() {
+    if ! command -v python3 &> /dev/null; then
+        return 1
+    fi
+    if ! python3 -m pip --version &> /dev/null 2>&1; then
+        return 1
+    fi
+    return 0
+}
+
+# Offer to install the claude-pilot CLI
+offer_cli_install() {
+    if ! check_python_pip; then
+        return 0
+    fi
+
+    echo ""
+    info "claude-pilot CLI available!"
+    echo ""
+    echo "  The claude-pilot Python CLI provides convenient commands:"
+    echo "    - claude-pilot version    Show version info"
+    echo "    - claude-pilot update     Update managed files"
+    echo ""
+    echo "  This is an optional enhancement. The bash install.sh"
+    echo "  continues to work for installation and updates."
+    echo ""
+
+    # Try to read from /dev/tty for interactive input
+    local choice
+    if [[ -t 0 ]]; then
+        read -p "Install CLI? [y/N] " choice
+    elif [[ -c /dev/tty ]] 2>/dev/null; then
+        read -p "Install CLI? [y/N] " choice < /dev/tty 2>/dev/null || return 0
+    else
+        return 0
+    fi
+
+    if [[ "${choice}" =~ ^[Yy]$ ]]; then
+        info "Installing claude-pilot CLI..."
+        if cd "${TARGET_DIR}" 2>/dev/null && python3 -m pip install . --quiet 2>&1; then
+            success "CLI installed successfully!"
+            echo ""
+            info "Usage:"
+            echo "  claude-pilot version"
+            echo "  claude-pilot update"
+            echo ""
+            warning "Note: If 'claude-pilot' command is not found, add to PATH:"
+            echo "  export PATH=\"\$(python3 -m site --user-base)/bin:\$PATH\""
+            echo "  # Add this to your ~/.zshrc or ~/.bashrc"
+        else
+            warning "CLI installation failed. You can install manually later:"
+            echo "  cd ${TARGET_DIR}"
+            echo "  pip3 install ."
+        fi
+    fi
+}
+
+# =============================================================================
 # MODE HANDLERS
 # =============================================================================
 
@@ -409,6 +469,9 @@ do_install() {
     # Save version
     save_version
     success "Version ${VERSION} installed"
+
+    # Offer CLI installation
+    offer_cli_install
 
     # Summary
     echo ""

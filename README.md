@@ -56,6 +56,7 @@ cp CLAUDE.md /path/to/your/project/
 claude-pilot/
 ├── README.md
 ├── install.sh              # One-line installation
+├── pyproject.toml          # Python CLI package config
 ├── mcp.json                # Recommended MCP servers
 ├── CLAUDE.md               # Main project guide
 ├── AGENTS.md               # Agent configuration
@@ -70,6 +71,13 @@ claude-pilot/
 │       ├── in_progress/    # Active plans
 │       ├── done/           # Completed plans
 │       └── active/         # Branch pointers
+├── src/                    # Python CLI source
+│   └── claude_pilot/       # CLI package
+│       ├── __init__.py
+│       ├── __main__.py
+│       ├── cli.py          # Click commands
+│       ├── config.py       # Configuration
+│       └── updater.py      # Update logic
 └── examples/               # Sample configurations
 ```
 
@@ -171,6 +179,26 @@ cp AGENTS.md /path/to/your/project/
 nano /path/to/your/project/CLAUDE.md
 ```
 
+### Option 4: Python CLI (New!)
+
+After installing with any method above, you can also install the Python CLI:
+
+```bash
+# Install via pip (from project directory)
+pip3 install .
+
+# Usage
+claude-pilot version    # Show version info
+claude-pilot update     # Update managed files
+```
+
+**CLI Benefits:**
+- Simple, memorable commands
+- No need to remember long curl commands
+- Works alongside the bash install.sh
+
+**Note:** The CLI is optional - the bash `install.sh` continues to work for all operations.
+
 ---
 
 ## Updates
@@ -178,7 +206,10 @@ nano /path/to/your/project/CLAUDE.md
 claude-pilot supports safe updates that preserve your customizations:
 
 ```bash
-# Update to latest version
+# Option 1: Using the CLI (if installed)
+claude-pilot update
+
+# Option 2: Using curl (original method)
 curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash -s -- update
 ```
 

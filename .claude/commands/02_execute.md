@@ -19,6 +19,15 @@ _Execute a pending or in-progress plan using Ralph Loop TDD pattern - iterate un
 
 ---
 
+## Extended Thinking Mode
+
+> **Conditional Activation**
+> If the LLM model currently running in this session is a GLM model,
+> proceed with maximum extended thinking throughout all phases of this command.
+> This ensures deep reasoning and thorough analysis for complex tasks.
+
+---
+
 ## Step 0: Source Worktree Utilities
 
 ```bash

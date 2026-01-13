@@ -35,6 +35,15 @@ _Extract the plan from conversation context, create plan file in pending/, and S
 
 ---
 
+## Extended Thinking Mode
+
+> **Conditional Activation**
+> If the LLM model currently running in this session is a GLM model,
+> proceed with maximum extended thinking throughout all phases of this command.
+> This ensures deep reasoning and thorough analysis for complex tasks.
+
+---
+
 ## Inputs
 
 - Work name (optional - defaults to "plan" if not provided)

@@ -39,6 +39,15 @@ _Explore the codebase, gather requirements through dialogue, and design a SPEC-F
 
 ---
 
+## Extended Thinking Mode
+
+> **Conditional Activation**
+> If the LLM model currently running in this session is a GLM model,
+> proceed with maximum extended thinking throughout all phases of this command.
+> This ensures deep reasoning and thorough analysis for complex tasks.
+
+---
+
 ## Inputs
 
 - Task description from `"$ARGUMENTS"` (required)

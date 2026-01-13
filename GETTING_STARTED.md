@@ -52,6 +52,30 @@ cp -r examples/minimal-typescript/.claude/settings.json ~/your-project/.claude/
 
 ## First Steps
 
+### For New Projects
+
+After installation, start planning your first feature:
+
+```bash
+/00_plan "your first feature"
+```
+
+### For Existing Projects
+
+If you already have a codebase, initialize the 3-Tier Documentation System:
+
+```bash
+/92_init
+```
+
+This command will:
+1. **Analyze your project** - Detect tech stack, structure, and key folders
+2. **Ask for confirmation** - Show detected info and let you customize
+3. **Generate documentation**:
+   - Create/update `CLAUDE.md` (merging if exists)
+   - Create `docs/ai-context/` folder with 3 supporting files
+   - Create Tier 2 `CONTEXT.md` for selected components
+
 ### 1. Customize CLAUDE.md
 
 Edit `CLAUDE.md` to add your project's specifics:
@@ -116,15 +140,25 @@ chmod +x .claude/scripts/hooks/*.sh
 ### Planning Workflow
 
 ```
-1. /00_plan    → Create SPEC-First execution plan (read-only exploration)
+0. /92_init   → Initialize 3-Tier Documentation (for existing projects)
+1. /00_plan   → Create SPEC-First execution plan (read-only exploration)
 2. /01_confirm → Approve plan and move to in-progress
 3. /02_execute → Implement with Ralph Loop + TDD
 4. /90_review  → Multi-angle code review
-5. /91_document → Sync documentation
+5. /91_document → Sync 3-Tier documentation
 6. /03_close   → Finalize and create git commit
 ```
 
 ### Quick Examples
+
+**Initialize existing project:**
+```
+/92_init
+> [Analyzes project structure and tech stack]
+> [Shows detected info: Node.js, React, etc.]
+> [Asks for project description and Tier 2 folders]
+> [Creates CLAUDE.md, docs/ai-context/, CONTEXT.md files]
+```
 
 **Plan a new feature:**
 ```
@@ -199,13 +233,28 @@ Plans are stored in `.pilot/plan/`:
 
 ## Templates
 
-The template includes three document templates:
+The template includes document templates for the 3-Tier Documentation System:
 
-### CONTEXT.md.template
-For folder-level hierarchical context:
+### Tier 2 Template (Component)
+For component-level architecture and integration:
 ```bash
-# Create CONTEXT.md for src/components/
-cp .claude/templates/CONTEXT.md.template src/components/CONTEXT.md
+# CONTEXT-tier2.md.template
+# Used for major components, utilities, API routes
+# Auto-applied by /91_document for component folders
+```
+
+### Tier 3 Template (Feature)
+For feature-level implementation details:
+```bash
+# CONTEXT-tier3.md.template
+# Used for specific features, deep nested folders
+# Auto-applied by /91_document for feature folders
+```
+
+### General Template
+```bash
+# CONTEXT.md.template (L0/L1/L2 system)
+# General-purpose template for any context
 ```
 
 ### SKILL.md.template

@@ -28,9 +28,10 @@ cp CLAUDE.md /path/to/your/project/
 
 - **SPEC-First TDD**: Test-Driven Development with clear success criteria
 - **Ralph Loop**: Autonomous iteration until all tests pass
-- **Hierarchical Context**: Layered documentation (L0-L3) for efficient token usage
+- **3-Tier Documentation**: Foundation/Component/Feature hierarchy for efficient context
 - **PRP Pattern**: Structured prompts for unambiguous requirements
 - **Integrated Hooks**: Type checking, linting, and todo validation
+- **Migration Support**: Auto-generate docs for existing projects with `/92_init`
 - **Multilingual**: Runtime language selection (English/Korean/Japanese)
 
 ---
@@ -38,6 +39,7 @@ cp CLAUDE.md /path/to/your/project/
 ## Core Workflow
 
 ```
+/92_init     → Initialize 3-Tier Documentation (for existing projects)
 /00_plan     → Create spec-driven plan with PRP format
 /01_confirm  → Review and approve plan
 /02_execute  → Execute with Ralph Loop + TDD
@@ -59,8 +61,8 @@ claude-pilot/
 ├── AGENTS.md               # Agent configuration
 ├── .claude/
 │   ├── settings.json       # Hooks, LSP, language config
-│   ├── commands/           # Slash commands (6)
-│   ├── templates/          # CONTEXT.md, SKILL.md, PRP.md
+│   ├── commands/           # Slash commands (7)
+│   ├── templates/          # CONTEXT.md, SKILL.md, PRP.md, Tier templates
 │   ├── guides/             # Methodology guides
 │   └── scripts/hooks/      # Typecheck, lint, todos, branch
 ├── .pilot/                 # Plan management
@@ -93,13 +95,14 @@ Autonomous iteration pattern:
 3. **Refactor**: Clean up while keeping tests green
 4. **Repeat**: Until all criteria met
 
-### 3. Hierarchical Context
+### 3. 3-Tier Documentation System
 
-Optimized token usage with layered documentation:
-- **L0** (Immediate): Quick reference, 30-second context
-- **L1** (Structural): Architecture, patterns, workflows
-- **L2** (Detailed): Implementation details, best practices
-- **L3** (Reference): Deep dives, history, alternatives
+Optimized token usage with hierarchical documentation:
+- **Tier 1** (CLAUDE.md): Project foundation, rarely changes
+- **Tier 2** (Component): Architecture, integration, occasionally changes
+- **Tier 3** (Feature): Implementation details, frequently changes
+
+Run `/92_init` in existing projects to auto-generate this structure.
 
 ### 4. Integrated Hooks
 
@@ -136,6 +139,15 @@ The installer will:
 2. Create `.claude/` directory structure
 3. Set up `.pilot/` for plan management
 4. Initialize version tracking
+
+**After installation:**
+```bash
+# For new projects, start planning
+/00_plan "your first feature"
+
+# For existing projects, initialize documentation
+/92_init
+```
 
 ### Option 2: Clone and Install
 
@@ -230,6 +242,19 @@ Edit `.claude/settings.json` hooks section:
 
 ## Usage Examples
 
+### Initialize Existing Project
+
+```bash
+# In Claude Code - for projects that already have code
+/92_init
+
+# Automatically:
+# - Analyzes project structure and tech stack
+# - Creates CLAUDE.md (merging if exists)
+# - Creates docs/ai-context/ with 3 supporting files
+# - Creates Tier 2 CONTEXT.md for selected components
+```
+
 ### Start a New Feature
 
 ```bash
@@ -251,9 +276,9 @@ Edit `.claude/settings.json` hooks section:
 /91_document
 
 # Automatically updates:
-# - CLAUDE.md
-# - CONTEXT.md files
-# - API documentation
+# - CLAUDE.md (Tier 1)
+# - docs/ai-context/ files
+# - Tier 2/3 CONTEXT.md files
 ```
 
 ### Multi-Angle Review
@@ -306,9 +331,11 @@ Repeat until all pass
     ↓
 Analyze changes
     ↓
-Update CONTEXT.md hierarchy
-    ↓
-Update CLAUDE.md
+Update 3-Tier documentation:
+  - Tier 1: CLAUDE.md
+  - docs/ai-context/ files
+  - Tier 2: Component CONTEXT.md
+  - Tier 3: Feature CONTEXT.md
     ↓
 Commit with docs
 ```
@@ -321,9 +348,10 @@ claude-pilot synthesizes best practices from these projects:
 
 ### Core Methodology
 
-- **[context-engineering-intro](https://github.com/coleam00/context-engineering-intro)**
+- **[Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)**
+  - 3-Tier Documentation System (Foundation/Component/Feature)
   - Hierarchical CONTEXT.md structure
-  - PRP (Product Requirements Prompt) pattern
+  - AI-context documentation patterns
 
 - **[moai-adk](https://github.com/modu-ai/moai-adk)**
   - SPEC-First TDD methodology
@@ -342,10 +370,9 @@ claude-pilot synthesizes best practices from these projects:
 
 ## Guides
 
-- [Context Engineering Guide](.claude/guides/context-engineering.md)
-- [Ralph Loop & TDD Guide](.claude/guides/ralph-loop-tdd.md)
-- [Prompts Design Guide](.claude/guides/prompts-design-guide.md)
+- [Review Extensions Guide](.claude/guides/review-extensions.md)
 - [Getting Started](GETTING_STARTED.md)
+- [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit) - 3-Tier Documentation System
 
 ---
 

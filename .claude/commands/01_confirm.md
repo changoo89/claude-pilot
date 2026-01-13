@@ -4,185 +4,91 @@ argument-hint: "[work_name] --no-review - optional work name for the plan file; 
 allowed-tools: Read, Glob, Grep, Write, Bash(*)
 ---
 
-```
-═══════════════════════════════════════════════════════════
-  MANDATORY STOP - CONFIRMATION ONLY
-═══════════════════════════════════════════════════════════
-
-This command (/01_confirm) ONLY:
-1. Extracts the plan from the conversation context
-2. Creates a plan file in .pilot/plan/pending/
-3. STOPS - does NOT proceed to execution
-
-To execute the plan, run /02_execute after this command completes.
-
-═══════════════════════════════════════════════════════════
-```
-
 # /01_confirm
 
-_Extract the plan from conversation context, create plan file in pending/, and STOP._
+_Extract plan from conversation, create plan file in pending/, and STOP._
+
+> **MANDATORY STOP - CONFIRMATION ONLY**
+> This command only: 1) Extracts plan from conversation, 2) Creates file in pending/, 3) STOPS
+> To execute, run `/02_execute` after this completes.
 
 ---
 
 ## Core Philosophy
 
-- **No Execution**: This command only creates the plan file. It does NOT execute.
-- **Context-Driven**: Extract the plan from the preceding conversation.
-- **Standalone Output**: The created plan file must be sufficient for execution.
-- **Evidence-driven**: Convert vague intent into verifiable acceptance criteria.
-- **Executable**: Include concrete steps, commands, and checklists.
+- **No Execution**: Only creates plan file, does NOT execute
+- **Context-Driven**: Extract plan from preceding conversation
+- **Standalone Output**: Created plan file must be sufficient for execution
+- **Executable**: Include concrete steps, commands, checklists
 
 ---
 
 ## Extended Thinking Mode
 
-> **Conditional Activation**
-> If the LLM model currently running in this session is a GLM model,
-> proceed with maximum extended thinking throughout all phases of this command.
-> This ensures deep reasoning and thorough analysis for complex tasks.
-
----
-
-## Inputs
-
-- Work name (optional - defaults to "plan" if not provided)
-- `--no-review` flag (optional - skips auto-review)
-- Plan content from preceding conversation context
+> **Conditional**: If LLM model is GLM, proceed with maximum extended thinking throughout all phases.
 
 ---
 
 ## Step 1: Extract Plan from Conversation
 
-### 1.1 Review Conversation Context
-
-Look for the plan structure in the preceding conversation:
-- User Requirements section
-- PRP Analysis (What, Why, How, Success Criteria, Constraints)
-- Scope (In/Out)
-- Architecture
-- Execution Plan with phases
-- Acceptance Criteria
-- Test Plan
-- Risks & Mitigations
-- Open Questions
+### 1.1 Review Context
+Look for: User Requirements, PRP Analysis (What/Why/How/Success Criteria/Constraints), Scope, Architecture, Execution Plan, Acceptance Criteria, Test Plan, Risks, Open Questions
 
 ### 1.2 Validate Completeness
+Verify: [ ] User Requirements exists, [ ] Execution Plan with phases exists, [ ] Acceptance Criteria defined, [ ] Test Plan included
 
-Verify the plan contains:
-- [ ] User Requirements section exists
-- [ ] Execution Plan with phases exists
-- [ ] Acceptance Criteria defined
-- [ ] Test Plan included
-
-If any required sections are missing:
-- Inform user of missing sections
-- Ask if they want to proceed with incomplete plan
-- If yes, note gaps in plan
+If missing: Inform user, ask if proceed with incomplete plan, note gaps
 
 ---
 
 ## Step 2: Generate Plan File Name
 
-### 2.1 Create Timestamp and Work Name
-
 ```bash
 mkdir -p .pilot/plan/pending
-
-# Extract work name from arguments or default to "plan"
 WORK_NAME="$(echo "$ARGUMENTS" | sed 's/--no-review//g' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g' | head -c 50 | xargs)"
-
-if [ -z "$WORK_NAME" ]; then
-    WORK_NAME="plan"
-fi
-
-# Create timestamp
+[ -z "$WORK_NAME" ] && WORK_NAME="plan"
 TS="$(date +%Y%m%d_%H%M%S)"
-
-# Generate filename
 PLAN_FILE=".pilot/plan/pending/${TS}_${WORK_NAME}.md"
 ```
 
 ---
 
-## Step 3: Create Plan File in Pending/
+## Step 3: Create Plan File
 
-### 3.1 Plan Structure
-
-Create the plan file with the following structure:
-
+### 3.1 Structure
 ```markdown
 # {Work Name}
+- Generated: {timestamp} | Work: {work_name} | Location: {plan_path}
 
-- Generated at: {timestamp}
-- Work name: {work_name}
-- Location: {plan_path}
-
-## User Requirements
-
-[From conversation context]
+## User Requirements [From conversation]
 
 ## PRP Analysis
+### What / Why / How / Success Criteria / Constraints [From conversation]
 
-### What (Functionality)
-[From conversation]
-
-### Why (Context)
-[From conversation]
-
-### How (Approach)
-[From conversation]
-
-### Success Criteria
-[From conversation]
-
-### Constraints
-[From conversation]
-
-## Scope
-
-### In scope
-[From conversation]
-
-### Out of scope
-[From conversation]
+## Scope: In scope / Out of scope [From conversation]
 
 ## Architecture
+### Data Structures / Module Boundaries [From conversation if applicable]
 
-### Data Structures
-[From conversation if applicable]
+## Vibe Coding Compliance
+> Validate plan enforces: Functions ≤50 lines, Files ≤200 lines, Nesting ≤3, SRP/DRY/KISS
 
-### Module Boundaries
-[From conversation if applicable]
+## Execution Plan [Phase breakdown from conversation]
 
-## Execution Plan
+## Acceptance Criteria [Checkbox list from conversation]
 
-[Phase breakdown from conversation]
+## Test Plan [From conversation]
 
-## Acceptance Criteria
+## Risks & Mitigations [From conversation]
 
-[Checkbox list from conversation]
-
-## Test Plan
-
-[From conversation]
-
-## Risks & Mitigations
-
-[From conversation]
-
-## Open Questions
-
-[From conversation]
+## Open Questions [From conversation]
 ```
 
-### 3.2 Write Plan File
-
+### 3.2 Write File
 ```bash
 cat > "$PLAN_FILE" << 'PLAN_EOF'
 [Content extracted from conversation]
 PLAN_EOF
-
 echo "Plan created: $PLAN_FILE"
 ```
 
@@ -193,77 +99,47 @@ echo "Plan created: $PLAN_FILE"
 > **Principle**: Plan validation before execution. No user intervention needed.
 
 ### 4.1 Skip Check
-
-If `"$ARGUMENTS"` contains `--no-review`, skip to STOP section.
+If `"$ARGUMENTS"` contains `--no-review`, skip to STOP
 
 ### 4.2 Auto-Invoke Review
-
-Use Skill tool to invoke review:
-
 ```
 Skill: 90_review
 Args: "$PLAN_FILE"
 ```
 
-This automatically:
-1. Loads the plan from `$PLAN_FILE`
-2. Runs mandatory reviews
-3. Runs extended reviews by type
-4. Reports findings
-
-### 4.3 Review Results
-
-After review completes, verify findings were applied:
-
+### 4.3 Verify Results
 | Result | Action |
 |--------|--------|
 | Pass (Critical=0) | Proceed to STOP |
-| Needs Revision | Findings applied to plan via Step 8 of 90_review |
+| Needs Revision | Findings applied via Step 8 of 90_review |
 
-**Verify Apply Completion**:
-- Check plan file has `## Review History` section
-- Confirm all findings (Critical/Warning/Suggestion) have entries
-- Review summary includes: "Review findings applied: N critical, N warning, N suggestion"
+**Verify**: Check `## Review History` exists, all findings have entries, summary shows "Review findings applied: N critical, N warning, N suggestion"
 
 ---
 
 ## Success Criteria
 
-- Plan file created in `.pilot/plan/pending/`
-- Plan content extracted from conversation context
-- Optional review completed
-- Execution NOT started
+- [ ] Plan file created in `.pilot/plan/pending/`
+- [ ] Plan content extracted from conversation context
+- [ ] Vibe Coding Compliance section added
+- [ ] Optional review completed
+- [ ] Execution NOT started
 
 ---
 
 ## STOP
-
-```
-═══════════════════════════════════════════════════════════
-  MANDATORY STOP - DO NOT PROCEED TO EXECUTION
-═══════════════════════════════════════════════════════════
-
-This command (/01_confirm) has completed the CONFIRMATION phase:
-✓ Plan file created in: .pilot/plan/pending/
-[If review ran] ✓ Review findings applied to plan
-[If review ran] ✓ Review History updated with N changes
-✓ No execution has started
-
-To execute this plan, run:
-
-    /02_execute
-
-This will:
-1. Move the plan from pending/ to in_progress/
-2. Create an active pointer for this branch
-3. Begin execution with TDD and Ralph Loop
-
-═══════════════════════════════════════════════════════════
-```
+> **MANDATORY STOP - DO NOT PROCEED TO EXECUTION**
+>
+> ✓ Plan file created in: `.pilot/plan/pending/`
+> ✓ [If review ran] Review findings applied, Review History updated
+> ✓ No execution has started
+>
+> To execute: `/02_execute`
+> This will: Move plan to `in_progress/`, create active pointer, begin TDD + Ralph Loop
 
 ---
 
 ## References
-
-- **3-Tier Docs**: [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
-- **Review Extensions**: `.claude/guides/review-extensions.md`
+- [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
+- `.claude/guides/review-extensions.md`
+- **Branch**: !`git rev-parse --abbrev-ref HEAD`

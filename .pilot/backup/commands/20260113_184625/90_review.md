@@ -6,7 +6,9 @@ allowed-tools: Read, Glob, Grep, Bash(git:*), Write
 
 # /90_review
 
-_Review plans before implementation with comprehensive multi-angle analysis._
+*Review plans before implementation with comprehensive multi-angle analysis.*
+
+---
 
 ## Core Philosophy
 
@@ -17,21 +19,34 @@ _Review plans before implementation with comprehensive multi-angle analysis._
 
 ---
 
-## Extended Thinking Mode
+## Step 0: Load the Plan
 
-> **Conditional**: If LLM model is GLM, proceed with maximum extended thinking throughout all phases.
+### 0.1 Find Plan to Review
 
----
-
-## Step 0: Load Plan
+Priority order:
+1. Explicit path from `"$ARGUMENTS"`
+2. Most recent file in `.pilot/plan/in_progress/`
+3. Most recent file in `.pilot/plan/pending/`
 
 ```bash
 PLAN_PATH="$(ls -1tr .pilot/plan/in_progress/*/*.md .pilot/plan/pending/*.md 2>/dev/null | head -1)"
-[ -z "$PLAN_PATH" ] && { echo "No plan found to review" >&2; exit 1; }
-echo "Reviewing: $PLAN_PATH"
+
+if [ -z "$PLAN_PATH" ]; then
+    echo "No plan found to review."
+    exit 1
+fi
+
+echo "Reviewing plan: $PLAN_PATH"
 ```
 
-Read and extract: User requirements, Execution plan, Acceptance criteria, Test scenarios, Constraints, Risks
+### 0.2 Read Plan Content
+
+Read and extract:
+- User requirements
+- Execution plan phases
+- Acceptance criteria
+- Test scenarios
+- Constraints and risks
 
 ---
 
@@ -39,7 +54,11 @@ Read and extract: User requirements, Execution plan, Acceptance criteria, Test s
 
 > **Principle**: Investigate all "needs investigation/confirmation/review" items upfront
 
-**Keywords**: "need to investigate", "confirm", "TODO", "check", "verify"
+### 1.1 Find Investigation Items
+
+Keywords: "need to investigate", "confirm", "TODO", "check", "verify"
+
+### 1.2 Investigation Methods
 
 | Target | Method | Tools |
 |--------|--------|-------|
@@ -47,20 +66,35 @@ Read and extract: User requirements, Execution plan, Acceptance criteria, Test s
 | API docs | Check official docs | WebSearch |
 | Dependencies | npm/PyPI registry | Bash(npm/pip info) |
 
-**Output**: `🔍 Investigation Complete: [Item] → Result: ✅/❌ Finding → Plan update: Applied`
+### 1.3 Result Format
+
+```
+🔍 Investigation Complete:
+[Item 1: Target description]
+- Result: ✅/❌ Finding
+- Plan update: Modification applied
+```
 
 ---
 
-## Step 2: Type Detection
+## Step 2: Plan Type Detection
+
+### 2.1 Analyze Plan
+
+- Goal of the plan?
+- Files/components to modify/create?
+- Expected implementation steps?
+
+### 2.2 Type Detection Matrix
 
 | Type | Keywords | Extended Reviews |
 |------|----------|------------------|
-| **Code** | function, component, API, bug fix | A, B, D |
-| **Docs** | CLAUDE.md, README, guide | C |
+| **Code Modification** | function, component, API, bug fix | A, B, D |
+| **Documentation** | CLAUDE.md, README, guide | C |
 | **Scenario** | test, validation, edge cases | H |
-| **Infra** | Vercel, env, deploy, CI/CD | F |
-| **DB** | migration, table, schema | E |
-| **AI** | LLM, prompts, AI | G |
+| **Infrastructure** | Vercel, env, deploy, CI/CD | F |
+| **DB Schema** | migration, table, schema | E |
+| **AI/Prompts** | LLM, prompts, AI | G |
 
 **Output**: `📋 Type: [Primary] / Extended: [A, B, D]`
 
@@ -68,7 +102,7 @@ Read and extract: User requirements, Execution plan, Acceptance criteria, Test s
 
 ## Step 3: Mandatory Reviews (8 items)
 
-Execute all 8 reviews for every plan
+> Execute all 8 reviews for every plan
 
 ### Review 1: Development Principles
 ☐ **SOLID**: Single responsibility violations?
@@ -88,7 +122,7 @@ Execute all 8 reviews for every plan
 ### Review 4: Logic Errors
 ☐ Implementation order correct?
 ☐ Dependencies ready at point of use?
-☐ Edge cases considered? (null, empty, failure)
+☐ Edge cases considered? (null, empty, failure cases)
 ☐ Async handling correct?
 
 ### Review 5: Existing Code Reuse
@@ -115,24 +149,9 @@ Execute all 8 reviews for every plan
 
 ---
 
-## Step 4: Vibe Coding Compliance
+## Step 4: Extended Reviews (By Type)
 
-> **NEW: Check Vibe Coding Guidelines enforcement**
-
-| Target | Limit | Check |
-|--------|-------|-------|
-| Function | ≤50 lines | Plan mentions splitting large functions? |
-| File | ≤200 lines | Plan respects module boundaries? |
-| Nesting | ≤3 levels | Early return pattern specified? |
-
-☐ **SRP**: One function = one responsibility?
-☐ **DRY**: No duplicate code blocks planned?
-☐ **KISS**: Simplest solution that works?
-☐ **Early Return**: Reduced nesting planned?
-
----
-
-## Step 5: Extended Reviews (By Type)
+> Activate based on type detected in Step 2
 
 | Type | Activated | Focus |
 |------|-----------|-------|
@@ -147,22 +166,32 @@ Execute all 8 reviews for every plan
 
 ---
 
-## Step 6: Autonomous Review
+## Step 5: Autonomous Review
 
-> **Self-judge beyond mandatory/extended items**
+> Self-judge beyond mandatory/extended items
 
-**Perspectives**: Security (auth, validation), Performance (bottlenecks, caching), UX (loading, errors), Maintainability (readability), Concurrency (race conditions), Error Recovery (partial failure)
+**Perspectives to check:**
+1. **Security**: Auth, input validation, sensitive data
+2. **Performance**: Bottlenecks, caching opportunities
+3. **UX**: Loading states, error messages, feedback
+4. **Maintainability**: Readability, logging
+5. **Concurrency**: Race conditions, state sync
+6. **Error Recovery**: Partial failure handling
 
-**Output**: `🧠 Autonomous Discoveries: [1: Perspective] Issue → Recommendation`
+**Output Format:**
+```
+🧠 Autonomous Discoveries:
+[1: Perspective] Issue description → Recommendation
+```
 
 ---
 
-## Step 7: User-Requested Focus
+## Step 6: User-Requested Focus
 
-If `"$ARGUMENTS"` contains focus areas, deep-dive:
+If `"$ARGUMENTS"` contains focus areas, deep-dive into those:
 
-| Focus | Areas |
-|-------|-------|
+| Focus | Areas to Check |
+|-------|---------------|
 | `security` | Auth, injection, XSS, sensitive data |
 | `performance` | Queries, loops, caching, bundle size |
 | `accessibility` | ARIA, keyboard, contrast, screen readers |
@@ -171,7 +200,7 @@ If `"$ARGUMENTS"` contains focus areas, deep-dive:
 
 ---
 
-## Step 8: Results Summary
+## Step 7: Results Summary
 
 ```markdown
 # Plan Review Results
@@ -193,48 +222,61 @@ If `"$ARGUMENTS"` contains focus areas, deep-dive:
 | 7 | Project Alignment | ✅/⚠️/❌ |
 | 8 | Long-term Impact | ✅/⚠️/❌ |
 
-## Vibe Coding Compliance
-| Target | Status |
-|--------|--------|
-| Functions ≤50 lines | ✅/⚠️/❌ |
-| Files ≤200 lines | ✅/⚠️/❌ |
-| Nesting ≤3 levels | ✅/⚠️/❌ |
+## Extended Review
+[Only activated items]
 
-## Extended Review [Activated items only]
 ## Autonomous Discoveries
+| # | Perspective | Issue | Priority |
+|---|-------------|-------|----------|
+
 ## Issues
 ### 🚨 Critical (Must fix)
 ### ⚠️ Warning (Should fix)
 ### 💡 Suggestion
+
 ## Reusable Code Found
+| Planned | Existing | Action |
+|---------|----------|--------|
 ```
 
 ---
 
-## Step 9: Apply Findings to Plan
+## Step 8: Apply Review Findings to Plan
 
-> **Principle**: Review completion = Plan file improved with findings applied
+> **Principle**: Review completion = Plan file is improved with findings applied
 
-### 9.1 Map Findings to Sections
+### 8.1 Identify Changes
 
-| Issue Type | Target Section | Method |
-|------------|----------------|--------|
-| Missing step | Execution Plan | Add checkbox |
+Map all findings to their target sections:
+
+| Issue Type | Target Section | Apply Method |
+|------------|----------------|--------------|
+| Missing step | Execution Plan | Add checkbox to relevant Phase |
 | Unclear requirement | User Requirements / Success Criteria | Clarify wording |
-| Test gap | Test Plan | Add scenario |
-| Risk identified | Risks & Mitigations | Add item |
-| Alternative approach | How (Approach) | Add/modify |
+| Test gap | Test Plan | Add/modify test scenario |
+| Risk identified | Risks & Mitigations | Add new risk item |
+| Alternative approach | How (Approach) | Add alternative or modify approach |
 | Scope issue | Scope (In/Out) | Adjust scope |
 
-### 9.2 Apply & Update History
+### 8.2 Apply Changes
 
-1. Read plan file
-2. For each finding: Identify target section, Apply modification, Track change
-3. Write updated plan
+**Apply all findings** (Critical, Warning, Suggestion) to the plan:
 
-**Error Handling**: If error, keep original intact, log to History
+1. Read the plan file
+2. For each finding:
+   - Identify target section
+   - Apply modification (add/modify text)
+   - Track change for history
+3. Write updated plan file
 
-**Append to Review History**:
+**Error Handling Policy**:
+- If error occurs: Keep original plan intact, log error to Review History
+- If partial apply: Only log applied changes to History, note unapplied items
+
+### 8.3 Update History
+
+Append to plan's `## Review History` section:
+
 ```markdown
 ## Review History
 
@@ -248,10 +290,16 @@ If `"$ARGUMENTS"` contains focus areas, deep-dive:
 | Suggestion | N | N |
 
 **Changes Made**:
-1. **[Type] Section - Item**
+1. **[Critical/Warning/Suggestion] Section - Item**
+   - Issue: [Description]
+   - Applied: [Change made]
+
+2. **[Critical/Warning/Suggestion] Section - Item**
    - Issue: [Description]
    - Applied: [Change made]
 ```
+
+If `## Review History` doesn't exist, create it.
 
 ---
 
@@ -265,6 +313,6 @@ If `"$ARGUMENTS"` contains focus areas, deep-dive:
 ---
 
 ## References
-- `.claude/guides/review-extensions.md`
-- [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
-- **Branch**: !`git rev-parse --abbrev-ref HEAD`
+
+- **Review Extensions**: `.claude/guides/review-extensions.md`
+- **3-Tier Docs**: [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)

@@ -8,115 +8,60 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash, AskUserQuestion
 
 _Initialize 3-Tier Documentation System for existing projects - automated analysis and document generation._
 
----
-
 ## Core Philosophy
 
-- **Migration-First**: Bring existing projects up to the same documentation standard as new projects
+- **Migration-First**: Bring existing projects to same documentation standard as new projects
 - **Interactive**: Confirm before making changes
 - **Smart Merging**: Preserve existing documentation rather than overwriting
 - **Tech Stack Detection**: Automatically identify project type and structure
 
 > Reference: [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
-> Principle: 3-Tier Documentation System - Foundation/Component/Feature hierarchy
+
+---
+
+## Extended Thinking Mode
+
+> **Conditional**: If LLM model is GLM, proceed with maximum extended thinking throughout all phases.
 
 ---
 
 ## Step 0: Pre-flight Checks
 
-### 0.1 Verify Command Context
-
-Check if this is a fresh install or existing project:
-
+### 0.1 Verify Context
 ```bash
-# Check for existing CLAUDE.md
-if [ -f "CLAUDE.md" ]; then
-    MODE="migration"
-else
-    MODE="fresh"
-fi
-```
-
-### 0.2 Check Git Repository
-
-```bash
-# Verify git repo
-git rev-parse --git-dir > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    IS_GIT_REPO=true
-else
-    IS_GIT_REPO=false
-fi
+[ -f "CLAUDE.md" ] && MODE="migration" || MODE="fresh"
+git rev-parse --git-dir > /dev/null 2>&1 && IS_GIT_REPO=true || IS_GIT_REPO=false
 ```
 
 ---
 
 ## Step 1: Project Analysis
 
-### 1.1 Detect Technology Stack
-
-Scan for package/dependency files:
-
+### 1.1 Detect Tech Stack
 ```bash
-# Node.js/TypeScript
-if [ -f "package.json" ]; then
-    TECH_STACK="node"
-    FRAMEWORK=$(grep -E '"(react|next|vue|angular|express|fastify)"' package.json | head -1)
-fi
-
-# Python
-if [ -f "requirements.txt" ] || [ -f "pyproject.toml" ] || [ -f "setup.py" ]; then
-    TECH_STACK="python"
-fi
-
-# Go
-if [ -f "go.mod" ]; then
-    TECH_STACK="go"
-fi
-
-# Rust
-if [ -f "Cargo.toml" ]; then
-    TECH_STACK="rust"
-fi
+[ -f "package.json" ] && TECH_STACK="node" && FRAMEWORK=$(grep -E '"(react|next|vue|angular|express|fastify)"' package.json | head -1)
+[ -f "requirements.txt" ] || [ -f "pyproject.toml" ] || [ -f "setup.py" ] && TECH_STACK="python"
+[ -f "go.mod" ] && TECH_STACK="go"
+[ -f "Cargo.toml" ] && TECH_STACK="rust"
 ```
 
-### 1.2 Scan Directory Structure
-
+### 1.2 Scan Structure
 ```bash
-# Find main source directories
-for DIR in src lib app components pages server; do
-    if [ -d "$DIR" ]; then
-        SOURCE_DIRS+=("$DIR")
-    fi
-done
-
-# Find test directories
-for DIR in test tests spec __tests__; do
-    if [ -d "$DIR" ]; then
-        TEST_DIR="$DIR"
-        break
-    fi
-done
+for DIR in src lib app components pages server; do [ -d "$DIR" ] && SOURCE_DIRS+=("$DIR"); done
+for DIR in test tests spec __tests__; do [ -d "$DIR" ] && TEST_DIR="$DIR" && break; done
 ```
 
-### 1.3 Identify Key Folders for Tier 2 CONTEXT.md
-
-Generate list of candidates:
-
+### 1.3 Identify Tier 2 Candidates
 | Pattern | Example | Criteria |
 |---------|---------|----------|
-| `src/*/` | `src/components/` | Has 3+ files |
-| `lib/*/` | `lib/utils/` | Has 3+ files |
+| `src/*/`, `lib/*/` | `src/components/` | Has 3+ files |
 | `components/*/` | `components/admin/` | Has 3+ files |
 | Top-level | `src/`, `lib/` | Main source folders |
 
 ```bash
-# Find folders with 3+ files
 find . -maxdepth 3 -type d | while read DIR; do
     FILE_COUNT=$(find "$DIR" -maxdepth 1 -type f | wc -l)
-    if [ $FILE_COUNT -ge 3 ]; then
-        echo "$DIR ($FILE_COUNT files)"
-    fi
+    [ $FILE_COUNT -ge 3 ] && echo "$DIR ($FILE_COUNT files)"
 done
 ```
 
@@ -124,10 +69,7 @@ done
 
 ## Step 2: Interactive Customization
 
-### 2.1 Present Analysis Results
-
-Display detected information:
-
+### 2.1 Present Analysis
 ```
 📊 Project Analysis Complete
 
@@ -140,26 +82,15 @@ Display detected information:
 - Source Directories: {SOURCE_DIRS}
 - Test Directory: {TEST_DIR}
 
-## Candidates for Tier 2 CONTEXT.md
+## Tier 2 Candidates
 {FOLDER_LIST}
 ```
 
-### 2.2 Ask for Project Description
-
-Use AskUserQuestion to get project info:
-
-```
-Provide a brief project description (1-2 sentences):
-```
+### 2.2 Get Project Info
+Use AskUserQuestion: "Provide a brief project description (1-2 sentences):"
 
 ### 2.3 Confirm Tier 2 Folders
-
-Ask user to select folders for Tier 2 CONTEXT.md:
-
-```
-Select folders to create Tier 2 (Component) CONTEXT.md:
-[Multi-select from candidate folders]
-```
+Ask: "Select folders to create Tier 2 (Component) CONTEXT.md:" [Multi-select from candidates]
 
 ---
 
@@ -167,152 +98,110 @@ Select folders to create Tier 2 (Component) CONTEXT.md:
 
 ### 3.1 Create/Update CLAUDE.md (Tier 1)
 
-If CLAUDE.md exists, merge with existing content:
+| Section | Content |
+|---------|---------|
+| Project Overview | One-line description, tech stack, status |
+| Quick Start | Installation, common commands |
+| Project Structure | Directory layout, key files |
+| 3-Tier Documentation | Links to Tier 2/3 CONTEXT.md |
 
 ```bash
 if [ -f "CLAUDE.md" ]; then
-    # Merge mode: preserve existing sections
-    # Add/update only new sections
+    # Merge mode: preserve existing, add/update new sections
 else
-    # Create new CLAUDE.md from template
+    # Create new from template
 fi
 ```
 
-CLAUDE.md should include:
-
-| Section | Content |
-|---------|---------|
-| Project Overview | One-line description, tech stack, current status |
-| Quick Start | Installation, common commands |
-| Project Structure | Directory layout, key files |
-| 3-Tier Documentation | Links to Tier 2/3 CONTEXT.md files |
-
-### 3.2 Create docs/ai-context/ Directory
+### 3.2 Create docs/ai-context/
 
 ```bash
 mkdir -p docs/ai-context
 ```
 
-Create three files:
-
-#### docs/ai-context/docs-overview.md
-
-Document routing and hierarchy:
-
+**@docs/ai-context/docs-overview.md**:
 ```markdown
 # Documentation Overview
 
-## 3-Tier Documentation System
-
-| Tier | Location | Purpose | Update Frequency |
-|------|----------|---------|------------------|
-| Tier 1 | CLAUDE.md (root) | Project standards & quick reference | Rarely |
-| Tier 2 | {component}/CONTEXT.md | Component architecture & integration | Occasionally |
+## 3-Tier System
+| Tier | Location | Purpose | Frequency |
+|------|----------|---------|-----------|
+| Tier 1 | CLAUDE.md | Project standards | Rarely |
+| Tier 2 | {component}/CONTEXT.md | Component architecture | Occasionally |
 | Tier 3 | {feature}/CONTEXT.md | Implementation details | Frequently |
 
 ## Quick Start
-
-1. **New to project**: Read CLAUDE.md (Tier 1)
-2. **Working on component**: Read component's CONTEXT.md (Tier 2)
-3. **Deep implementation**: Read feature's CONTEXT.md (Tier 3)
+1. New to project → Read CLAUDE.md (Tier 1)
+2. Working on component → Read component's CONTEXT.md (Tier 2)
+3. Deep implementation → Read feature's CONTEXT.md (Tier 3)
 
 ## Document Map
-
-### Tier 1 (Foundation)
-- `CLAUDE.md` - Project root documentation
-
-### Tier 2 (Components)
-- `{list of Tier 2 CONTEXT.md locations}`
-
-### Tier 3 (Features)
-- `{list of Tier 3 CONTEXT.md locations}`
+### Tier 1: CLAUDE.md
+### Tier 2: {list}
+### Tier 3: {list}
 ```
 
-#### docs/ai-context/project-structure.md
-
-Technology stack and file structure:
-
+**@docs/ai-context/project-structure.md**:
 ```markdown
 # Project Structure
 
 ## Technology Stack
-
 | Category | Technology |
 |----------|-----------|
-| Language | {detected language} |
-| Framework | {detected framework} |
-| Package Manager | {npm/pip/cargo/etc} |
-| Build Tool | {detected build tool} |
+| Language | {detected} |
+| Framework | {detected} |
+| Package Manager | {npm/pip/cargo} |
+| Build Tool | {detected} |
 
 ## Directory Layout
-
 ```
 {project-root}/
-├── {source-dir}/           # Main source code
+├── {source-dir}/           # Main source
 │   ├── {folder1}/         # {purpose}
 │   └── {folder2}/         # {purpose}
-├── {test-dir}/            # Test files
-├── docs/
-│   └── ai-context/        # This directory
-├── CLAUDE.md              # Tier 1 documentation
+├── {test-dir}/            # Tests
+├── docs/ai-context/       # This directory
+├── CLAUDE.md              # Tier 1
 └── package.json           # Dependencies
 ```
 
 ## Key Files
-
 | File | Purpose |
 |------|---------|
-| {entry-file} | Application entry point |
-| {config-file} | Configuration |
-| {main-file} | Main module |
+| {entry} | Application entry |
+| {config} | Configuration |
+| {main} | Main module |
 ```
 
-#### docs/ai-context/system-integration.md
-
-Cross-component patterns:
-
+**@docs/ai-context/system-integration.md**:
 ```markdown
 # System Integration
 
 ## Component Interactions
-
 ```
-[Component A] → [Component B] → [Component C]
-       ↓              ↓              ↓
-   [Service]    [Utility]      [Repository]
+[A] → [B] → [C]
+↓     ↓     ↓
+[Service] [Utility] [Repository]
 ```
 
 ## Data Flow
-
-1. **Request Flow**: {describe request flow}
-2. **State Management**: {describe state management}
-3. **Error Handling**: {describe error handling strategy}
+1. Request Flow: {describe}
+2. State Management: {describe}
+3. Error Handling: {describe}
 
 ## Shared Patterns
-
-- **Pattern 1**: {description}
-- **Pattern 2**: {description}
+- Pattern 1: {description}
+- Pattern 2: {description}
 
 ## Integration Points
-
 | Component | Interface | Direction | Purpose |
 |-----------|-----------|-----------|---------|
-| {Comp A}  | {API}     | →         | {Purpose} |
+| {Comp A} | {API} | → | {Purpose} |
 ```
 
 ### 3.3 Create Tier 2 CONTEXT.md Files
 
-For each selected folder from Step 2.3:
-
-```bash
-for FOLDER in "${SELECTED_FOLDERS[@]}"; do
-    # Use CONTEXT-tier2.md.template as base
-    # Fill in folder-specific information
-    # Create at: ${FOLDER}/CONTEXT.md
-done
-```
-
-Content should include:
+For each selected folder, use @.claude/templates/CONTEXT-tier2.md.template
 
 | Section | Source |
 |---------|--------|
@@ -321,51 +210,40 @@ Content should include:
 | Dependencies | Import analysis |
 | Integration | Identify related components |
 
+```bash
+for FOLDER in "${SELECTED_FOLDERS[@]}"; do
+    # Use template, fill folder-specific info, create at ${FOLDER}/CONTEXT.md
+done
+```
+
 ---
 
 ## Step 4: Verification & Completion
 
-### 4.1 Validate Created Files
-
+### 4.1 Validate
 ```bash
-# Check files exist
 ls -la CLAUDE.md
 ls -la docs/ai-context/*.md
 find . -name "CONTEXT.md" -type f
 ```
 
-### 4.2 Generate Summary Report
-
+### 4.2 Summary Report
 ```
 ✅ 3-Tier Documentation System Initialized
 
 ## Created Files
-
-### Tier 1 (Foundation)
-- CLAUDE.md
-
-### docs/ai-context/
-- docs-overview.md
-- project-structure.md
-- system-integration.md
-
-### Tier 2 (Components)
-- {folder}/CONTEXT.md
-- {folder}/CONTEXT.md
+### Tier 1: CLAUDE.md
+### docs/ai-context/: docs-overview.md, project-structure.md, system-integration.md
+### Tier 2: {folder}/CONTEXT.md
 
 ## Next Steps
-
 1. Review generated documentation
 2. Customize CLAUDE.md for your project
 3. Use /91_document to keep docs in sync
-4. Run /91_document {folder} to create Tier 3 docs for features
+4. Run /91_document {folder} for Tier 3 docs
 
 ## Preservation
-
-Existing files were merged, not replaced.
-Original content preserved in sections marked with [Existing].
-
----
+Existing files were merged, not replaced. Original content preserved in [Existing] sections.
 
 Ready to start building with claude-pilot! 🚀
 ```
@@ -377,40 +255,27 @@ Ready to start building with claude-pilot! 🚀
 | Check | Verification | Expected |
 |-------|--------------|----------|
 | CLAUDE.md exists | `ls CLAUDE.md` | File created/merged |
-| docs/ai-context/ exists | `ls docs/ai-context/` | 3 files created |
-| Tier 2 CONTEXT.md created | `find . -name "CONTEXT.md"` | At least 1 created |
-| Existing content preserved | Manual review | Original content intact |
+| docs/ai-context/ exists | `ls docs/ai-context/` | 3 files |
+| Tier 2 CONTEXT.md created | `find . -name "CONTEXT.md"` | At least 1 |
+| Existing content preserved | Manual review | Original intact |
 
 ---
 
 ## Common Usage Patterns
 
-### Fresh Project (no existing CLAUDE.md)
-
+### Fresh Project (no CLAUDE.md)
 ```
-/92_init
-→ Creates full 3-Tier structure from scratch
-→ Uses detected tech stack
-→ All sections filled with detected info
+/92_init → Creates full 3-Tier from scratch, uses detected tech stack, all sections filled
 ```
 
 ### Migration (existing CLAUDE.md)
-
 ```
-/92_init
-→ Creates docs/ai-context/
-→ Merges new sections into CLAUDE.md
-→ Preserves existing content
-→ Creates Tier 2 CONTEXT.md for selected folders
+/92_init → Creates docs/ai-context/, merges new sections into CLAUDE.md, preserves existing, creates Tier 2 for selected folders
 ```
 
-### Targeted Initialization
-
+### Targeted
 ```
-/92_init
-→ During analysis, select specific folders
-→ Creates CONTEXT.md only for selected folders
-→ Run again later for additional folders
+/92_init → Select specific folders during analysis, creates CONTEXT.md only for selected, run again later for more
 ```
 
 ---
@@ -419,13 +284,14 @@ Ready to start building with claude-pilot! 🚀
 
 | Template | Purpose | Location |
 |----------|---------|----------|
-| CONTEXT-tier2.md.template | Component-level docs | `.claude/templates/CONTEXT-tier2.md.template` |
-| CONTEXT-tier3.md.template | Feature-level docs | `.claude/templates/CONTEXT-tier3.md.template` |
+| CONTEXT-tier2.md.template | Component docs | `.claude/templates/` |
+| CONTEXT-tier3.md.template | Feature docs | `.claude/templates/` |
 
 ---
 
 ## References
-
-- **3-Tier Documentation**: [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
-- **Related Commands**: `/91_document` (keep docs in sync)
-- **Templates**: `.claude/templates/CONTEXT-*.md.template`
+- [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
+- `/91_document` (keep docs in sync)
+- @.claude/templates/CONTEXT-*.md.template
+- **Branch**: !`git rev-parse --abbrev-ref HEAD**
+- **Status**: !`git status --short`

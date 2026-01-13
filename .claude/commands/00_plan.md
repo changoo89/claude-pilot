@@ -6,70 +6,28 @@ allowed-tools: Read, Glob, Grep, Bash(git:*), WebSearch, AskUserQuestion, mcp__p
 
 # /00_plan
 
-_Explore the codebase, gather requirements through dialogue, and design a SPEC-First execution plan._
-
----
+_Explore codebase, gather requirements, and design SPEC-First execution plan._
 
 ## Core Philosophy
 
 - **Read-Only**: NO code modifications. Only exploration, analysis, and planning.
 - **SPEC-First**: Requirements, success criteria, test scenarios BEFORE implementation.
 - **Collaborative**: Dialogue with user to clarify ambiguities.
-- **Executable Output**: Result sufficient for `/01_confirm`.
 
-> **⚠️ CRITICAL CONSTRAINT**
-> ```
-> ╔═══════════════════════════════════════════════════════════╗
-> ║  DO NOT START IMPLEMENTATION DURING /00_plan             ║
-> ║  - NO code editing tools (Edit, Write, replace_content)   ║
-> ║  - NO test writing                                         ║
-> ║  - NO file creation (except via /01_confirm)              ║
-> ║                                                           ║
-> ║  This command is for:                                     ║
-> ║  ✅ Exploration (Glob, Grep, Read)                        ║
-> ║  ✅ Analysis (find_symbol, find_referencing_symbols)      ║
-> ║  ✅ Planning (PRP definition, architecture)               ║
-> ║  ✅ Dialogue (AskUserQuestion)                            ║
-> ║                                                           ║
-> ║  Implementation starts ONLY after:                        ║
-> ║  1. User runs /01_confirm (saves plan to pending/)        ║
-> ║  2. User runs /02_execute (begins TDD cycle)             ║
-> ╚═══════════════════════════════════════════════════════════╝
-> ```
+> **⚠️ CRITICAL**: DO NOT start implementation during /00_plan.
+> - ❌ NO code editing, test writing, or file creation
+> - ✅ OK: Exploration (Glob, Grep, Read), Analysis, Planning, Dialogue
+> - Implementation starts ONLY after `/01_confirm` → `/02_execute`
 
 ---
 
 ## Extended Thinking Mode
 
-> **Conditional Activation**
-> If the LLM model currently running in this session is a GLM model,
-> proceed with maximum extended thinking throughout all phases of this command.
-> This ensures deep reasoning and thorough analysis for complex tasks.
+> **Conditional**: If LLM model is GLM, proceed with maximum extended thinking throughout all phases.
 
 ---
 
-## Inputs
-
-- Task description from `"$ARGUMENTS"` (required)
-- Codebase context via exploration
-- User responses to clarifying questions
-
----
-
-## Step 0: Initial Context Gathering
-
-> **Principle**: Parallel exploration before questions.
-
-### 0.1 Parse Task Description
-
-Extract from `"$ARGUMENTS"`:
-- Primary objective
-- Implicit constraints
-- Keywords for search
-
-### 0.2 Parallel Exploration
-
-Launch up to 3 exploration threads:
+## Step 0: Parallel Exploration
 
 | Thread | Focus | Tools |
 |--------|-------|-------|
@@ -77,336 +35,154 @@ Launch up to 3 exploration threads:
 | Research | External docs | WebSearch, query-docs |
 | Quality | Tests, CLAUDE.md | Read |
 
-### 0.3 Output
-
-```
-🔍 Exploration Results:
-- [Explore]: N files, pattern at X
-- [Research]: Docs show Y
-- [Quality]: Convention is Z
-```
+Output: 🔍 [Explore] N files at X, [Research] Docs show Y, [Quality] Convention is Z
 
 ---
 
 ## Step 1: Requirements Elicitation
 
-> **Principle**: PRP-style clarity (Product Requirements Prompt).
+Present understanding + AskUserQuestion:
+1. **[Scope]**: Boundaries? 2. **[Constraints]**: Performance/compatibility?
+3. **[Priority]**: Critical vs nice-to-have? 4. **[Out of Scope]**: Explicitly excluded?
+5. **[Dependencies]**: Blockers/prerequisites?
 
-### 1.1 Present Initial Understanding
+Validate: restate requirements, get confirmation.
 
-Based on Step 0:
-- What you understood
-- Key files affected
-- Initial scope
-
-### 1.2 Clarifying Questions
-
-Use AskUserQuestion with consolidated block:
-1. **[Scope]**: Boundaries of the change?
-2. **[Constraints]**: Performance/compatibility requirements?
-3. **[Priority]**: Critical features vs nice-to-have?
-4. **[Out of Scope]**: What's explicitly excluded?
-5. **[Dependencies]**: Any blockers or prerequisites?
-
-### 1.3 Validate
-
-Restate requirements, get confirmation.
-
-> **🔄 REMINDER: PLANNING PHASE**
-> ```
-> You are still in /00_plan (planning mode).
-> ✅ OK: Requirements gathering, clarification, PRP definition
-> ❌ NOT OK: Writing code, editing files, running tests
->
-> Next: /01_confirm saves the plan → /02_execute begins implementation
-> ```
+---
 
 ## Step 2: PRP Definition
 
-> **Principle**: Product Requirements Prompt + TDD test scenarios.
+### What (Functionality)
+**Objective**: Clear statement | **Scope**: In/out of scope
 
-### 2.1 What (Functionality)
+### Why (Context)
+**Current**: Problem statement | **Desired**: End state | **Business Value**: User/technical impact
 
-**Objective**: Clear statement of what needs to be built
+### How (Approach)
+- **Phase 1**: Discovery & Alignment
+- **Phase 2**: Design
+- **Phase 3**: Implementation (TDD: Red → Green → Refactor, Ralph Loop)
+- **Phase 4**: Verification (type check + lint + tests + coverage)
+- **Phase 5**: Handoff (docs + summary)
 
-**Scope**:
-- In scope: [What's included]
-- Out of scope: [What's explicitly excluded]
-
-### 2.2 Why (Context)
-
-**Current State**: [What's the problem?]
-
-**Desired State**: [What will be true after?]
-
-**Business Value**: [User/technical impact]
-
-### 2.3 How (Approach)
-
-**Phase 1: Discovery & Alignment**
-- [ ] Identify relevant code paths
-- [ ] Confirm integration points
-
-**Phase 2: Design**
-- [ ] Draft approach
-- [ ] Define success validation
-
-**Phase 3: Implementation (TDD)**
-- [ ] For each SC: Red → Green → Refactor
-- [ ] Ralph Loop until all pass
-
-**Phase 4: Verification**
-- [ ] Type check + lint
-- [ ] Test suite + coverage
-- [ ] Manual verification
-
-**Phase 5: Handoff**
-- [ ] Update docs
-- [ ] Change summary
-
-### 2.4 Success Criteria
-
+### Success Criteria
 ```
 SC-{N}: {Description}
 - Verify: {How to test}
 - Expected: {Result}
 ```
 
-### 2.5 Test Scenarios (TDD-Ready)
-
+### Test Scenarios
 | ID | Scenario | Input | Expected | Type |
 |----|----------|-------|----------|------|
 | TS-1 | Happy path | ... | ... | Unit |
-| TS-2 | Edge: empty | ... | ... | Unit |
+| TS-2 | Edge case | ... | ... | Unit |
 | TS-3 | Error handling | ... | ... | Integration |
 
-### 2.6 Constraints
+### Constraints
+Time, Technical, Resource limits
 
-**Time Constraints**: [If applicable]
-
-**Technical Constraints**: [Technology limits]
-
-**Resource Constraints**: [API limits, quotas]
-
-> **🔄 REMINDER: PLANNING PHASE**
-> ```
-> You are still in /00_plan (planning mode).
-> ✅ OK: Defining success criteria, test scenarios, constraints
-> ❌ NOT OK: Writing tests, implementing features, editing files
->
-> Next: Continue to Step 3 (Architecture), then Step 4 (Present Plan)
-> After plan approved: /01_confirm → /02_execute for implementation
-> ```
+---
 
 ## Step 3: Architecture & Design
 
-> **Principle**: Data + structure first.
+### Data Structures
+Schema changes, TypeScript interfaces, API shapes
 
-### 3.1 Data Structures
+### Module Boundaries
+New files, existing modifications, integration points
 
-- Schema changes
-- TypeScript interfaces
-- API shapes
+### Vibe Coding Guidelines
+> **LLM-Readable Code Standards** - Enforce during code generation
 
-### 3.2 Module Boundaries
+| Target | Limit | Action |
+|--------|-------|--------|
+| Function | ≤50 lines | Split functions |
+| Class/File | ≤200 lines | Extract modules |
+| Nesting | ≤3 levels | Early return |
 
-- New files to create
-- Existing files to modify
-- Integration points
+**Principles**: SRP, DRY, KISS, Early Return
+**AI Rules**: Small increments, test immediately, never trust blindly, edge cases, consistent naming, no secrets
 
-### 3.3 Dependency Map
-
+### Dependencies
 ```
 [A] --uses--> [B] --calls--> [C]
 ```
 
-### 3.4 Risk Assessment
-
+### Risks
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
 
-### 3.5 Alternatives
+### Alternatives
+- **A**: Pros/Cons | **B**: Pros/Cons | **Chosen**: Reason
 
-- **Approach A**: Pros/Cons
-- **Approach B**: Pros/Cons
-- **Chosen**: [Reason]
-
-> **🔄 REMINDER: PLANNING PHASE**
-> ```
-> You are still in /00_plan (planning mode).
-> ✅ OK: Architecture design, data structures, module boundaries
-> ❌ NOT OK: Creating files, implementing modules, writing code
->
-> Next: Step 4 (Present Plan Summary) - present plan in conversation
-> After user approval: /01_confirm saves to pending/
-> ```
+---
 
 ## Step 4: Present Plan Summary
 
-> **Principle**: No file creation. Present the complete plan in conversation for review.
-
-### 4.1 Plan Structure
-
-Present the complete SPEC-First plan with the following structure:
-
+### Plan Structure
 ```markdown
 # {Work Name}
+- Generated: {timestamp} | Work: {work_name}
+- Location: .pilot/plan/pending/{timestamp}_{work_name}.md
 
-- Generated at: {timestamp}
-- Work name: {work_name}
-
-## User Requirements
-
-[Paste user's original request]
+## User Requirements [Original request]
 
 ## PRP Analysis
+### What / Why / How / Success Criteria / Constraints
 
-### What (Functionality)
-[From Step 2.2]
-
-### Why (Context)
-[From Step 2.2]
-
-### How (Approach)
-[From Step 2.3]
-
-### Success Criteria
-[From Step 2.4]
-
-### Constraints
-[From Step 2.6]
-
-## Scope
-
-### In scope
-[List]
-
-### Out of scope
-[List]
+## Scope: In scope / Out of scope
 
 ## Architecture
+### Data Structures / Module Boundaries / Vibe Coding Guidelines
 
-### Data Structures
-[From Step 3.1]
+## Execution Plan [Phases with checkboxes]
 
-### Module Boundaries
-[From Step 3.2]
+## Acceptance Criteria [Checkboxes from SC]
 
-## Execution Plan
+## Test Plan [From Step 2]
 
-[Phase breakdown from Step 2.3 with checkboxes]
-
-## Acceptance Criteria
-
-[From Step 2.4 with checkboxes]
-
-## Test Plan
-
-[From Step 2.5]
-
-## Risks & Mitigations
-
-[From Step 3.4]
-
-## Open Questions
-
-[Any unresolved items]
+## Risks & Mitigations / Open Questions
 ```
 
-### 4.2 Present Summary
-
-After presenting the complete plan, provide:
-- Brief recap of the approach
-- Confirmation that no files have been created
-- Next step instruction
-
-### 4.3 User Confirmation Gate
-
-> **⛔ USER CONFIRMATION REQUIRED**
-> ```
-> ╔═══════════════════════════════════════════════════════════╗
-> ║  STOP HERE - AWAIT USER APPROVAL                         ║
-> ╠═══════════════════════════════════════════════════════════╣
-> ║                                                           ║
-> ║  Current Status:                                          ║
-> ║  ✅ Plan complete (in conversation only)                 ║
-> ║  ✅ No files created yet                                 ║
-> ║  ✅ Ready for review                                     ║
-> ║                                                           ║
-> ║  User Action Required:                                   ║
-> ║                                                          ║
-> ║  IF the plan looks correct:                              ║
-> ║    → Run /01_confirm to save plan to pending/            ║
-> ║                                                           ║
-> ║  IF changes needed:                                       ║
-> ║    → Request modifications (stay in /00_plan)            ║
-> ║                                                           ║
-> ║  DO NOT proceed to implementation until:                 ║
-> ║    1. User runs /01_confirm (creates plan file)          ║
-> ║    2. User runs /02_execute (begins TDD cycle)          ║
-> ║                                                           ║
-> ╚═══════════════════════════════════════════════════════════╝
-> ```
+### User Confirmation Gate
+> **⛔ CONFIRMATION REQUIRED**
+> Status: ✅ Plan complete (conversation only), ✅ No files created, ✅ Ready for review
+> - IF correct → Run `/01_confirm` to save to `pending/`
+> - IF changes → Request modifications
+> DO NOT proceed until: `/01_confirm` → `/02_execute`
 
 ---
 
 ## Success Criteria
 
-### Process
 - [ ] Parallel exploration executed
 - [ ] Clarifying questions asked/answered
 - [ ] Requirements in PRP format
 - [ ] Test scenarios TDD-ready
-
-### Output
-- [ ] Plan follows structure
-- [ ] All 5 phases defined
-- [ ] Risks documented
-- [ ] Plan presented in conversation (no file created)
-
-### Handoff
-- [ ] User approved
-- [ ] Ready for /01_confirm
-- [ ] No code modified
+- [ ] Plan follows structure, all phases defined
+- [ ] Risks documented, plan in conversation (no file)
+- [ ] User approved, ready for `/01_confirm`
 
 ---
 
-## Workflow Overview
-
+## Workflow
 ```
-/00_plan     → /01_confirm  → /02_execute → /03_close
-     │             │              │            │
-   Create       Review       Execute      Archive
-   Plan         Plan        (TDD+Ralph)   & Commit
+/00_plan → /01_confirm → /02_execute → /03_close
+ Create    Review      Execute      Archive
+ Plan      Plan      (TDD+Ralph)   & Commit
 ```
 
 ---
 
 ## STOP
-
-```
-═══════════════════════════════════════════════════════════
-  MANDATORY STOP - DO NOT PROCEED TO EXECUTION
-═══════════════════════════════════════════════════════════
-
-This command (/00_plan) completes the PLANNING phase.
-No files have been created. The plan exists only in this conversation.
-
-To save this plan and proceed to execution, run:
-
-    /01_confirm
-
-This will:
-1. Extract the plan from this conversation context
-2. Create a plan file in .pilot/plan/pending/
-3. STOP and wait for you to run /02_execute
-
-═══════════════════════════════════════════════════════════
-```
+> **MANDATORY STOP** - PLANNING phase. No files created.
+> Run `/01_confirm` to save plan to `.pilot/plan/pending/`
 
 ---
 
 ## References
-
-- **3-Tier Docs**: [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
-- **Review Extensions**: `.claude/guides/review-extensions.md`
+- [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
+- `.claude/guides/review-extensions.md`
+- **Branch**: !`git rev-parse --abbrev-ref HEAD`
+- **Status**: !`git status --short`

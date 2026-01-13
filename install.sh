@@ -212,38 +212,40 @@ do_install() {
 
     # Verify installation
     local bin_dir=$(get_user_bin_dir)
-    if command -v claude-pilot &> /dev/null || [[ -f "$bin_dir/claude-pilot" ]]; then
+    local config_file=$(get_shell_config)
+
+    if command -v claude-pilot &> /dev/null; then
+        # Already in PATH - best case
         success "Installation complete!"
         echo ""
-
-        # Show version
-        if command -v claude-pilot &> /dev/null; then
-            local installed_version=$(claude-pilot --version 2>/dev/null | head -1)
-            dim "Installed: $installed_version"
-        fi
-
+        local installed_version=$(claude-pilot --version 2>/dev/null | head -1)
+        dim "Installed: $installed_version"
         echo ""
         info "Quick Start:"
         echo -e "  ${CYAN}cd${NC} your-project"
         echo -e "  ${CYAN}claude-pilot init .${NC}"
         echo ""
-
-        if [[ $path_modified -eq 1 ]]; then
-            warning "PATH updated. Run this or restart terminal:"
-            local config_file=$(get_shell_config)
-            echo -e "  ${CYAN}source $config_file${NC}"
-            echo ""
-        fi
+    elif [[ -f "$bin_dir/claude-pilot" ]]; then
+        # Installed but not in current PATH
+        success "Installation complete!"
+        echo ""
+        echo -e "${YELLOW}┌─────────────────────────────────────────────────┐${NC}"
+        echo -e "${YELLOW}│${NC}  ${GREEN}Almost there!${NC} Run this to activate:            ${YELLOW}│${NC}"
+        echo -e "${YELLOW}│${NC}                                                 ${YELLOW}│${NC}"
+        echo -e "${YELLOW}│${NC}  ${CYAN}source ${config_file}${NC}"
+        echo -e "${YELLOW}│${NC}                                                 ${YELLOW}│${NC}"
+        echo -e "${YELLOW}│${NC}  Or simply ${GREEN}open a new terminal${NC}               ${YELLOW}│${NC}"
+        echo -e "${YELLOW}└─────────────────────────────────────────────────┘${NC}"
+        echo ""
+        info "Then run:"
+        echo -e "  ${CYAN}cd${NC} your-project"
+        echo -e "  ${CYAN}claude-pilot init .${NC}"
+        echo ""
     else
         warning "Installation completed but verification failed."
         echo ""
         info "Try manually:"
         echo -e "  ${CYAN}pip3 install claude-pilot${NC}"
-        echo ""
-        info "If PATH issues persist:"
-        local config_file=$(get_shell_config)
-        echo -e "  ${CYAN}echo 'export PATH=\"\$(python3 -m site --user-base)/bin:\$PATH\"' >> $config_file${NC}"
-        echo -e "  ${CYAN}source $config_file${NC}"
         echo ""
     fi
 }

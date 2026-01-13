@@ -1,7 +1,7 @@
 ---
 description: Review plans with multi-angle analysis (mandatory + extended + autonomous)
 argument-hint: "[focus] - optional focus areas (security, performance, accessibility, etc.)"
-allowed-tools: Read, Glob, Grep, Bash(git:*)
+allowed-tools: Read, Glob, Grep, Bash(git:*), Write
 ---
 
 # /90_review
@@ -238,6 +238,68 @@ If `"$ARGUMENTS"` contains focus areas, deep-dive into those:
 | Planned | Existing | Action |
 |---------|----------|--------|
 ```
+
+---
+
+## Step 8: Apply Review Findings to Plan
+
+> **Principle**: Review completion = Plan file is improved with findings applied
+
+### 8.1 Identify Changes
+
+Map all findings to their target sections:
+
+| Issue Type | Target Section | Apply Method |
+|------------|----------------|--------------|
+| Missing step | Execution Plan | Add checkbox to relevant Phase |
+| Unclear requirement | User Requirements / Success Criteria | Clarify wording |
+| Test gap | Test Plan | Add/modify test scenario |
+| Risk identified | Risks & Mitigations | Add new risk item |
+| Alternative approach | How (Approach) | Add alternative or modify approach |
+| Scope issue | Scope (In/Out) | Adjust scope |
+
+### 8.2 Apply Changes
+
+**Apply all findings** (Critical, Warning, Suggestion) to the plan:
+
+1. Read the plan file
+2. For each finding:
+   - Identify target section
+   - Apply modification (add/modify text)
+   - Track change for history
+3. Write updated plan file
+
+**Error Handling Policy**:
+- If error occurs: Keep original plan intact, log error to Review History
+- If partial apply: Only log applied changes to History, note unapplied items
+
+### 8.3 Update History
+
+Append to plan's `## Review History` section:
+
+```markdown
+## Review History
+
+### Review #N (YYYY-MM-DD HH:MM)
+
+**Findings Applied**:
+| Type | Count | Applied |
+|------|-------|---------|
+| Critical | N | N |
+| Warning | N | N |
+| Suggestion | N | N |
+
+**Changes Made**:
+1. **[Critical/Warning/Suggestion] Section - Item**
+   - Issue: [Description]
+   - Applied: [Change made]
+
+2. **[Critical/Warning/Suggestion] Section - Item**
+   - Issue: [Description]
+   - Applied: [Change made]
+```
+
+If `## Review History` doesn't exist, create it.
 
 ---
 

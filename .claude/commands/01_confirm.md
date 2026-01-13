@@ -204,10 +204,17 @@ This automatically:
 
 ### 4.3 Review Results
 
+After review completes, verify findings were applied:
+
 | Result | Action |
 |--------|--------|
 | Pass (Critical=0) | Proceed to STOP |
-| Needs Revision | Present issues, update plan file |
+| Needs Revision | Findings applied to plan via Step 8 of 90_review |
+
+**Verify Apply Completion**:
+- Check plan file has `## Review History` section
+- Confirm all findings (Critical/Warning/Suggestion) have entries
+- Review summary includes: "Review findings applied: N critical, N warning, N suggestion"
 
 ---
 
@@ -229,6 +236,8 @@ This automatically:
 
 This command (/01_confirm) has completed the CONFIRMATION phase:
 ✓ Plan file created in: .pilot/plan/pending/
+[If review ran] ✓ Review findings applied to plan
+[If review ran] ✓ Review History updated with N changes
 ✓ No execution has started
 
 To execute this plan, run:

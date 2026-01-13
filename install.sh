@@ -21,7 +21,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Version
-VERSION="1.0.0"
+VERSION="1.1.0"
 
 # Remote repository URLs
 REPO_BASE="https://raw.githubusercontent.com/changoo89/claude-pilot/main"
@@ -83,6 +83,70 @@ check_curl() {
 }
 
 # =============================================================================
+# LANGUAGE SELECTION
+# =============================================================================
+
+# Default language
+SELECTED_LANG="en"
+
+# Prompt for language selection
+select_language() {
+    echo ""
+    echo -e "${BLUE}Language Selection / 언어 선택 / 言語選択${NC}"
+    echo "  1) English (en)"
+    echo "  2) 한국어 (ko)"
+    echo "  3) 日本語 (ja)"
+    echo ""
+
+    # Try to read from /dev/tty for interactive input (works with curl | bash)
+    local choice
+    if [[ -t 0 ]]; then
+        # Running interactively
+        read -p "Select [1-3, default=1]: " choice
+    else
+        # Running via pipe, try /dev/tty
+        if [[ -e /dev/tty ]]; then
+            read -p "Select [1-3, default=1]: " choice < /dev/tty
+        else
+            info "Non-interactive mode, using default language: en"
+            return
+        fi
+    fi
+
+    case "${choice}" in
+        1|"") SELECTED_LANG="en" ;;
+        2) SELECTED_LANG="ko" ;;
+        3) SELECTED_LANG="ja" ;;
+        *)
+            warning "Invalid selection, using default: en"
+            SELECTED_LANG="en"
+            ;;
+    esac
+
+    success "Selected language: ${SELECTED_LANG}"
+}
+
+# Update settings.json with selected language
+update_settings_language() {
+    local settings_file="${TARGET_DIR}/.claude/settings.json"
+
+    if [[ -f "${settings_file}" ]]; then
+        # Check if jq is available for proper JSON manipulation
+        if command -v jq &> /dev/null; then
+            local tmp_file=$(mktemp)
+            jq --arg lang "${SELECTED_LANG}" '.language = $lang' "${settings_file}" > "${tmp_file}" && mv "${tmp_file}" "${settings_file}"
+        else
+            # Fallback: simple sed replacement (less robust)
+            if grep -q '"language"' "${settings_file}"; then
+                sed -i.bak 's/"language"[[:space:]]*:[[:space:]]*"[^"]*"/"language": "'"${SELECTED_LANG}"'"/' "${settings_file}"
+                rm -f "${settings_file}.bak"
+            fi
+        fi
+        info "Language set to: ${SELECTED_LANG}"
+    fi
+}
+
+# =============================================================================
 # FILE OWNERSHIP DEFINITION
 # =============================================================================
 
@@ -97,8 +161,7 @@ declare -a MANAGED_FILES=(
     ".claude/commands/90_review.md:.claude/commands/90_review.md"
     ".claude/commands/91_document.md:.claude/commands/91_document.md"
     # Guides
-    ".claude/guides/context-engineering.md:.claude/guides/context-engineering.md"
-    ".claude/guides/ralph-loop-tdd.md:.claude/guides/ralph-loop-tdd.md"
+    ".claude/guides/review-extensions.md:.claude/guides/review-extensions.md"
     # Templates
     ".claude/templates/PRP.md.template:.claude/templates/PRP.md.template"
     ".claude/templates/CONTEXT.md.template:.claude/templates/CONTEXT.md.template"
@@ -233,16 +296,42 @@ show_version() {
 # MODE HANDLERS
 # =============================================================================
 
+# Detect if running from cloned repo or via curl
+# Returns: sets INSTALL_SOURCE to "local" or "remote"
+detect_install_source() {
+    # When piped through curl | bash, BASH_SOURCE[0] is empty or not a real path
+    if [[ -z "${BASH_SOURCE[0]}" ]] || [[ "${BASH_SOURCE[0]}" == "bash" ]] || [[ "${BASH_SOURCE[0]}" == "/dev/stdin" ]]; then
+        INSTALL_SOURCE="remote"
+        return
+    fi
+
+    local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+
+    # Check if SCRIPT_DIR is valid and different from TARGET_DIR
+    # Also verify it's actually the claude-pilot template (has install.sh alongside .claude)
+    if [[ -n "${SCRIPT_DIR}" ]] && \
+       [[ -f "${SCRIPT_DIR}/install.sh" ]] && \
+       [[ -f "${SCRIPT_DIR}/.claude/settings.json" ]] && \
+       [[ "${SCRIPT_DIR}" != "${TARGET_DIR}" ]]; then
+        INSTALL_SOURCE="local"
+        TEMPLATE_DIR="${SCRIPT_DIR}"
+    else
+        INSTALL_SOURCE="remote"
+    fi
+}
+
 # Handle install mode
 do_install() {
     print_banner
 
-    # Detect if running from cloned repo or via curl
-    local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    # Language selection
+    select_language
 
-    if [[ -f "${SCRIPT_DIR}/.claude/settings.json" ]]; then
+    detect_install_source
+
+    if [[ "${INSTALL_SOURCE}" == "local" ]]; then
         # Running from cloned repo
-        install_from_local "${SCRIPT_DIR}"
+        install_from_local "${TEMPLATE_DIR}"
     else
         # Running via curl - download from remote
         info "Installing from remote repository..."
@@ -258,6 +347,9 @@ do_install() {
     mkdir -p "${TARGET_DIR}/.pilot/plan/done"
     mkdir -p "${TARGET_DIR}/.pilot/plan/active"
     success ".pilot directory created"
+
+    # Update language in settings.json if it exists
+    update_settings_language
 
     # Save version
     save_version

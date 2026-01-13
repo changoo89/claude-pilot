@@ -196,10 +196,10 @@ SC-{N}: {Description}
 Create timestamped plan file:
 
 ```bash
-mkdir -p .cgcode/plan/pending
+mkdir -p .pilot/plan/pending
 TS="$(date +%Y%m%d_%H%M%S)"
 WORK_NAME="$(echo "$ARGUMENTS" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g' | head -c 50)"
-PLAN_FILE=".cgcode/plan/pending/${TS}_${WORK_NAME}.md"
+PLAN_FILE=".pilot/plan/pending/${TS}_${WORK_NAME}.md"
 ```
 
 ### 4.2 Plan Content Structure
@@ -293,7 +293,7 @@ echo "Plan created: $PLAN_FILE"
 - [ ] Plan follows structure
 - [ ] All 5 phases defined
 - [ ] Risks documented
-- [ ] Plan file created in .cgcode/plan/pending/
+- [ ] Plan file created in .pilot/plan/pending/
 
 ### Handoff
 - [ ] User approved

@@ -25,10 +25,10 @@ _Finalize the current plan by moving it to done and optionally creating a git co
 Multiple plans may be in progress concurrently. This command closes the plan for the current session/branch.
 
 ```bash
-mkdir -p .cgcode/plan/active
+mkdir -p .pilot/plan/active
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-ACTIVE_PTR=".cgcode/plan/active/${KEY}.txt"
+ACTIVE_PTR=".pilot/plan/active/${KEY}.txt"
 ```
 
 ### 0.2 Determine `ACTIVE_PLAN_PATH`
@@ -36,7 +36,7 @@ ACTIVE_PTR=".cgcode/plan/active/${KEY}.txt"
 Priority order:
 
 1. Explicit path from `"$ARGUMENTS"`
-2. RUN_ID from `"$ARGUMENTS"` → `.cgcode/plan/in_progress/{RUN_ID}/plan.md`
+2. RUN_ID from `"$ARGUMENTS"` → `.pilot/plan/in_progress/{RUN_ID}/plan.md`
 3. Read from `ACTIVE_PTR`
 
 ```bash
@@ -48,7 +48,7 @@ fi
 if [ -z "$ACTIVE_PLAN_PATH" ] || [ ! -f "$ACTIVE_PLAN_PATH" ]; then
     echo "No active plan found for this session/branch."
     echo "Options: pass RUN_ID or plan path explicitly."
-    ls -la .cgcode/plan/in_progress 2>/dev/null || true
+    ls -la .pilot/plan/in_progress 2>/dev/null || true
     exit 1
 fi
 ```
@@ -82,18 +82,18 @@ If not complete:
 ### 2.1 Create Destination
 
 ```bash
-mkdir -p .cgcode/plan/done
+mkdir -p .pilot/plan/done
 ```
 
 ### 2.2 Generate Archive Name
 
 ```bash
 RUN_ID="$(basename "$(dirname "$ACTIVE_PLAN_PATH")")"
-DONE_DIR=".cgcode/plan/done/${RUN_ID}"
+DONE_DIR=".pilot/plan/done/${RUN_ID}"
 
 if [ -e "$DONE_DIR" ]; then
     TS="$(date +%Y%m%d_%H%M%S)"
-    DONE_DIR=".cgcode/plan/done/${RUN_ID}_closed_${TS}"
+    DONE_DIR=".pilot/plan/done/${RUN_ID}_closed_${TS}"
 fi
 
 mkdir -p "$DONE_DIR"

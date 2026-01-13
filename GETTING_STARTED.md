@@ -1,12 +1,14 @@
-# Getting Started with cg-cc
+# Getting Started with claude-pilot
 
-Welcome to the **cg-cc (Context-Guided Claude Code)** template! This guide will help you get up and running quickly.
+Welcome to **claude-pilot**! This guide will help you get up and running quickly.
 
 ## Quick Install
 
 ```bash
-# One-line installation (select language when prompted)
-curl -s https://raw.githubusercontent.com/your-org/cg-cc/main/install.sh | bash
+# Clone and run installer
+git clone https://github.com/changoo89/claude-pilot.git
+cd claude-pilot
+./install.sh
 ```
 
 The installer will:
@@ -14,16 +16,18 @@ The installer will:
 2. Ask you to select a language (en/ko/ja)
 3. Ask which components to install
 4. Copy the template files to your project
+5. Create `.pilot/` directory for plan management
 
 ## Manual Install
 
 ```bash
 # Clone or download this repository
-git clone https://github.com/your-org/cg-cc.git
-cd cg-cc
+git clone https://github.com/changoo89/claude-pilot.git
+cd claude-pilot
 
 # Copy the template to your project
 cp -r .claude/ ~/your-project/
+cp -r .pilot/ ~/your-project/
 
 # Copy the main configuration
 cp CLAUDE.md AGENTS.md ~/your-project/
@@ -128,6 +132,19 @@ chmod +x .claude/scripts/hooks/*.sh
 > [Runs 8 mandatory reviews + type-specific reviews]
 ```
 
+## Plan Management
+
+Plans are stored in `.pilot/plan/`:
+
+```
+.pilot/
+└── plan/
+    ├── pending/       # Plans awaiting confirmation
+    ├── in_progress/   # Currently executing plans
+    ├── done/          # Completed and archived plans
+    └── active/        # Branch pointers
+```
+
 ## Templates
 
 The template includes three document templates:
@@ -202,14 +219,22 @@ npm install -g vscode-eslint-language-server
 cat .claude/settings.json | jq '.lsp'
 ```
 
+### Plan not found
+```bash
+# Verify .pilot directory exists
+ls -la .pilot/plan/
+
+# Run /00_plan first to create a plan
+```
+
 ## Next Steps
 
-1. ✅ Install the template
-2. ✅ Customize CLAUDE.md
-3. ✅ Configure settings.json
-4. ✅ Try your first `/00_plan` command
-5. 📖 Read [AGENTS.md](AGENTS.md) for agent patterns
-6. 📖 Explore [examples/](examples/) for more configurations
+1. Install the template
+2. Customize CLAUDE.md
+3. Configure settings.json
+4. Try your first `/00_plan` command
+5. Read [AGENTS.md](AGENTS.md) for agent patterns
+6. Explore [examples/](examples/) for more configurations
 
 ## Resources
 
@@ -223,8 +248,8 @@ cat .claude/settings.json | jq '.lsp'
 For issues or questions:
 1. Check the [troubleshooting section](#troubleshooting)
 2. Review example configurations
-3. Open an issue on GitHub
+3. Open an issue on [GitHub](https://github.com/changoo89/claude-pilot/issues)
 
 ---
 
-**Happy coding with Claude Code! 🚀**
+**Happy coding with claude-pilot!**

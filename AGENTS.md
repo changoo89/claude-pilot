@@ -1,7 +1,7 @@
 # AGENTS.md
 
 > **Last Updated**: 2025-01-13
-> **Template**: cg-cc (Context-Guided Claude Code)
+> **Template**: claude-pilot
 
 ---
 
@@ -26,7 +26,7 @@ This document describes the Claude Code agent patterns used in this project.
 - Define success criteria
 - Create test scenarios
 
-**Output**: Plan file in `.cgcode/plan/pending/`
+**Output**: Plan file in `.pilot/plan/pending/`
 
 **Tools**:
 - Read, Glob, Grep (exploration)
@@ -205,4 +205,4 @@ export CLAUDE_DEBUG=1
 
 ---
 
-**Template Version**: cg-cc 1.0.0
+**Template Version**: claude-pilot 1.0.0

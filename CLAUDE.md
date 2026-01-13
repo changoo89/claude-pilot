@@ -1,7 +1,7 @@
 # [Project Name] - Claude Code Development Guide
 
 > **Last Updated**: [Date]
-> **Template**: cg-cc (Context-Guided Claude Code)
+> **Template**: claude-pilot
 
 ---
 
@@ -60,6 +60,12 @@ project-root/
 │   ├── guides/             # Methodology guides
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
 │   └── scripts/hooks/      # Type check, lint, todos
+├── .pilot/                 # Plan management
+│   └── plan/
+│       ├── pending/        # Awaiting confirmation
+│       ├── in_progress/    # Currently executing
+│       ├── done/           # Completed plans
+│       └── active/         # Branch pointers
 ├── src/ or lib/            # Source code
 ├── tests/                  # Test files
 ├── CLAUDE.md               # This file
@@ -91,8 +97,8 @@ Every feature starts with clear requirements:
 
 Autonomous iteration until all tests pass:
 - Run verification (tests, type-check, lint)
-- If all pass → check completion
-- If failures → fix and continue
+- If all pass -> check completion
+- If failures -> fix and continue
 - Max 7 iterations before review
 
 ---
@@ -123,7 +129,7 @@ Each major folder should have a CONTEXT.md:
 |------|---------|
 
 ## Common Tasks
-- **Task**: Description → Command
+- **Task**: Description -> Command
 
 ## Patterns
 - **Pattern**: Description
@@ -190,8 +196,9 @@ npm test -- --grep "test name"
 # Install dependencies
 npm install
 
-# Copy template files (if using cg-cc)
-curl -s https://raw.githubusercontent.com/your-org/cg-cc/main/install.sh | bash
+# Copy claude-pilot files (if using)
+git clone https://github.com/changoo89/claude-pilot.git
+cp -r claude-pilot/.claude ./
 ```
 
 ### Environment Variables
@@ -299,5 +306,5 @@ See `.claude/settings.json` for MCP configuration.
 
 ---
 
-**Template Version**: cg-cc 1.0.0
+**Template Version**: claude-pilot 1.0.0
 **Last Updated**: [Date]

@@ -25,11 +25,11 @@ allowed-tools: Read, Glob, Grep, Bash(git:*)
 
 Priority order:
 1. Explicit path from `"$ARGUMENTS"`
-2. Most recent file in `.cgcode/plan/in_progress/`
-3. Most recent file in `.cgcode/plan/pending/`
+2. Most recent file in `.pilot/plan/in_progress/`
+3. Most recent file in `.pilot/plan/pending/`
 
 ```bash
-PLAN_PATH="$(ls -1tr .cgcode/plan/in_progress/*/*.md .cgcode/plan/pending/*.md 2>/dev/null | head -1)"
+PLAN_PATH="$(ls -1tr .pilot/plan/in_progress/*/*.md .pilot/plan/pending/*.md 2>/dev/null | head -1)"
 
 if [ -z "$PLAN_PATH" ]; then
     echo "No plan found to review."

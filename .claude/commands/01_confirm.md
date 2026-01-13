@@ -34,12 +34,12 @@ Priority order:
 
 1. Explicit path from `"$ARGUMENTS"`
 2. Work name from `"$ARGUMENTS"` → find matching plan
-3. Most recent file in `.cgcode/plan/pending/`
+3. Most recent file in `.pilot/plan/pending/`
 
 ```bash
 # Find most recent pending plan if no argument
 if [ -z "$PLAN_PATH" ]; then
-    PLAN_PATH="$(ls -1tr .cgcode/plan/pending/*.md 2>/dev/null | head -1)"
+    PLAN_PATH="$(ls -1tr .pilot/plan/pending/*.md 2>/dev/null | head -1)"
 fi
 
 if [ -z "$PLAN_PATH" ]; then
@@ -85,7 +85,7 @@ else
     RUN_ID="${TS}_${PENDING_BASENAME}"
 fi
 
-RUN_DIR=".cgcode/plan/in_progress/${RUN_ID}"
+RUN_DIR=".pilot/plan/in_progress/${RUN_ID}"
 mkdir -p "$RUN_DIR"
 ```
 
@@ -99,10 +99,10 @@ echo "Plan moved to: $RUN_DIR/plan.md"
 ### 2.3 Record Active Pointer
 
 ```bash
-mkdir -p .cgcode/plan/active
+mkdir -p .pilot/plan/active
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-ACTIVE_PTR=".cgcode/plan/active/${KEY}.txt"
+ACTIVE_PTR=".pilot/plan/active/${KEY}.txt"
 
 printf "%s" "$RUN_DIR" > "$ACTIVE_PTR"
 echo "Active plan recorded for branch: $BRANCH"

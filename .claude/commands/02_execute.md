@@ -25,14 +25,14 @@ _Execute the current in-progress plan using Ralph Loop TDD pattern - iterate unt
 
 Priority order:
 1. Explicit path from `"$ARGUMENTS"`
-2. Read active pointer from `.cgcode/plan/active/{branch}.txt`
-3. Most recent file in `.cgcode/plan/in_progress/`
+2. Read active pointer from `.pilot/plan/active/{branch}.txt`
+3. Most recent file in `.pilot/plan/in_progress/`
 
 ```bash
 # Find active pointer
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-ACTIVE_PTR=".cgcode/plan/active/${KEY}.txt"
+ACTIVE_PTR=".pilot/plan/active/${KEY}.txt"
 
 if [ -f "$ACTIVE_PTR" ]; then
     RUN_DIR="$(cat "$ACTIVE_PTR")"
@@ -41,7 +41,7 @@ fi
 
 # Fallback to most recent
 if [ -z "$PLAN_PATH" ]; then
-    PLAN_PATH="$(ls -1tr .cgcode/plan/in_progress/*/*.md 2>/dev/null | head -1)"
+    PLAN_PATH="$(ls -1tr .pilot/plan/in_progress/*/*.md 2>/dev/null | head -1)"
     RUN_DIR="$(dirname "$PLAN_PATH")"
 fi
 
@@ -58,7 +58,7 @@ fi
 
 ### 1.1 Read the Plan
 
-Read `.cgcode/plan/in_progress/{RUN_ID}/plan.md` and extract:
+Read `.pilot/plan/in_progress/{RUN_ID}/plan.md` and extract:
 - Deliverables
 - Phases and tasks
 - Acceptance criteria
@@ -182,7 +182,7 @@ npm run test -- --coverage
 
 ### 3.4 Iteration Tracking
 
-Log to `.cgcode/plan/in_progress/{RUN_ID}/ralph-loop-log.md`:
+Log to `.pilot/plan/in_progress/{RUN_ID}/ralph-loop-log.md`:
 
 | Iteration | Tests | Types | Lint | Coverage | Status |
 |-----------|-------|-------|------|----------|--------|

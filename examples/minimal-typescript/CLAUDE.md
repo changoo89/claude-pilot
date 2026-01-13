@@ -1,7 +1,7 @@
 # [Project Name] - Claude Code Configuration
 
 > **Last Updated**: [Date]
-> **Template**: cg-cc (Context-Guided Claude Code)
+> **Template**: claude-pilot
 
 ---
 

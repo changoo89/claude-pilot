@@ -1,25 +1,27 @@
-# cg-cc (Context-Guided Claude Code)
+# claude-pilot
 
-> A generic, battle-tested template for Claude Code projects featuring SPEC-First TDD, Ralph Loop autonomous iteration, hierarchical CONTEXT.md management, and multilingual support.
+> Your Claude Code copilot - Structured workflows, SPEC-First TDD, Ralph Loop automation, and context engineering. Fly with discipline.
 
 ---
 
 ## Quick Start
 
 ```bash
-# One-line installation
-curl -s https://raw.githubusercontent.com/your-org/cg-cc/main/install.sh | bash
+# Clone and install
+git clone https://github.com/changoo89/claude-pilot.git
+cd claude-pilot
+./install.sh
 
-# Or clone and copy
-git clone https://github.com/your-org/cg-cc.git
-cp -r cg-cc/.claude /path/to/your/project/
+# Or copy to existing project
+cp -r .claude /path/to/your/project/
+cp CLAUDE.md /path/to/your/project/
 ```
 
 ---
 
-## What is cg-cc?
+## What is claude-pilot?
 
-**cg-cc** is a project-agnostic template for Claude Code that combines best practices from multiple sources into a cohesive development workflow. It provides:
+**claude-pilot** is an opinionated preset for Claude Code that brings structure and discipline to AI-assisted development. It provides:
 
 - **SPEC-First TDD**: Test-Driven Development with clear success criteria
 - **Ralph Loop**: Autonomous iteration until all tests pass
@@ -46,7 +48,7 @@ cp -r cg-cc/.claude /path/to/your/project/
 ## Project Structure
 
 ```
-cg-cc/
+claude-pilot/
 ├── README.md
 ├── install.sh              # One-line installation
 ├── mcp.json                # Recommended MCP servers
@@ -58,6 +60,12 @@ cg-cc/
 │   ├── templates/          # CONTEXT.md, SKILL.md, PRP.md
 │   ├── guides/             # Methodology guides
 │   └── scripts/hooks/      # Typecheck, lint, todos, branch
+├── .pilot/                 # Plan management
+│   └── plan/
+│       ├── pending/        # Plans awaiting confirmation
+│       ├── in_progress/    # Active plans
+│       ├── done/           # Completed plans
+│       └── active/         # Branch pointers
 └── examples/               # Sample configurations
 ```
 
@@ -104,7 +112,8 @@ Automation at key points:
 ### Option 1: One-line Install
 
 ```bash
-curl -s https://raw.githubusercontent.com/your-org/cg-cc/main/install.sh | bash
+git clone https://github.com/changoo89/claude-pilot.git
+cd claude-pilot && ./install.sh
 ```
 
 The installer will:
@@ -118,16 +127,16 @@ The installer will:
 
 ```bash
 # Clone the template
-git clone https://github.com/your-org/cg-cc.git
-cd cg-cc
+git clone https://github.com/changoo89/claude-pilot.git
+cd claude-pilot
 
 # Copy to your project
 cp -r .claude /path/to/your/project/
-cp CLAUDE.md /path/to/your-project/
-cp AGENTS.md /path/to/your-project/
+cp CLAUDE.md /path/to/your/project/
+cp AGENTS.md /path/to/your/project/
 
 # Edit CLAUDE.md with your project info
-nano /path/to/your-project/CLAUDE.md
+nano /path/to/your/project/CLAUDE.md
 ```
 
 ---
@@ -182,7 +191,7 @@ Edit `.claude/settings.json` hooks section:
 # In Claude Code
 /00_plan "Add user authentication with JWT"
 
-# Review the generated plan in .cgcode/pending/
+# Review the generated plan in .pilot/plan/pending/
 # Edit if needed, then:
 
 /01_confirm  # Approve the plan
@@ -213,92 +222,6 @@ Edit `.claude/settings.json` hooks section:
 
 ---
 
-## Templates
-
-### CONTEXT.md Template
-
-For documenting project folders:
-
-```bash
-# Generate CONTEXT.md for a folder
-/91_document folder
-
-# Creates hierarchical context with:
-# - Quick reference (L0)
-# - Architecture (L1)
-# - Implementation (L2)
-```
-
-### SKILL.md Template
-
-For domain-specific skills:
-
-```bash
-# Create a new skill
-cp .claude/templates/SKILL.md.template .claude/skills/your-skill/SKILL.md
-# Edit with domain-specific knowledge
-```
-
-### PRP.md Template
-
-For requirements:
-
-```bash
-# Create a PRP document
-cp .claude/templates/PRP.md.template prp-feature-name.md
-# Fill in What/Why/How/Success/Constraints
-```
-
----
-
-## Inspiration & Credits
-
-cg-cc synthesizes best practices from these projects:
-
-### Core Methodology
-
-- **[context-engineering-intro](https://github.com/coleam00/context-engineering-intro)**
-  - Hierarchical CONTEXT.md structure
-  - PRP (Product Requirements Prompt) pattern
-  - Layered documentation approach
-
-- **[moai-adk](https://github.com/modu-ai/moai-adk)**
-  - SPEC-First TDD methodology
-  - Multilingual support architecture
-  - curl + sh installation pattern
-
-- **[oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode)**
-  - Ralph Loop autonomous iteration
-  - Claude Code compatibility patterns
-  - Todo continuation enforcement
-
-### Techniques
-
-- **[Ralph Wiggum Technique](https://github.com/ghuntley/how-to-ralph-wiggum)**
-  - TDD-based backpressure pattern
-  - Autonomous iteration until tests pass
-
-### Implementation Reference
-
-- **[claude-code-showcase](https://github.com/ChrisWiles/claude-code-showcase)**
-  - Hooks configuration patterns
-  - GitHub Actions workflows
-  - TypeScript integration
-
-- **[claude-hooks](https://github.com/johnlindquist/claude-hooks)**
-  - TypeScript hook implementation
-  - PreToolUse/PostToolUse patterns
-
-### Official Resources
-
-- **[modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers)**
-  - Official MCP server implementations
-
-- **[Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)**
-  - Official Anthropic guidelines
-
----
-
 ## Development Workflow
 
 ### 1. Planning Phase
@@ -306,11 +229,11 @@ cg-cc synthesizes best practices from these projects:
 ```
 User Request
     ↓
-/00_plan → Creates PRP in .cgcode/pending/
+/00_plan → Creates PRP in .pilot/plan/pending/
     ↓
 Manual Review/Edit
     ↓
-/01_confirm → Moves to .cgcode/in_progress/
+/01_confirm → Moves to .pilot/plan/in_progress/
 ```
 
 ### 2. Execution Phase
@@ -328,7 +251,7 @@ Ralph Loop:
     ↓
 Repeat until all pass
     ↓
-/03_close → Archive to .cgcode/done/
+/03_close → Archive to .pilot/plan/done/
 ```
 
 ### 3. Documentation Phase
@@ -347,11 +270,42 @@ Commit with docs
 
 ---
 
+## Inspiration & Credits
+
+claude-pilot synthesizes best practices from these projects:
+
+### Core Methodology
+
+- **[context-engineering-intro](https://github.com/coleam00/context-engineering-intro)**
+  - Hierarchical CONTEXT.md structure
+  - PRP (Product Requirements Prompt) pattern
+
+- **[moai-adk](https://github.com/modu-ai/moai-adk)**
+  - SPEC-First TDD methodology
+  - Multilingual support architecture
+
+- **[oh-my-opencode](https://github.com/code-yeongyu/oh-my-opencode)**
+  - Ralph Loop autonomous iteration
+  - Todo continuation enforcement
+
+### Techniques
+
+- **[Ralph Wiggum Technique](https://github.com/ghuntley/how-to-ralph-wiggum)**
+  - TDD-based backpressure pattern
+
+### Official Resources
+
+- **[Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)**
+  - Official Anthropic guidelines
+
+---
+
 ## Guides
 
-- [Context Engineering Guide](.claude/guides/context-engineering.md) - Hierarchical documentation principles
-- [Ralph Loop & TDD Guide](.claude/guides/ralph-loop-tdd.md) - Autonomous iteration pattern
-- [Prompts Design Guide](.claude/guides/prompts-design-guide.md) - Effective prompt structure
+- [Context Engineering Guide](.claude/guides/context-engineering.md)
+- [Ralph Loop & TDD Guide](.claude/guides/ralph-loop-tdd.md)
+- [Prompts Design Guide](.claude/guides/prompts-design-guide.md)
+- [Getting Started](GETTING_STARTED.md)
 
 ---
 
@@ -394,9 +348,8 @@ A: Create translation files in `.claude/locales/` and add language code to setti
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/your-org/cg-cc/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/cg-cc/discussions)
-- **Docs**: [Full Documentation](https://cg-cc.dev/docs)
+- **Issues**: [GitHub Issues](https://github.com/changoo89/claude-pilot/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/changoo89/claude-pilot/discussions)
 
 ---
 

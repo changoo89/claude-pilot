@@ -1,6 +1,6 @@
 # Minimal TypeScript Project Example
 
-A minimal configuration for TypeScript projects using the cg-cc template.
+A minimal configuration for TypeScript projects using the claude-pilot preset.
 
 ## What's Included
 
@@ -17,7 +17,7 @@ A minimal configuration for TypeScript projects using the cg-cc template.
 cp -r .claude/ ~/your-project/
 
 # Or use the install script from the template root
-curl -s https://raw.githubusercontent.com/your-org/cg-cc/main/install.sh | bash
+curl -s https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash
 ```
 
 ## Configuration Files

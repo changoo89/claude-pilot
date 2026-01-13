@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# cg-cc Template Installer
-# One-line installation script for Claude Code template
+# claude-pilot Installer
+# One-line installation script for Claude Code preset
 
 set -e
 
@@ -17,16 +17,16 @@ VERSION="1.0.0"
 # Print banner
 echo -e "${BLUE}"
 cat << "EOF"
-   ____              __    ___
-  / __ \____  _____/ /___/ (_)___  __  __
- / /_/ / __ \/ ___/ __/ __  / __ \/ / / /
-/ _, _/ /_/ / /  / /_/ /_/ / /_/ / /_/ /
-/_/ |_|\____/_/   \__/\__,_/_.___/\__, /
-              __/                /____/
-             /___/  Claude Code Template
+       _                 _                  _ _       _
+   ___| | __ _ _   _  __| | ___       _ __ (_) | ___ | |_
+  / __| |/ _` | | | |/ _` |/ _ \_____| '_ \| | |/ _ \| __|
+ | (__| | (_| | |_| | (_| |  __/_____| |_) | | | (_) | |_
+  \___|_|\__,_|\__,_|\__,_|\___|     | .__/|_|_|\___/ \__|
+                                     |_|
+                         Your Claude Code Copilot
 EOF
 echo -e "${NC}"
-echo -e "${GREEN}cg-cc (Context-Guided Claude Code) v${VERSION}${NC}"
+echo -e "${GREEN}claude-pilot v${VERSION}${NC}"
 echo ""
 
 # Function to print error and exit
@@ -37,7 +37,7 @@ error_exit() {
 
 # Function to print info
 info() {
-    echo -e "${BLUE}ℹ${NC} $1"
+    echo -e "${BLUE}i${NC} $1"
 }
 
 # Function to print success
@@ -47,7 +47,7 @@ success() {
 
 # Function to print warning
 warning() {
-    echo -e "${YELLOW}⚠${NC} $1"
+    echo -e "${YELLOW}!${NC} $1"
 }
 
 # Check if curl is available
@@ -72,16 +72,16 @@ fi
 echo ""
 info "Select your preferred language:"
 echo "  1) English (en)"
-echo "  2) 한국어 (ko)"
-echo "  3) 日本語 (ja)"
+echo "  2) Korean (ko)"
+echo "  3) Japanese (ja)"
 echo ""
 read -p "Enter choice [1-3] (default: 1): " lang_choice
 lang_choice=${lang_choice:-1}
 
 case $lang_choice in
     1) LANGUAGE="en"; success "Language: English";;
-    2) LANGUAGE="ko"; success "언어: 한국어";;
-    3) LANGUAGE="ja"; success "言語: 日本語";;
+    2) LANGUAGE="ko"; success "Language: Korean";;
+    3) LANGUAGE="ja"; success "Language: Japanese";;
     *) warning "Invalid choice, defaulting to English"; LANGUAGE="en";;
 esac
 
@@ -225,19 +225,19 @@ if [[ -f "${TEMPLATE_DIR}/mcp.json" ]]; then
     success "mcp.json installed"
 fi
 
-# Create examples directory
-info "Creating examples directory..."
-mkdir -p "${TARGET_DIR}/examples"
-if [[ -d "${TEMPLATE_DIR}/examples" ]]; then
-    cp -r "${TEMPLATE_DIR}/examples/"* "${TARGET_DIR}/examples/" 2>/dev/null || true
-fi
-success "Examples directory ready"
+# Create .pilot directory for plan management
+info "Creating .pilot directory..."
+mkdir -p "${TARGET_DIR}/.pilot/plan/pending"
+mkdir -p "${TARGET_DIR}/.pilot/plan/in_progress"
+mkdir -p "${TARGET_DIR}/.pilot/plan/done"
+mkdir -p "${TARGET_DIR}/.pilot/plan/active"
+success ".pilot directory created"
 
 # Summary
 echo ""
-echo -e "${GREEN}═══════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}======================================================${NC}"
 echo -e "${GREEN}Installation Complete!${NC}"
-echo -e "${GREEN}═══════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}======================================================${NC}"
 echo ""
 info "Summary:"
 echo "  Language: ${LANGUAGE}"
@@ -253,5 +253,5 @@ info "Documentation:"
 echo "  - Context Engineering: .claude/guides/context-engineering.md"
 echo "  - Ralph Loop TDD: .claude/guides/ralph-loop-tdd.md"
 echo ""
-success "Happy coding with Claude Code!"
+success "Happy coding with claude-pilot!"
 echo ""

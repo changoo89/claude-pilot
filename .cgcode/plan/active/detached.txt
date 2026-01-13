@@ -1,1 +1,0 @@
-.cgcode/plan/in_progress/20260113_005728_cg_cc_template_restructure

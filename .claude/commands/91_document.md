@@ -33,7 +33,7 @@ _Update documentation with full auto-sync and hierarchical CONTEXT.md management
 ### 0.1 Auto-Sync Mode
 
 If invoked with `auto-sync from {RUN_ID}`:
-- Load plan context from `.cgcode/plan/in_progress/{RUN_ID}/`
+- Load plan context from `.pilot/plan/in_progress/{RUN_ID}/`
 - Execute Steps 1-5 automatically
 - Archive TDD artifacts
 
@@ -58,7 +58,7 @@ If invoked without args:
 When in auto-sync mode:
 
 ```bash
-RUN_DIR=".cgcode/plan/in_progress/${RUN_ID}"
+RUN_DIR=".pilot/plan/in_progress/${RUN_ID}"
 ```
 
 Load and extract:

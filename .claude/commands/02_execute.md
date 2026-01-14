@@ -383,4 +383,4 @@ After successful execution: `/03_close`
 
 ## References
 - [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
-- **Branch**: !`git rev-parse --abbrev-ref HEAD`
+- **Branch**: `git rev-parse --abbrev-ref HEAD`

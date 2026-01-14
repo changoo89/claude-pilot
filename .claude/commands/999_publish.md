@@ -141,6 +141,5 @@ Wait 3s for CDN propagation, run `pip3 install --dry-run` to verify version avai
 ---
 
 ## References
-
-- **Branch**: !`git rev-parse --abbrev-ref HEAD`
-- **Status**: !`git status --short`
+- **Branch**: `git rev-parse --abbrev-ref HEAD`
+- **Status**: `git status --short`

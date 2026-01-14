@@ -355,5 +355,5 @@ done
 ---
 
 ## References
-- **Branch**: !`git rev-parse --abbrev-ref HEAD`
-- **Status**: !`git status --short`
+- **Branch**: `git rev-parse --abbrev-ref HEAD`
+- **Status**: `git status --short`

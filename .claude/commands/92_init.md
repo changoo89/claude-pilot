@@ -205,5 +205,5 @@ find . -name "CONTEXT.md" -type f
 ## References
 - [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
 - `/91_document` (keep docs in sync)
-- **Branch**: !`git rev-parse --abbrev-ref HEAD`
-- **Status**: !`git status --short`
+- **Branch**: `git rev-parse --abbrev-ref HEAD`
+- **Status**: `git status --short`

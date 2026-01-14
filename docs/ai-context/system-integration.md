@@ -332,8 +332,116 @@ Capture conversation state from `/00_plan` to ensure continuity between planning
 - `.claude/guides/gap-detection.md` - External service verification
 - `.claude/guides/tdd-methodology.md` - Test-driven development
 - `.claude/guides/ralph-loop.md` - Autonomous iteration
+- `.claude/guides/parallel-execution.md` - Parallel execution patterns
 
 ---
 
-**Last Updated**: 2026-01-14
+## Parallel Execution Integration
+
+### Overview
+
+claude-pilot supports parallel agent execution for maximum workflow efficiency. This reduces execution time by 50-70% while improving quality through agent specialization.
+
+### Parallel Patterns by Command
+
+#### /00_plan: Parallel Exploration
+
+```
+Main Orchestrator
+       │
+       ├─► Explorer Agent (Haiku) - Codebase exploration
+       └─► Researcher Agent (Haiku) - External docs research
+              ↓
+       [Result Merge → Plan Creation]
+```
+
+**Implementation**:
+- Uses Task tool for parallel invocation
+- Explorer returns: Explored Files table, Key Decisions
+- Researcher returns: Research Findings table with sources
+- Main thread merges results into plan structure
+
+#### /02_execute: Parallel SC Implementation
+
+```
+Main Orchestrator
+       │
+       ├─► Coder-SC1 (Sonnet) - Independent SC
+       ├─► Coder-SC2 (Sonnet) - Independent SC
+       ├─► Coder-SC3 (Sonnet) - Independent SC
+              ↓
+       [Result Integration]
+              ↓
+       ├─► Tester Agent (Sonnet) - Test execution
+       ├─► Validator Agent (Haiku) - Type+Lint+Coverage
+       └─► Code-Reviewer Agent (Opus) - Deep review
+              ↓
+       [Ralph Loop Verification]
+```
+
+**Implementation**:
+- SC dependency analysis before parallel execution
+- Independent SCs run concurrently
+- Verification agents run in parallel after integration
+- Code-reviewer uses Opus for catching async bugs, memory leaks
+
+#### /01_confirm & /90_review: Agent Delegation
+
+```
+/01_confirm → Plan-Reviewer Agent (Sonnet)
+            - Gap Detection Review
+            - Interactive Recovery for BLOCKING issues
+
+/90_review → Plan-Reviewer Agent (Sonnet)
+            - Multi-angle parallel review (optional)
+            - Security, Quality, Testing, Architecture
+```
+
+### Agent Invocation Syntax
+
+```markdown
+Task:
+  subagent_type: {agent_name}
+  prompt: |
+    {task_description}
+    {context}
+    {expected_output}
+```
+
+### Model Allocation for Parallel Work
+
+| Model | Parallel Tasks | Rationale |
+|-------|----------------|-----------|
+| Haiku | explorer, researcher, validator | Fast, cost-efficient |
+| Sonnet | coder, tester, plan-reviewer | Quality + speed balance |
+| Opus | code-reviewer | Deep reasoning for critical review |
+
+### File Conflict Prevention
+
+- Each parallel agent works on different files
+- SC dependency analysis identifies file ownership
+- Clear merge strategy after parallel phase
+- Integration tests verify merged results
+
+### Integration Points
+
+| Component | Integration | Data Flow |
+|-----------|-------------|-----------|
+| `/00_plan` | Parallel: Explorer + Researcher | → Merged plan structure |
+| `/02_execute` | Parallel: Coder (per SC) | → Integrated code |
+| `/02_execute` | Parallel: Tester + Validator + Code-Reviewer | → Verification results |
+| `/01_confirm` | Delegates to plan-reviewer | → Gap Detection report |
+
+### Benefits
+
+| Benefit | Impact |
+|---------|--------|
+| Speed | 50-70% execution time reduction |
+| Context Isolation | 8x token efficiency |
+| Quality | Specialized agents per task |
+| Scalability | Independent tasks run concurrently |
+
+---
+
+**Last Updated**: 2026-01-15
 **Template**: claude-pilot 3.1.0

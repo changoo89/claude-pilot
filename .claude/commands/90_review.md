@@ -13,10 +13,81 @@ _Review plan for completeness, gaps, and quality issues before execution._
 - **Comprehensive**: Multi-angle review covering mandatory, extended, and gap detection
 - **Actionable**: Findings map directly to plan sections
 - **Severity-based**: BLOCKING → Interactive Recovery
+- **Agent Support**: Can be invoked via plan-reviewer agent for context isolation
 
 **Review Checklist**: See @.claude/guides/review-checklist.md
 **Gap Detection**: See @.claude/guides/gap-detection.md
 **Vibe Coding**: See @.claude/guides/vibe-coding.md
+
+## Agent Invocation Pattern
+
+This command can be invoked directly OR via the plan-reviewer agent:
+
+### Direct Invocation
+```bash
+/90_review {plan_path}
+```
+
+### Via Plan-Reviewer Agent (Recommended for Complex Plans)
+
+```markdown
+Task:
+  subagent_type: plan-reviewer
+  prompt: |
+    Review the plan file at: {PLAN_PATH}
+
+    Perform comprehensive analysis:
+    1. Completeness Check (all sections present)
+    2. Gap Detection (external services, APIs, databases, async, env vars, error handling)
+    3. Feasibility Analysis (technical approach sound)
+    4. Clarity & Specificity (verifiable SCs, clear steps)
+    5. Multi-angle review (Security, Quality, Performance, Testing, Architecture)
+
+    Return structured review with:
+    - Severity levels (BLOCKING, Critical, Warning, Suggestion)
+    - Specific recommendations for each issue
+    - Positive notes for good practices
+    - Overall assessment
+```
+
+### Parallel Multi-Angle Review (For Complex Plans)
+
+For large or complex plans, use parallel review agents:
+
+```markdown
+# Parallel review angles (optional, for very complex plans)
+Task:
+  subagent_type: plan-reviewer
+  prompt: |
+    Review plan from SECURITY angle:
+    - External API security considerations
+    - Input validation
+    - Authentication/authorization
+    - Secret management
+    Plan Path: {PLAN_PATH}
+
+Task:
+  subagent_type: plan-reviewer
+  prompt: |
+    Review plan from QUALITY angle:
+    - Vibe Coding compliance
+    - Code quality standards
+    - Testing coverage
+    - Documentation completeness
+    Plan Path: {PLAN_PATH}
+
+Task:
+  subagent_type: plan-reviewer
+  prompt: |
+    Review plan from ARCHITECTURE angle:
+    - System design
+    - Component relationships
+    - Scalability considerations
+    - Integration points
+    Plan Path: {PLAN_PATH}
+```
+
+**Note**: Parallel review is resource-intensive. Use only for complex, high-stakes plans where deep analysis from multiple angles is justified.
 
 ---
 

@@ -167,10 +167,34 @@ This ensures plan quality for independent executors.
 Use --lenient to bypass (converts BLOCKING → WARNING).
 ```
 
-### 4.3 Auto-Invoke Review
-```
-Skill: 90_review
-Args: "$PLAN_FILE"
+### 4.3 Auto-Invoke Plan-Reviewer Agent
+
+Use the **Task** tool to invoke plan-reviewer agent for comprehensive plan analysis:
+
+```markdown
+Task:
+  subagent_type: plan-reviewer
+  prompt: |
+    Review the plan file at: {PLAN_FILE}
+
+    Perform comprehensive analysis:
+    1. Completeness Check (all sections present)
+    2. Gap Detection (external services, APIs, databases, async, env vars, error handling)
+    3. Feasibility Analysis (technical approach sound)
+    4. Clarity & Specificity (verifiable SCs, clear steps)
+
+    Return structured review with:
+    - Severity levels (BLOCKING, Critical, Warning, Suggestion)
+    - Specific recommendations for each issue
+    - Positive notes for good practices
+    - Overall assessment
+
+    Focus on:
+    - External Service Integration gaps (API calls, env vars, error handling)
+    - Database Operations gaps (migrations, rollback)
+    - Async Operations gaps (timeouts, concurrent limits)
+    - File Operations gaps (path resolution, cleanup)
+    - Success Criteria verification commands
 ```
 
 ### 4.4 Check BLOCKING Findings
@@ -193,7 +217,7 @@ WHILE BLOCKING > 0 AND ITERATION <= MAX:
     2. Use AskUserQuestion for each BLOCKING
        - Include "Skip (add as TODO)" option
     3. Update plan with responses
-    4. Re-run: Skill 90_review
+    4. Re-run: Task plan-reviewer agent
     5. IF BLOCKING = 0: Exit loop
     ITERATION++
 ```

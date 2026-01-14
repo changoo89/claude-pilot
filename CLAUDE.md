@@ -1,7 +1,7 @@
 # claude-pilot - Claude Code Development Guide
 
-> **Last Updated**: 2026-01-14
-> **Version**: 3.1.0
+> **Last Updated**: 2026-01-15
+> **Version**: 3.1.4
 > **Template**: claude-pilot
 
 ---
@@ -59,6 +59,7 @@ project-root/
 │   │   ├── 90_review.md    # Review code
 │   │   └── 91_document.md  # Update docs
 │   ├── guides/             # Methodology guides
+│   ├── agents/             # Specialized agent configs (8)
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
 │   └── scripts/hooks/      # Type check, lint, todos
 ├── .pilot/                 # Plan management
@@ -304,6 +305,42 @@ See `.claude/settings.json` for MCP configuration.
 
 ---
 
+## Agent Ecosystem
+
+### Model Allocation Strategy
+
+| Model | Agents | Purpose |
+|-------|--------|---------|
+| **Haiku** | explorer, researcher, validator, documenter | Fast, cost-efficient for repetitive/structured tasks |
+| **Sonnet** | coder, tester, plan-reviewer | Balance of quality and speed for complex tasks |
+| **Opus** | code-reviewer | Deep reasoning for critical review (async bugs, memory leaks) |
+
+### Agent Types
+
+| Agent | Model | Tools | Purpose |
+|-------|-------|-------|---------|
+| explorer | haiku | Glob, Grep, Read | Fast codebase exploration |
+| researcher | haiku | WebSearch, WebFetch, query-docs | External docs research |
+| coder | sonnet | Read, Write, Edit, Bash | TDD implementation |
+| tester | sonnet | Read, Write, Bash | Test writing and execution |
+| validator | haiku | Bash, Read | Type check, lint, coverage |
+| plan-reviewer | sonnet | Read, Glob, Grep | Plan analysis and gap detection |
+| code-reviewer | opus | Read, Glob, Grep, Bash | Deep code review |
+| documenter | haiku | Read, Write | Documentation generation |
+
+### Parallel Execution Patterns
+
+The workflow supports parallel execution for maximum efficiency:
+
+- **Planning**: Explorer + Researcher (parallel exploration)
+- **Execution**: Multiple Coder agents (parallel SC implementation)
+- **Verification**: Tester + Validator + Code-Reviewer (parallel verification)
+- **Review**: Optional parallel multi-angle review
+
+See `.claude/guides/parallel-execution.md` for detailed patterns.
+
+---
+
 ## Important Notes
 
 ### Before Committing
@@ -379,5 +416,5 @@ This project uses a hierarchical documentation system:
 
 ---
 
-**Template Version**: claude-pilot 1.0.0
-**Last Updated**: [Date]
+**Template Version**: claude-pilot 3.1.4
+**Last Updated**: 2026-01-15

@@ -82,6 +82,116 @@ Create todo list mirroring plan phases. Rules: Atomic/verifiable todos, exactly 
 
 ---
 
+## Step 2.5: SC Dependency Analysis (For Parallel Execution)
+
+> **Purpose**: Identify which Success Criteria can be implemented in parallel
+
+### 2.1 Analyze SC Dependencies
+
+For each Success Criterion (SC), determine:
+- **Files affected**: Which files will be modified/created?
+- **Dependencies**: Does this SC depend on other SCs?
+- **Integration points**: Shared components or interfaces?
+
+### 2.2 Group Independent SCs
+
+Create parallel execution groups:
+
+| Group | SCs | Rationale |
+|-------|-----|-----------|
+| Group 1 | SC-1, SC-2, SC-3 | Independent, no shared files |
+| Group 2 | SC-4, SC-5 | Depend on Group 1 completion |
+| Group 3 | SC-6 | Depends on SC-4 |
+
+### 2.3 Parallel Execution Pattern
+
+**When multiple independent SCs exist**, use parallel Coder invocation:
+
+```markdown
+# For Group 1 (Independent SCs)
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-1: {DESCRIPTION}
+    Plan Path: {PLAN_PATH}
+    Test Scenarios: {TS_LIST}
+    Implement using TDD + Ralph Loop. Return summary only.
+
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-2: {DESCRIPTION}
+    Plan Path: {PLAN_PATH}
+    Test Scenarios: {TS_LIST}
+    Implement using TDD + Ralph Loop. Return summary only.
+
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-3: {DESCRIPTION}
+    Plan Path: {PLAN_PATH}
+    Test Scenarios: {TS_LIST}
+    Implement using TDD + Ralph Loop. Return summary only.
+
+# After all parallel Coder agents complete:
+# 1. Integrate results
+# 2. Run parallel verification (Tester, Validator, Documenter)
+# 3. Proceed to Group 2 (dependent SCs)
+```
+
+### 2.4 Parallel Verification Phase
+
+After parallel Coder implementation, run verification agents in parallel:
+
+```markdown
+Task:
+  subagent_type: tester
+  prompt: |
+    Run tests and verify coverage for implemented SCs.
+    Test Command: {TEST_CMD}
+    Coverage Command: {COVERAGE_CMD}
+    Return test results summary.
+
+Task:
+  subagent_type: validator
+  prompt: |
+    Run type check and lint for implemented code.
+    Type Check: {TYPE_CMD}
+    Lint: {LINT_CMD}
+    Return verification status.
+
+Task:
+  subagent_type: code-reviewer
+  prompt: |
+    Review the implemented code for:
+    - Async bugs, memory leaks, race conditions
+    - Security vulnerabilities
+    - Code quality and Vibe Coding compliance
+    - Performance issues
+
+    Files changed:
+    {FILE_LIST}
+
+    Return comprehensive review with findings.
+```
+
+### 2.5 File Conflict Prevention
+
+To prevent parallel agents from editing the same file:
+- Each Coder agent should work on different files
+- Use clear file ownership per SC
+- Coordinate shared interfaces in advance
+- Merge results after parallel phase
+
+### 2.6 Fallback to Sequential
+
+If SCs have dependencies or share files:
+- Use sequential execution (original pattern)
+- One Coder agent for all SCs
+- Traditional TDD + Ralph Loop
+
+---
+
 ## Step 3: Delegate to Coder Agent (Context Isolation)
 
 > **CRITICAL**: Use Task tool to invoke Coder Agent for context isolation.
@@ -127,6 +237,14 @@ Task:
     │       └─► Returns: "3 files changed, tests pass" (1K)
     │
     ├─► Process summary (1K)
+    │
+    ├─► Parallel verification (Optional, for complex changes):
+    │   ├─► Task: Tester Agent (Isolated)
+    │   │   └─► Returns: "Tests pass, coverage 85%" (0.5K)
+    │   ├─► Task: Validator Agent (Isolated)
+    │   │   └─► Returns: "Type check ✅, Lint ✅" (0.5K)
+    │   └─► Task: code-reviewer Agent (Isolated - Opus)
+    │       └─► Returns: "2 critical issues found" (1K)
     │
     └─► Task: Documenter Agent (Isolated Context)
             ├─► [30K tokens consumed internally]

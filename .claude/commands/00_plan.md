@@ -75,13 +75,79 @@ Existing Patterns: [list]
 
 ## Step 0: Parallel Exploration
 
-| Thread | Focus | Tools |
-|--------|-------|-------|
-| Explore | Related code, patterns | Glob, Grep, Read |
-| Research | External docs | WebSearch, query-docs |
-| **Test Env** | **Detect test framework** | **Glob, Read** |
+| Thread | Focus | Tools | Agent |
+|--------|-------|-------|-------|
+| Explore | Related code, patterns | Glob, Grep, Read | **Explorer Agent** |
+| Research | External docs | WebSearch, query-docs | **Researcher Agent** |
+| **Test Env** | **Detect test framework** | **Glob, Read** | **Main (inline)** |
 
 **Test Environment Detection**: See @.claude/guides/test-environment.md
+
+### Parallel Agent Invocation Pattern
+
+Use the **Task** tool to invoke Explorer and Researcher agents in parallel:
+
+```markdown
+Task:
+  subagent_type: explorer
+  prompt: |
+    Explore the codebase for {FEATURE/COMPONENT}:
+    - Find related files using Glob
+    - Search for patterns using Grep
+    - Read key files to understand architecture
+    - Return structured summary with:
+      * Files found with purposes
+      * Patterns identified
+      * Architecture notes
+
+Task:
+  subagent_type: researcher
+  prompt: |
+    Research {TOPIC/TECHNOLOGY}:
+    - Use query-docs for library-specific documentation
+    - Use WebSearch for best practices
+    - Find code examples and patterns
+    - Return structured summary with:
+      * Sources consulted (with URLs)
+      * Key findings
+      * Code examples
+      * Recommendations
+```
+
+### Main Thread: Test Environment Detection
+
+While agents run in parallel, main thread detects test environment:
+
+```bash
+# Detect test framework
+if [ -f "pyproject.toml" ] || [ -f "pytest.ini" ]; then
+    TEST_FRAMEWORK="pytest"
+    TEST_CMD="pytest"
+    COVERAGE_CMD="pytest --cov"
+elif [ -f "package.json" ]; then
+    TEST_FRAMEWORK="jest"  # or vitest, mocha, etc.
+    TEST_CMD="npm test"
+    COVERAGE_CMD="npm run test:coverage"
+elif [ -f "go.mod" ]; then
+    TEST_FRAMEWORK="go test"
+    TEST_CMD="go test ./..."
+    COVERAGE_CMD="go test -cover ./..."
+fi
+
+# Detect test directory
+TEST_DIR="tests/"
+[ -d "test" ] && TEST_DIR="test/"
+[ -d "__tests__" ] && TEST_DIR="__tests__/"
+```
+
+### Result Merge
+
+After parallel agents complete:
+
+1. **Explorer Summary**: Add to "Explored Files" table
+2. **Researcher Summary**: Add to "Research Findings" table
+3. **Test Environment**: Add to plan as "Test Environment (Detected)" section
+4. **Integration**: Merge findings, identify conflicts, update plan
 
 > **⚠️ COLLECT FOR HANDOFF**: During exploration, collect:
 > - Files read (path + purpose + key lines)

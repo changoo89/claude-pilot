@@ -31,12 +31,13 @@ claude-pilot/
 │   │   ├── 91_document.md  # Update docs
 │   │   ├── 92_init.md      # Initialize 3-Tier docs
 │   │   └── 999_publish.md  # Publish to npm
-│   ├── guides/             # Methodology guides (8)
+│   ├── guides/             # Methodology guides (9)
 │   │   ├── prp-framework.md       # Problem-Requirements-Plan
 │   │   ├── vibe-coding.md         # Code quality standards
 │   │   ├── gap-detection.md       # External service verification
 │   │   ├── tdd-methodology.md     # Test-driven development
 │   │   ├── ralph-loop.md          # Autonomous iteration
+│   │   ├── parallel-execution.md  # Parallel execution patterns
 │   │   ├── 3tier-documentation.md # Documentation system
 │   │   ├── review-checklist.md    # Code review criteria
 │   │   └── test-environment.md    # Test framework detection
@@ -49,10 +50,14 @@ claude-pilot/
 │   │   ├── ralph-loop/SKILL.md
 │   │   ├── vibe-coding/SKILL.md
 │   │   └── git-master/SKILL.md
-│   ├── agents/             # Specialized agent configs (4)
+│   ├── agents/             # Specialized agent configs (8)
 │   │   ├── explorer.md
+│   │   ├── researcher.md
 │   │   ├── coder.md
-│   │   ├── reviewer.md
+│   │   ├── tester.md
+│   │   ├── validator.md
+│   │   ├── plan-reviewer.md
+│   │   ├── code-reviewer.md
 │   │   └── documenter.md
 │   ├── scripts/
 │   │   └── hooks/          # Git/workflow hooks (4)
@@ -249,12 +254,26 @@ Located in `.claude/skills/{skill_name}/SKILL.md`:
 
 Located in `.claude/agents/{agent_name}.md`:
 
-| Agent | Purpose |
-|-------|---------|
-| `explorer` | Codebase exploration and analysis |
-| `coder` | Implementation with TDD |
-| `reviewer` | Multi-angle code review |
-| `documenter` | Documentation synchronization |
+**Model Allocation:**
+
+| Model | Agents | Purpose |
+|-------|--------|---------|
+| **Haiku** | explorer, researcher, validator, documenter | Fast, cost-efficient for repetitive/structured tasks |
+| **Sonnet** | coder, tester, plan-reviewer | Balance of quality and speed for complex tasks |
+| **Opus** | code-reviewer | Deep reasoning for critical review (async bugs, memory leaks) |
+
+**Agent Details:**
+
+| Agent | Model | Tools | Purpose |
+|-------|-------|-------|---------|
+| `explorer` | haiku | Glob, Grep, Read | Codebase exploration and analysis |
+| `researcher` | haiku | WebSearch, WebFetch, query-docs | External documentation and API research |
+| `coder` | sonnet | Read, Write, Edit, Bash | Implementation with TDD |
+| `tester` | sonnet | Read, Write, Bash | Test writing and execution |
+| `validator` | haiku | Bash, Read | Type check, lint, coverage verification |
+| `plan-reviewer` | sonnet | Read, Glob, Grep | Plan analysis and gap detection |
+| `code-reviewer` | opus | Read, Glob, Grep, Bash | Deep code review (async, memory, security) |
+| `documenter` | haiku | Read, Write | Documentation synchronization |
 
 ---
 
@@ -283,7 +302,15 @@ Located in `.claude/agents/{agent_name}.md`:
 
 ## Version History
 
-### v3.1.0 (Current)
+### v3.1.4 (Current)
+
+- Added parallel workflow optimization with 8 specialized agents
+- New agents: researcher, tester, validator, plan-reviewer, code-reviewer
+- Renamed reviewer.md → code-reviewer.md (model: haiku → opus)
+- Updated commands with parallel execution patterns
+- Added parallel-execution.md guide
+
+### v3.1.0
 
 - Added Skills and Agents for context isolation
 - Enhanced /01_confirm with Step 1.5 (Conversation Highlights Extraction)
@@ -307,5 +334,5 @@ Located in `.claude/agents/{agent_name}.md`:
 
 ---
 
-**Last Updated**: 2026-01-14
-**Template**: claude-pilot 3.1.0
+**Last Updated**: 2026-01-15
+**Template**: claude-pilot 3.1.4

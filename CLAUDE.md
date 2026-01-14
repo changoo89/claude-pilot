@@ -101,6 +101,61 @@ Autonomous iteration until all tests pass:
 - If failures -> fix and continue
 - Max 7 iterations before review
 
+### Enhanced Plan Workflow (External Services)
+
+> **For plans involving external APIs, databases, file operations, async operations, or environment variables**
+
+#### New Severity Levels
+
+| Level | Symbol | Description | Action Required |
+|-------|--------|-------------|-----------------|
+| **BLOCKING** | 🛑 | Cannot proceed | Triggers Interactive Recovery (dialogue until resolved) |
+| **Critical** | 🚨 | Must fix | Acknowledge and fix before execution |
+| **Warning** | ⚠️ | Should fix | Advisory, but recommended |
+| **Suggestion** | 💡 | Nice to have | Optional improvements |
+
+#### Gap Detection Review
+
+All plans with external service keywords trigger automatic Gap Detection Review:
+- **External API**: SDK vs HTTP, endpoint verification, error handling
+- **Database Operations**: Migration files, rollback strategy
+- **Async Operations**: Timeouts, concurrent limits, race conditions
+- **File Operations**: Path resolution, existence checks, cleanup
+- **Environment**: Env var documentation, existence checks, no secrets
+- **Error Handling**: No silent catches, user notification, graceful degradation
+
+#### Interactive Recovery
+
+When BLOCKING findings are detected, `/01_confirm` enters dialogue mode:
+1. Present each BLOCKING finding with context
+2. Use `AskUserQuestion` to gather missing details
+3. Update plan with user responses
+4. Re-run review to verify fixes
+5. Continue until BLOCKING = 0 or max 5 iterations
+
+#### Escape Hatches
+
+| Flag | Purpose | Effect |
+|------|---------|--------|
+| `--lenient` | Bypass strict verification | BLOCKING → WARNING, plan saved with warnings |
+| `--no-review` | Skip auto-review entirely | No review run, faster workflow |
+
+#### Plan Structure for External Services
+
+Plans involving external services must include:
+
+**External Service Integration** section:
+- API Calls Required table (From, To, Endpoint, SDK/HTTP, Status, Verification)
+- New Endpoints to Create table
+- Environment Variables Required table
+- Error Handling Strategy table
+
+**Implementation Details Matrix**:
+- WHO (Service), WHAT (Action), HOW (Mechanism), VERIFY (Check)
+
+**Gap Verification Checklist**:
+- 6 categories with 3-4 verification questions each
+
 ---
 
 ## Context Engineering

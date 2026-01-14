@@ -86,6 +86,99 @@ Time, Technical, Resource limits
 
 ---
 
+## Step 2.5: External Service Integration (Conditional)
+
+> **⚠️ CONDITIONAL SECTION**: Include ONLY when plan involves:
+> - External API calls (REST, GraphQL, SDKs)
+> - Database operations (migrations, schema changes)
+> - File operations (read/write/temp files)
+> - Async operations (timeouts, concurrency)
+> - Environment variables
+> - Error handling beyond simple try/catch
+
+> **Trigger Keywords**: `API`, `fetch`, `call`, `endpoint`, `database`, `migration`, `SDK`, `HTTP`, `POST`, `GET`, `PUT`, `DELETE`, `async`, `await`, `timeout`, `env`, `.env`
+
+### External Service Integration
+
+```markdown
+## External Service Integration
+
+### API Calls Required
+| Call | From | To | Endpoint | SDK/HTTP | Status | Verification |
+|------|------|----|----------|----------|--------|--------------|
+| [Description] | [Service] | [Service] | [Path/URL] | [Package/Method] | [New/Existing] | [ ] Check |
+| Example: GPT Generation | Next.js API | OpenAI | N/A (SDK) | openai@4.x | New | [ ] SDK installed |
+| Example: PDF Generation | Next.js API | helper-server | /hater/complaints/pdf | HTTP fetch | Existing | [ ] Endpoint verified |
+
+### New Endpoints to Create
+| Endpoint | Service | Method | Handler | Request Schema | Response Schema |
+|----------|---------|--------|---------|----------------|-----------------|
+| [/api/path] | [Service] | [POST/GET] | [file.ts] | { type: string } | { result: Type } |
+
+### Environment Variables Required
+| Variable | Service | Status | Verification |
+|----------|---------|--------|--------------|
+| [VAR_NAME] | [Service] | [New/Existing] | [ ] In .env.example |
+
+### Error Handling Strategy
+| Operation | Failure Mode | User Notification | Fallback |
+|-----------|--------------|-------------------|----------|
+| [Operation name] | [Timeout/Auth/Network] | [Toast/Status/Alert] | [Retry/Fail/Skip] |
+```
+
+### Implementation Details Matrix
+
+```markdown
+## Implementation Details Matrix
+
+| Task | WHO (Service) | WHAT (Action) | HOW (Mechanism) | VERIFY (Check) |
+|------|---------------|---------------|-----------------|----------------|
+| [Task description] | [Service/Boundary] | [Action] | [Code/Command] | [Verification] |
+| Example: Call GPT | Next.js API route | Generate crime_facts | OpenAI SDK v4 | SDK installed, API key set |
+| Example: Save result | Next.js API route | Update complaint | Prisma client | Schema has field |
+```
+
+### Gap Verification Checklist
+
+```markdown
+## Gap Verification Checklist
+
+### External API
+- [ ] All API calls specify SDK vs HTTP mechanism
+- [ ] All "Existing" endpoints verified via codebase search
+- [ ] All "New" endpoints have creation tasks in Execution Plan
+- [ ] Error handling strategy defined for each external call
+
+### Database Operations
+- [ ] Schema changes have migration files specified
+- [ ] Rollback strategy documented
+- [ ] Data integrity checks included
+
+### Async Operations
+- [ ] Timeout values specified for all async operations
+- [ ] Concurrent operation limits defined
+- [ ] Race condition scenarios addressed
+
+### File Operations
+- [ ] File paths are absolute or properly resolved
+- [ ] File existence checks before operations
+- [ ] Cleanup strategy for temporary files
+
+### Environment
+- [ ] All new env vars documented in .env.example
+- [ ] All referenced env vars exist in current environment
+- [ ] No actual secret values in plan
+
+### Error Handling
+- [ ] No silent catches (console.error only)
+- [ ] User notification strategy for each failure mode
+- [ ] Graceful degradation paths defined
+```
+
+> **📝 NOTE**: Copy these templates into the generated plan when external services are involved. Fill with concrete details - no "TODO" or vague references.
+
+---
+
 ## Step 3: Architecture & Design
 
 ### Data Structures
@@ -135,6 +228,15 @@ New files, existing modifications, integration points
 
 ## Scope: In scope / Out of scope
 
+## External Service Integration [OPTIONAL - if APIs/DB/Files/Async/Env involved]
+### API Calls Required / New Endpoints / Environment Variables / Error Handling Strategy
+
+## Implementation Details Matrix [OPTIONAL - if external services involved]
+### WHO / WHAT / HOW / VERIFY table
+
+## Gap Verification Checklist [OPTIONAL - if external services involved]
+### API / DB / Async / File / Environment / Error Handling checklists
+
 ## Architecture
 ### Data Structures / Module Boundaries / Vibe Coding Guidelines
 
@@ -146,6 +248,14 @@ New files, existing modifications, integration points
 
 ## Risks & Mitigations / Open Questions
 ```
+
+> **📌 CONDITIONAL SECTIONS**: Include External Service Integration, Implementation Details Matrix, and Gap Verification Checklist ONLY when the plan involves:
+> - External API calls (REST, GraphQL, SDKs)
+> - Database operations (migrations, schema changes)
+> - File operations (read/write/temp files)
+> - Async operations (timeouts, concurrency)
+> - Environment variables
+> - Error handling beyond simple try/catch
 
 ### User Confirmation Gate
 > **⛔ CONFIRMATION REQUIRED**

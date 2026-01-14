@@ -293,15 +293,83 @@ If `"$ARGUMENTS"` contains focus areas, deep-dive:
 
 ---
 
+## Step 7.5: Gap Detection Review (MANDATORY)
+
+> **🛑 BLOCKING Severity**: A new severity level higher than Critical
+> - **BLOCKING** (🛑): Cannot proceed, triggers Interactive Recovery in `/01_confirm`
+> - **Critical** (🚨): Must fix before execution
+> - **Warning** (⚠️): Should fix
+> - **Suggestion** (💡): Nice to have
+
+### Review 9: Gap Detection (MANDATORY)
+
+> **Purpose**: Detect vague specifications that prevent independent executor work
+> **Activation**: Run for ALL plans, but only report BLOCKING when external service keywords detected
+
+**Trigger Keywords**: `API`, `fetch`, `call`, `endpoint`, `database`, `migration`, `SDK`, `HTTP`, `POST`, `GET`, `PUT`, `DELETE`, `async`, `await`, `timeout`, `env`, `.env`
+
+#### 9.1 External API Verification
+☐ All API calls have implementation mechanism (SDK vs HTTP)?
+☐ All "Existing" endpoints verified to exist in codebase?
+☐ All "New" endpoints have creation tasks in Execution Plan?
+☐ Error handling strategy defined for each external call?
+
+**Automated Verification Commands**:
+```bash
+# Endpoint existence check
+grep -r "endpoint_path" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"
+
+# SDK dependency check
+grep "package_name" package.json
+
+# Environment variable check
+grep "VAR_NAME" .env .env.example .env.local 2>/dev/null
+```
+
+#### 9.2 Database Operation Verification
+☐ Schema changes have migration files specified?
+☐ Rollback strategy documented?
+☐ Data integrity checks included?
+
+#### 9.3 Async Operation Verification
+☐ Timeout values specified for all async operations?
+☐ Concurrent operation limits defined?
+☐ Race condition scenarios addressed?
+
+#### 9.4 File Operation Verification
+☐ File paths are absolute or properly resolved?
+☐ File existence checks present before operations?
+☐ Cleanup strategy defined for temporary files?
+
+#### 9.5 Environment Verification
+☐ All new env vars documented in .env.example?
+☐ All referenced env vars exist in current environment?
+☐ No actual secret values in plan?
+
+#### 9.6 Error Handling Verification
+☐ No silent catches (console.error only)?
+☐ User notification strategy for each failure mode?
+☐ Graceful degradation paths defined?
+
+**BLOCKING Finding Format**:
+```markdown
+### 🛑 BLOCKING (Must resolve before proceeding)
+- **[External API]** API mechanism unspecified - missing SDK/HTTP, endpoint, error handling
+  - Location: "Call GPT 5.1 for analysis" in User Requirements
+  - Required: Specify SDK package (e.g., `openai@4.x`) or HTTP endpoint (e.g., `POST /api/analyze`)
+```
+
+---
+
 ## Step 8: Results Summary
 
 ```markdown
 # Plan Review Results
 
 ## Summary
-- **Assessment**: [Pass/Needs Revision]
+- **Assessment**: [Pass/Needs Revision/BLOCKED]
 - **Type**: [Primary / Extended: A,B,D]
-- **Findings**: Critical: N / Warning: N / Suggestion: N
+- **Findings**: BLOCKING: N / Critical: N / Warning: N / Suggestion: N
 
 ## Mandatory Review (8 items)
 | # | Item | Status |
@@ -315,6 +383,16 @@ If `"$ARGUMENTS"` contains focus areas, deep-dive:
 | 7 | Project Alignment | ✅/⚠️/❌ |
 | 8 | Long-term Impact | ✅/⚠️/❌ |
 
+## Gap Detection Review (MANDATORY)
+| # | Category | Status |
+|---|----------|--------|
+| 9.1 | External API | ✅/🛑 |
+| 9.2 | Database Operations | ✅/🛑 |
+| 9.3 | Async Operations | ✅/🛑 |
+| 9.4 | File Operations | ✅/🛑 |
+| 9.5 | Environment | ✅/🛑 |
+| 9.6 | Error Handling | ✅/🛑 |
+
 ## Vibe Coding Compliance
 | Target | Status |
 |--------|--------|
@@ -325,6 +403,7 @@ If `"$ARGUMENTS"` contains focus areas, deep-dive:
 ## Extended Review [Activated items only]
 ## Autonomous Discoveries
 ## Issues
+### 🛑 BLOCKING (Cannot proceed - triggers Interactive Recovery)
 ### 🚨 Critical (Must fix)
 ### ⚠️ Warning (Should fix)
 ### 💡 Suggestion
@@ -381,8 +460,11 @@ If `"$ARGUMENTS"` contains focus areas, deep-dive:
 
 | Criteria | Threshold |
 |----------|-----------|
-| Auto-proceed | Critical 0 + Warning ≤1 |
-| User confirmation | Critical ≥1 OR Warning ≥2 |
+| Auto-proceed | BLOCKING 0 + Critical 0 + Warning ≤1 |
+| User confirmation | BLOCKING ≥1 OR Critical ≥1 OR Warning ≥2 |
+| BLOCKED | BLOCKING ≥1 (triggers Interactive Recovery in `/01_confirm`) |
+
+> **🛑 BLOCKING Threshold**: Any BLOCKING finding prevents execution until resolved via Interactive Recovery (in `/01_confirm`) or `--lenient` flag is used.
 
 ---
 

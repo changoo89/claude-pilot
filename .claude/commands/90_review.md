@@ -351,12 +351,62 @@ grep "VAR_NAME" .env .env.example .env.local 2>/dev/null
 ☐ User notification strategy for each failure mode?
 ☐ Graceful degradation paths defined?
 
+#### 9.7 Test Plan Verification (BLOCKING)
+
+> **⚠️ CRITICAL - Test Scenarios are MANDATORY for all plans**
+
+**Trigger**: Run for ALL plans - test verification is always required
+
+☐ **Test Scenarios Defined**: Are there concrete test scenarios in the Test Plan section?
+☐ **Test File Specified**: Does each scenario include a test file path?
+☐ **Test Command Detected**: Is the test command specified for the project type?
+☐ **Coverage Command Specified**: Is the coverage command included?
+☐ **Test Environment Section**: Does the plan include "Test Environment (Detected)"?
+
+**BLOCKING Conditions** (triggers Interactive Recovery):
+- Test Plan section missing from plan
+- No test scenarios defined (empty table)
+- Test scenarios lack "Test File" column entries
+- Test command not specified (assumes `npm run test` without detection)
+- Coverage command not specified
+
+**Verification Commands**:
+```bash
+# Check if plan has Test Plan section
+grep -A 20 "## Test Plan" "$PLAN_PATH"
+
+# Check if Test Environment is detected
+grep -A 10 "Test Environment" "$PLAN_PATH"
+
+# Verify test scenarios have file paths
+grep "Test File" "$PLAN_PATH"
+```
+
 **BLOCKING Finding Format**:
 ```markdown
-### 🛑 BLOCKING (Must resolve before proceeding)
-- **[External API]** API mechanism unspecified - missing SDK/HTTP, endpoint, error handling
-  - Location: "Call GPT 5.1 for analysis" in User Requirements
-  - Required: Specify SDK package (e.g., `openai@4.x`) or HTTP endpoint (e.g., `POST /api/analyze`)
+### 🛑 BLOCKING (Cannot proceed - missing test planning)
+- **[Test Plan]** No test scenarios defined - cannot proceed without test coverage
+  - Location: Test Plan section in plan file
+  - Required: Add at least 3 test scenarios (happy path, edge case, error handling)
+  - Required: Specify test file paths for each scenario
+  - Required: Include Test Environment section with detected test command
+```
+
+**Example of Correct Test Plan**:
+```markdown
+## Test Plan
+| ID | Scenario | Input | Expected | Type | Test File |
+|----|----------|-------|----------|------|-----------|
+| TS-1 | Create user | {name: "John"} | 201 created | Integration | `tests/test_api.py::test_create_user` |
+| TS-2 | Duplicate user | {name: "John"} | 409 conflict | Unit | `tests/test_api.py::test_duplicate_user` |
+| TS-3 | Invalid input | {name: ""} | 400 bad request | Unit | `tests/test_validation.py::test_empty_name` |
+
+## Test Environment (Detected)
+- Project Type: Python
+- Test Framework: pytest
+- Test Command: `pytest`
+- Coverage Command: `pytest --cov`
+- Test Directory: `tests/`
 ```
 
 ---
@@ -392,6 +442,7 @@ grep "VAR_NAME" .env .env.example .env.local 2>/dev/null
 | 9.4 | File Operations | ✅/🛑 |
 | 9.5 | Environment | ✅/🛑 |
 | 9.6 | Error Handling | ✅/🛑 |
+| 9.7 | Test Plan Verification | ✅/🛑 |
 
 ## Vibe Coding Compliance
 | Target | Status |

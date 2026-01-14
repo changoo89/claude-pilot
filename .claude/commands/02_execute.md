@@ -91,6 +91,38 @@ Create todo list mirroring plan phases. Rules: Atomic/verifiable todos, exactly 
 
 Resolve ambiguities: Ask one clarifying question before coding if plan missing critical info
 
+### MANDATORY: Test Execution Todos
+
+> **⚠️ CRITICAL - EVERY implementation task MUST be followed by a test execution todo**
+
+**Pattern**:
+```markdown
+- [ ] Implement [feature X]
+- [ ] Run tests for [feature X]
+```
+
+**Correct Example**:
+```markdown
+- [ ] Add authentication middleware
+- [ ] Run tests for authentication middleware
+- [ ] Add login endpoint
+- [ ] Run tests for login endpoint
+- [ ] Fix failing tests
+- [ ] Verify all tests pass
+```
+
+**❌ ANTI-PATTERN - FORBIDDEN**:
+```markdown
+- [ ] Add authentication
+- [ ] Add login
+- [ ] Fix tests
+- [ ] Verify complete  ← Tests bundled at end - WRONG!
+```
+
+**🛑 RULE**: After EVERY "Implement", "Add", "Create", "Modify", "Fix" todo, add a corresponding "Run tests for [X]" todo immediately after.
+
+**Why?** This ensures Ralph Loop triggers test execution after each code change, not just at the end.
+
 ---
 
 ## Step 3: Execute with TDD (Red-Green-Refactor)
@@ -129,9 +161,117 @@ Iterate all SC: SC-1 Red→Green→Refactor, SC-2 Red→Green→Refactor, ...unt
 
 ---
 
+### TDD-Ralph Integration (CRITICAL)
+
+> **⚠️ MANDATORY - Ralph Micro-Cycle**
+
+**After EVERY Edit/Write tool call, you MUST run tests immediately.**
+
+Do NOT wait until the end of implementation. Do NOT batch multiple code changes before testing.
+
+#### Ralph Micro-Cycle Pattern
+
+```
+1. Edit/Write code
+2. Mark test todo as in_progress
+3. Run tests (use detected test command from plan)
+4. Analyze results
+5. Fix failures or mark test todo complete
+6. Repeat from step 1 for next change
+```
+
+#### Correct Workflow
+
+```markdown
+Current in_progress: Implement login function
+
+[Edit src/auth.ts - add login function]
+
+→ Next: Mark "Run tests for login" as in_progress
+→ Execute: pytest (or npm test, etc.)
+→ Result: ❌ Fails (missing password validation)
+→ Fix: Add password validation
+→ Re-run: ✅ Passes
+→ Mark: "Run tests for login" ✅ complete
+→ Next: Move to next todo
+```
+
+#### ❌ ANTI-PATTERN - FORBIDDEN
+
+```markdown
+[Edit src/auth.ts - add login]
+[Edit src/auth.ts - add register]
+[Edit src/auth.ts - add logout]
+[Edit src/middleware.ts - add auth guard]
+→ Only now run tests ← WRONG! Too many changes, hard to debug
+```
+
+#### Test Command Auto-Detection
+
+Use the test command detected during planning (from `Test Environment` section):
+- Python: `pytest` or `python -m pytest`
+- Node.js: `npm test` or `npm run test`
+- Go: `go test ./...`
+- Rust: `cargo test`
+
+If not detected in plan, auto-detect now:
+```bash
+# Priority: pyproject.toml → package.json → go.mod → Cargo.toml
+if [ -f "pyproject.toml" ]; then TEST_CMD="pytest"
+elif [ -f "package.json" ]; then TEST_CMD="npm test"
+elif [ -f "go.mod" ]; then TEST_CMD="go test ./..."
+elif [ -f "Cargo.toml" ]; then TEST_CMD="cargo test"
+else TEST_CMD="npm test"  # Fallback
+fi
+
+echo "Detected test command: $TEST_CMD"
+$TEST_CMD
+```
+
+#### Why This Matters
+
+- **Fast feedback**: Catch issues immediately after each change
+- **Easy debugging**: Only one code change between test runs
+- **TDD compliance**: Red-Green-Refactor cycle per change
+- **Ralph efficiency**: Failures are isolated and quick to fix
+
+---
+
 ## Step 4: Ralph Loop (Autonomous Completion)
 
 > **Principle**: Self-correcting loop until completion marker detected
+
+### Ralph Loop Entry Condition (CRITICAL)
+
+> **⚠️ IMPORTANT - When does Ralph Loop start?**
+
+**Ralph Loop starts IMMEDIATELY after the FIRST code change, NOT at the end of all implementation.**
+
+**Correct Entry Points:**
+- ✅ After implementing the first feature/function
+- ✅ After fixing a bug
+- ✅ After any Edit/Write tool call
+
+**❌ WRONG - Do NOT wait until:**
+- ❌ After completing all todos
+- ❌ After implementing all features
+- ❌ At the very end of execution
+
+**Workflow:**
+```
+Step 3: TDD Cycle
+  └─ Red-Green-Refactor for SC-1
+      └─ After Edit/Write → IMMEDIATELY enter Ralph Loop
+          └─ Run tests
+          └─ If fail → Fix → Re-run tests
+          └─ If pass → Continue to next SC
+```
+
+**Why immediate entry?**
+- Fast feedback on each change
+- Isolate failures to specific code changes
+- Prevent accumulation of bugs
+- True TDD compliance
 
 ### 4.1 Completion Promise
 > Output `<RALPH_COMPLETE>` marker **ONLY when** ALL conditions are met:
@@ -162,12 +302,84 @@ WHILE ITERATION <= MAX_ITERATIONS AND NOT <RALPH_COMPLETE>:
 ```
 
 ### 4.3 Verification Commands
+
+> **⚠️ AUTO-DETECT TEST COMMAND - Do NOT assume `npm run test`**
+
+**First, detect project type and test command:**
 ```bash
-npx tsc --noEmit      # Type check
-npm run lint          # Lint
-npm run test          # Tests
-npm run test -- --coverage  # Coverage
+# Auto-detect test command based on project type
+DETECT_TEST_CMD() {
+    if [ -f "pyproject.toml" ] || [ -f "pytest.ini" ]; then
+        echo "pytest"
+    elif [ -f "setup.py" ]; then
+        echo "python -m pytest"
+    elif [ -f "package.json" ]; then
+        # Check if test script exists
+        if grep -q '"test"' package.json; then
+            echo "npm run test"
+        else
+            echo "npm test"
+        fi
+    elif [ -f "go.mod" ]; then
+        echo "go test ./..."
+    elif [ -f "Cargo.toml" ]; then
+        echo "cargo test"
+    elif [ -f "pom.xml" ]; then
+        echo "mvn test"
+    elif [ -f "build.gradle" ]; then
+        echo "gradle test"
+    else
+        echo "npm test"  # Fallback
+    fi
+}
+
+TEST_CMD=$(DETECT_TEST_CMD)
+echo "🧪 Detected test command: $TEST_CMD"
+
+# Type check (language-specific)
+if [ -f "package.json" ] && grep -q "typescript" package.json; then
+    echo "Running type check..."; npx tsc --noEmit; TYPE_CHECK_RESULT=$?
+elif [ -f "pyproject.toml" ] && grep -q "mypy" pyproject.toml; then
+    echo "Running type check..."; mypy .; TYPE_CHECK_RESULT=$?
+else
+    echo "No type check configured"; TYPE_CHECK_RESULT=0
+fi
+
+# Lint (language-specific)
+if [ -f "package.json" ] && grep -q '"lint"' package.json; then
+    echo "Running lint..."; npm run lint; LINT_RESULT=$?
+elif [ -f "pyproject.toml" ] && grep -q "ruff" pyproject.toml; then
+    echo "Running lint..."; ruff check .; LINT_RESULT=$?
+else
+    echo "No lint configured"; LINT_RESULT=0
+fi
+
+# Tests
+echo "Running tests..."; $TEST_CMD; TEST_RESULT=$?
+
+# Coverage (project-specific)
+if [ -f "package.json" ] && grep -q '"test:coverage"' package.json; then
+    echo "Running coverage..."; npm run test:coverage; COVERAGE_RESULT=$?
+elif [ -f "pyproject.toml" ]; then
+    echo "Running coverage..."; pytest --cov; COVERAGE_RESULT=$?
+elif [ -f "go.mod" ]; then
+    echo "Running coverage..."; go test -cover ./...; COVERAGE_RESULT=$?
+else
+    echo "No coverage command configured"; COVERAGE_RESULT=0
+fi
+
+# Overall check
+[ $TYPE_CHECK_RESULT -eq 0 ] && [ $TEST_RESULT -eq 0 ] && [ $LINT_RESULT -eq 0 ] && [ $COVERAGE_RESULT -eq 0 ] && echo "✅ All passed" || { echo "❌ Some failed"; return 1; }
 ```
+
+**Quick Reference Table:**
+| Project Type | Test Command | Coverage Command | Type Check | Lint |
+|--------------|--------------|------------------|------------|------|
+| Python (pytest) | `pytest` | `pytest --cov` | `mypy .` | `ruff check .` |
+| Node.js (TypeScript) | `npm test` | `npm run test:coverage` | `npx tsc --noEmit` | `npm run lint` |
+| Node.js (JavaScript) | `npm test` | `npm run test:coverage` | - | `npm run lint` |
+| Go | `go test ./...` | `go test -cover ./...` | - | `golangci-lint run` |
+| Rust | `cargo test` | `cargo test` | - | `cargo clippy` |
 
 ### 4.4 Exit Conditions
 | Type | Criteria |

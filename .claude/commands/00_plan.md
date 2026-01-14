@@ -72,6 +72,112 @@ Before generating ANY response, verify:
 
 ---
 
+## Mandatory: Deep Project Understanding
+
+> **⚠️ CRITICAL - READ CAREFULLY**
+>
+> Before answering ANY user question or proposing ANY solution, you MUST:
+> 1. **Read ALL related files** - not just grep results
+> 2. **Understand existing patterns** - before suggesting new ones
+> 3. **Map the architecture** - before proposing changes
+>
+> **Shallow answers are PROHIBITED**. You cannot properly advise without deep understanding.
+
+### Mandatory Reading Checklist
+
+| File/Folder | Purpose | Status |
+|-------------|---------|--------|
+| `CLAUDE.md` | Project overview, tech stack, conventions | [ ] Read |
+| `.claude/commands/*.md` | Existing slash commands and patterns | [ ] Read relevant |
+| `.claude/guides/*.md` | Methodology guides | [ ] Read if exists |
+| `.claude/templates/*.md` | PRP, CONTEXT, SKILL templates | [ ] Read if exists |
+| `src/` or `lib/` | Main source code structure | [ ] Map structure |
+| `tests/` | Test patterns and coverage | [ ] Review patterns |
+| Context files | Any `CONTEXT.md` in relevant folders | [ ] Read if exists |
+
+### Structure Mapping Requirements
+
+Before proposing any solution, you MUST produce:
+
+```
+🔍 Deep Project Understanding Results
+
+Project: [Name]
+Type: [Python/Node.js/Go/Rust/Other]
+
+Key Files Mapped:
+- src/
+  - [main module]: [purpose]
+  - [feature]: [integration points]
+- tests/
+  - [test pattern]: [framework]
+- Configuration: [build tools, package managers]
+
+Existing Patterns:
+- [Pattern 1]: [where used]
+- [Pattern 2]: [where used]
+
+Related Commands:
+- /00_plan: [relevant aspects]
+- /02_execute: [relevant aspects]
+```
+
+### Anti-Pattern Warning
+
+> **🛑 FORBIDDEN PATTERNS**
+>
+> - ❌ Grep-only exploration (finds keywords, misses context)
+> - ❌ Proposing solutions without reading full files
+> - ❌ Suggesting "add X" when X already exists
+> - ❌ Generic advice without project-specific context
+> - ❌ Assuming standard patterns without verification
+
+### Existing Solution Check
+
+After exploration, BEFORE proposing any solution:
+
+1. **Search for existing implementations**:
+   - Does similar functionality already exist?
+   - Is there a function/class that solves this?
+   - Are there patterns to follow?
+
+2. **Decision logic**:
+   - If exists → Enhance or extend existing solution
+   - If not → Create new, following existing patterns
+
+3. **Output**:
+   ```
+   ✅ Existing Solution Check:
+   - [Feature Name]: [Exists/New]
+   - [If exists]: Location, approach, enhancement opportunity
+   - [If new]: Pattern to follow, integration points
+   ```
+
+### Output Format for Exploration Results
+
+After completing deep project understanding, output:
+
+```markdown
+## 🎯 Deep Project Understanding Complete
+
+Project Type: [Python/Node.js/Go/Rust]
+Test Framework: [pytest/jest/go test/cargo test]
+Build System: [npm/poetry/cargo/go mod]
+
+Key Files Read:
+- [File]: [Key insight]
+
+Existing Solutions:
+- [Feature]: [Status - Exists/New]
+
+Architecture Insights:
+- [Pattern]: [Usage]
+
+Next: Proceeding to requirements elication
+```
+
+---
+
 ## Step 0: Parallel Exploration
 
 | Thread | Focus | Tools |
@@ -79,8 +185,58 @@ Before generating ANY response, verify:
 | Explore | Related code, patterns | Glob, Grep, Read, find_symbol |
 | Research | External docs | WebSearch, query-docs |
 | Quality | Tests, CLAUDE.md | Read |
+| **Test Env** | **Detect test framework** | **Glob, Read** |
 
-Output: 🔍 [Explore] N files at X, [Research] Docs show Y, [Quality] Convention is Z
+Output: 🔍 [Explore] N files at X, [Research] Docs show Y, [Quality] Convention is Z, **[Test Env] Framework detected**
+
+### Test Environment Detection (MANDATORY)
+
+> **⚠️ CRITICAL**: Every plan MUST include detected test environment. Do NOT assume `npm run test`.
+
+**Detection Priority**:
+1. Check for project type files in order:
+   - `pyproject.toml`, `setup.py`, `pytest.ini`, `tox.ini` → Python project
+   - `package.json` → Node.js project
+   - `go.mod` → Go project
+   - `Cargo.toml` → Rust project
+   - `*.csproj`, `*.sln` → C#/.NET project
+   - `pom.xml`, `build.gradle` → Java project
+
+2. Determine test command:
+   | Project Type | File Pattern | Test Command | Coverage Command |
+   |--------------|--------------|--------------|------------------|
+   | Python | `pyproject.toml`, `pytest.ini` | `pytest` | `pytest --cov` |
+   | Python | `setup.py` | `python -m pytest` | `python -m pytest --cov` |
+   | Node.js | `package.json` (jest) | `npm test` or `npm run test` | `npm run test:coverage` |
+   | Node.js | `package.json` (vitest) | `npm run test` | `npm run test:coverage` |
+   | Go | `go.mod` | `go test ./...` | `go test -cover ./...` |
+   | Rust | `Cargo.toml` | `cargo test` | `cargo test -- --nocapture` |
+   | C# | `*.csproj` | `dotnet test` | `dotnet test --collect:"XPlat Code Coverage"` |
+   | Java | `pom.xml` (maven) | `mvn test` | `mvn test jacoco:report` |
+   | Java | `build.gradle` (gradle) | `gradle test` | `gradle test jacocoTestReport` |
+
+3. Detect test directory:
+   | Project Type | Common Locations |
+   |--------------|------------------|
+   | Python | `tests/`, `test/`, `*_test.py` files |
+   | Node.js | `tests/`, `__tests__`, `*.test.ts`, `*.spec.ts` |
+   | Go | `*_test.go` files next to source |
+   | Rust | `tests/`, `cfg(test)` modules |
+   | C# | `*Tests.csproj`, `*Test.cs` files |
+   | Java | `src/test/java/` |
+
+4. Output format in plan:
+   ```markdown
+   ## Test Environment (Detected)
+   - Project Type: Python
+   - Test Framework: pytest
+   - Test Command: `pytest`
+   - Coverage Command: `pytest --cov`
+   - Test Directory: `tests/`
+   ```
+
+5. Fallback: If no project type detected, ask user:
+   > "Unable to auto-detect test framework. Please specify: test command, coverage command, test directory"
 
 ---
 
@@ -118,11 +274,13 @@ SC-{N}: {Description}
 ```
 
 ### Test Scenarios
-| ID | Scenario | Input | Expected | Type |
-|----|----------|-------|----------|------|
-| TS-1 | Happy path | ... | ... | Unit |
-| TS-2 | Edge case | ... | ... | Unit |
-| TS-3 | Error handling | ... | ... | Integration |
+| ID | Scenario | Input | Expected | Type | Test File |
+|----|----------|-------|----------|------|-----------|
+| TS-1 | Happy path | ... | ... | Unit | `tests/test_feature.py::test_happy_path` |
+| TS-2 | Edge case | ... | ... | Unit | `tests/test_feature.py::test_edge_case` |
+| TS-3 | Error handling | ... | ... | Integration | `tests/test_integration.py::test_error_handling` |
+
+> **📌 Test File Column**: Include concrete file paths for tests. This helps during implementation by showing exactly where tests should be created.
 
 ### Constraints
 Time, Technical, Resource limits
@@ -270,6 +428,9 @@ New files, existing modifications, integration points
 ### What / Why / How / Success Criteria / Constraints
 
 ## Scope: In scope / Out of scope
+
+## Test Environment [DETECTED - From Step 0]
+### Project Type, Test Framework, Test Command, Coverage Command, Test Directory
 
 ## External Service Integration [OPTIONAL - if APIs/DB/Files/Async/Env involved]
 ### API Calls Required / New Endpoints / Environment Variables / Error Handling Strategy

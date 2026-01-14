@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "language": "en",
+  "language": "ko",
   "alwaysThinkingEnabled": true,
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [

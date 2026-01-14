@@ -161,7 +161,22 @@ def init(path: Path, lang: str | None, force: bool, yes: bool) -> None:
     default="auto",
     help="Merge strategy: auto (default) or manual",
 )
-def update(target_dir: Path | None, strategy: str) -> None:
+@click.option(
+    "--skip-pip",
+    is_flag=True,
+    help="Skip pip package upgrade, only update managed files",
+)
+@click.option(
+    "--check-only",
+    is_flag=True,
+    help="Only check for updates without applying them",
+)
+def update(
+    target_dir: Path | None,
+    strategy: str,
+    skip_pip: bool,
+    check_only: bool,
+) -> None:
     """
     Update claude-pilot to the latest version.
 
@@ -170,8 +185,8 @@ def update(target_dir: Path | None, strategy: str) -> None:
     """
     print_banner()
     merge_strategy = MergeStrategy(strategy)
-    status = perform_update(target_dir, merge_strategy)
-    if status == "updated":
+    status = perform_update(target_dir, merge_strategy, skip_pip, check_only)
+    if status == "updated" and not check_only:
         if strategy == "auto":
             click.echo()
             info("Updated files:")

@@ -54,12 +54,72 @@ def get_current_version(target_dir: Path | None = None) -> str:
 
 def get_latest_version() -> str:
     """
-    Get the latest version from the package.
+    Get the latest version from PyPI or fallback to config.
 
     Returns:
-        The latest version string (from package).
+        The latest version string from PyPI, or config.VERSION if unavailable.
+    """
+    pypi_version = get_pypi_version()
+    return pypi_version if pypi_version else config.VERSION
+
+
+def get_pypi_version() -> str | None:
+    """
+    Fetch the latest version from PyPI API.
+
+    Returns:
+        The latest version string from PyPI, or None if fetch fails.
+    """
+    import requests
+
+    try:
+        response = requests.get(
+            config.PYPI_API_URL,
+            timeout=config.PYPI_TIMEOUT,
+        )
+        response.raise_for_status()
+        data = response.json()
+        return str(data["info"]["version"])
+    except requests.RequestException as e:
+        click.secho(f"! Warning: Could not fetch PyPI version: {e}", fg="yellow")
+        return None
+
+
+def get_installed_version() -> str:
+    """
+    Get the currently installed package version.
+
+    Returns:
+        The installed version string from config.
     """
     return config.VERSION
+
+
+def upgrade_pip_package() -> bool:
+    """
+    Upgrade the claude-pilot pip package to the latest version.
+
+    Returns:
+        True if upgrade succeeded, False otherwise.
+    """
+    import subprocess
+    import sys
+
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--upgrade", "claude-pilot"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            click.secho("i Pip package upgraded successfully", fg="blue")
+            return True
+        else:
+            click.secho(f"! Pip upgrade failed: {result.stderr}", fg="yellow")
+            return False
+    except Exception as e:
+        click.secho(f"! Error during pip upgrade: {e}", fg="yellow")
+        return False
 
 
 def create_backup(target_dir: Path) -> Path:
@@ -398,6 +458,8 @@ def check_update_needed(target_dir: Path | None = None) -> bool:
 def perform_update(
     target_dir: Path | None = None,
     strategy: MergeStrategy = MergeStrategy.AUTO,
+    skip_pip: bool = False,
+    check_only: bool = False,
 ) -> UpdateStatus:
     """
     Perform the update process.
@@ -405,6 +467,8 @@ def perform_update(
     Args:
         target_dir: Optional target directory. Defaults to current working directory.
         strategy: Merge strategy to use (auto or manual).
+        skip_pip: If True, skip pip package upgrade.
+        check_only: If True, only check for updates without applying them.
 
     Returns:
         Status of the update.
@@ -412,15 +476,54 @@ def perform_update(
     if target_dir is None:
         target_dir = config.get_target_dir()
 
+    # Phase 1: Check pip package version
+    installed_version = get_installed_version()
+    pypi_version = get_pypi_version()
+
+    click.secho(f"i Installed version: {installed_version}", fg="blue")
+    if pypi_version:
+        click.secho(f"i PyPI version: {pypi_version}", fg="blue")
+    else:
+        click.secho("i PyPI version: Unknown (network error)", fg="yellow")
+
+    # Check if pip upgrade is needed
+    pip_upgrade_needed = pypi_version and pypi_version != installed_version
+
+    if check_only:
+        if pip_upgrade_needed:
+            click.secho(
+                f"i Pip package update available: v{installed_version} → v{pypi_version}",
+                fg="yellow",
+            )
+        else:
+            click.secho("✓ Pip package is up to date", fg="green")
+        return UpdateStatus.ALREADY_CURRENT
+
+    # Phase 2: Upgrade pip package if needed
+    pip_upgraded = False
+    if pip_upgrade_needed and not skip_pip:
+        click.secho(
+            f"i Upgrading pip package from v{installed_version} to v{pypi_version}...",
+            fg="blue",
+        )
+        pip_upgraded = upgrade_pip_package()
+        if pip_upgraded:
+            click.secho(
+                "i Pip package upgraded. Please re-run this command for full effect.",
+                fg="yellow",
+            )
+
+    # Phase 3: Update managed files
     current_version = get_current_version(target_dir)
     latest_version = get_latest_version()
 
     if current_version == latest_version:
-        click.secho(f"✓ Already up to date (v{latest_version})", fg="green")
+        if not pip_upgrade_needed or skip_pip:
+            click.secho(f"✓ Already up to date (v{latest_version})", fg="green")
         return UpdateStatus.ALREADY_CURRENT
 
     click.secho(
-        f"i Updating from v{current_version} to v{latest_version}...",
+        f"i Updating managed files from v{current_version} to v{latest_version}...",
         fg="blue",
     )
 

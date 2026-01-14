@@ -22,6 +22,12 @@ REPO_RAW = REPO_BASE
 # Request timeout (seconds)
 REQUEST_TIMEOUT = 30
 
+# PyPI API timeout (seconds)
+PYPI_TIMEOUT = 5
+
+# PyPI API endpoint
+PYPI_API_URL = "https://pypi.org/pypi/claude-pilot/json"
+
 # Managed files - synced with install.sh MANAGED_FILES array
 # Format: (source_path, dest_path)
 MANAGED_FILES: list[tuple[str, str]] = [

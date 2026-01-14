@@ -66,6 +66,27 @@ Run `python3 -m build`, show output on success, exit on failure.
 
 ---
 
+## Step 7-1: Verify Package Contents (NEW)
+
+Extract and verify that agents/ and skills/ directories are included in the built package:
+
+```bash
+# List contents of the built wheel/tarball
+python3 -m zipfile -l dist/claude_pilot-*.whl | grep -E "(agents|skills)"
+
+# Or extract and verify
+tar -tzf dist/claude-pilot-*.tar.gz | grep -E "\.claude/(agents|skills)/"
+```
+
+Expected output should show:
+- `.claude/agents/*.md` files (coder, documenter, explorer, reviewer)
+- `.claude/skills/*/SKILL.md` files (git-master, ralph-loop, tdd, vibe-coding)
+- `.claude/templates/AGENT.md.template`
+
+**Exit if agents/ or skills/ not found** in the package.
+
+---
+
 ## Step 8: Upload to PyPI
 
 Display package info and files, use AskUserQuestion to confirm upload, run `twine upload dist/*`.
@@ -89,6 +110,7 @@ Wait 3s for CDN propagation, run `pip3 install --dry-run` to verify version avai
 - [ ] Version bumped to new version
 - [ ] All version files synchronized
 - [ ] Package built successfully
+- [ ] **Package contents verified (agents/, skills/, AGENT.md.template included)**
 - [ ] Uploaded to PyPI
 - [ ] Git committed and pushed (unless --skip-git)
 - [ ] New version verified on PyPI

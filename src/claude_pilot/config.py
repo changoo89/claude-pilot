@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 # Version information
-VERSION = "3.1.0"
+VERSION = "3.1.1"
 VERSION_FILE = ".claude/.pilot-version"
 
 # Remote repository URLs
@@ -39,6 +39,10 @@ MANAGED_FILES: list[tuple[str, str]] = [
     (".claude/commands/90_review.md", ".claude/commands/90_review.md"),
     (".claude/commands/91_document.md", ".claude/commands/91_document.md"),
     (".claude/commands/92_init.md", ".claude/commands/92_init.md"),
+    # Agents (new - context isolation architecture)
+    (".claude/agents/*.md", ".claude/agents/"),
+    # Skills (new - progressive disclosure knowledge)
+    (".claude/skills/**/SKILL.md", ".claude/skills/"),
     # Templates
     (".claude/templates/CONTEXT.md.template", ".claude/templates/CONTEXT.md.template"),
     (
@@ -50,6 +54,7 @@ MANAGED_FILES: list[tuple[str, str]] = [
         ".claude/templates/CONTEXT-tier3.md.template",
     ),
     (".claude/templates/SKILL.md.template", ".claude/templates/SKILL.md.template"),
+    (".claude/templates/AGENT.md.template", ".claude/templates/AGENT.md.template"),
     # Hooks
     (".claude/scripts/hooks/typecheck.sh", ".claude/scripts/hooks/typecheck.sh"),
     (".claude/scripts/hooks/lint.sh", ".claude/scripts/hooks/lint.sh"),

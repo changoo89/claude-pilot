@@ -338,6 +338,28 @@ Capture conversation state from `/00_plan` to ensure continuity between planning
 
 ## Agent Invocation Patterns
 
+### Agent File Format (YAML Frontmatter)
+
+As of v3.2.0, all agent files use official Claude Code CLI YAML format:
+
+**Valid Format**:
+```yaml
+---
+name: coder
+description: TDD implementation agent
+model: sonnet
+tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
+skills: tdd, ralph-loop, vibe-coding, git-master
+---
+
+You are the Coder Agent. Implement features using TDD...
+```
+
+**Format Requirements**:
+- `tools`: Comma-separated string (NOT array)
+- `skills`: Comma-separated string (NOT array)
+- `instructions`: Body content after `---` (NOT frontmatter field)
+
 ### Imperative Command Structure
 
 As of v3.2.0, all agent invocations use **MANDATORY ACTION** sections with imperative language to ensure reliable agent delegation.

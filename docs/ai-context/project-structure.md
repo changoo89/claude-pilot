@@ -256,6 +256,24 @@ Located in `.claude/skills/{skill_name}/SKILL.md`:
 
 Located in `.claude/agents/{agent_name}.md`:
 
+**YAML Format Requirements** (as of v3.2.0):
+- `tools`: Comma-separated string (e.g., `tools: Read, Write, Edit`)
+- `skills`: Comma-separated string (e.g., `skills: tdd, ralph-loop`)
+- `instructions`: Body content after `---` (NOT in frontmatter field)
+
+**Valid Format Example**:
+```yaml
+---
+name: coder
+description: TDD implementation agent
+model: sonnet
+tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
+skills: tdd, ralph-loop, vibe-coding, git-master
+---
+
+You are the Coder Agent. Implement features using TDD...
+```
+
 **Model Allocation:**
 
 | Model | Agents | Purpose |
@@ -306,6 +324,9 @@ Located in `.claude/agents/{agent_name}.md`:
 
 ### v3.2.0 (Current)
 
+- Fixed agent YAML format for Claude Code CLI recognition
+- Converted tools/skills from YAML arrays to comma-separated strings
+- Moved instructions content from frontmatter field to body after `---`
 - Converted agent invocation patterns from descriptive to imperative
 - Added MANDATORY ACTION sections with "YOU MUST invoke... NOW" commands
 - Added EXECUTE IMMEDIATELY - DO NOT SKIP emphasis headers

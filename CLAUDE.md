@@ -1,7 +1,7 @@
 # claude-pilot - Claude Code Development Guide
 
 > **Last Updated**: 2026-01-15
-> **Version**: 3.3.0
+> **Version**: 3.3.1
 > **Template**: claude-pilot
 
 ---
@@ -59,7 +59,20 @@ project-root/
 │   │   ├── 03_close.md     # Close & archive
 │   │   ├── 90_review.md    # Review code
 │   │   └── 91_document.md  # Update docs
-│   ├── guides/             # Methodology guides
+│   ├── guides/             # Methodology guides (7)
+│   │   ├── claude-code-standards.md  # Official Claude Code standards (NEW)
+│   │   ├── prp-framework.md          # Problem-Requirements-Plan
+│   │   ├── gap-detection.md          # External service verification
+│   │   ├── parallel-execution.md     # Parallel execution patterns
+│   │   ├── 3tier-documentation.md    # Documentation system
+│   │   ├── review-checklist.md       # Code review criteria
+│   │   └── test-environment.md       # Test framework detection
+│   ├── skills/             # Reusable skill modules (5)
+│   │   ├── documentation-best-practices/  # Documentation standards (NEW)
+│   │   ├── tdd/SKILL.md (+ REFERENCE.md)
+│   │   ├── ralph-loop/SKILL.md (+ REFERENCE.md)
+│   │   ├── vibe-coding/SKILL.md (+ REFERENCE.md)
+│   │   └── git-master/SKILL.md (+ REFERENCE.md)
 │   ├── agents/             # Specialized agent configs (8)
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
 │   └── scripts/hooks/      # Type check, lint, todos
@@ -397,6 +410,15 @@ This project uses a hierarchical documentation system:
 | `docs/ai-context/system-integration.md` | Command workflows, integration points |
 | `docs/ai-context/project-structure.md` | Directory layout, key files |
 | `docs/ai-context/docs-overview.md` | Navigation for all documentation |
+
+### Component CONTEXT.md Files (Tier 2)
+
+| Folder | CONTEXT.md | Purpose |
+|--------|-----------|---------|
+| `.claude/commands/` | [CONTEXT.md](.claude/commands/CONTEXT.md) | Command workflow, file list |
+| `.claude/guides/` | [CONTEXT.md](.claude/guides/CONTEXT.md) | Guide usage, methodology patterns |
+| `.claude/skills/` | [CONTEXT.md](.claude/skills/CONTEXT.md) | Skill list, auto-discovery mechanism |
+| `.claude/agents/` | [CONTEXT.md](.claude/agents/CONTEXT.md) | Agent types, model allocation |
 
 ### External References
 

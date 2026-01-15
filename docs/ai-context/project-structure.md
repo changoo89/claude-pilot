@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-15
+> **Last Updated**: 2026-01-15 (Updated: New documentation files)
 
 ---
 
@@ -23,6 +23,7 @@ Deployment: PyPI package distribution
 claude-pilot/
 ├── .claude/
 │   ├── commands/           # Slash commands (6)
+│   │   ├── CONTEXT.md      # Command folder context (NEW)
 │   │   ├── 00_plan.md      # Create SPEC-First plan
 │   │   ├── 01_confirm.md   # Confirm plan (with Step 1.5 extraction)
 │   │   ├── 02_execute.md   # Execute with TDD
@@ -31,23 +32,28 @@ claude-pilot/
 │   │   ├── 91_document.md  # Update docs
 │   │   ├── 92_init.md      # Initialize 3-Tier docs
 │   │   └── 999_publish.md  # Publish to npm
-│   ├── guides/             # Methodology guides (6)
-│   │   ├── prp-framework.md       # Problem-Requirements-Plan
-│   │   ├── gap-detection.md       # External service verification
-│   │   ├── parallel-execution.md  # Parallel execution patterns
-│   │   ├── 3tier-documentation.md # Documentation system
-│   │   ├── review-checklist.md    # Code review criteria
-│   │   └── test-environment.md    # Test framework detection
+│   ├── guides/             # Methodology guides (7)
+│   │   ├── CONTEXT.md      # Guide folder context (NEW)
+│   │   ├── claude-code-standards.md  # Official Claude Code standards (NEW)
+│   │   ├── prp-framework.md          # Problem-Requirements-Plan
+│   │   ├── gap-detection.md          # External service verification
+│   │   ├── parallel-execution.md     # Parallel execution patterns
+│   │   ├── 3tier-documentation.md    # Documentation system
+│   │   ├── review-checklist.md       # Code review criteria
+│   │   └── test-environment.md       # Test framework detection
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
 │   │   ├── gap-checklist.md
 │   │   ├── CONTEXT-tier2.md.template
 │   │   └── CONTEXT-tier3.md.template
-│   ├── skills/             # Reusable skill modules (4)
+│   ├── skills/             # Reusable skill modules (5)
+│   │   ├── CONTEXT.md      # Skill folder context (NEW)
+│   │   ├── documentation-best-practices/  # Documentation standards (NEW)
 │   │   ├── tdd/SKILL.md (+ REFERENCE.md)
 │   │   ├── ralph-loop/SKILL.md (+ REFERENCE.md)
 │   │   ├── vibe-coding/SKILL.md (+ REFERENCE.md)
 │   │   └── git-master/SKILL.md (+ REFERENCE.md)
 │   ├── agents/             # Specialized agent configs (8)
+│   │   ├── CONTEXT.md      # Agent folder context (NEW)
 │   │   ├── explorer.md
 │   │   ├── researcher.md
 │   │   ├── coder.md
@@ -253,6 +259,7 @@ Located in `.claude/skills/{skill_name}/`:
 
 | Skill | Purpose |
 |-------|---------|
+| `documentation-best-practices` | Claude Code documentation standards (NEW) |
 | `tdd` | Test-driven development cycle |
 | `ralph-loop` | Autonomous iteration until tests pass |
 | `vibe-coding` | Code quality enforcement |
@@ -399,6 +406,12 @@ You are the Coder Agent. Implement features using TDD...
 ## Related Documentation
 
 - `CLAUDE.md` - Tier 1: Project documentation
+- `.claude/commands/CONTEXT.md` - Command folder context (NEW)
+- `.claude/guides/CONTEXT.md` - Guide folder context (NEW)
+- `.claude/guides/claude-code-standards.md` - Official Claude Code standards (NEW)
+- `.claude/skills/CONTEXT.md` - Skill folder context (NEW)
+- `.claude/agents/CONTEXT.md` - Agent folder context (NEW)
+- `.claude/skills/documentation-best-practices/SKILL.md` - Documentation standards (NEW)
 - `.claude/guides/3tier-documentation.md` - 3-Tier system guide
 - `.claude/guides/prp-framework.md` - Problem-Requirements-Plan
 - `.claude/skills/vibe-coding/SKILL.md` - Code quality standards (Quick Reference)

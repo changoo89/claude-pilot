@@ -1,0 +1,260 @@
+# Commands Context
+
+## Purpose
+
+Slash commands for SPEC-First development workflow. Each command manages a specific phase of the development lifecycle: planning, confirmation, execution, completion, review, documentation, initialization, and publishing.
+
+## Key Files
+
+| File | Purpose | Lines | Workflow Phase | Description |
+|------|---------|-------|----------------|-------------|
+| `00_plan.md` | Create SPEC-First plan | 434 | Planning | Explore codebase, gather requirements, design execution plan through dialogue (read-only) |
+| `01_confirm.md` | Confirm plan + gap detection | 281 | Planning | Review plan, run gap detection, resolve BLOCKING issues, move to in_progress |
+| `02_execute.md` | Execute with TDD + Ralph Loop | 679 | Execution | Implement features using Test-Driven Development and autonomous iteration |
+| `03_close.md` | Archive and commit | 364 | Completion | Archive completed plan, create git commit, update documentation |
+| `90_review.md` | Multi-angle code review | 376 | Quality | Run comprehensive code review with multiple agent perspectives |
+| `91_document.md` | Sync documentation | 288 | Maintenance | Update CLAUDE.md, sync templates, ensure consistency |
+| `92_init.md` | Initialize new project | 209 | Setup | Initialize new project with claude-pilot template |
+| `999_publish.md` | Sync templates + deploy | 470 | Release | Sync templates from upstream, bump version, deploy |
+
+**Total**: 8 commands, 3101 lines (average: 388 lines per command)
+
+## Common Tasks
+
+### Create a Plan
+- **Task**: Generate SPEC-First plan from user request
+- **Command**: `/00_plan "implement user authentication"`
+- **Output**: Plan file saved to `.pilot/plan/pending/{timestamp}_{work}_{topic}.md`
+- **Process**:
+  1. Explorer and Researcher agents explore codebase and external docs (parallel)
+  2. Plan-Reviewer agent creates SPEC-First plan
+  3. Plan saved to pending directory
+  4. User reviews plan
+
+### Confirm a Plan
+- **Task**: Review plan, detect gaps, resolve BLOCKING issues
+- **Command**: `/01_confirm`
+- **Output**: Plan moved to `.pilot/plan/in_progress/`
+- **Process**:
+  1. Plan-Reviewer agent runs gap detection review
+  2. BLOCKING findings trigger Interactive Recovery (dialogue)
+  3. User provides missing details
+  4. Plan updated until BLOCKING = 0
+  5. Plan moved to in_progress
+
+### Execute Implementation
+- **Task**: Implement features using TDD + Ralph Loop
+- **Command**: `/02_execute`
+- **Output**: Feature code with tests, coverage 80%+
+- **Process**:
+  1. Plan auto-moves from pending to in_progress
+  2. Coder Agent executes TDD cycle for each Success Criterion
+  3. Ralph Loop iterates until all quality gates pass
+  4. Verification: tests, type-check, lint, coverage
+
+### Close and Archive
+- **Task**: Archive plan, create git commit
+- **Command**: `/03_close`
+- **Output**: Plan in `.pilot/plan/done/`, git commit created
+- **Process**:
+  1. Move plan from in_progress to done
+  2. Generate commit message from plan content
+  3. Create git commit (if user approves)
+  4. Update active plan pointer
+
+### Review Code
+- **Task**: Multi-angle code review
+- **Command**: `/90_review`
+- **Output**: Comprehensive review report
+- **Process**:
+  1. Tester Agent: Test coverage and quality
+  2. Validator Agent: Type safety and linting
+  3. Code-Reviewer Agent: Deep analysis (async bugs, memory leaks)
+  4. Plan-Reviewer Agent: Requirements verification
+
+### Document Project
+- **Task**: Sync documentation
+- **Command**: `/91_document`
+- **Output**: Updated CLAUDE.md, synced docs
+- **Process**:
+  1. Documenter Agent scans codebase
+  2. Updates CLAUDE.md with current structure
+  3. Syncs templates if needed
+
+### Initialize New Project
+- **Task**: Initialize new project with template
+- **Command**: `/92_init`
+- **Output**: New project with claude-pilot structure
+- **Process**:
+  1. Interactive project setup
+  2. Copy template files
+  3. Customize CLAUDE.md
+  4. Initialize git repository
+
+### Publish Release
+- **Task**: Sync templates, bump version, deploy
+- **Command**: `/999_publish`
+- **Output**: Version bumped, templates synced, deployed
+- **Process**:
+  1. Sync templates from upstream
+  2. Bump version in CLAUDE.md and package.json
+  3. Run verification tests
+  4. Deploy to production
+
+## Patterns
+
+### Plan Flow Pattern
+```
+User Request
+       ↓
+/00_plan → .pilot/plan/pending/
+       ↓
+/01_confirm → .pilot/plan/in_progress/
+       ↓
+/02_execute → Implementation (code + tests)
+       ↓
+/03_close → .pilot/plan/done/ + commit
+```
+
+### Agent Invocation Pattern
+All commands use MANDATORY ACTION sections for reliable agent delegation:
+```markdown
+> **🚨 MANDATORY ACTION**: YOU MUST invoke {Agent} Agent NOW with:
+- Plan path
+- Success criteria
+- Key constraints
+```
+
+**Purpose**: Ensures agents are invoked with correct parameters every time.
+
+### Phase Boundary Protection
+Commands enforce strict phase boundaries:
+- `/00_plan`: Read-only (planning phase)
+- `/02_execute`: Implementation phase only
+- `/03_close`: Completion phase only
+
+**Example from `/00_plan`**:
+```markdown
+> **⚠️ CRITICAL**: DO NOT start implementation during /00_plan.
+> - ❌ NO code editing, test writing, or file creation
+> - ✅ OK: Exploration (Glob, Grep, Read), Analysis, Planning, Dialogue
+```
+
+### Parallel Execution Pattern
+Commands orchestrate multiple agents in parallel for efficiency:
+- `/00_plan`: Explorer + Researcher (parallel exploration)
+- `/02_execute`: Multiple Coder agents (parallel SC implementation when independent)
+- `/90_review`: Tester + Validator + Code-Reviewer (parallel verification)
+
+**See**: @.claude/guides/parallel-execution.md for detailed patterns
+
+### Methodology Extraction Pattern
+Methodology details extracted to guides/skills to keep commands focused:
+```markdown
+> **Methodology**: @.claude/skills/tdd/SKILL.md
+> **Details**: @.claude/guides/prp-framework.md
+```
+
+**Purpose**: Keep commands concise (target: 150 lines), delegate methodology to docs.
+
+### Auto-Discovery Pattern
+All commands have frontmatter for slash command discovery:
+```yaml
+---
+description: {trigger-rich description}
+argument-hint: "[args] - optional description"
+allowed-tools: [tool list]
+---
+```
+
+**Description guidelines**:
+- Under 200 characters
+- Action keywords (plan, execute, review, etc.)
+- Specific scenarios mentioned
+
+### Ambiguous Confirmation Handling
+`/00_plan` uses `AskUserQuestion` to resolve ambiguous confirmations:
+```markdown
+> **🚨 MANDATORY**: At plan completion, you MUST call `AskUserQuestion` before ANY phase transition.
+>
+> **CRITICAL**: Do NOT try to detect specific words or phrases. ANY ambiguous confirmation MUST trigger the `AskUserQuestion` flow.
+```
+
+**Purpose**: Prevent accidental phase transitions when user says "go ahead" or "proceed".
+
+## Command Relationships
+
+### Planning Phase Commands
+- `00_plan`: Create plan (read-only exploration)
+- `01_confirm`: Review and approve plan
+
+### Execution Phase Commands
+- `02_execute`: Implement with TDD + Ralph Loop
+
+### Completion Phase Commands
+- `03_close`: Archive and commit
+
+### Quality Commands
+- `90_review`: Multi-angle code review
+
+### Maintenance Commands
+- `91_document`: Sync documentation
+- `999_publish`: Release and deploy
+
+### Setup Commands
+- `92_init`: Initialize new project
+
+## File Organization
+
+### Naming Convention
+- **Workflow commands**: `00` through `03` (sequential execution)
+- **Quality commands**: `90` through `99` (utilities)
+- **Setup commands**: `92_init` (initialization only)
+
+### Argument Hints
+Commands use `argument-hint` in frontmatter for parameter discovery:
+```yaml
+argument-hint: "[task_description] - required description of the work"
+```
+
+### Allowed Tools
+Commands specify `allowed-tools` in frontmatter to restrict operations:
+```yaml
+# Planning command (read-only)
+allowed-tools: Read, Glob, Grep, Bash(git:*), WebSearch, AskUserQuestion
+
+# Execution command (write-enabled)
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash(*), AskUserQuestion, Task
+```
+
+## Improvement Opportunities
+
+**Current state**: Average 388 lines per command (exceeds 150-line target)
+
+**Improvements needed**:
+1. `00_plan.md` (434 lines): Extract "Parallel Exploration" detail to guide
+2. `02_execute.md` (679 lines): Extract Ralph Loop detail to skill
+3. `03_close.md` (364 lines): Extract commit guidelines to git-master skill
+4. `90_review.md` (376 lines): Extract review checklist to guide
+5. `999_publish.md` (470 lines): Extract version bump detail to guide
+
+**Goal**: Reduce to 150 lines per command while preserving all functionality.
+
+## See Also
+
+**Workflow guides**:
+- @.claude/guides/prp-framework.md - SPEC-First requirements methodology
+- @.claude/guides/gap-detection.md - Gap detection review for external services
+- @.claude/guides/parallel-execution.md - Agent orchestration patterns
+
+**Implementation guides**:
+- @.claude/skills/tdd/SKILL.md - Test-Driven Development cycle
+- @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop
+- @.claude/skills/vibe-coding/SKILL.md - Code quality standards
+
+**Agent specifications**:
+- @.claude/agents/CONTEXT.md - Agent capabilities and model allocation
+
+**Documentation standards**:
+- @.claude/guides/claude-code-standards.md - Official Claude Code standards
+- @.claude/skills/documentation-best-practices/SKILL.md - Documentation quick reference

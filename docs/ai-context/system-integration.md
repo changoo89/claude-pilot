@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, data flow, shared patterns, and integration points
-> **Last Updated**: 2026-01-15
+> **Last Updated**: 2026-01-15 (Updated: CONTEXT.md pattern documentation)
 
 ---
 
@@ -499,9 +499,70 @@ Capture conversation state from `/00_plan` to ensure continuity between planning
 
 ---
 
+## CONTEXT.md Pattern (3-Tier Documentation)
+
+### Purpose
+
+CONTEXT.md files provide Tier 2 (Component-level) documentation for major folders, enabling efficient navigation and context discovery.
+
+### Folder Structure
+
+```
+.claude/
+├── commands/CONTEXT.md       # Command workflow and file list
+├── guides/CONTEXT.md         # Guide usage and methodology patterns
+├── skills/CONTEXT.md         # Skill list and auto-discovery mechanism
+└── agents/CONTEXT.md         # Agent types and model allocation
+```
+
+### Standard Template
+
+```markdown
+# {Folder Name} Context
+
+## Purpose
+[What this folder does]
+
+## Key Files
+| File | Purpose | Lines |
+|------|---------|-------|
+
+## Common Tasks
+- **Task**: Description
+
+## Patterns
+[Key patterns in this folder]
+
+## Related Documentation
+[Links to related guides, skills, commands]
+```
+
+### Integration Points
+
+| Component | Integration | Data Flow |
+|-----------|-------------|-----------|
+| CLAUDE.md | Links to CONTEXT.md files | Tier 1 → Tier 2 navigation |
+| CONTEXT.md | Links to individual files | Component → File discovery |
+| Individual files | Reference CONTEXT.md | File → Component context |
+
+### Benefits
+
+- **Fast Navigation**: Jump directly to relevant files
+- **Context Discovery**: Understand folder purpose without opening all files
+- **Token Efficiency**: CONTEXT.md loaded only when navigating to folder
+- **Maintainability**: Single source of truth for folder structure
+
+---
+
 ## Related Documentation
 
 - `.claude/guides/prp-framework.md` - Problem-Requirements-Plan definition
+- `.claude/guides/claude-code-standards.md` - Official Claude Code standards (NEW)
+- `.claude/commands/CONTEXT.md` - Command folder context (NEW)
+- `.claude/guides/CONTEXT.md` - Guide folder context (NEW)
+- `.claude/skills/CONTEXT.md` - Skill folder context (NEW)
+- `.claude/agents/CONTEXT.md` - Agent folder context (NEW)
+- `.claude/skills/documentation-best-practices/SKILL.md` - Documentation standards (NEW)
 - `.claude/skills/vibe-coding/SKILL.md` - Code quality standards
 - `.claude/guides/gap-detection.md` - External service verification
 - `.claude/skills/tdd/SKILL.md` - Test-driven development

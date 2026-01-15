@@ -169,7 +169,12 @@ Use --lenient to bypass (converts BLOCKING → WARNING).
 
 ### 4.3 Auto-Invoke Plan-Reviewer Agent
 
-Use the **Task** tool to invoke plan-reviewer agent for comprehensive plan analysis:
+### 🚀 MANDATORY ACTION: Plan-Reviewer Agent Invocation
+
+> **YOU MUST invoke the plan-reviewer agent NOW using the Task tool.**
+> This is not optional. Execute this Task tool call immediately.
+
+**EXECUTE IMMEDIATELY - DO NOT SKIP**:
 
 ```markdown
 Task:
@@ -196,6 +201,8 @@ Task:
     - File Operations gaps (path resolution, cleanup)
     - Success Criteria verification commands
 ```
+
+**VERIFICATION**: After sending Task call, wait for plan-reviewer agent to return results before proceeding to Step 4.4.
 
 ### 4.4 Check BLOCKING Findings
 | Condition | Action |

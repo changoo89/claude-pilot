@@ -27,6 +27,39 @@ _Update documentation with full auto-sync and hierarchical CONTEXT.md management
 | Folder | `[folder_name]` | Generate/update CONTEXT.md for folder |
 | Manual | No args | Execute Steps 1-4 for entire project |
 
+### 💡 OPTIONAL ACTION: Documenter Agent Invocation
+
+> **For large documentation updates, you MAY invoke the documenter agent using the Task tool.**
+> This is optional. Use this agent for complex documentation tasks requiring extensive analysis.
+
+**OPTIONAL - USE AS NEEDED**:
+
+```markdown
+Task:
+  subagent_type: documenter
+  prompt: |
+    Update documentation for the project:
+
+    Mode: {MODE}
+    RUN_ID: {RUN_ID} (if auto-sync)
+    Folder: {FOLDER_NAME} (if folder mode)
+
+    Execute full documentation sync:
+    - CLAUDE.md (Tier 1) - update if project-level changes
+    - Component CONTEXT.md (Tier 2) - generate/update for components
+    - docs/ai-context/ - update project-structure.md, system-integration.md
+    - Archive TDD artifacts (test-scenarios.md, coverage-report.txt, ralph-loop-log.md)
+
+    Apply 3-Tier Documentation System:
+    - Tier 1: CLAUDE.md (max 300 lines)
+    - Tier 2: Component CONTEXT.md (max 200 lines)
+    - Tier 3: Feature CONTEXT.md (max 150 lines)
+
+    Return summary only.
+```
+
+**WHEN TO USE**: Large projects, complex updates, or when you want isolated context for documentation tasks.
+
 ---
 
 ## Step 1: Analyze Changes

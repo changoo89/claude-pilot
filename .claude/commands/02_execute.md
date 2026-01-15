@@ -105,7 +105,12 @@ Create parallel execution groups:
 
 ### 2.3 Parallel Execution Pattern
 
-**When multiple independent SCs exist**, use parallel Coder invocation:
+### 🚀 MANDATORY ACTION: Parallel Coder Agent Invocation
+
+> **When multiple independent SCs exist, YOU MUST invoke multiple coder agents NOW using the Task tool.**
+> This is not optional. Execute these Task tool calls immediately in the same message.
+
+**EXECUTE IMMEDIATELY - DO NOT SKIP**:
 
 ```markdown
 # For Group 1 (Independent SCs)
@@ -132,16 +137,23 @@ Task:
     Plan Path: {PLAN_PATH}
     Test Scenarios: {TS_LIST}
     Implement using TDD + Ralph Loop. Return summary only.
-
-# After all parallel Coder agents complete:
-# 1. Integrate results
-# 2. Run parallel verification (Tester, Validator, Documenter)
-# 3. Proceed to Group 2 (dependent SCs)
 ```
+
+**VERIFICATION**: After sending Task calls, wait for all Coder agents to return results before proceeding to Step 2.4.
+
+**After all parallel Coder agents complete**:
+1. Integrate results
+2. Run parallel verification (Step 2.4)
+3. Proceed to Group 2 (dependent SCs)
 
 ### 2.4 Parallel Verification Phase
 
-After parallel Coder implementation, run verification agents in parallel:
+### 🚀 MANDATORY ACTION: Parallel Verification Agent Invocation
+
+> **After parallel Coder implementation, YOU MUST invoke verification agents NOW using the Task tool.**
+> This is not optional. Execute these Task tool calls immediately in the same message.
+
+**EXECUTE IMMEDIATELY - DO NOT SKIP**:
 
 ```markdown
 Task:
@@ -175,6 +187,8 @@ Task:
     Return comprehensive review with findings.
 ```
 
+**VERIFICATION**: After sending Task calls, wait for all verification agents to return results before proceeding to Step 2.5.
+
 ### 2.5 File Conflict Prevention
 
 To prevent parallel agents from editing the same file:
@@ -194,13 +208,16 @@ If SCs have dependencies or share files:
 
 ## Step 3: Delegate to Coder Agent (Context Isolation)
 
-> **CRITICAL**: Use Task tool to invoke Coder Agent for context isolation.
+### 🚀 MANDATORY ACTION: Coder Agent Invocation
+
+> **CRITICAL**: YOU MUST invoke the Coder Agent NOW using the Task tool for context isolation.
+> This is not optional. Execute this Task tool call immediately.
 
 > **Why Agent?**: Coder Agent runs in **isolated context window** (~80K tokens internally). All file reading, test execution, error analysis happens there. Only summary returns here, preserving main orchestrator context (~5K tokens vs 110K+ without isolation).
 
-### 3.1 Task Invocation Syntax
+**EXECUTE IMMEDIATELY - DO NOT SKIP**:
 
-```
+```markdown
 Task:
   subagent_type: coder
   prompt: |
@@ -221,6 +238,8 @@ Task:
     - @.claude/skills/ralph-loop/SKILL.md
     - @.claude/skills/vibe-coding/SKILL.md
 ```
+
+**VERIFICATION**: After sending Task call, wait for Coder agent to return results before proceeding to Step 3.3.
 
 ### 3.2 Context Flow Diagram
 

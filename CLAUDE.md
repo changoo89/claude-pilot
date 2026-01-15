@@ -1,7 +1,7 @@
 # claude-pilot - Claude Code Development Guide
 
 > **Last Updated**: 2026-01-15
-> **Version**: 3.1.4
+> **Version**: 3.2.0
 > **Template**: claude-pilot
 
 ---
@@ -332,10 +332,12 @@ See `.claude/settings.json` for MCP configuration.
 
 The workflow supports parallel execution for maximum efficiency:
 
-- **Planning**: Explorer + Researcher (parallel exploration)
-- **Execution**: Multiple Coder agents (parallel SC implementation)
-- **Verification**: Tester + Validator + Code-Reviewer (parallel verification)
-- **Review**: Optional parallel multi-angle review
+- **Planning**: Explorer + Researcher (parallel exploration) - Step 0 of `/00_plan`
+- **Execution**: Multiple Coder agents (parallel SC implementation) - Step 2.3 of `/02_execute`
+- **Verification**: Tester + Validator + Code-Reviewer (parallel verification) - Step 2.4 of `/02_execute`
+- **Review**: Optional parallel multi-angle review - `/90_review`
+
+**Agent Invocation**: All commands use **MANDATORY ACTION** sections with imperative language ("YOU MUST invoke... NOW") to ensure reliable agent delegation.
 
 See `.claude/guides/parallel-execution.md` for detailed patterns.
 
@@ -416,5 +418,5 @@ This project uses a hierarchical documentation system:
 
 ---
 
-**Template Version**: claude-pilot 3.1.4
+**Template Version**: claude-pilot 3.2.0
 **Last Updated**: 2026-01-15

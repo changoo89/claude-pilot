@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, data flow, shared patterns, and integration points
-> **Last Updated**: 2026-01-14
+> **Last Updated**: 2026-01-15
 
 ---
 
@@ -336,6 +336,52 @@ Capture conversation state from `/00_plan` to ensure continuity between planning
 
 ---
 
+## Agent Invocation Patterns
+
+### Imperative Command Structure
+
+As of v3.2.0, all agent invocations use **MANDATORY ACTION** sections with imperative language to ensure reliable agent delegation.
+
+#### Pattern Structure
+
+```markdown
+### 🚀 MANDATORY ACTION: {Action Name}
+
+> **YOU MUST invoke the following agents NOW using the Task tool.**
+> This is not optional. Execute these Task tool calls immediately.
+
+**EXECUTE IMMEDIATELY - DO NOT SKIP**:
+
+[Specific Task tool calls with parameters]
+
+**VERIFICATION**: After sending Task calls, wait for agents to return results before proceeding.
+```
+
+#### Key Components
+
+| Component | Purpose | Example |
+|-----------|---------|---------|
+| 🚀 MANDATORY ACTION header | Visual emphasis for blocking action | "Parallel Agent Invocation" |
+| YOU MUST invoke... NOW | Direct imperative command | "YOU MUST invoke the following agents NOW" |
+| EXECUTE IMMEDIATELY - DO NOT SKIP | Emphasis on blocking nature | Prevents skipping to later steps |
+| VERIFICATION instruction | Wait directive | "wait for both agents to return" |
+| "send in same message" | Parallel execution hint | For concurrent Task calls |
+
+### Command-Specific Patterns
+
+| Command | Step | Agents | Pattern |
+|---------|------|--------|---------|
+| `/00_plan` | Step 0 | explorer + researcher | Parallel: "send in same message" |
+| `/01_confirm` | Step 4 | plan-reviewer | Sequential: Single Task call |
+| `/02_execute` | Step 2.3 | Multiple coders | Parallel: One Task call per independent SC |
+| `/02_execute` | Step 2.4 | tester + validator + code-reviewer | Parallel: "send in same message" |
+| `/02_execute` | Step 3 | coder | Sequential: Single Task call with TDD |
+| `/03_close` | Step 5 | documenter | Sequential: Single Task call |
+| `/90_review` | Main | plan-reviewer | Sequential or parallel (3-angle) |
+| `/91_document` | Main | documenter | **OPTIONAL**: May use main thread |
+
+---
+
 ## Parallel Execution Integration
 
 ### Overview
@@ -356,10 +402,11 @@ Main Orchestrator
 ```
 
 **Implementation**:
-- Uses Task tool for parallel invocation
+- Uses **MANDATORY ACTION** section at Step 0
+- Two Task calls sent in **same message** for true parallelism
 - Explorer returns: Explored Files table, Key Decisions
 - Researcher returns: Research Findings table with sources
-- Main thread merges results into plan structure
+- VERIFICATION checkpoint ensures both complete before proceeding
 
 #### /02_execute: Parallel SC Implementation
 
@@ -380,9 +427,11 @@ Main Orchestrator
 ```
 
 **Implementation**:
+- Uses **MANDATORY ACTION** sections at Steps 2.3 and 2.4
 - SC dependency analysis before parallel execution
-- Independent SCs run concurrently
+- Independent SCs run concurrently (one Task call per SC)
 - Verification agents run in parallel after integration
+- VERIFICATION checkpoints after each parallel phase
 - Code-reviewer uses Opus for catching async bugs, memory leaks
 
 #### /01_confirm & /90_review: Agent Delegation
@@ -444,4 +493,4 @@ Task:
 ---
 
 **Last Updated**: 2026-01-15
-**Template**: claude-pilot 3.1.0
+**Template**: claude-pilot 3.2.0

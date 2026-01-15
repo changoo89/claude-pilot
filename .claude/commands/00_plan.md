@@ -75,18 +75,14 @@ Existing Patterns: [list]
 
 ## Step 0: Parallel Exploration
 
-| Thread | Focus | Tools | Agent |
-|--------|-------|-------|-------|
-| Explore | Related code, patterns | Glob, Grep, Read | **Explorer Agent** |
-| Research | External docs | WebSearch, query-docs | **Researcher Agent** |
-| **Test Env** | **Detect test framework** | **Glob, Read** | **Main (inline)** |
+### 🚀 MANDATORY ACTION: Parallel Agent Invocation
 
-**Test Environment Detection**: See @.claude/guides/test-environment.md
+> **YOU MUST invoke the following agents NOW using the Task tool.**
+> This is not optional. Execute these Task tool calls immediately.
 
-### Parallel Agent Invocation Pattern
+**EXECUTE IMMEDIATELY - DO NOT SKIP**:
 
-Use the **Task** tool to invoke Explorer and Researcher agents in parallel:
-
+**1. Explorer Agent Task call** (send in same message with Researcher):
 ```markdown
 Task:
   subagent_type: explorer
@@ -99,7 +95,10 @@ Task:
       * Files found with purposes
       * Patterns identified
       * Architecture notes
+```
 
+**2. Researcher Agent Task call** (send in same message with Explorer):
+```markdown
 Task:
   subagent_type: researcher
   prompt: |
@@ -113,6 +112,18 @@ Task:
       * Code examples
       * Recommendations
 ```
+
+**VERIFICATION**: After sending Task calls, wait for both agents to return results before proceeding.
+
+### Agent Coordination
+
+| Thread | Focus | Tools | Agent |
+|--------|-------|-------|-------|
+| Explore | Related code, patterns | Glob, Grep, Read | **Explorer Agent** |
+| Research | External docs | WebSearch, query-docs | **Researcher Agent** |
+| **Test Env** | **Detect test framework** | **Glob, Read** | **Main (inline)** |
+
+**Test Environment Detection**: See @.claude/guides/test-environment.md
 
 ### Main Thread: Test Environment Detection
 

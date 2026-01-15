@@ -30,6 +30,13 @@ This command can be invoked directly OR via the plan-reviewer agent:
 
 ### Via Plan-Reviewer Agent (Recommended for Complex Plans)
 
+### 🚀 MANDATORY ACTION: Plan-Reviewer Agent Invocation
+
+> **YOU MUST invoke the plan-reviewer agent NOW using the Task tool.**
+> This is not optional. Execute this Task tool call immediately.
+
+**EXECUTE IMMEDIATELY - DO NOT SKIP**:
+
 ```markdown
 Task:
   subagent_type: plan-reviewer
@@ -50,9 +57,16 @@ Task:
     - Overall assessment
 ```
 
+**VERIFICATION**: After sending Task call, wait for plan-reviewer agent to return results before proceeding to Step 1.
+
 ### Parallel Multi-Angle Review (For Complex Plans)
 
-For large or complex plans, use parallel review agents:
+### 🚀 MANDATORY ACTION: Parallel Plan-Reviewer Agent Invocation
+
+> **For large or complex plans, YOU MUST invoke multiple plan-reviewer agents NOW using the Task tool.**
+> This is not optional. Execute these Task tool calls immediately in the same message.
+
+**EXECUTE IMMEDIATELY - DO NOT SKIP**:
 
 ```markdown
 # Parallel review angles (optional, for very complex plans)
@@ -86,6 +100,8 @@ Task:
     - Integration points
     Plan Path: {PLAN_PATH}
 ```
+
+**VERIFICATION**: After sending Task calls, wait for all plan-reviewer agents to return results before proceeding.
 
 **Note**: Parallel review is resource-intensive. Use only for complex, high-stakes plans where deep analysis from multiple angles is justified.
 

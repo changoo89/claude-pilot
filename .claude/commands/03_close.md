@@ -101,13 +101,16 @@ fi
 
 ## Step 5: Delegate to Documenter Agent (Context Isolation)
 
-> **CRITICAL**: Use Task tool to invoke Documenter Agent for context isolation.
+### 🚀 MANDATORY ACTION: Documenter Agent Invocation
+
+> **CRITICAL**: YOU MUST invoke the Documenter Agent NOW using the Task tool for context isolation.
+> This is not optional. Execute this Task tool call immediately.
 
 > **Why Agent?**: Documenter Agent runs in **isolated context window** (~30K tokens internally). All documentation analysis and updates happen there. Only summary returns here, preserving main orchestrator context.
 
-### 5.1 Task Invocation Syntax
+**EXECUTE IMMEDIATELY - DO NOT SKIP** (unless `--no-docs` specified):
 
-```
+```markdown
 Task:
   subagent_type: documenter
   prompt: |
@@ -132,6 +135,8 @@ Task:
 
     Return summary only.
 ```
+
+**VERIFICATION**: After sending Task call, wait for Documenter agent to return results before proceeding to Step 5.3.
 
 ### 5.2 Context Flow Diagram
 

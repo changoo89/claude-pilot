@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-14
+> **Last Updated**: 2026-01-15
 
 ---
 
@@ -11,7 +11,7 @@
 Framework: Node.js CLI Tool
 Language: TypeScript
 Package Manager: npm
-Version: 3.1.0
+Version: 3.2.0
 Deployment: npm package distribution
 ```
 
@@ -95,12 +95,14 @@ claude-pilot/
 
 ### Command Workflow
 
-| File | Purpose |
-|------|---------|
-| `.claude/commands/00_plan.md` | Generate SPEC-First plan with PRP analysis |
-| `.claude/commands/01_confirm.md` | Extract plan, create file, auto-review with Interactive Recovery |
-| `.claude/commands/02_execute.md` | Implement with TDD + Ralph Loop |
-| `.claude/commands/03_close.md` | Archive plan, commit changes |
+| File | Purpose | Agent Pattern |
+|------|---------|---------------|
+| `.claude/commands/00_plan.md` | Generate SPEC-First plan with PRP analysis | **MANDATORY**: Parallel Explorer + Researcher (Step 0) |
+| `.claude/commands/01_confirm.md` | Extract plan, create file, auto-review with Interactive Recovery | **MANDATORY**: Plan-Reviewer (Step 4) |
+| `.claude/commands/02_execute.md` | Implement with TDD + Ralph Loop | **MANDATORY**: Parallel Coders (Step 2.3), Parallel Verification (Step 2.4), Coder Delegation (Step 3) |
+| `.claude/commands/03_close.md` | Archive plan, commit changes | **MANDATORY**: Documenter (Step 5) |
+| `.claude/commands/90_review.md` | Review code or plans | **MANDATORY**: Plan-Reviewer (single or parallel) |
+| `.claude/commands/91_document.md` | Update documentation | **OPTIONAL**: Documenter |
 
 ### Documentation
 
@@ -302,7 +304,16 @@ Located in `.claude/agents/{agent_name}.md`:
 
 ## Version History
 
-### v3.1.4 (Current)
+### v3.2.0 (Current)
+
+- Converted agent invocation patterns from descriptive to imperative
+- Added MANDATORY ACTION sections with "YOU MUST invoke... NOW" commands
+- Added EXECUTE IMMEDIATELY - DO NOT SKIP emphasis headers
+- Added VERIFICATION wait instructions after agent invocations
+- Enhanced parallel execution support with explicit "send in same message" instructions
+- Improved agent delegation reliability through direct imperative language
+
+### v3.1.4
 
 - Added parallel workflow optimization with 8 specialized agents
 - New agents: researcher, tester, validator, plan-reviewer, code-reviewer
@@ -335,4 +346,4 @@ Located in `.claude/agents/{agent_name}.md`:
 ---
 
 **Last Updated**: 2026-01-15
-**Template**: claude-pilot 3.1.4
+**Template**: claude-pilot 3.2.0

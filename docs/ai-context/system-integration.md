@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, data flow, shared patterns, and integration points
-> **Last Updated**: 2026-01-15 (Updated: CONTEXT.md pattern documentation)
+> **Last Updated**: 2026-01-15 (Updated: /02_execute Step 3.5 & 3.6 parallel verification)
 
 ---
 
@@ -92,25 +92,36 @@ The `/02_execute` command implements the plan using TDD + Ralph Loop pattern. **
    - MANDATORY ACTION: Invoke Coder Agent via Task tool
    - Token-efficient context isolation (5K vs 110K+ tokens)
 
-5. **Step 4: Execute with TDD (Legacy)**
+5. **Step 3.5: Parallel Verification (Multi-Angle Quality Check)**
+   - MANDATORY ACTION: Invoke Tester + Validator + Code-Reviewer in parallel
+   - Tester: Test execution and coverage analysis
+   - Validator: Type check, lint, coverage thresholds
+   - Code-Reviewer: Deep review for async bugs, memory leaks, security issues
+
+6. **Step 3.6: Review Feedback Loop (Optional Iteration)**
+   - IF critical issues found: Re-invoke Coder or ask user
+   - ELSE: Continue to next step
+   - Max 3 iterations to prevent infinite loops
+
+7. **Step 4: Execute with TDD (Legacy)**
    - Red-Green-Refactor cycle
    - Ralph Loop integration
 
-6. **Step 5: Ralph Loop (Autonomous Completion)**
+8. **Step 5: Ralph Loop (Autonomous Completion)**
    - Max 7 iterations
    - Verification: tests, type-check, lint, coverage
 
-7. **Step 6: Todo Continuation Enforcement**
+9. **Step 6: Todo Continuation Enforcement**
    - Never quit halfway
    - One `in_progress` at a time
 
-8. **Step 7: Verification**
-   - Type check, tests, lint
+10. **Step 7: Verification**
+    - Type check, tests, lint
 
-9. **Step 8: Update Plan Artifacts**
-   - Add Execution Summary
+11. **Step 8: Update Plan Artifacts**
+    - Add Execution Summary
 
-10. **Step 9: Auto-Chain to Documentation**
+12. **Step 9: Auto-Chain to Documentation**
     - Trigger `/91_document` if all criteria met
 
 ### /01_confirm Command Workflow
@@ -630,9 +641,9 @@ As of v3.2.0, all agent invocations use **MANDATORY ACTION** sections with imper
 |---------|------|--------|---------|
 | `/00_plan` | Step 0 | explorer + researcher | Parallel: "send in same message" |
 | `/01_confirm` | Step 4 | plan-reviewer | Sequential: Single Task call |
-| `/02_execute` | Step 2.3 | Multiple coders | Parallel: One Task call per independent SC |
-| `/02_execute` | Step 2.4 | tester + validator + code-reviewer | Parallel: "send in same message" |
 | `/02_execute` | Step 3 | coder | Sequential: Single Task call with TDD |
+| `/02_execute` | Step 3.5 | tester + validator + code-reviewer | Parallel: "send in same message" |
+| `/02_execute` | Step 3.6 | coder (conditional) | Sequential: Feedback loop if critical issues |
 | `/03_close` | Step 5 | documenter | Sequential: Single Task call |
 | `/90_review` | Main | plan-reviewer | Sequential or parallel (3-angle) |
 | `/91_document` | Main | documenter | **OPTIONAL**: May use main thread |
@@ -684,10 +695,11 @@ Main Orchestrator
 ```
 
 **Implementation**:
-- Uses **MANDATORY ACTION** sections at Steps 2.3 and 2.4
+- Uses **MANDATORY ACTION** sections at Steps 3, 3.5, and 3.6
 - SC dependency analysis before parallel execution
 - Independent SCs run concurrently (one Task call per SC)
-- Verification agents run in parallel after integration
+- Verification agents run in parallel after integration (Step 3.5)
+- Review feedback loop for critical findings (Step 3.6, max 3 iterations)
 - VERIFICATION checkpoints after each parallel phase
 - Code-reviewer uses Opus for catching async bugs, memory leaks
 

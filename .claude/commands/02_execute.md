@@ -113,9 +113,14 @@ Read plan, extract: Deliverables, Phases, Tasks, Acceptance Criteria, Test Plan
 
 > **When independent SCs exist, YOU MUST invoke multiple agents NOW**
 
-**Coder agents**: Execute independent SCs using TDD + Ralph Loop
-**Verification agents**: Tester (tests/coverage), Validator (type/lint), Code-Reviewer (quality)
-**File conflicts**: Each agent works on different files
+**Implementation Phase (Step 3)**:
+- **Coder agents** (Sonnet): Execute independent SCs using TDD + Ralph Loop
+- **File isolation**: Each agent works on different files to prevent conflicts
+
+**Verification Phase (Step 3.5)** - Parallel Multi-Angle Check:
+- **Tester** (Sonnet): Test execution and coverage analysis
+- **Validator** (Haiku): Type check, lint, coverage thresholds
+- **Code-Reviewer** (Opus): Deep review for async bugs, memory leaks, security issues
 
 **Fallback**: If SCs have dependencies or share files, use sequential execution
 ---
@@ -214,6 +219,274 @@ Iterations: 3, Status: <RALPH_COMPLETE>
 ## Coder Summary
 Implementation complete. All SCs met.
 ❌ MISSING: Test files, Test results, Coverage, Ralph Loop
+```
+
+---
+
+## Step 3.5: Parallel Verification (Multi-Angle Quality Check)
+
+> **Parallel Verification Phase**: Tester + Validator + Code-Reviewer run concurrently for comprehensive quality assessment.
+> **Reference**: @.claude/guides/parallel-execution.md#pattern-2
+
+### 3.5.1 MANDATORY ACTION: Parallel Agent Invocation
+
+> **🚨 CRITICAL**: YOU MUST invoke all three verification agents NOW using the Task tool.
+> This is not optional. Execute these Task tool calls immediately.
+
+**Why Parallel?**: Three specialized agents verify different quality dimensions simultaneously:
+- **Tester** (Sonnet): Tests execution, coverage analysis
+- **Validator** (Haiku): Type check, lint, coverage thresholds
+- **Code-Reviewer** (Opus): Deep review for async bugs, memory leaks, security issues
+
+**EXECUTE IMMEDIATELY - DO NOT SKIP**:
+
+```markdown
+Task:
+  subagent_type: tester
+  prompt: |
+    Run tests and verify coverage for the implemented feature.
+
+    Plan Path: {PLAN_PATH}
+    Test Command: {DETECT_TEST_CMD}
+    Coverage Target: 80%+ overall, 90%+ core modules
+
+    Run tests and capture:
+    - Test results (PASS/FAIL/SKIP counts)
+    - Coverage percentage (overall + core)
+    - Any failing test details
+
+    Return summary with test output and coverage metrics.
+
+Task:
+  subagent_type: validator
+  prompt: |
+    Run type check and lint for the implemented feature.
+
+    Plan Path: {PLAN_PATH}
+    Type Check Command: {DETECT_TYPE_CMD}
+    Lint Command: {DETECT_LINT_CMD}
+
+    Run verification and capture:
+    - Type check result (clean or errors)
+    - Lint result (clean or issues)
+    - Error details if any
+
+    Return summary with verification results.
+
+Task:
+  subagent_type: code-reviewer
+  prompt: |
+    Perform deep code review for the implemented feature.
+
+    Plan Path: {PLAN_PATH}
+    Files Changed: {FILES_FROM_CODER_SUMMARY}
+
+    Review for:
+    - Correctness: Logic errors, async bugs, memory leaks, edge cases
+    - Security: Injection vulnerabilities, input validation, auth issues
+    - Code Quality: Vibe Coding compliance (functions ≤50 lines, files ≤200 lines, nesting ≤3)
+    - Testing: Test coverage gaps, missing edge cases
+    - Documentation: Public API docs, complex logic explanation
+    - Performance: Algorithmic complexity, inefficient patterns
+
+    Categorize findings by severity:
+    - Critical: Must fix (security issues, crashes, memory leaks)
+    - Warning: Should fix (code quality, performance)
+    - Suggestion: Nice to have (minor optimizations)
+
+    Return structured review with:
+    - Files reviewed
+    - Issues found (by severity)
+    - Actionable recommendations with code examples
+    - Overall assessment (approve/fix needed)
+```
+
+### 3.5.2 Process Verification Results
+
+**Expected Outputs**:
+
+| Agent | Marker | Meaning |
+|-------|--------|---------|
+| **Tester** | Test results + coverage | PASS/FAIL counts, coverage percentage |
+| **Validator** | Type + lint results | Clean or errors/issues |
+| **Code-Reviewer** | Review summary | Issues found (critical/warning/suggestion) |
+
+**Result Processing**:
+
+```bash
+# Tester results
+IF TESTS_PASS AND COVERAGE >= 80%:
+    MARK: Tests verified ✅
+ELSE:
+    LOG: Test failures or low coverage
+    TRIGGER: Feedback loop (Step 3.6)
+
+# Validator results
+IF TYPE_CHECK_CLEAN AND LINT_CLEAN:
+    MARK: Verification verified ✅
+ELSE:
+    LOG: Type or lint errors found
+    TRIGGER: Feedback loop (Step 3.6)
+
+# Code-Reviewer results
+IF NO_CRITICAL_ISSUES:
+    MARK: Review verified ✅
+ELSE:
+    LOG: Critical review findings
+    TRIGGER: Feedback loop (Step 3.6)
+```
+
+**Error Recovery**:
+
+- If agent returns error: Log warning, continue with other agents
+- If all agents fail: Use `AskUserQuestion` for guidance
+- `TaskOutput` Anti-Pattern: DO NOT use `TaskOutput` - results return inline automatically
+
+---
+
+## Step 3.6: Review Feedback Loop (Optional Iteration)
+
+> **Purpose**: Address critical review findings before proceeding.
+> **Trigger**: Critical issues found by any verification agent.
+> **Max Iterations**: 3 (prevents infinite loops)
+
+### 3.6.1 Check for Critical Findings
+
+**Review verification results from Step 3.5**:
+
+```bash
+CRITICAL_ISSUES=0
+
+# Check Tester results
+IF TESTS_FAIL OR COVERAGE < 80%:
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+    LOG: "Test failures or insufficient coverage"
+
+# Check Validator results
+IF TYPE_CHECK_ERRORS OR LINT_ERRORS:
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+    LOG: "Type check or lint errors found"
+
+# Check Code-Reviewer results
+IF REVIEW_CONTAINS_CRITICAL_ISSUES:
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+    LOG: "Critical review findings detected"
+```
+
+### 3.6.2 Feedback Loop (Conditional)
+
+**IF NO CRITICAL ISSUES** (`CRITICAL_ISSUES = 0`):
+- Proceed to Step 5 (Ralph Loop) or next step
+
+**IF CRITICAL ISSUES FOUND** (`CRITICAL_ISSUES > 0`):
+
+```bash
+ITERATION=1
+MAX_ITERATIONS=3
+
+WHILE [ $ITERATION -le $MAX_ITERATIONS ]; do
+    echo "=== Feedback Loop Iteration $ITERATION ==="
+
+    # Present findings to user
+    AskUserQuestion:
+      title: "Critical Issues Found - Feedback Required"
+      question: |
+        Verification found ${CRITICAL_ISSUES} critical issue(s):
+
+        **Test Results**: {TEST_SUMMARY}
+        **Type/Lint**: {VALIDATOR_SUMMARY}
+        **Code Review**: {REVIEW_SUMMARY}
+
+        How would you like to proceed?
+      options:
+        - label: "Re-invoke Coder Agent to fix"
+          value: "reinvent"
+        - label: "Fix manually"
+          value: "manual"
+        - label: "Accept with issues"
+          value: "accept"
+
+    # Process user choice
+    IF USER_CHOICE == "reinvest":
+        # Re-invoke Coder Agent with specific fixes
+        Task:
+          subagent_type: coder
+          prompt: |
+            Fix the following critical issues found during verification:
+
+            **Test Failures**: {TEST_FAILURES}
+            **Type/Lint Errors**: {VALIDATION_ERRORS}
+            **Code Review Issues**: {CRITICAL_REVIEW_FINDINGS}
+
+            Plan Path: {PLAN_PATH}
+            Implement fixes using TDD + Ralph Loop.
+            Return summary with test results and coverage.
+
+        # Re-run verification (Step 3.5)
+        GOTO Step 3.5
+
+    ELIF USER_CHOICE == "manual":
+        LOG: "User will fix manually - pausing for intervention"
+        BREAK LOOP
+
+    ELIF USER_CHOICE == "accept":
+        LOG: "User accepted with issues - proceeding"
+        BREAK LOOP
+
+    ITERATION=$((ITERATION + 1))
+done
+
+# Check loop completion
+IF [ $ITERATION -gt $MAX_ITERATIONS ]; then
+    LOG: "Max feedback iterations reached - requires user intervention"
+    AskUserQuestion:
+      title: "Feedback Loop Maxed Out"
+      question: |
+        Reached ${MAX_ITERATIONS} iterations without resolution.
+        Critical issues remain:
+        {REMAINING_ISSUES}
+
+        How would you like to proceed?
+      options:
+        - label: "Continue anyway"
+          value: "continue"
+        - label: "Cancel and investigate"
+          value: "cancel"
+fi
+```
+
+### 3.6.3 Graceful Degradation
+
+**If Code-Reviewer Fails** (Opus unavailable, timeout, error):
+
+```bash
+LOG: "⚠️ Code-Reviewer unavailable - continuing without deep review"
+MARK: Code-Reviewer skipped ⚠️
+
+# Continue with Tester + Validator only
+IF TESTS_PASS AND TYPE_CHECK_CLEAN AND LINT_CLEAN:
+    LOG: "✅ Basic verification passed (without deep review)"
+    PROCEED to next step
+ELSE:
+    TRIGGER feedback loop for test/type/lint issues only
+```
+
+**If Multiple Agents Fail**:
+
+```bash
+WORKING_AGENTS=0
+[ TESTER_RESULTS ] && WORKING_AGENTS=$((WORKING_AGENTS + 1))
+[ VALIDATOR_RESULTS ] && WORKING_AGENTS=$((WORKING_AGENTS + 1))
+[ REVIEWER_RESULTS ] && WORKING_AGENTS=$((WORKING_AGENTS + 1))
+
+IF [ $WORKING_AGENTS -eq 0 ]; then
+    AskUserQuestion:
+      title: "All Verification Agents Failed"
+      question: "All verification agents failed. Continue anyway or cancel?"
+      options:
+        - "Continue anyway"
+        - "Cancel and investigate"
+fi
 ```
 
 ---

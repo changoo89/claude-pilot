@@ -10,14 +10,14 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 |------|---------|-------|----------------|-------------|
 | `00_plan.md` | Create SPEC-First plan | 298 | Planning | Explore codebase, gather requirements, design execution plan through dialogue (read-only) |
 | `01_confirm.md` | Confirm plan + gap detection | 281 | Planning | Review plan, run gap detection, resolve BLOCKING issues, move to in_progress |
-| `02_execute.md` | Execute with TDD + Ralph Loop | 300 | Execution | Implement features using Test-Driven Development and autonomous iteration |
+| `02_execute.md` | Execute with TDD + Ralph Loop | 637 | Execution | Implement features using Test-Driven Development, parallel verification, and autonomous iteration |
 | `03_close.md` | Archive and commit | 236 | Completion | Archive completed plan, create git commit, update documentation |
 | `90_review.md` | Multi-angle code review | 268 | Quality | Run comprehensive code review with multiple agent perspectives |
 | `91_document.md` | Sync documentation | 288 | Maintenance | Update CLAUDE.md, sync templates, ensure consistency |
 | `92_init.md` | Initialize new project | 209 | Setup | Initialize new project with claude-pilot template |
 | `999_publish.md` | Sync templates + deploy | 222 | Release | Sync templates from upstream, bump version, deploy |
 
-**Total**: 8 commands, 2102 lines (average: 263 lines per command)
+**Total**: 8 commands, 2439 lines (average: 305 lines per command)
 
 ## Common Tasks
 
@@ -43,14 +43,15 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
   5. Plan moved to in_progress
 
 ### Execute Implementation
-- **Task**: Implement features using TDD + Ralph Loop
+- **Task**: Implement features using TDD + Ralph Loop + Parallel Verification
 - **Command**: `/02_execute`
-- **Output**: Feature code with tests, coverage 80%+
+- **Output**: Feature code with tests, coverage 80%+, verified quality
 - **Process**:
   1. Plan auto-moves from pending to in_progress
   2. Coder Agent executes TDD cycle for each Success Criterion
-  3. Ralph Loop iterates until all quality gates pass
-  4. Verification: tests, type-check, lint, coverage
+  3. Parallel Verification (Step 3.5): Tester + Validator + Code-Reviewer agents
+  4. Review Feedback Loop (Step 3.6): Address critical findings if any
+  5. Ralph Loop iterates until all quality gates pass
 
 ### Close and Archive
 - **Task**: Archive plan, create git commit
@@ -143,7 +144,7 @@ Commands enforce strict phase boundaries:
 ### Parallel Execution Pattern
 Commands orchestrate multiple agents in parallel for efficiency:
 - `/00_plan`: Explorer + Researcher (parallel exploration)
-- `/02_execute`: Multiple Coder agents (parallel SC implementation when independent)
+- `/02_execute Step 3.5`: Tester + Validator + Code-Reviewer (parallel verification)
 - `/90_review`: Tester + Validator + Code-Reviewer (parallel verification)
 
 **See**: @.claude/guides/parallel-execution.md for detailed patterns

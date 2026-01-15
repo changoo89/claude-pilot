@@ -350,8 +350,9 @@ See `.claude/settings.json` for MCP configuration.
 The workflow supports parallel execution for maximum efficiency:
 
 - **Planning**: Explorer + Researcher (parallel exploration) - Step 0 of `/00_plan`
-- **Execution**: Multiple Coder agents (parallel SC implementation) - Step 2.3 of `/02_execute`
-- **Verification**: Tester + Validator + Code-Reviewer (parallel verification) - Step 2.4 of `/02_execute`
+- **Execution**: Coder agents (parallel SC implementation) - Step 3 of `/02_execute`
+- **Verification**: Tester + Validator + Code-Reviewer (parallel verification) - Step 3.5 of `/02_execute`
+- **Review Feedback**: Optional Coder re-invoation for critical findings - Step 3.6 of `/02_execute`
 - **Review**: Optional parallel multi-angle review - `/90_review`
 
 **Agent Invocation**: All commands use **MANDATORY ACTION** sections with imperative language ("YOU MUST invoke... NOW") to ensure reliable agent delegation.

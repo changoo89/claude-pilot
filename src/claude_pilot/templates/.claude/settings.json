@@ -169,5 +169,9 @@
       "command": "rust-analyzer",
       "scopes": ["rust"]
     }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/statusline.sh"
   }
 }

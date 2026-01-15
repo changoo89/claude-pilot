@@ -55,5 +55,41 @@ class TestVersionCommand:
                 assert "claude-pilot version information" in result.output
 
 
+class TestApplyStatuslineFlag:
+    """Test the --apply-statusline flag (TS-7)."""
+
+    def test_apply_statusline_flag_calls_function(self, tmp_path: Path) -> None:
+        """Test that --apply-statusline flag calls apply_statusline function."""
+        from claude_pilot.cli import main
+        from unittest.mock import patch
+
+        runner = CliRunner()
+
+        # Create .claude directory for testing
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir(parents=True, exist_ok=True)
+
+        with patch("claude_pilot.updater.apply_statusline", return_value=True) as mock_apply:
+            result = runner.invoke(main, ["update", "--apply-statusline"])
+            assert result.exit_code == 0 or result.exit_code is None
+            assert mock_apply.called
+
+    def test_apply_statusline_flag_failure_exits_with_error(self, tmp_path: Path) -> None:
+        """Test that --apply-statusline flag exits with error on failure."""
+        from claude_pilot.cli import main
+        from unittest.mock import patch
+
+        runner = CliRunner()
+
+        # Create .claude directory for testing
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir(parents=True, exist_ok=True)
+
+        with patch("claude_pilot.updater.apply_statusline", return_value=False) as mock_apply:
+            result = runner.invoke(main, ["update", "--apply-statusline"])
+            assert result.exit_code != 0
+            assert mock_apply.called
+
+
 # Note: Init command tests are not in scope for this change
 # The init command functionality is not being modified

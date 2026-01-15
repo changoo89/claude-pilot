@@ -171,11 +171,17 @@ def init(path: Path, lang: str | None, force: bool, yes: bool) -> None:
     is_flag=True,
     help="Only check for updates without applying them",
 )
+@click.option(
+    "--apply-statusline",
+    is_flag=True,
+    help="Apply statusline configuration to existing settings.json",
+)
 def update(
     target_dir: Path | None,
     strategy: str,
     skip_pip: bool,
     check_only: bool,
+    apply_statusline: bool,
 ) -> None:
     """
     Update claude-pilot to the latest version.
@@ -185,6 +191,20 @@ def update(
     """
     print_banner()
     merge_strategy = MergeStrategy(strategy)
+
+    # Handle --apply-statusline flag
+    if apply_statusline:
+        from claude_pilot.updater import apply_statusline as apply_sl
+        result = apply_sl(target_dir)
+        if result:
+            click.echo()
+            success("statusLine configuration applied successfully!")
+        else:
+            click.echo()
+            error("Failed to apply statusLine configuration")
+            raise ClickException("statusLine application failed")
+        return
+
     status = perform_update(target_dir, merge_strategy, skip_pip, check_only)
     if status == "updated" and not check_only:
         if strategy == "auto":

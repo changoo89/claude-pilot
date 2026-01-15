@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, data flow, shared patterns, and integration points
-> **Last Updated**: 2026-01-15 (Updated: /02_execute Step 3.5 & 3.6 parallel verification)
+> **Last Updated**: 2026-01-16 (Updated: statusline feature integration)
 
 ---
 
@@ -312,6 +312,7 @@ The `/01_confirm` command extracts the plan from the `/00_plan` conversation and
 | `/02_execute` Step 2+ | Reads plan file | ← `.pilot/plan/in_progress/` |
 | `/02_execute` worktree | Creates lock file | `.pilot/plan/.locks/{plan}.lock` → `/03_close` removes |
 | `/03_close` worktree | Releases lock file | Lock removed (or trap auto-removes on error) |
+| `claude-pilot update --apply-statusline` | Adds statusLine to settings | Updates `.claude/settings.json` with backup |
 | `/999_publish` Step 0.5 | Syncs templates | `.claude/` → `src/claude_pilot/templates/.claude/` |
 | `/999_publish` Step 3-5 | Updates all 6 version files | pyproject.toml, __init__.py, config.py, install.sh, .pilot-version files |
 

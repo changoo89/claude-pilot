@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-15 (Updated: New documentation files)
+> **Last Updated**: 2026-01-16 (Updated: statusline.sh feature)
 
 ---
 
@@ -91,9 +91,14 @@ claude-pilot/
 │   └── claude_pilot/       # Main package
 │       ├── py.typed        # PEP 561 type marker (NEW)
 │       ├── templates/      # Deployment templates (synced)
-│       ├── config.py       # MANAGED_FILES configuration
+│       │   └── .claude/
+│       │       ├── scripts/
+│       │       │   └── statusline.sh  # Statusline script (NEW)
+│       │       └── settings.json      # StatusLine config (UPDATED)
+│       ├── cli.py          # CLI with --apply-statusline flag (UPDATED)
+│       ├── config.py       # MANAGED_FILES with statusline.sh (UPDATED)
 │       ├── initializer.py  # Init command with .gitignore handling
-│       └── updater.py      # Update command with .gitignore handling
+│       └── updater.py      # Update with apply_statusline() (UPDATED)
 ├── tests/                  # Test files
 ├── CLAUDE.md               # Tier 1: Project documentation
 ├── README.md               # Project README
@@ -337,7 +342,84 @@ You are the Coder Agent. Implement features using TDD...
 
 ---
 
+## Statusline Feature (v3.3.4)
+
+### Overview
+
+The statusline feature displays pending plan count in Claude Code's statusline using the format `📋 P:{n}`.
+
+### Components
+
+| File | Purpose |
+|------|---------|
+| `.claude/scripts/statusline.sh` | Script that counts pending plans and formats output |
+| `.claude/settings.json` | StatusLine configuration (command type) |
+| `cli.py` | `--apply-statusline` flag for opt-in updates |
+| `updater.py` | `apply_statusline()` function for safe settings merge |
+| `config.py` | MANAGED_FILES entry for statusline.sh |
+
+### Usage
+
+**New Users**: Statusline automatically configured on `claude-pilot init`
+
+**Existing Users**: Run `claude-pilot update --apply-statusline` to add statusline
+
+### Statusline Script Behavior
+
+1. **Input**: JSON via stdin with `workspace.current_dir`
+2. **Count**: Files in `.pilot/plan/pending/` (excludes `.gitkeep`)
+3. **Output**:
+   - `📁 {dirname} | 📋 P:{n}` when pending > 0
+   - `📁 {dirname}` when pending = 0
+4. **Fallbacks**:
+   - Missing `jq`: Show directory only
+   - Invalid JSON: Show directory only
+   - Missing directory: Show directory only
+
+### Integration Points
+
+```
+Claude Code CLI
+      │
+      ▼ (stdin: JSON)
+┌─────────────────────────────────┐
+│   .claude/scripts/statusline.sh │
+│   ─────────────────────────────│
+│   1. Read JSON from stdin       │
+│   2. Extract workspace.current_dir │
+│   3. Count .pilot/plan/pending/ │
+│   4. Format: 📁 dir | 📋 P:N   │
+└─────────────────────────────────┘
+      │
+      ▼ (stdout: string)
+Claude Code Statusline Display
+```
+
+### Update Flow
+
+```
+claude-pilot update --apply-statusline
+      │
+      ├─► Backup settings.json
+      ├─► Read current settings
+      ├─► Check if statusLine exists
+      │   └─► Skip if already present
+      ├─► Add statusLine configuration
+      └─► Write atomically
+```
+
+---
+
 ## Version History
+
+### v3.3.5 (2026-01-16)
+
+- **Statusline Feature**: Added pending plan count display to Claude Code statusline
+- **New script**: `.claude/scripts/statusline.sh` with jq parsing and error handling
+- **Opt-in updates**: `claude-pilot update --apply-statusline` for existing users
+- **Settings template**: Updated with statusLine configuration
+- **Tests**: 21 statusline tests, 100% feature coverage
+- **Vibe Coding**: apply_statusline() compliant (48 lines)
 
 ### v3.3.4 (2026-01-15)
 

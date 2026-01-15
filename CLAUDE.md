@@ -1,7 +1,7 @@
 # claude-pilot - Claude Code Development Guide
 
-> **Last Updated**: 2026-01-15
-> **Version**: 3.3.1
+> **Last Updated**: 2026-01-16
+> **Version**: 3.3.4
 > **Template**: claude-pilot
 
 ---

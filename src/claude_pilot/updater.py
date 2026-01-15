@@ -8,6 +8,7 @@ with support for different merge strategies and backup management.
 from __future__ import annotations
 
 import importlib.resources  # noqa: F401
+import json
 import shutil
 from datetime import datetime
 from enum import Enum
@@ -442,6 +443,141 @@ def save_version(
         target_dir = config.get_target_dir()
     version_file = config.get_version_file_path(target_dir)
     version_file.write_text(version)
+
+
+def _create_default_settings(settings_path: Path) -> bool:
+    """
+    Create default settings.json with statusLine configuration.
+
+    Args:
+        settings_path: Path to settings.json file.
+
+    Returns:
+        True if successful, False otherwise.
+    """
+    default_settings = {
+        "statusLine": {
+            "type": "command",
+            "command": '"$CLAUDE_PROJECT_DIR"/.claude/scripts/statusline.sh'
+        }
+    }
+    try:
+        with settings_path.open("w") as f:
+            json.dump(default_settings, f, indent=2)
+        click.secho("i Created settings.json with statusLine configuration", fg="blue")
+        return True
+    except OSError as e:
+        click.secho(f"! Error creating settings.json: {e}", fg="yellow")
+        return False
+
+
+def _create_settings_backup(settings_path: Path, target_dir: Path) -> Path | None:
+    """
+    Create backup of settings.json before modifying.
+
+    Args:
+        settings_path: Path to settings.json file.
+        target_dir: Target directory containing .claude/.
+
+    Returns:
+        Path to backup file, or None if backup failed.
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_path = target_dir / ".claude" / f"settings.json.backup.{timestamp}"
+    try:
+        shutil.copy2(settings_path, backup_path)
+        click.secho(f"i Backup created: {backup_path.name}", fg="blue")
+        return backup_path
+    except OSError as e:
+        click.secho(f"! Warning: Could not create backup: {e}", fg="yellow")
+        return None
+
+
+def _write_settings_atomically(
+    settings: dict[str, Any],
+    settings_path: Path,
+    backup_path: Path | None,
+) -> bool:
+    """
+    Write settings using atomic write pattern with fallback to backup.
+
+    Args:
+        settings: Settings dictionary to write.
+        settings_path: Path to settings.json file.
+        backup_path: Path to backup file for rollback.
+
+    Returns:
+        True if successful, False otherwise.
+    """
+    temp_path = settings_path.with_suffix(".json.tmp")
+    try:
+        with temp_path.open("w") as f:
+            json.dump(settings, f, indent=2)
+        # Validate JSON syntax
+        with temp_path.open("r") as f:
+            json.load(f)
+        # Atomic rename
+        temp_path.replace(settings_path)
+        click.secho("i statusLine configuration added to settings.json", fg="green")
+        return True
+    except (json.JSONDecodeError, OSError) as e:
+        click.secho(f"! Error writing settings.json: {e}", fg="yellow")
+        # Clean up temp file
+        if temp_path.exists():
+            temp_path.unlink()
+        # Restore from backup if available
+        if backup_path and backup_path.exists():
+            shutil.copy2(backup_path, settings_path)
+            click.secho("i Restored settings.json from backup", fg="blue")
+        return False
+
+
+def apply_statusline(target_dir: Path | None = None) -> bool:
+    """
+    Apply statusline configuration to existing settings.json.
+
+    This function adds the statusLine configuration to an existing
+    settings.json file without overwriting other user settings.
+    If statusLine already exists, it will be preserved unchanged.
+
+    Args:
+        target_dir: Optional target directory. Defaults to current working directory.
+
+    Returns:
+        True if statusLine was added or already exists, False on error.
+    """
+    if target_dir is None:
+        target_dir = config.get_target_dir()
+
+    settings_path = target_dir / ".claude" / "settings.json"
+
+    # Create .claude directory if it doesn't exist
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Create default settings.json if it doesn't exist
+    if not settings_path.exists():
+        return _create_default_settings(settings_path)
+
+    # Read existing settings
+    try:
+        with settings_path.open("r") as f:
+            settings = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        click.secho(f"! Error reading settings.json: {e}", fg="yellow")
+        return False
+
+    # Check if statusLine already exists
+    if "statusLine" in settings:
+        click.secho("i statusLine already configured, preserving existing config", fg="blue")
+        return True
+
+    # Create backup, add statusLine, and write atomically
+    backup_path = _create_settings_backup(settings_path, target_dir)
+    settings["statusLine"] = {
+        "type": "command",
+        "command": '"$CLAUDE_PROJECT_DIR"/.claude/scripts/statusline.sh'
+    }
+    return _write_settings_atomically(settings, settings_path, backup_path)
 
 
 def cleanup_deprecated_files(

@@ -287,3 +287,227 @@ class TestPerformUpdateEdgeCases:
                 with patch("claude_pilot.updater.get_latest_version", return_value="2.1.4"):
                     result = perform_update()
                     assert result == UpdateStatus.ALREADY_CURRENT
+
+
+class TestApplyStatusline:
+    """Test apply_statusline() function."""
+
+    def test_apply_statusline_creates_new_settings(self, tmp_path: Path) -> None:
+        """Test apply_statusline() creates settings.json if not exists (TS-4)."""
+        from claude_pilot.updater import apply_statusline
+
+        # Create .claude directory but no settings.json
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir(parents=True, exist_ok=True)
+
+        result = apply_statusline(tmp_path)
+        assert result is True
+
+        # Check settings.json was created with statusLine
+        settings_path = claude_dir / "settings.json"
+        assert settings_path.exists()
+
+        import json
+        with settings_path.open("r") as f:
+            settings = json.load(f)
+
+        assert "statusLine" in settings
+        assert settings["statusLine"]["type"] == "command"
+        assert "statusline.sh" in settings["statusLine"]["command"]
+
+    def test_apply_statusline_adds_to_existing_settings(self, tmp_path: Path) -> None:
+        """Test apply_statusline() adds statusLine to existing settings.json (TS-4)."""
+        from claude_pilot.updater import apply_statusline
+
+        # Create .claude directory with existing settings.json
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir(parents=True, exist_ok=True)
+
+        settings_path = claude_dir / "settings.json"
+        existing_settings = {
+            "language": "en",
+            "alwaysThinkingEnabled": True,
+        }
+        import json
+        with settings_path.open("w") as f:
+            json.dump(existing_settings, f)
+
+        result = apply_statusline(tmp_path)
+        assert result is True
+
+        # Check statusLine was added without overwriting existing settings
+        with settings_path.open("r") as f:
+            settings = json.load(f)
+
+        assert "statusLine" in settings
+        assert settings["language"] == "en"  # Existing setting preserved
+        assert settings["alwaysThinkingEnabled"] is True  # Existing setting preserved
+
+    def test_apply_statusline_preserves_existing_statusline(self, tmp_path: Path) -> None:
+        """Test apply_statusline() preserves existing statusLine (TS-5, SC-6)."""
+        from claude_pilot.updater import apply_statusline
+
+        # Create .claude directory with existing statusLine
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir(parents=True, exist_ok=True)
+
+        settings_path = claude_dir / "settings.json"
+        custom_statusline = {
+            "type": "command",
+            "command": "custom-command.sh"
+        }
+        import json
+        with settings_path.open("w") as f:
+            json.dump({"statusLine": custom_statusline}, f)
+
+        result = apply_statusline(tmp_path)
+        assert result is True
+
+        # Check existing statusLine was preserved
+        with settings_path.open("r") as f:
+            settings = json.load(f)
+
+        assert settings["statusLine"] == custom_statusline
+        assert settings["statusLine"]["command"] == "custom-command.sh"
+
+    def test_apply_statusline_creates_backup(self, tmp_path: Path) -> None:
+        """Test apply_statusline() creates backup before modifying (TS-6)."""
+        from claude_pilot.updater import apply_statusline
+
+        # Create .claude directory with existing settings.json
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir(parents=True, exist_ok=True)
+
+        settings_path = claude_dir / "settings.json"
+        import json
+        with settings_path.open("w") as f:
+            json.dump({"language": "en"}, f)
+
+        result = apply_statusline(tmp_path)
+        assert result is True
+
+        # Check backup was created
+        backups = list(claude_dir.glob("settings.json.backup.*"))
+        assert len(backups) == 1, "Should create exactly one backup"
+
+        # Verify backup contains original content
+        with backups[0].open("r") as f:
+            backup_content = json.load(f)
+
+        assert backup_content == {"language": "en"}
+
+    def test_apply_statusline_handles_invalid_json(self, tmp_path: Path) -> None:
+        """Test apply_statusline() handles invalid JSON gracefully (TS-3)."""
+        from claude_pilot.updater import apply_statusline
+
+        # Create .claude directory with invalid JSON
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir(parents=True, exist_ok=True)
+
+        settings_path = claude_dir / "settings.json"
+        with settings_path.open("w") as f:
+            f.write("invalid json {{{")
+
+        result = apply_statusline(tmp_path)
+        assert result is False, "Should return False for invalid JSON"
+
+    def test_apply_statusline_creates_claude_directory(self, tmp_path: Path) -> None:
+        """Test apply_statusline() creates .claude directory if missing."""
+        from claude_pilot.updater import apply_statusline
+
+        # Don't create .claude directory
+        result = apply_statusline(tmp_path)
+        assert result is True
+
+        # Check directory and settings.json were created
+        claude_dir = tmp_path / ".claude"
+        assert claude_dir.exists()
+        assert (claude_dir / "settings.json").exists()
+
+    def test_apply_statusline_atomic_write(self, tmp_path: Path) -> None:
+        """Test apply_statusline() uses atomic write pattern."""
+        from claude_pilot.updater import apply_statusline
+
+        # Create .claude directory with existing settings.json
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir(parents=True, exist_ok=True)
+
+        settings_path = claude_dir / "settings.json"
+        import json
+        with settings_path.open("w") as f:
+            json.dump({"language": "en"}, f)
+
+        result = apply_statusline(tmp_path)
+        assert result is True
+
+        # Verify final file is valid JSON
+        with settings_path.open("r") as f:
+            settings = json.load(f)
+
+        assert "statusLine" in settings
+        assert settings["language"] == "en"
+
+        # Check temp file was cleaned up
+        temp_path = settings_path.with_suffix(".json.tmp")
+        assert not temp_path.exists(), "Temp file should be cleaned up"
+
+    def test_apply_statusline_handles_write_error(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test apply_statusline() handles write errors gracefully."""
+        from claude_pilot.updater import apply_statusline
+        import json
+
+        # Create .claude directory with existing settings.json
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir(parents=True, exist_ok=True)
+
+        settings_path = claude_dir / "settings.json"
+        with settings_path.open("w") as f:
+            json.dump({"language": "en"}, f)
+
+        # Mock json.dump to raise an error during write
+        def mock_dump_error(*args: Any, **kwargs: Any) -> None:
+            raise OSError("Simulated write error")
+
+        monkeypatch.setattr("json.dump", mock_dump_error)
+
+        result = apply_statusline(tmp_path)
+
+        # Should return False when write fails
+        assert result is False, "Should return False when write fails"
+
+        # Verify original settings are preserved (backup should have been restored)
+        with settings_path.open("r") as f:
+            settings = json.load(f)
+
+        assert settings == {"language": "en"}, "Original settings should be preserved"
+        assert "statusLine" not in settings, "statusLine should not be added when write fails"
+
+    def test_apply_statusline_backup_failure_continues(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test apply_statusline() continues when backup creation fails."""
+        from claude_pilot.updater import apply_statusline
+        import shutil
+
+        # Create .claude directory with existing settings.json
+        claude_dir = tmp_path / ".claude"
+        claude_dir.mkdir(parents=True, exist_ok=True)
+
+        settings_path = claude_dir / "settings.json"
+        import json
+        with settings_path.open("w") as f:
+            json.dump({"language": "en"}, f)
+
+        # Mock shutil.copy2 to raise OSError
+        def mock_copy2_error(*args: Any, **kwargs: Any) -> None:
+            raise OSError("Simulated backup error")
+
+        monkeypatch.setattr("shutil.copy2", mock_copy2_error)
+
+        result = apply_statusline(tmp_path)
+        # Should still succeed despite backup failure
+        assert result is True
+
+        # Verify statusLine was still added
+        with settings_path.open("r") as f:
+            settings = json.load(f)
+
+        assert "statusLine" in settings

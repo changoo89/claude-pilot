@@ -547,6 +547,7 @@ git-master (Commit clean code)
 ## Further Reading
 
 ### Internal Documentation
+- @.claude/skills/vibe-coding/REFERENCE.md - SOLID principles, refactoring patterns, code smells
 - @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle
 - @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop
 

@@ -475,6 +475,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ## Further Reading
 
 ### Internal Documentation
+- @.claude/skills/git-master/REFERENCE.md - Advanced Git patterns, branch strategies, collaboration
 - @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle
 - @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop
 - @.claude/skills/vibe-coding/SKILL.md - Code quality standards

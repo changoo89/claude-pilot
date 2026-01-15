@@ -469,6 +469,7 @@ git-master (Commit working code)
 ## Further Reading
 
 ### Internal Documentation
+- @.claude/skills/ralph-loop/REFERENCE.md - Deep dive on loop mechanics, fix strategies, patterns
 - @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle
 - @.claude/skills/vibe-coding/SKILL.md - Code quality standards
 - @.claude/guides/test-environment.md - Test framework detection

@@ -414,6 +414,7 @@ git-master (Commit working code)
 ## Further Reading
 
 ### Internal Documentation
+- @.claude/skills/tdd/REFERENCE.md - Advanced TDD concepts, patterns, and examples
 - @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop
 - @.claude/skills/vibe-coding/SKILL.md - Code quality standards
 - @.claude/guides/test-environment.md - Test framework detection

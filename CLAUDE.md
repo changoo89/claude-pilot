@@ -20,7 +20,7 @@ Deployment: [e.g., Vercel, AWS, Docker]
 ```
 
 ### Current Status
-- **Version**: 3.3.1
+- **Version**: 3.3.4
 - **Stage**: Production
 - **Last Updated**: 2026-01-15
 
@@ -445,5 +445,5 @@ This project uses a hierarchical documentation system:
 
 ---
 
-**Template Version**: claude-pilot 3.3.2
+**Template Version**: claude-pilot 3.3.4
 **Last Updated**: 2026-01-15

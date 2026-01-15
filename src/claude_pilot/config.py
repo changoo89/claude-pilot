@@ -62,6 +62,8 @@ MANAGED_FILES: list[tuple[str, str]] = [
     (".claude/scripts/hooks/lint.sh", ".claude/scripts/hooks/lint.sh"),
     (".claude/scripts/hooks/check-todos.sh", ".claude/scripts/hooks/check-todos.sh"),
     (".claude/scripts/hooks/branch-guard.sh", ".claude/scripts/hooks/branch-guard.sh"),
+    # Worktree utilities (worktree support)
+    (".claude/scripts/worktree-utils.sh", ".claude/scripts/worktree-utils.sh"),
     # Version file
     (".claude/.pilot-version", ".claude/.pilot-version"),
     # Rules (new - Claude Code official pattern)

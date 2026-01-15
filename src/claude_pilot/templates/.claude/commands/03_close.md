@@ -33,7 +33,37 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 if is_in_worktree; then
     CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
     WORKTREE_META="$(read_worktree_metadata "$ACTIVE_PLAN_PATH")"
-    # ... squash merge, cleanup worktree, move plan to done in main repo
+
+    if [ -n "$WORKTREE_META" ]; then
+        IFS='|' read -r WT_BRANCH WT_PATH WT_MAIN <<< "$WORKTREE_META"
+        MAIN_PROJECT_DIR="$(get_main_project_dir)"
+        LOCK_FILE="${MAIN_PROJECT_DIR}/.pilot/plan/.locks/$(basename "$ACTIVE_PLAN_PATH").lock"
+
+        # Error trap: cleanup lock on any failure
+        trap "rm -rf \"$LOCK_FILE\" 2>/dev/null" EXIT ERR
+
+        # 1. Change to main project
+        cd "$MAIN_PROJECT_DIR" || exit 1
+
+        # 2. Generate commit message from plan
+        PLAN_TITLE="${ACTIVE_PLAN_PATH:-.}"
+        [ -f "$PLAN_TITLE" ] && TITLE="$(grep -E '^# ' "$PLAN_TITLE" 2>/dev/null | head -1 | sed 's/^# //')" || TITLE="Update"
+        COMMIT_MSG="${TITLE}
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+        # 3. Squash merge
+        do_squash_merge "$WT_BRANCH" "$WT_MAIN" "$COMMIT_MSG"
+
+        # 4. Cleanup worktree, branch, directory
+        cleanup_worktree "$WT_PATH" "$WT_BRANCH"
+
+        # 5. Remove lock file (explicit cleanup, trap handles errors)
+        rm -rf "$LOCK_FILE"
+
+        # Clear trap on success
+        trap - EXIT ERR
+    fi
 fi
 ```
 

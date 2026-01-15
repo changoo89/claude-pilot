@@ -52,6 +52,37 @@ def get_current_version(target_dir: Path | None = None) -> str:
     return "none"
 
 
+def ensure_gitignore(target_dir: Path) -> None:
+    """
+    Add .pilot/ to .gitignore if not present.
+
+    This ensures that plan tracking files are not tracked by git,
+    which is critical for worktree support where .pilot/ state
+    differs between main and worktree.
+
+    Args:
+        target_dir: Target directory containing .gitignore.
+    """
+    gitignore_path = target_dir / ".gitignore"
+    pilot_pattern = ".pilot/"
+
+    # Read existing content
+    existing = ""
+    if gitignore_path.exists():
+        existing = gitignore_path.read_text()
+
+    # Check if already present
+    if pilot_pattern in existing:
+        return
+
+    # Append to .gitignore
+    with gitignore_path.open("a") as f:
+        if existing and not existing.endswith("\n"):
+            f.write("\n")
+        f.write("\n# claude-pilot plan tracking (worktree support)\n")
+        f.write(".pilot/\n")
+
+
 def get_latest_version() -> str:
     """
     Get the latest version from PyPI or fallback to config.
@@ -274,6 +305,9 @@ def perform_auto_update(target_dir: Path) -> UpdateStatus:
     click.secho(f"i Updated: {success_count} files", fg="blue")
     if fail_count > 0:
         click.secho(f"! Failed: {fail_count} files", fg="yellow")
+
+    # Ensure .gitignore excludes .pilot/
+    ensure_gitignore(target_dir)
 
     # Cleanup old backups (keep last 5)
     cleanup_old_backups(target_dir, keep=5)

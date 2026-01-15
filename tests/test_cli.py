@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from click.testing import CliRunner
 
 from claude_pilot.cli import main
@@ -15,7 +14,7 @@ from claude_pilot.cli import main
 class TestUpdateCommand:
     """Test the update command with new options."""
 
-    def test_update_with_skip_pip_flag(self, mock_subprocess_run):
+    def test_update_with_skip_pip_flag(self, mock_subprocess_run: MagicMock) -> None:
         """Test that --skip-pip flag skips pip upgrade."""
         runner = CliRunner()
         with patch("claude_pilot.updater.get_pypi_version", return_value="2.1.5"):
@@ -26,7 +25,7 @@ class TestUpdateCommand:
                         # Should not call subprocess.run for pip upgrade
                         assert result.exit_code == 0 or result.exit_code is None
 
-    def test_update_with_check_only_flag(self):
+    def test_update_with_check_only_flag(self) -> None:
         """Test that --check-only flag only checks without applying."""
         runner = CliRunner()
         with patch("claude_pilot.updater.get_pypi_version", return_value="2.1.5"):
@@ -34,7 +33,7 @@ class TestUpdateCommand:
                 result = runner.invoke(main, ["update", "--check-only"])
                 assert result.exit_code == 0 or result.exit_code is None
 
-    def test_update_with_both_flags(self):
+    def test_update_with_both_flags(self) -> None:
         """Test that both --skip-pip and --check-only can be used together."""
         runner = CliRunner()
         with patch("claude_pilot.updater.get_pypi_version", return_value="2.1.5"):
@@ -46,7 +45,7 @@ class TestUpdateCommand:
 class TestVersionCommand:
     """Test the version command."""
 
-    def test_version_command_shows_versions(self):
+    def test_version_command_shows_versions(self) -> None:
         """Test that version command shows version information."""
         runner = CliRunner()
         with patch("claude_pilot.cli.get_current_version", return_value="2.1.4"):

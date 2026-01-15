@@ -30,22 +30,18 @@ for PROTECTED in "${PROTECTED_BRANCHES[@]}"; do
 
         case "$COMMAND" in
             *rm*|*delete*|*drop*|*reset*|*revert*)
-                echo -e "${RED}⚠️ WARNING: You are on a protected branch: ${BRANCH}${NC}"
-                echo -e "${YELLOW}This command may be destructive:${NC} $COMMAND"
-                echo ""
-                echo -e "${YELLOW}Protected branches:${NC} ${PROTECTED_BRANCHES[*]}"
-                echo ""
-                echo -e "${BLUE}Recommendations:${NC}"
-                echo "  1. Create a feature branch first"
-                echo "  2. Use Pull Requests for merging"
-                echo "  3. Get code review before merging to $BRANCH"
-                echo ""
-                read -p "Continue anyway? [y/N] " -n 1 -r
-                echo
-                if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-                    echo -e "${RED}Command aborted${NC}"
-                    exit 1
-                fi
+                # Output to stderr for Claude Code hook feedback
+                echo -e "${RED}⚠️ BLOCKED: Destructive command on protected branch '${BRANCH}'${NC}" >&2
+                echo -e "${YELLOW}Command:${NC} $COMMAND" >&2
+                echo "" >&2
+                echo -e "${BLUE}Recommendations:${NC}" >&2
+                echo "  1. Create a feature branch: git checkout -b feature/your-change" >&2
+                echo "  2. Make changes on the feature branch" >&2
+                echo "  3. Use Pull Request to merge to $BRANCH" >&2
+                echo "" >&2
+                echo -e "${YELLOW}Protected branches:${NC} ${PROTECTED_BRANCHES[*]}" >&2
+                # Exit code 2 = blocking error (stderr fed back to Claude)
+                exit 2
                 ;;
         esac
         break

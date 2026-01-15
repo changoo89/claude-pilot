@@ -30,54 +30,65 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 
 > **🚨 CRITICAL - BLOCKING OPERATION**: MUST complete successfully BEFORE any other work. If fails, EXIT IMMEDIATELY.
 
-### 1.1 Worktree Mode (--wt)
-
-> **🚨 CRITICAL**: Plan MUST be moved to in_progress before any worktree setup.
-
 ```bash
-if is_worktree_mode "$@"; then
-    check_worktree_support || exit 1
-    PENDING_PLAN="$(select_oldest_pending)" || exit 1
+PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 
-    # ATOMIC: Move plan FIRST, THEN create worktree
+if is_worktree_mode "$@"; then
+    # === WORKTREE MODE (with --wt flag) ===
+    check_worktree_support || exit 1
+
+    # ATOMIC: Select and lock pending plan
+    PENDING_PLAN="$(select_and_lock_pending)" || { echo "❌ No pending plans available" >&2; exit 1; }
+
+    # Extract lock file path for cleanup
     PLAN_FILENAME="$(basename "$PENDING_PLAN")"
+    LOCK_FILE="$PROJECT_ROOT/.pilot/plan/.locks/${PLAN_FILENAME}.lock"
+
+    # Error trap: cleanup lock on ANY failure
+    trap "rm -rf \"$LOCK_FILE\" 2>/dev/null" EXIT ERR
+
+    # NOW move the plan (still holding lock)
     IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
     mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
     mv "$PENDING_PLAN" "$IN_PROGRESS_PATH" || exit 1
 
-    # NOW create worktree
+    # Create worktree (still holding lock until worktree is ready)
     BRANCH_NAME="$(plan_to_branch "$PLAN_FILENAME")"
     MAIN_BRANCH="main"; git rev-parse --verify "$MAIN_BRANCH" >/dev/null 2>&1 || MAIN_BRANCH="master"
     WORKTREE_DIR="$(create_worktree "$BRANCH_NAME" "$PLAN_FILENAME" "$MAIN_BRANCH")" || exit 1
-    PLAN_PATH="$IN_PROGRESS_PATH"; cd "$WORKTREE_ABS" || exit 1
-fi
-```
 
-### 1.2 Select and Move Plan (ATOMIC BLOCK)
+    # Add worktree metadata to plan
+    add_worktree_metadata "$IN_PROGRESS_PATH" "$BRANCH_NAME" "$WORKTREE_DIR" "$MAIN_BRANCH"
 
-> **🚨 CRITICAL - BLOCKING OPERATION**: All three operations MUST complete successfully.
-
-```bash
-PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-PLAN_PATH="${EXPLICIT_PATH}"
-
-# Priority: Explicit path → Oldest pending → Most recent in_progress
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
-
-# IF pending, MUST move FIRST
-if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
-    PLAN_FILENAME="$(basename "$PLAN_PATH")"
-    IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
-    mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
-    mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || { echo "❌ FATAL: Failed to move plan" >&2; exit 1; }
     PLAN_PATH="$IN_PROGRESS_PATH"
+    cd "$WORKTREE_DIR" || exit 1
+
+    # Release lock only after worktree setup is complete
+    # Lock will be cleaned up in /03_close
+    # Note: Keep lock file during execution to prevent re-selection
+else
+    # === STANDARD MODE (without --wt flag) ===
+    PLAN_PATH="${EXPLICIT_PATH}"
+
+    # Priority: Explicit path → Oldest pending → Most recent in_progress
+    [ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
+
+    # IF pending, MUST move FIRST
+    if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
+        PLAN_FILENAME="$(basename "$PLAN_PATH")"
+        IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
+        mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
+        mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || { echo "❌ FATAL: Failed to move plan" >&2; exit 1; }
+        PLAN_PATH="$IN_PROGRESS_PATH"
+    fi
+
+    [ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
+
+    # Final validation
+    [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found. Run /00_plan first" >&2; exit 1; }
 fi
 
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
-
-# Final validation and active pointer
-[ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found. Run /00_plan first" >&2; exit 1; }
-
+# Set active pointer (both modes)
 mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
@@ -113,9 +124,14 @@ Read plan, extract: Deliverables, Phases, Tasks, Acceptance Criteria, Test Plan
 
 > **When independent SCs exist, YOU MUST invoke multiple agents NOW**
 
-**Coder agents**: Execute independent SCs using TDD + Ralph Loop
-**Verification agents**: Tester (tests/coverage), Validator (type/lint), Code-Reviewer (quality)
-**File conflicts**: Each agent works on different files
+**Implementation Phase (Step 3)**:
+- **Coder agents** (Sonnet): Execute independent SCs using TDD + Ralph Loop
+- **File isolation**: Each agent works on different files to prevent conflicts
+
+**Verification Phase (Step 3.5)** - Parallel Multi-Angle Check:
+- **Tester** (Sonnet): Test execution and coverage analysis
+- **Validator** (Haiku): Type check, lint, coverage thresholds
+- **Code-Reviewer** (Opus): Deep review for async bugs, memory leaks, security issues
 
 **Fallback**: If SCs have dependencies or share files, use sequential execution
 ---
@@ -161,11 +177,343 @@ Task:
 
 **Error Recovery**: If agent returns error, use `AskUserQuestion` with options: "Retry", "Continue manually", "Cancel"
 
+### 3.4 Verify Coder Output (TDD Enforcement)
+
+> **🚨 CRITICAL - MANDATORY Verification**
+> When `<CODER_COMPLETE>` received, verify these fields exist in agent output:
+> - [ ] "Test files created" or "Tests written"
+> - [ ] "Test run output" with PASS/FAIL counts
+> - [ ] "Coverage" percentage (must be ≥80%)
+> - [ ] "Ralph Loop iterations" count
+
+**Verification Process**:
+
+1. **Check for Test Evidence**: Look for test creation and execution in the agent summary
+2. **Verify Test Results**: Confirm PASS/FAIL counts are present
+3. **Check Coverage**: Coverage percentage ≥80% (overall), ≥90% (core modules)
+4. **Verify Ralph Loop**: Confirm iteration count and final status
+
+**If Verification Fails** (missing required fields):
+
+```
+IF any mandatory field missing:
+    1. Log: "⚠️ TDD verification failed: missing {field}"
+    2. Re-invoke Coder Agent with explicit instruction:
+       "Your output MUST include: Test Files, Test Results, Coverage, Ralph Loop"
+    3. IF fails 3 times:
+       Use AskUserQuestion for guidance:
+       - "Accept completion without full TDD evidence?"
+       - "Continue manually?"
+       - "Cancel and investigate?"
+```
+
+**Example Valid Output**:
+```markdown
+## Coder Summary
+
+### Test Files Created
+- src/auth/login.test.ts
+- src/auth/logout.test.ts
+
+### Test Results
+PASS: 12, FAIL: 0, SKIP: 0
+
+### Coverage
+Overall: 85%, Core: 92%
+
+### Ralph Loop
+Iterations: 3, Status: <RALPH_COMPLETE>
+```
+
+**Example INVALID Output** (missing test evidence):
+```markdown
+## Coder Summary
+Implementation complete. All SCs met.
+❌ MISSING: Test files, Test results, Coverage, Ralph Loop
+```
+
 ---
 
-## Step 4: Execute with TDD (Legacy - Use Agent Instead)
+## Step 3.5: Parallel Verification (Multi-Angle Quality Check)
 
-> **NOTE**: This step is preserved for backward compatibility. For new plans, use **Step 3: Delegate to Coder Agent** instead.
+> **Parallel Verification Phase**: Tester + Validator + Code-Reviewer run concurrently for comprehensive quality assessment.
+> **Reference**: @.claude/guides/parallel-execution.md#pattern-2
+
+### 3.5.1 MANDATORY ACTION: Parallel Agent Invocation
+
+> **🚨 CRITICAL**: YOU MUST invoke all three verification agents NOW using the Task tool.
+> This is not optional. Execute these Task tool calls immediately.
+
+**Why Parallel?**: Three specialized agents verify different quality dimensions simultaneously:
+- **Tester** (Sonnet): Tests execution, coverage analysis
+- **Validator** (Haiku): Type check, lint, coverage thresholds
+- **Code-Reviewer** (Opus): Deep review for async bugs, memory leaks, security issues
+
+**EXECUTE IMMEDIATELY - DO NOT SKIP**:
+
+```markdown
+Task:
+  subagent_type: tester
+  prompt: |
+    Run tests and verify coverage for the implemented feature.
+
+    Plan Path: {PLAN_PATH}
+    Test Command: {DETECT_TEST_CMD}
+    Coverage Target: 80%+ overall, 90%+ core modules
+
+    Run tests and capture:
+    - Test results (PASS/FAIL/SKIP counts)
+    - Coverage percentage (overall + core)
+    - Any failing test details
+
+    Return summary with test output and coverage metrics.
+
+Task:
+  subagent_type: validator
+  prompt: |
+    Run type check and lint for the implemented feature.
+
+    Plan Path: {PLAN_PATH}
+    Type Check Command: {DETECT_TYPE_CMD}
+    Lint Command: {DETECT_LINT_CMD}
+
+    Run verification and capture:
+    - Type check result (clean or errors)
+    - Lint result (clean or issues)
+    - Error details if any
+
+    Return summary with verification results.
+
+Task:
+  subagent_type: code-reviewer
+  prompt: |
+    Perform deep code review for the implemented feature.
+
+    Plan Path: {PLAN_PATH}
+    Files Changed: {FILES_FROM_CODER_SUMMARY}
+
+    Review for:
+    - Correctness: Logic errors, async bugs, memory leaks, edge cases
+    - Security: Injection vulnerabilities, input validation, auth issues
+    - Code Quality: Vibe Coding compliance (functions ≤50 lines, files ≤200 lines, nesting ≤3)
+    - Testing: Test coverage gaps, missing edge cases
+    - Documentation: Public API docs, complex logic explanation
+    - Performance: Algorithmic complexity, inefficient patterns
+
+    Categorize findings by severity:
+    - Critical: Must fix (security issues, crashes, memory leaks)
+    - Warning: Should fix (code quality, performance)
+    - Suggestion: Nice to have (minor optimizations)
+
+    Return structured review with:
+    - Files reviewed
+    - Issues found (by severity)
+    - Actionable recommendations with code examples
+    - Overall assessment (approve/fix needed)
+```
+
+### 3.5.2 Process Verification Results
+
+**Expected Outputs**:
+
+| Agent | Marker | Meaning |
+|-------|--------|---------|
+| **Tester** | Test results + coverage | PASS/FAIL counts, coverage percentage |
+| **Validator** | Type + lint results | Clean or errors/issues |
+| **Code-Reviewer** | Review summary | Issues found (critical/warning/suggestion) |
+
+**Result Processing**:
+
+```bash
+# Tester results
+IF TESTS_PASS AND COVERAGE >= 80%:
+    MARK: Tests verified ✅
+ELSE:
+    LOG: Test failures or low coverage
+    TRIGGER: Feedback loop (Step 3.6)
+
+# Validator results
+IF TYPE_CHECK_CLEAN AND LINT_CLEAN:
+    MARK: Verification verified ✅
+ELSE:
+    LOG: Type or lint errors found
+    TRIGGER: Feedback loop (Step 3.6)
+
+# Code-Reviewer results
+IF NO_CRITICAL_ISSUES:
+    MARK: Review verified ✅
+ELSE:
+    LOG: Critical review findings
+    TRIGGER: Feedback loop (Step 3.6)
+```
+
+**Error Recovery**:
+
+- If agent returns error: Log warning, continue with other agents
+- If all agents fail: Use `AskUserQuestion` for guidance
+- `TaskOutput` Anti-Pattern: DO NOT use `TaskOutput` - results return inline automatically
+
+---
+
+## Step 3.6: Review Feedback Loop (Optional Iteration)
+
+> **Purpose**: Address critical review findings before proceeding.
+> **Trigger**: Critical issues found by any verification agent.
+> **Max Iterations**: 3 (prevents infinite loops)
+
+### 3.6.1 Check for Critical Findings
+
+**Review verification results from Step 3.5**:
+
+```bash
+CRITICAL_ISSUES=0
+
+# Check Tester results
+IF TESTS_FAIL OR COVERAGE < 80%:
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+    LOG: "Test failures or insufficient coverage"
+
+# Check Validator results
+IF TYPE_CHECK_ERRORS OR LINT_ERRORS:
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+    LOG: "Type check or lint errors found"
+
+# Check Code-Reviewer results
+IF REVIEW_CONTAINS_CRITICAL_ISSUES:
+    CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+    LOG: "Critical review findings detected"
+```
+
+### 3.6.2 Feedback Loop (Conditional)
+
+**IF NO CRITICAL ISSUES** (`CRITICAL_ISSUES = 0`):
+- Proceed to Step 5 (Ralph Loop) or next step
+
+**IF CRITICAL ISSUES FOUND** (`CRITICAL_ISSUES > 0`):
+
+```bash
+ITERATION=1
+MAX_ITERATIONS=3
+
+WHILE [ $ITERATION -le $MAX_ITERATIONS ]; do
+    echo "=== Feedback Loop Iteration $ITERATION ==="
+
+    # Present findings to user
+    AskUserQuestion:
+      title: "Critical Issues Found - Feedback Required"
+      question: |
+        Verification found ${CRITICAL_ISSUES} critical issue(s):
+
+        **Test Results**: {TEST_SUMMARY}
+        **Type/Lint**: {VALIDATOR_SUMMARY}
+        **Code Review**: {REVIEW_SUMMARY}
+
+        How would you like to proceed?
+      options:
+        - label: "Re-invoke Coder Agent to fix"
+          value: "reinvent"
+        - label: "Fix manually"
+          value: "manual"
+        - label: "Accept with issues"
+          value: "accept"
+
+    # Process user choice
+    IF USER_CHOICE == "reinvest":
+        # Re-invoke Coder Agent with specific fixes
+        Task:
+          subagent_type: coder
+          prompt: |
+            Fix the following critical issues found during verification:
+
+            **Test Failures**: {TEST_FAILURES}
+            **Type/Lint Errors**: {VALIDATION_ERRORS}
+            **Code Review Issues**: {CRITICAL_REVIEW_FINDINGS}
+
+            Plan Path: {PLAN_PATH}
+            Implement fixes using TDD + Ralph Loop.
+            Return summary with test results and coverage.
+
+        # Re-run verification (Step 3.5)
+        GOTO Step 3.5
+
+    ELIF USER_CHOICE == "manual":
+        LOG: "User will fix manually - pausing for intervention"
+        BREAK LOOP
+
+    ELIF USER_CHOICE == "accept":
+        LOG: "User accepted with issues - proceeding"
+        BREAK LOOP
+
+    ITERATION=$((ITERATION + 1))
+done
+
+# Check loop completion
+IF [ $ITERATION -gt $MAX_ITERATIONS ]; then
+    LOG: "Max feedback iterations reached - requires user intervention"
+    AskUserQuestion:
+      title: "Feedback Loop Maxed Out"
+      question: |
+        Reached ${MAX_ITERATIONS} iterations without resolution.
+        Critical issues remain:
+        {REMAINING_ISSUES}
+
+        How would you like to proceed?
+      options:
+        - label: "Continue anyway"
+          value: "continue"
+        - label: "Cancel and investigate"
+          value: "cancel"
+fi
+```
+
+### 3.6.3 Graceful Degradation
+
+**If Code-Reviewer Fails** (Opus unavailable, timeout, error):
+
+```bash
+LOG: "⚠️ Code-Reviewer unavailable - continuing without deep review"
+MARK: Code-Reviewer skipped ⚠️
+
+# Continue with Tester + Validator only
+IF TESTS_PASS AND TYPE_CHECK_CLEAN AND LINT_CLEAN:
+    LOG: "✅ Basic verification passed (without deep review)"
+    PROCEED to next step
+ELSE:
+    TRIGGER feedback loop for test/type/lint issues only
+```
+
+**If Multiple Agents Fail**:
+
+```bash
+WORKING_AGENTS=0
+[ TESTER_RESULTS ] && WORKING_AGENTS=$((WORKING_AGENTS + 1))
+[ VALIDATOR_RESULTS ] && WORKING_AGENTS=$((WORKING_AGENTS + 1))
+[ REVIEWER_RESULTS ] && WORKING_AGENTS=$((WORKING_AGENTS + 1))
+
+IF [ $WORKING_AGENTS -eq 0 ]; then
+    AskUserQuestion:
+      title: "All Verification Agents Failed"
+      question: "All verification agents failed. Continue anyway or cancel?"
+      options:
+        - "Continue anyway"
+        - "Cancel and investigate"
+fi
+```
+
+---
+
+## Step 4: Execute with TDD (DEPRECATED - Use Agent Instead)
+
+> **⚠️ DEPRECATED - Legacy Step**
+> **This step is preserved for backward compatibility only.**
+>
+> **New Approach**: Use **Step 3: Delegate to Coder Agent** instead, which includes:
+> - TDD Red-Green-Refactor cycle
+> - Ralph Loop autonomous completion
+> - Context isolation for 8x token efficiency
+> - Mandatory TDD verification
+>
+> **Migration Path**: If you're using this legacy step, migrate to Step 3 (Coder Agent delegation).
 
 **Full TDD methodology**: See @.claude/skills/tdd/SKILL.md
 

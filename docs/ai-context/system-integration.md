@@ -55,7 +55,7 @@ AskUserQuestion:
 
 ### /02_execute Command Workflow (Updated 2026-01-15)
 
-The `/02_execute` command implements the plan using TDD + Ralph Loop pattern. **Step 1 now includes atomic plan state transition** to prevent duplicate work when multiple pending plans are queued.
+The `/02_execute` command implements the plan using TDD + Ralph Loop pattern. **Step 1 now includes atomic plan state transition** to prevent duplicate work when multiple pending plans are queued. **Worktree mode includes atomic lock mechanism** (v3.3.4) to prevent race conditions in parallel execution.
 
 #### Step 1: Plan State Transition (ATOMIC)
 
@@ -69,8 +69,54 @@ The `/02_execute` command implements the plan using TDD + Ralph Loop pattern. **
 **Critical Features**:
 - **BLOCKING markers**: Clear visual indicators with emoji warnings
 - **Early exit guards**: `|| exit 1` after `mv` command prevents partial state
-- **Worktree mode**: Same atomic priority for `--wt` flag
+- **Worktree mode**: Atomic lock mechanism to prevent race conditions
 - **Progress logging**: Clear messages for plan movement and pointer creation
+
+#### Worktree Lock Lifecycle (v3.3.4)
+
+**Purpose**: Prevent race conditions when multiple executors select plans simultaneously
+
+**Lock Flow**:
+```
+[Executor 1]           [Executor 2]           [Executor 3]
+     |                      |                      |
+     v                      v                      v
+select_and_lock_pending  select_and_lock_pending  select_and_lock_pending
+     |                      |                      |
+     +---> mkdir .locks/plan_a.lock (SUCCESS)
+     |                      +---> mkdir .locks/plan_a.lock (FAIL)
+     |                      |                      +---> mkdir .locks/plan_b.lock (SUCCESS)
+     |                      |                      |
+     v                      v                      v
+Verify plan_a exists    Try plan_b              Verify plan_b exists
+(Lock held)             (Lock held)             (Lock held)
+     |                      |                      |
+     v                      v                      v
+mv plan_a → in_progress mv plan_b → in_progress
+     |                      |                      |
+     v                      v                      v
+Execute worktree_a      Execute worktree_b
+(Lock released on close) (Lock released on close)
+```
+
+**Lock Functions** (in `.claude/scripts/worktree-utils.sh`):
+
+1. **`select_and_lock_pending()`**: Atomic lock with plan verification
+   - Uses `mkdir` for atomic lock (POSIX-compliant)
+   - Verifies plan still exists AFTER lock acquisition (TOCTOU fix)
+   - Falls back to next plan if lock fails
+
+2. **`get_main_pilot_dir()`**: Returns absolute path to main `.pilot/`
+   - Enables lock cleanup from worktree context
+   - Used in `/03_close` for reliable lock removal
+
+**Lock Lifecycle**:
+- **Created**: In `/02_execute` Step 1 (worktree mode only)
+- **Held**: During execution (NOT deleted after selection)
+- **Released**: In `/03_close` after cleanup completes
+- **Error trap**: Auto-releases lock on any failure
+
+**Key Fix (v3.3.4)**: Lock held until `mv` completes prevents TOCTOU gap where plan could be deleted between lock acquisition and move.
 
 #### Step Sequence
 
@@ -123,6 +169,82 @@ The `/02_execute` command implements the plan using TDD + Ralph Loop pattern. **
 
 12. **Step 9: Auto-Chain to Documentation**
     - Trigger `/91_document` if all criteria met
+
+### /03_close Command Workflow (Updated 2026-01-15)
+
+The `/03_close` command archives completed plans and creates git commits. **Worktree mode includes complete cleanup** (v3.3.4) with error trap for lock cleanup.
+
+#### Worktree Cleanup Flow (v3.3.4)
+
+**Purpose**: Remove worktree, branch, directory, and lock after completion
+
+**Cleanup Steps**:
+```bash
+if is_in_worktree; then
+    # 1. Read worktree metadata from plan
+    WORKTREE_META="$(read_worktree_metadata "$ACTIVE_PLAN_PATH")"
+    IFS='|' read -r WT_BRANCH WT_PATH WT_MAIN <<< "$WORKTREE_META"
+
+    # 2. Get main project directory and lock file
+    MAIN_PROJECT_DIR="$(get_main_project_dir)"
+    LOCK_FILE=".pilot/plan/.locks/$(basename "$ACTIVE_PLAN_PATH").lock"
+
+    # 3. Set error trap for lock cleanup
+    trap "cd \"$MAIN_PROJECT_DIR\" && rm -rf \"$LOCK_FILE\" 2>/dev/null" EXIT ERR
+
+    # 4. Change to main project
+    cd "$MAIN_PROJECT_DIR" || exit 1
+
+    # 5. Squash merge worktree branch to main
+    do_squash_merge "$WT_BRANCH" "$WT_MAIN" "$COMMIT_MSG"
+
+    # 6. Cleanup worktree, branch, directory
+    cleanup_worktree "$WT_PATH" "$WT_BRANCH"
+
+    # 7. Remove lock file (explicit cleanup, trap handles errors)
+    rm -rf "$LOCK_FILE"
+
+    # 8. Clear trap on success
+    trap - EXIT ERR
+fi
+```
+
+**Key Features**:
+- **Error trap**: Lock auto-released on any failure (EXIT or ERR signal)
+- **Absolute lock path**: Ensures reliable cleanup from worktree context
+- **Complete cleanup**: Worktree, branch, directory, lock all removed
+- **Squash merge**: Changes merged to main branch before cleanup
+
+**Cleanup Functions** (in `.claude/scripts/worktree-utils.sh`):
+
+1. **`cleanup_worktree()`**: Remove worktree, branch, and directory
+   - Removes worktree via `git worktree remove`
+   - Deletes branch via `git branch -D`
+   - Removes directory if it still exists
+
+2. **`get_main_project_dir()`**: Get main project path from worktree
+   - Uses `git rev-parse --git-common-dir`
+   - Returns parent of git common directory
+
+3. **`get_main_pilot_dir()`**: Get main `.pilot/` path
+   - Combines main project dir with `.pilot/`
+   - Used for lock file path resolution
+
+**Error Handling**:
+- Trap set before any cleanup operations
+- Trap fires on EXIT (success) or ERR (failure)
+- Lock removed even if cleanup fails partially
+- Trap cleared on success to prevent double-cleanup
+
+#### Integration Points
+
+| Component | Integration | Data Flow |
+|-----------|-------------|-----------|
+| `/02_execute` | Creates lock | `.pilot/plan/.locks/{plan}.lock` |
+| `/03_close` | Releases lock | Lock file removed (or trap auto-removes) |
+| `worktree-utils.sh` | Lock/cleanup functions | Shared utilities |
+
+### /02_execute Command Workflow (Updated 2026-01-15)
 
 ### /01_confirm Command Workflow
 
@@ -188,6 +310,8 @@ The `/01_confirm` command extracts the plan from the `/00_plan` conversation and
 | Gap Detection | Reviews external services | → Interactive Recovery |
 | `/02_execute` Step 1 | Atomic plan move (pending → in_progress) | → `.pilot/plan/in_progress/` |
 | `/02_execute` Step 2+ | Reads plan file | ← `.pilot/plan/in_progress/` |
+| `/02_execute` worktree | Creates lock file | `.pilot/plan/.locks/{plan}.lock` → `/03_close` removes |
+| `/03_close` worktree | Releases lock file | Lock removed (or trap auto-removes on error) |
 | `/999_publish` Step 0.5 | Syncs templates | `.claude/` → `src/claude_pilot/templates/.claude/` |
 | `/999_publish` Step 3-5 | Updates all 6 version files | pyproject.toml, __init__.py, config.py, install.sh, .pilot-version files |
 
@@ -762,4 +886,4 @@ Task:
 ---
 
 **Last Updated**: 2026-01-15
-**Template**: claude-pilot 3.3.1
+**Template**: claude-pilot 3.3.4

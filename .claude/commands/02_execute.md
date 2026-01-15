@@ -30,54 +30,65 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 
 > **🚨 CRITICAL - BLOCKING OPERATION**: MUST complete successfully BEFORE any other work. If fails, EXIT IMMEDIATELY.
 
-### 1.1 Worktree Mode (--wt)
-
-> **🚨 CRITICAL**: Plan MUST be moved to in_progress before any worktree setup.
-
 ```bash
-if is_worktree_mode "$@"; then
-    check_worktree_support || exit 1
-    PENDING_PLAN="$(select_oldest_pending)" || exit 1
+PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 
-    # ATOMIC: Move plan FIRST, THEN create worktree
+if is_worktree_mode "$@"; then
+    # === WORKTREE MODE (with --wt flag) ===
+    check_worktree_support || exit 1
+
+    # ATOMIC: Select and lock pending plan
+    PENDING_PLAN="$(select_and_lock_pending)" || { echo "❌ No pending plans available" >&2; exit 1; }
+
+    # Extract lock file path for cleanup
     PLAN_FILENAME="$(basename "$PENDING_PLAN")"
+    LOCK_FILE="$PROJECT_ROOT/.pilot/plan/.locks/${PLAN_FILENAME}.lock"
+
+    # Error trap: cleanup lock on ANY failure
+    trap "rm -rf \"$LOCK_FILE\" 2>/dev/null" EXIT ERR
+
+    # NOW move the plan (still holding lock)
     IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
     mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
     mv "$PENDING_PLAN" "$IN_PROGRESS_PATH" || exit 1
 
-    # NOW create worktree
+    # Create worktree (still holding lock until worktree is ready)
     BRANCH_NAME="$(plan_to_branch "$PLAN_FILENAME")"
     MAIN_BRANCH="main"; git rev-parse --verify "$MAIN_BRANCH" >/dev/null 2>&1 || MAIN_BRANCH="master"
     WORKTREE_DIR="$(create_worktree "$BRANCH_NAME" "$PLAN_FILENAME" "$MAIN_BRANCH")" || exit 1
-    PLAN_PATH="$IN_PROGRESS_PATH"; cd "$WORKTREE_ABS" || exit 1
-fi
-```
 
-### 1.2 Select and Move Plan (ATOMIC BLOCK)
+    # Add worktree metadata to plan
+    add_worktree_metadata "$IN_PROGRESS_PATH" "$BRANCH_NAME" "$WORKTREE_DIR" "$MAIN_BRANCH"
 
-> **🚨 CRITICAL - BLOCKING OPERATION**: All three operations MUST complete successfully.
-
-```bash
-PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-PLAN_PATH="${EXPLICIT_PATH}"
-
-# Priority: Explicit path → Oldest pending → Most recent in_progress
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
-
-# IF pending, MUST move FIRST
-if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
-    PLAN_FILENAME="$(basename "$PLAN_PATH")"
-    IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
-    mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
-    mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || { echo "❌ FATAL: Failed to move plan" >&2; exit 1; }
     PLAN_PATH="$IN_PROGRESS_PATH"
+    cd "$WORKTREE_DIR" || exit 1
+
+    # Release lock only after worktree setup is complete
+    # Lock will be cleaned up in /03_close
+    # Note: Keep lock file during execution to prevent re-selection
+else
+    # === STANDARD MODE (without --wt flag) ===
+    PLAN_PATH="${EXPLICIT_PATH}"
+
+    # Priority: Explicit path → Oldest pending → Most recent in_progress
+    [ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
+
+    # IF pending, MUST move FIRST
+    if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
+        PLAN_FILENAME="$(basename "$PLAN_PATH")"
+        IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
+        mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
+        mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || { echo "❌ FATAL: Failed to move plan" >&2; exit 1; }
+        PLAN_PATH="$IN_PROGRESS_PATH"
+    fi
+
+    [ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
+
+    # Final validation
+    [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found. Run /00_plan first" >&2; exit 1; }
 fi
 
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
-
-# Final validation and active pointer
-[ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found. Run /00_plan first" >&2; exit 1; }
-
+# Set active pointer (both modes)
 mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"

@@ -104,11 +104,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/scripts/hooks/typecheck.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/typecheck.sh"
           },
           {
             "type": "command",
-            "command": ".claude/scripts/hooks/lint.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/lint.sh"
           }
         ]
       },
@@ -117,7 +117,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/scripts/hooks/branch-guard.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/branch-guard.sh"
           }
         ]
       }
@@ -128,7 +128,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/scripts/hooks/typecheck.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/typecheck.sh"
           }
         ]
       }
@@ -138,7 +138,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/scripts/hooks/check-todos.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/check-todos.sh"
           }
         ]
       }

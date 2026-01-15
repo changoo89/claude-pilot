@@ -10,8 +10,8 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 |------|---------|-------|----------------|-------------|
 | `00_plan.md` | Create SPEC-First plan | 298 | Planning | Explore codebase, gather requirements, design execution plan through dialogue (read-only) |
 | `01_confirm.md` | Confirm plan + gap detection | 281 | Planning | Review plan, run gap detection, resolve BLOCKING issues, move to in_progress |
-| `02_execute.md` | Execute with TDD + Ralph Loop | 637 | Execution | Implement features using Test-Driven Development, parallel verification, and autonomous iteration |
-| `03_close.md` | Archive and commit | 236 | Completion | Archive completed plan, create git commit, update documentation |
+| `02_execute.md` | Execute with TDD + Ralph Loop | 637 | Execution | Implement features using TDD, atomic lock mechanism (worktree), parallel verification |
+| `03_close.md` | Archive and commit | 236 | Completion | Archive completed plan, worktree cleanup (with error trap), create git commit |
 | `90_review.md` | Multi-angle code review | 268 | Quality | Run comprehensive code review with multiple agent perspectives |
 | `91_document.md` | Sync documentation | 288 | Maintenance | Update CLAUDE.md, sync templates, ensure consistency |
 | `92_init.md` | Initialize new project | 209 | Setup | Initialize new project with claude-pilot template |
@@ -44,24 +44,27 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 
 ### Execute Implementation
 - **Task**: Implement features using TDD + Ralph Loop + Parallel Verification
-- **Command**: `/02_execute`
+- **Command**: `/02_execute [--wt]`
 - **Output**: Feature code with tests, coverage 80%+, verified quality
 - **Process**:
-  1. Plan auto-moves from pending to in_progress
-  2. Coder Agent executes TDD cycle for each Success Criterion
-  3. Parallel Verification (Step 3.5): Tester + Validator + Code-Reviewer agents
-  4. Review Feedback Loop (Step 3.6): Address critical findings if any
-  5. Ralph Loop iterates until all quality gates pass
+  1. Plan auto-moves from pending to in_progress (atomic operation)
+  2. **Worktree mode** (`--wt`): Atomic lock prevents race conditions
+  3. Coder Agent executes TDD cycle for each Success Criterion
+  4. Parallel Verification (Step 3.5): Tester + Validator + Code-Reviewer agents
+  5. Review Feedback Loop (Step 3.6): Address critical findings if any
+  6. Ralph Loop iterates until all quality gates pass
 
 ### Close and Archive
-- **Task**: Archive plan, create git commit
+- **Task**: Archive plan, worktree cleanup, create git commit
 - **Command**: `/03_close`
-- **Output**: Plan in `.pilot/plan/done/`, git commit created
+- **Output**: Plan in `.pilot/plan/done/`, worktree removed, git commit created
 - **Process**:
   1. Move plan from in_progress to done
-  2. Generate commit message from plan content
-  3. Create git commit (if user approves)
-  4. Update active plan pointer
+  2. **Worktree mode**: Complete cleanup (worktree, branch, directory, lock)
+  3. **Error trap**: Auto-releases lock on any failure
+  4. Generate commit message from plan content
+  5. Create git commit (if user approves)
+  6. Update active plan pointer
 
 ### Review Code
 - **Task**: Multi-angle code review

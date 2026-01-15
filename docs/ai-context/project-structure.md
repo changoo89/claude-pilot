@@ -63,11 +63,12 @@ claude-pilot/
 │   │   ├── code-reviewer.md
 │   │   └── documenter.md
 │   ├── scripts/
-│   │   └── hooks/          # Git/workflow hooks (4)
-│   │       ├── typecheck.sh
-│   │       ├── lint.sh
-│   │       ├── check-todos.sh
-│   │       └── branch-guard.sh
+│   │   ├── hooks/          # Git/workflow hooks (4)
+│   │   │   ├── typecheck.sh
+│   │   │   ├── lint.sh
+│   │   │   ├── check-todos.sh
+│   │   │   └── branch-guard.sh
+│   │   └── worktree-utils.sh  # Worktree utilities (lock, cleanup)
 │   └── rules/              # Core rules
 │       ├── core/workflow.md
 │       └── documentation/tier-rules.md
@@ -88,8 +89,11 @@ claude-pilot/
 │   └── verify-version-sync.sh  # Version consistency check
 ├── src/                    # Source code
 │   └── claude_pilot/       # Main package
+│       ├── py.typed        # PEP 561 type marker (NEW)
 │       ├── templates/      # Deployment templates (synced)
-│       └── config.py       # MANAGED_FILES configuration
+│       ├── config.py       # MANAGED_FILES configuration
+│       ├── initializer.py  # Init command with .gitignore handling
+│       └── updater.py      # Update command with .gitignore handling
 ├── tests/                  # Test files
 ├── CLAUDE.md               # Tier 1: Project documentation
 ├── README.md               # Project README
@@ -335,6 +339,16 @@ You are the Coder Agent. Implement features using TDD...
 
 ## Version History
 
+### v3.3.4 (2026-01-15)
+
+- **Worktree Architecture Fix**: Critical fixes for parallel plan execution
+- **Atomic lock mechanism**: `select_and_lock_pending()` prevents race conditions
+- **Worktree cleanup**: Complete cleanup in `/03_close` with error trap
+- **.gitignore handling**: Auto-add `.pilot/` on init/update
+- **Type safety**: Added `src/claude_pilot/py.typed` for PEP 561 compliance
+- **Lock lifecycle**: Lock held from selection until mv completes
+- **TOCTOU fix**: Plan verification after lock acquisition
+
 ### v3.3.2 (2026-01-15)
 
 - **SKILL.md Progressive Disclosure**: Restructured 4 SKILL.md files (400-500+ lines -> ~75 lines)
@@ -424,4 +438,4 @@ You are the Coder Agent. Implement features using TDD...
 ---
 
 **Last Updated**: 2026-01-15
-**Template**: claude-pilot 3.3.2
+**Template**: claude-pilot 3.3.4

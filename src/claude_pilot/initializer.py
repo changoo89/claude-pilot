@@ -275,6 +275,33 @@ class ProjectInitializer:
         except (OSError, json.JSONDecodeError):
             pass
 
+    def update_gitignore(self) -> None:
+        """
+        Add .pilot/ to .gitignore if not present.
+
+        This ensures that plan tracking files are not tracked by git,
+        which is critical for worktree support where .pilot/ state
+        differs between main and worktree.
+        """
+        gitignore_path = self.target_dir / ".gitignore"
+        pilot_pattern = ".pilot/"
+
+        # Read existing content
+        existing = ""
+        if gitignore_path.exists():
+            existing = gitignore_path.read_text()
+
+        # Check if already present
+        if pilot_pattern in existing:
+            return
+
+        # Append to .gitignore
+        with gitignore_path.open("a") as f:
+            if existing and not existing.endswith("\n"):
+                f.write("\n")
+            f.write("\n# claude-pilot plan tracking (worktree support)\n")
+            f.write(".pilot/\n")
+
     def cleanup_on_failure(self) -> None:
         """Clean up partially created directories on failure."""
         claude_dir = self.target_dir / ".claude"
@@ -327,6 +354,9 @@ class ProjectInitializer:
 
         # Update language setting
         self.update_settings_language(language)
+
+        # Update .gitignore to exclude .pilot/
+        self.update_gitignore()
 
         # Write version file
         version_file = self.target_dir / ".claude" / ".pilot-version"

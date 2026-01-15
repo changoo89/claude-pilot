@@ -126,7 +126,12 @@ echo "✅ Active pointer created for branch: $BRANCH"
 
 Read plan, extract: Deliverables, Phases, Tasks, Acceptance Criteria, Test Plan, Open Questions
 
-Create todo list mirroring plan phases. Rules: Atomic/verifiable todos, exactly one `in_progress`, mark complete immediately after finishing
+Create todo list mirroring plan phases. Rules: Atomic/verifiable todos, **exactly one `in_progress` at a time (sequential work)**, mark complete immediately after finishing
+
+**Parallel Group Rule**: When executing parallel tasks (multiple Task calls in same message):
+- Mark ALL parallel items as `in_progress` simultaneously
+- Use [Parallel Group N] prefix to indicate parallel execution
+- Complete them together when ALL agents return
 
 **MANDATORY**: After EVERY "Implement", "Add", "Create" todo, add a corresponding "Run tests for [X]" todo immediately after.
 
@@ -485,7 +490,12 @@ $TEST_CMD
 
 > **Principle**: Never quit halfway
 
-**Rules**: One `in_progress` at a time, mark complete RIGHT AFTER finishing, no batching, no abandonment
+**Default Rule**: One `in_progress` at a time (sequential work), mark complete RIGHT AFTER finishing, no batching, no abandonment
+
+**Parallel Group Rule**: When executing parallel tasks (multiple Task calls in same message):
+- Mark ALL parallel items as `in_progress` simultaneously
+- Use [Parallel Group N] prefix to indicate parallel execution
+- Complete them together when ALL agents return
 
 ---
 

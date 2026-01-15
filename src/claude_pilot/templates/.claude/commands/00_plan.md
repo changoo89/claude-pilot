@@ -141,6 +141,11 @@ Task:
 
 **VERIFICATION**: After sending Task calls, wait for both agents to return results before proceeding.
 
+> **Todo Management for Parallel Exploration**: When invoking Explorer and Researcher agents in parallel:
+> - Mark both exploration todos as `in_progress` simultaneously
+> - Use [Parallel Group 1] prefix to indicate parallel execution
+> - Complete both todos together when BOTH agents return
+
 ### Agent Coordination
 
 | Thread | Focus | Tools | Agent |

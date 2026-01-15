@@ -318,6 +318,91 @@ Before parallel execution, always analyze:
 
 ---
 
+## Todo Management
+
+### Default Rule (Sequential Work)
+
+For sequential execution (one task at a time):
+- **Exactly one `in_progress` at a time**
+- Mark complete immediately after finishing
+- No batching multiple todos together
+
+**Example Todo Display**:
+```markdown
+[Sequential]
+- ✅ Read plan file
+- 🔄 SC-1: Add login  ← in_progress (alone)
+- ⏳ SC-2: Add logout
+- ⏳ Run tests
+```
+
+### Parallel Group Rule (Parallel Work)
+
+When executing parallel tasks (multiple Task calls in same message):
+- **Mark ALL parallel items as `in_progress` simultaneously**
+- Use `[Parallel Group N]` prefix to indicate parallel execution
+- Complete them together when ALL agents return
+
+**Example Todo Display**:
+```markdown
+[Parallel Group 1]
+- 🔄 SC-1: Add login      ← in_progress (together)
+- 🔄 SC-2: Add logout     ← in_progress (together)
+- 🔄 SC-3: Add middleware ← in_progress (together)
+
+[After all return]
+- ✅ SC-1: Add login      ← completed together
+- ✅ SC-2: Add logout     ← completed together
+- ✅ SC-3: Add middleware ← completed together
+```
+
+### When to Use Each Rule
+
+| Execution Type | Todo Rule | Example |
+|----------------|-----------|---------|
+| **Sequential** | Default (one `in_progress`) | Single Coder agent for all SCs |
+| **Parallel** | Parallel Group (multiple `in_progress`) | Multiple Coder agents for independent SCs |
+
+### Visual Indicators
+
+**Sequential Todo Display**:
+```markdown
+[Sequential]
+- ✅ SC-1: Read plan file
+- 🔄 SC-2: Implement feature X
+- ⏳ SC-3: Implement feature Y
+- ⏳ SC-4: Run tests
+```
+
+**Parallel Todo Display**:
+```markdown
+[Parallel Group 1]
+- 🔄 SC-1: Implement feature X    (Coder Agent 1)
+- 🔄 SC-2: Implement feature Y    (Coder Agent 2)
+- 🔄 SC-3: Implement feature Z    (Coder Agent 3)
+
+[Parallel Group 2 - Verification]
+- 🔄 Run tests                    (Tester Agent)
+- 🔄 Run type check + lint        (Validator Agent)
+- 🔄 Code review                  (Code-Reviewer Agent)
+```
+
+### Implementation Notes
+
+**Parallel Execution Context**:
+- Multiple agents work simultaneously in isolated contexts
+- Each agent returns summary when complete
+- Main orchestrator updates todos based on completion markers
+- All parallel todos marked complete together when ALL agents return
+
+**Rationale**:
+- Aligns with general software development practices (CI/CD parallel jobs, Airflow DAG, Kubernetes Pod states)
+- Provides accurate progress visibility for users
+- Matches documented parallel execution patterns
+- Preserves backward compatibility with sequential work
+
+---
+
 ## Anti-Patterns
 
 ### Don't Parallelize When:

@@ -103,6 +103,11 @@ Task:
 
 **VERIFICATION**: After sending Task calls, wait for all plan-reviewer agents to return results before proceeding.
 
+> **Todo Management for Parallel Review**: When invoking multiple plan-reviewer agents in parallel:
+> - Mark all review todos as `in_progress` simultaneously
+> - Use [Parallel Group N] prefix to indicate parallel execution
+> - Complete all review todos together when ALL agents return
+
 **Note**: Parallel review is resource-intensive. Use only for complex, high-stakes plans where deep analysis from multiple angles is justified.
 
 ---

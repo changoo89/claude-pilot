@@ -178,6 +178,44 @@ Or if blocked:
 6. Repeat from step 1
 ```
 
+## Todo State Management
+
+### Sequential Execution
+
+When implementing a single SC or working sequentially:
+- **Exactly one `in_progress` at a time**
+- Mark todo as `in_progress` when starting work
+- Mark todo as `completed` immediately after finishing
+- Move to next todo only after current is complete
+
+**Example**:
+```markdown
+[Sequential]
+- ✅ SC-1: Read plan file
+- 🔄 SC-2: Implement feature X  ← in_progress (alone)
+- ⏳ SC-3: Implement feature Y
+- ⏳ SC-4: Run tests
+```
+
+### Parallel Execution Context
+
+**Note**: As a Coder Agent, you typically work in isolation on a single SC. The parallel Todo management is handled by the main orchestrator that invokes multiple Coder agents.
+
+When you are one of multiple Coder agents working in parallel:
+- Focus on your assigned SC only
+- Return summary with completion marker (`<CODER_COMPLETE>` or `<CODER_BLOCKED>`)
+- Main orchestrator updates all parallel todos together when ALL agents return
+
+**Your Responsibility**:
+1. Complete your assigned SC using TDD + Ralph Loop
+2. Return concise summary with completion marker
+3. Do NOT manage todos for other parallel agents
+
+**Main Orchestrator's Responsibility**:
+1. Mark all parallel SC todos as `in_progress` simultaneously when invoking agents
+2. Monitor all agent summaries
+3. Mark all parallel todos as `completed` together when ALL agents return
+
 ## Test Command Auto-Detection
 
 ```bash

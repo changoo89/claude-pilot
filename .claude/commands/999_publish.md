@@ -11,9 +11,10 @@ _Automated PyPI publishing workflow with version bumping and git integration._
 ## Core Philosophy
 
 - **Atomic**: All steps succeed or none do
-- **Safe**: Version synchronization checks before building
-- **Interactive**: Confirmation for destructive operations
+- **Safe**: Version synchronization checks BEFORE AND AFTER updates (Steps 3 & 5)
+- **Interactive**: Confirmation for destructive operations, auto-fix option for mismatches
 - **Traceable**: Clear git commit messages
+- **Critical Exit Points**: Abort on version mismatch, failed verification, or missing package contents
 
 ---
 
@@ -36,9 +37,95 @@ Read current from `pyproject.toml`, parse components, calculate new version base
 
 ---
 
-## Step 3: Check Version Synchronization
+## Step 3: Check Version Synchronization (CRITICAL)
 
-Verify all version files match: `pyproject.toml`, `src/claude_pilot/__init__.py`, `src/claude_pilot/config.py`, `install.sh`. Exit if mismatch found.
+> **🚨 CRITICAL - PRE-PUBLISH CHECK**
+> This step MUST pass before proceeding. Version mismatch causes inconsistent deployments.
+> If mismatch found, offer auto-fix before continuing.
+
+### 3.1 Extract Versions from All Files
+
+```bash
+# Get current version from pyproject.toml (source of truth)
+CURRENT_VERSION="$(grep '^version' pyproject.toml | head -1 | sed 's/.*= *//' | tr -d '"'"'"' ')"
+
+echo "=== Version Synchronization Check ==="
+echo "Source of truth: pyproject.toml = $CURRENT_VERSION"
+echo ""
+
+# Extract versions from each file
+PYPROJECT_VERSION="$CURRENT_VERSION"
+INIT_VERSION="$(grep '__version__' src/claude_pilot/__init__.py | head -1 | sed 's/.*= *//' | tr -d '"'"'"' ')"
+CONFIG_VERSION="$(grep 'VERSION' src/claude_pilot/config.py | head -1 | sed 's/.*= *//' | tr -d '"'"'"' ')"
+INSTALL_VERSION="$(grep 'VERSION=' install.sh | head -1 | sed 's/.*=//' | tr -d '"'"'"' ')"
+
+# Display all versions
+echo "File versions:"
+echo "  pyproject.toml:           $PYPROJECT_VERSION"
+echo "  __init__.py:              $INIT_VERSION"
+echo "  config.py:                $CONFIG_VERSION"
+echo "  install.sh:               $INSTALL_VERSION"
+echo ""
+```
+
+### 3.2 Check for Mismatches
+
+```bash
+MISMATCH_FOUND=false
+MISMATCHED_FILES=""
+
+if [ "$INIT_VERSION" != "$CURRENT_VERSION" ]; then
+    MISMATCH_FOUND=true
+    MISMATCHED_FILES="$MISMATCHED_FILES src/claude_pilot/__init__.py"
+fi
+if [ "$CONFIG_VERSION" != "$CURRENT_VERSION" ]; then
+    MISMATCH_FOUND=true
+    MISMATCHED_FILES="$MISMATCHED_FILES src/claude_pilot/config.py"
+fi
+if [ "$INSTALL_VERSION" != "$CURRENT_VERSION" ]; then
+    MISMATCH_FOUND=true
+    MISMATCHED_FILES="$MISMATCHED_FILES install.sh"
+fi
+```
+
+### 3.3 Handle Mismatch
+
+```bash
+if [ "$MISMATCH_FOUND" = true ]; then
+    echo "❌ VERSION MISMATCH DETECTED!"
+    echo ""
+    echo "Mismatched files:$MISMATCHED_FILES"
+    echo ""
+    echo "All version files must match pyproject.toml ($CURRENT_VERSION)"
+    echo ""
+
+    # Ask user how to proceed
+    AskUserQuestion:
+        - question: "Version mismatch detected. How would you like to fix?"
+        - options:
+            - "Auto-fix now (recommended)": Update all mismatched files to $CURRENT_VERSION
+            - "Abort": Fix manually and re-run /999_publish
+
+    if user selects "Auto-fix now":
+        # Fix all files to match CURRENT_VERSION
+        # Then proceed to Step 4
+    else:
+        echo "Aborting. Please fix version mismatch manually."
+        exit 1
+    fi
+else
+    echo "✅ All version files synchronized: $CURRENT_VERSION"
+fi
+```
+
+### Expected Behavior
+
+| Scenario | Action |
+|----------|--------|
+| All files match pyproject.toml | Continue to Step 4 |
+| Any file mismatched | Offer auto-fix OR abort |
+| User accepts auto-fix | Update files, then continue |
+| User declines | Exit with error |
 
 ---
 
@@ -46,11 +133,125 @@ Verify all version files match: `pyproject.toml`, `src/claude_pilot/__init__.py`
 
 Use `sed` to update version in all files to `$NEW_VERSION`.
 
+### 4.1 Apply Version Updates
+
+```bash
+echo "=== Updating All Version Files ==="
+echo ""
+echo "Target version: $CURRENT_VERSION → $NEW_VERSION"
+echo ""
+
+# Update pyproject.toml
+echo "1. Updating pyproject.toml..."
+sed -i '' "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" pyproject.toml
+echo "   ✅ pyproject.toml: $CURRENT_VERSION → $NEW_VERSION"
+
+# Update src/claude_pilot/__init__.py
+echo "2. Updating src/claude_pilot/__init__.py..."
+sed -i '' "s/__version__ = \"$CURRENT_VERSION\"/__version__ = \"$NEW_VERSION\"/" src/claude_pilot/__init__.py
+echo "   ✅ __init__.py: $CURRENT_VERSION → $NEW_VERSION"
+
+# Update src/claude_pilot/config.py
+echo "3. Updating src/claude_pilot/config.py..."
+sed -i '' "s/VERSION = \"$CURRENT_VERSION\"/VERSION = \"$NEW_VERSION\"/" src/claude_pilot/config.py
+echo "   ✅ config.py: $CURRENT_VERSION → $NEW_VERSION"
+
+# Update install.sh
+echo "4. Updating install.sh..."
+sed -i '' "s/VERSION=\"$CURRENT_VERSION\"/VERSION=\"$NEW_VERSION\"/" install.sh
+echo "   ✅ install.sh: $CURRENT_VERSION → $NEW_VERSION"
+echo ""
+
+echo "=== All Version Files Updated ✅ ==="
+```
+
+### 4.2 Update Summary
+
+| File | Pattern | Updated |
+|------|---------|---------|
+| `pyproject.toml` | `version = "X.Y.Z"` | ✅ |
+| `src/claude_pilot/__init__.py` | `__version__ = "X.Y.Z"` | ✅ |
+| `src/claude_pilot/config.py` | `VERSION = "X.Y.Z"` | ✅ |
+| `install.sh` | `VERSION="X.Y.Z"` | ✅ |
+
 ---
 
-## Step 5: Verify Post-Update Synchronization
+## Step 5: Verify Post-Update Synchronization (CRITICAL)
 
-Re-check all files to confirm they match `$NEW_VERSION`. Exit if any mismatch.
+> **🚨 CRITICAL - POST-UPDATE VERIFICATION**
+> This step MUST pass before building. Any mismatch here causes broken releases.
+> Exit immediately if any file doesn't match $NEW_VERSION.
+
+### 5.1 Re-extract and Verify
+
+```bash
+echo "=== Verifying Post-Update Synchronization ==="
+echo ""
+echo "Expected version: $NEW_VERSION"
+echo ""
+
+# Re-extract versions from all files
+PYPROJECT_VERSION="$(grep '^version' pyproject.toml | head -1 | sed 's/.*= *//' | tr -d '"'"'"' ')"
+INIT_VERSION="$(grep '__version__' src/claude_pilot/__init__.py | head -1 | sed 's/.*= *//' | tr -d '"'"'"' ')"
+CONFIG_VERSION="$(grep 'VERSION' src/claude_pilot/config.py | head -1 | sed 's/.*= *//' | tr -d '"'"'"' ')"
+INSTALL_VERSION="$(grep 'VERSION=' install.sh | head -1 | sed 's/.*=//' | tr -d '"'"'"' ')"
+
+echo "File versions after update:"
+echo "  pyproject.toml:           $PYPROJECT_VERSION"
+echo "  __init__.py:              $INIT_VERSION"
+echo "  config.py:                $CONFIG_VERSION"
+echo "  install.sh:               $INSTALL_VERSION"
+echo ""
+```
+
+### 5.2 Verify All Match $NEW_VERSION
+
+```bash
+MISMATCH_FOUND=false
+MISMATCHED_FILES=""
+
+if [ "$PYPROJECT_VERSION" != "$NEW_VERSION" ]; then
+    MISMATCH_FOUND=true
+    MISMATCHED_FILES="$MISMATCHED_FILES pyproject.toml"
+fi
+if [ "$INIT_VERSION" != "$NEW_VERSION" ]; then
+    MISMATCH_FOUND=true
+    MISMATCHED_FILES="$MISMATCHED_FILES src/claude_pilot/__init__.py"
+fi
+if [ "$CONFIG_VERSION" != "$NEW_VERSION" ]; then
+    MISMATCH_FOUND=true
+    MISMATCHED_FILES="$MISMATCHED_FILES src/claude_pilot/config.py"
+fi
+if [ "$INSTALL_VERSION" != "$NEW_VERSION" ]; then
+    MISMATCH_FOUND=true
+    MISMATCHED_FILES="$MISMATCHED_FILES install.sh"
+fi
+```
+
+### 5.3 Handle Verification Failure
+
+```bash
+if [ "$MISMATCH_FOUND" = true ]; then
+    echo "❌ POST-UPDATE VERIFICATION FAILED!"
+    echo ""
+    echo "The following files did not update correctly:$MISMATCHED_FILES"
+    echo ""
+    echo "Expected: $NEW_VERSION"
+    echo ""
+    echo "This is a critical error. Do not proceed with build."
+    echo "Please investigate why sed replacements failed."
+    exit 1
+else
+    echo "✅ All version files verified: $NEW_VERSION"
+fi
+```
+
+### Expected Behavior
+
+| Scenario | Action |
+|----------|--------|
+| All files match $NEW_VERSION | Continue to Step 6 (Clean Artifacts) |
+| Any file mismatched | **EXIT IMMEDIATELY** - DO NOT BUILD |
 
 ---
 
@@ -107,10 +308,12 @@ Wait 3s for CDN propagation, run `pip3 install --dry-run` to verify version avai
 
 ## Success Criteria
 
+- [ ] Pre-publish version check passed (Step 3)
 - [ ] Version bumped to new version
-- [ ] All version files synchronized
+- [ ] All version files synchronized (verified in Step 5)
+- [ ] Post-update verification passed (Step 5)
 - [ ] Package built successfully
-- [ ] **Package contents verified (agents/, skills/, AGENT.md.template included)**
+- [ ] **Package contents verified (agents/, skills/, AGENT.md.template included)** (Step 7-1)
 - [ ] Uploaded to PyPI
 - [ ] Git committed and pushed (unless --skip-git)
 - [ ] New version verified on PyPI
@@ -133,10 +336,20 @@ Wait 3s for CDN propagation, run `pip3 install --dry-run` to verify version avai
 
 | Error | Action |
 |-------|--------|
+| **Pre-publish version mismatch** | Offer auto-fix OR abort (Step 3) |
+| **Post-update verification failure** | **EXIT IMMEDIATELY** - DO NOT BUILD (Step 5) |
 | Build fails | Clean dist/, report error, exit |
 | Upload fails | Keep dist/ for manual upload, exit |
-| Version mismatch | Report mismatched files, exit |
+| Package contents missing agents/skills | **EXIT IMMEDIATELY** - DO NOT UPLOAD (Step 7-1) |
 | Git push fails | Warn: version on PyPI but not in git |
+
+### Critical Exit Points
+
+| Step | Exit Condition | Reason |
+|------|----------------|---------|
+| **Step 3** | Version mismatch AND user declines auto-fix | Prevents inconsistent release |
+| **Step 5** | Post-update verification fails | Prevents broken package |
+| **Step 7-1** | agents/ or skills/ missing from package | Prevents incomplete release |
 
 ---
 

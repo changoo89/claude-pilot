@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "claude-pilot"
-version = "3.3.0"
+version = "3.3.1"
 description = "Claude Code CLI Pilot - Your development workflow companion"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -55,6 +55,7 @@ sources = { "src" = "" }
 include = [
   "src/claude_pilot/**/*.py",
   "src/claude_pilot/templates/**",
+  ".claude/**",
 ]
 
 [tool.ruff]

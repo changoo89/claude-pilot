@@ -96,7 +96,7 @@ claude-pilot/
 |------|---------|---------------|
 | `.claude/commands/00_plan.md` | Generate SPEC-First plan with PRP analysis, Phase Boundary Protection (Level 3) | **MANDATORY**: Parallel Explorer + Researcher (Step 0) |
 | `.claude/commands/01_confirm.md` | Extract plan, create file, auto-review with Interactive Recovery | **MANDATORY**: Plan-Reviewer (Step 4) |
-| `.claude/commands/02_execute.md` | Implement with TDD + Ralph Loop | **MANDATORY**: Parallel Coders (Step 2.3), Parallel Verification (Step 2.4), Coder Delegation (Step 3) |
+| `.claude/commands/02_execute.md` | Atomic plan move (Step 1), implement with TDD + Ralph Loop | **MANDATORY**: Parallel Coders (Step 2.3), Parallel Verification (Step 2.4), Coder Delegation (Step 3) |
 | `.claude/commands/03_close.md` | Archive plan, commit changes | **MANDATORY**: Documenter (Step 5) |
 | `.claude/commands/90_review.md` | Review code or plans | **MANDATORY**: Plan-Reviewer (single or parallel) |
 | `.claude/commands/91_document.md` | Update documentation | **OPTIONAL**: Documenter |
@@ -326,7 +326,10 @@ You are the Coder Agent. Implement features using TDD...
 - Implemented pattern-based ambiguous confirmation handling (language-agnostic)
 - Added multi-option confirmation template (4 options: A-D)
 - Documented valid execution triggers to prevent misinterpretation
-- Updated system-integration.md with Phase Boundary Protection section
+- **Restructured `/02_execute` Step 1** with atomic plan state transition
+- **Added BLOCKING markers** and early exit guards for plan movement
+- **Applied atomic pattern to Worktree mode** for consistency
+- Updated system-integration.md with `/02_execute` workflow details
 
 ### v3.2.0 (Current)
 

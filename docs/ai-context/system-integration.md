@@ -52,6 +52,66 @@ AskUserQuestion:
 - **ALWAYS** provide explicit multi-option choices
 - **ALWAYS** call AskUserQuestion when uncertain about user intent
 
+### /02_execute Command Workflow (Updated 2026-01-15)
+
+The `/02_execute` command implements the plan using TDD + Ralph Loop pattern. **Step 1 now includes atomic plan state transition** to prevent duplicate work when multiple pending plans are queued.
+
+#### Step 1: Plan State Transition (ATOMIC)
+
+**Key Change (2026-01-15)**: Plan movement from `pending/` to `in_progress/` is now the **FIRST and ATOMIC operation** before any other work begins.
+
+**Atomic Block Structure**:
+1. Select plan (pending or in_progress)
+2. Move pending → in_progress (if applicable) with early exit on failure
+3. Create active pointer
+
+**Critical Features**:
+- **BLOCKING markers**: Clear visual indicators with emoji warnings
+- **Early exit guards**: `|| exit 1` after `mv` command prevents partial state
+- **Worktree mode**: Same atomic priority for `--wt` flag
+- **Progress logging**: Clear messages for plan movement and pointer creation
+
+#### Step Sequence
+
+1. **Step 1: Plan State Transition (ATOMIC)**
+   - 1.1 Worktree Mode (--wt): Atomic move before worktree setup
+   - 1.2 Select and Move Plan (ATOMIC BLOCK): Select + Move + Pointer
+   - Exit immediately if move fails
+
+2. **Step 2: Convert Plan to Todo List**
+   - Extract deliverables, phases, tasks, acceptance criteria
+   - Map SC dependencies for parallel execution
+
+3. **Step 2.5: SC Dependency Analysis (For Parallel Execution)**
+   - Analyze SC dependencies
+   - Group independent SCs
+   - Parallel execution pattern with MANDATORY ACTION sections
+
+4. **Step 3: Delegate to Coder Agent (Context Isolation)**
+   - MANDATORY ACTION: Invoke Coder Agent via Task tool
+   - Token-efficient context isolation (5K vs 110K+ tokens)
+
+5. **Step 4: Execute with TDD (Legacy)**
+   - Red-Green-Refactor cycle
+   - Ralph Loop integration
+
+6. **Step 5: Ralph Loop (Autonomous Completion)**
+   - Max 7 iterations
+   - Verification: tests, type-check, lint, coverage
+
+7. **Step 6: Todo Continuation Enforcement**
+   - Never quit halfway
+   - One `in_progress` at a time
+
+8. **Step 7: Verification**
+   - Type check, tests, lint
+
+9. **Step 8: Update Plan Artifacts**
+   - Add Execution Summary
+
+10. **Step 9: Auto-Chain to Documentation**
+    - Trigger `/91_document` if all criteria met
+
 ### /01_confirm Command Workflow
 
 The `/01_confirm` command extracts the plan from the `/00_plan` conversation and creates a plan file in `.pilot/plan/pending/`.
@@ -114,7 +174,8 @@ The `/01_confirm` command extracts the plan from the `/00_plan` conversation and
 | `/01_confirm` | Creates plan file | → `.pilot/plan/pending/` |
 | `/01_confirm` Step 1.5 | Extracts highlights | → Plan Implementation Patterns |
 | Gap Detection | Reviews external services | → Interactive Recovery |
-| `/02_execute` | Reads plan file | ← `.pilot/plan/in_progress/` |
+| `/02_execute` Step 1 | Atomic plan move (pending → in_progress) | → `.pilot/plan/in_progress/` |
+| `/02_execute` Step 2+ | Reads plan file | ← `.pilot/plan/in_progress/` |
 
 ---
 

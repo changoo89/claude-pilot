@@ -26,45 +26,98 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 
 ---
 
-## Step 1: Select Plan & Worktree Mode
+## Step 1: Plan State Transition (ATOMIC)
+
+> **🚨 CRITICAL - BLOCKING OPERATION**
+> This step MUST complete successfully BEFORE any other work begins.
+> If this step fails, EXIT IMMEDIATELY. Do not proceed to Step 2.
 
 ### 1.1 Worktree Mode (--wt)
+
+> **🚨 CRITICAL - Worktree mode also follows atomic priority**
+> Plan MUST be moved to in_progress before any worktree setup.
+
 ```bash
 if is_worktree_mode "$@"; then
+    # ATOMIC BLOCK START - Worktree must move plan FIRST
     check_worktree_support || { echo "Error: Git worktree not supported" >&2; exit 1; }
     PENDING_PLAN="$(select_oldest_pending)" || { echo "No pending plans. Run /00_plan first" >&2; exit 1; }
+
+    # Move plan to in_progress BEFORE creating worktree
+    echo "🔒 Moving plan to in_progress (BLOCKING - Worktree mode)..."
     PLAN_FILENAME="$(basename "$PENDING_PLAN")"
+    IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
+    mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
+
+    mv "$PENDING_PLAN" "$IN_PROGRESS_PATH" || {
+        echo "❌ FATAL: Failed to move plan to in_progress. Aborting worktree setup." >&2
+        exit 1
+    }
+    PLAN_PATH="$IN_PROGRESS_PATH"
+    echo "✅ Plan moved: $PLAN_FILENAME"
+
+    # NOW proceed with worktree setup
     BRANCH_NAME="$(plan_to_branch "$PLAN_FILENAME")"
     MAIN_BRANCH="main"; git rev-parse --verify "$MAIN_BRANCH" >/dev/null 2>&1 || MAIN_BRANCH="master"
     WORKTREE_DIR="$(create_worktree "$BRANCH_NAME" "$PLAN_FILENAME" "$MAIN_BRANCH")" || exit 1
     # ... (full worktree setup in backup)
-    PLAN_PATH="$IN_PROGRESS_PLAN"; cd "$WORKTREE_ABS" || exit 1
+    PLAN_PATH="$IN_PROGRESS_PATH"; cd "$WORKTREE_ABS" || exit 1
+    # ATOMIC BLOCK END
 fi
 ```
 
-### 1.2 Determine Plan Path
-Priority: 1) Explicit from args, 2) Oldest in pending/, 3) Active pointer, 4) Most recent in in_progress/
+### 1.2 Select and Move Plan (ATOMIC BLOCK)
+
+> **🚨 CRITICAL - BLOCKING OPERATION**
+> This entire block is ATOMIC. All three operations MUST complete successfully:
+> 1. Select plan (pending or in_progress)
+> 2. Move pending → in_progress (if applicable)
+> 3. Create active pointer
+>
+> **DO NOT** split these operations. If any fail, exit immediately.
 
 ```bash
 # Project root detection (always use project root, not current directory)
 PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 
+# ATOMIC BLOCK START - DO NOT SPLIT
 PLAN_PATH="${EXPLICIT_PATH}"
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
-[ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "No plan found. Run /00_plan first" >&2; exit 1; }
-```
 
-### 1.3 Move to In-Progress & Create Active Pointer
-```bash
-if printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
-    PLAN_FILENAME="$(basename "$PLAN_PATH")"; IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
+# Priority 1: Explicit path from args
+# Priority 2: Oldest pending plan (requires move)
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
+
+# IF pending plan found, MUST move it FIRST
+if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
+    echo "🔒 Moving plan to in_progress (BLOCKING)..."
+    PLAN_FILENAME="$(basename "$PLAN_PATH")"
+    IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
     mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
-    mv "$PLAN_PATH" "$IN_PROGRESS_PATH"; PLAN_PATH="$IN_PROGRESS_PATH"
+
+    mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || {
+        echo "❌ FATAL: Failed to move plan to in_progress. Aborting." >&2
+        exit 1
+    }
+    PLAN_PATH="$IN_PROGRESS_PATH"
+    echo "✅ Plan moved: $PLAN_FILENAME"
 fi
-mkdir -p "$PROJECT_ROOT/.pilot/plan/active"; BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
+
+# Priority 3: Most recent in_progress (no move needed)
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
+
+# Final validation
+[ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && {
+    echo "❌ No plan found. Run /00_plan first" >&2
+    exit 1
+}
+
+# Create active pointer (part of atomic block)
+mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
 printf "%s" "$PLAN_PATH" > "$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
+echo "✅ Active pointer created for branch: $BRANCH"
+# ATOMIC BLOCK END
 ```
 
 ---

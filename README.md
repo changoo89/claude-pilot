@@ -56,7 +56,7 @@ claude-pilot/
 ├── install.sh              # One-line CLI installer
 ├── pyproject.toml          # Python package config
 ├── CLAUDE.md               # Main project guide
-├── AGENTS.md               # Agent configuration
+├── .claude/agents/         # Agent configurations (8 agents)
 ├── .claude/
 │   ├── settings.json       # Hooks, LSP, language config
 │   ├── commands/           # Slash commands (7)

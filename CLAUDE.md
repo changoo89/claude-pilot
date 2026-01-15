@@ -1,7 +1,7 @@
 # claude-pilot - Claude Code Development Guide
 
 > **Last Updated**: 2026-01-15
-> **Version**: 3.2.0
+> **Version**: 3.3.0
 > **Template**: claude-pilot
 
 ---
@@ -418,5 +418,5 @@ This project uses a hierarchical documentation system:
 
 ---
 
-**Template Version**: claude-pilot 3.2.0
+**Template Version**: claude-pilot 3.3.0
 **Last Updated**: 2026-01-15

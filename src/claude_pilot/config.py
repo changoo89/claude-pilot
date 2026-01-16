@@ -95,6 +95,19 @@ DEPRECATED_FILES: list[str] = [
     "AGENTS.md",  # ADDED - will be auto-deleted on update (not Claude Code official)
 ]
 
+# External skills configuration
+EXTERNAL_SKILLS: dict[str, dict[str, str]] = {
+    "vercel-agent-skills": {
+        "repo": "vercel-labs/agent-skills",
+        "branch": "main",
+        "skills_path": "skills",
+    }
+}
+
+# External skills directories and files
+EXTERNAL_SKILLS_DIR = ".claude/skills/external"
+EXTERNAL_SKILLS_VERSION_FILE = ".claude/.external-skills-version"
+
 
 def get_target_dir() -> Path:
     """

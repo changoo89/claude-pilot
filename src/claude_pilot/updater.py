@@ -10,6 +10,7 @@ from __future__ import annotations
 import importlib.resources  # noqa: F401
 import json
 import shutil
+import tempfile
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -795,6 +796,218 @@ def check_update_needed(target_dir: Path | None = None) -> bool:
     current = get_current_version(target_dir)
     latest = get_latest_version()
     return current != latest
+
+
+def get_github_latest_sha(repo: str, branch: str) -> str | None:
+    """
+    Fetch the latest commit SHA from a GitHub repository.
+
+    Args:
+        repo: Repository in format "owner/repo".
+        branch: Branch name (default: "main").
+
+    Returns:
+        The latest commit SHA, or None if fetch fails.
+    """
+    import requests
+
+    api_url = f"https://api.github.com/repos/{repo}/commits/{branch}"
+    try:
+        response = requests.get(api_url, timeout=config.REQUEST_TIMEOUT)
+        response.raise_for_status()
+        data = response.json()
+        # Validate response structure (Security: Warning #1)
+        if not isinstance(data, dict) or "sha" not in data:
+            return None
+        return str(data["sha"])
+    except (requests.RequestException, KeyError, TypeError, ValueError):
+        return None
+
+
+def download_github_tarball(repo: str, ref: str, dest: Path) -> bool:
+    """
+    Download a GitHub repository tarball.
+
+    Args:
+        repo: Repository in format "owner/repo".
+        ref: Git reference (commit SHA, branch, tag).
+        dest: Destination directory for the tarball.
+
+    Returns:
+        True if successful, False otherwise.
+    """
+    import requests
+
+    download_url = f"https://api.github.com/repos/{repo}/tarball/{ref}"
+    try:
+        response = requests.get(download_url, timeout=config.REQUEST_TIMEOUT, stream=True)
+        response.raise_for_status()
+
+        tarball_path = dest / f"{repo.replace('/', '-')}-{ref[:7]}.tar.gz"
+        with tarball_path.open("wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+        return True
+    except requests.RequestException:
+        return False
+
+
+def extract_skills_from_tarball(
+    tarball: Path,
+    skills_path: str,
+    dest: Path,
+) -> bool:
+    """
+    Extract skills from a GitHub tarball.
+
+    Args:
+        tarball: Path to the tarball file.
+        skills_path: Path within the repo to the skills directory.
+        dest: Destination directory for extracted skills.
+
+    Returns:
+        True if successful, False otherwise.
+    """
+    import tarfile
+
+    try:
+        with tarfile.open(tarball, "r:gz") as tar:
+            # Find the root directory (GitHub tarballs have a prefix)
+            members = tar.getmembers()
+            if not members:
+                return False
+
+            # Get the root prefix (e.g., "vercel-labs-agent-skills-abc123/")
+            root_prefix = members[0].name.split("/")[0]
+            full_skills_path = f"{root_prefix}/{skills_path}"
+
+            # Extract skills directory
+            dest.mkdir(parents=True, exist_ok=True)
+            extracted_count = 0
+
+            for member in members:
+                # Skip symlinks entirely for security (Critical #2: Symlink Attack)
+                if member.issym() or member.islnk():
+                    click.secho(f"! Warning: Skipping symlink: {member.name}", fg="yellow")
+                    continue
+
+                if member.name.startswith(full_skills_path):
+                    # Strip the prefix to get relative path
+                    relative_path = member.name[len(root_prefix) + 1 :]
+                    if not relative_path:
+                        continue
+
+                    # Strip the skills_path prefix to get the actual file path
+                    # relative_path is like "skills/test-skill/SKILL.md", we want "test-skill/SKILL.md"
+                    if relative_path.startswith(skills_path + "/"):
+                        file_path = relative_path[len(skills_path) + 1 :]
+                    elif relative_path == skills_path:
+                        # This is the skills directory itself, skip
+                        continue
+                    else:
+                        continue
+
+                    # Security: Validate the extracted path doesn't escape dest
+                    # (Critical #1: Path Traversal Vulnerability)
+                    extracted_path = (dest / file_path).resolve()
+                    dest_resolved = dest.resolve()
+
+                    if not extracted_path.is_relative_to(dest_resolved):
+                        click.secho(
+                            f"! Warning: Skipping unsafe path: {member.name}", fg="yellow"
+                        )
+                        continue
+
+                    member.name = file_path
+                    tar.extract(member, dest)
+                    extracted_count += 1
+
+            # Return True only if we extracted at least one file
+            return extracted_count > 0
+    except (OSError, tarfile.TarError):
+        return False
+
+
+def sync_external_skills(
+    target_dir: Path | None = None,
+    skip: bool = False,
+) -> str:
+    """
+    Sync external skills from GitHub repositories.
+
+    Args:
+        target_dir: Target directory for skills. Defaults to current directory.
+        skip: If True, skip syncing.
+
+    Returns:
+        Status: "success", "already_current", "failed", "skipped".
+    """
+    if target_dir is None:
+        target_dir = config.get_target_dir()
+
+    if skip:
+        click.secho("i Skipping external skills sync", fg="blue")
+        return "skipped"
+
+    # Check existing version
+    version_file = target_dir / config.EXTERNAL_SKILLS_VERSION_FILE
+    current_sha = None
+    if version_file.exists():
+        current_sha = version_file.read_text().strip()
+
+    # Sync each external skill source
+    for skill_name, skill_config in config.EXTERNAL_SKILLS.items():
+        repo = skill_config["repo"]
+        branch = skill_config["branch"]
+        skills_path = skill_config["skills_path"]
+
+        # Fetch latest SHA
+        click.secho(f"i Checking {skill_name} for updates...", fg="blue")
+        latest_sha = get_github_latest_sha(repo, branch)
+
+        if latest_sha is None:
+            click.secho(f"! Warning: Could not fetch {skill_name} version", fg="yellow")
+            return "failed"
+
+        # Check if already up to date
+        if current_sha == latest_sha:
+            click.secho(f"i {skill_name} already up to date", fg="blue")
+            return "already_current"
+
+        # Download and extract
+        click.secho(f"i Downloading {skill_name}...", fg="blue")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+
+            if not download_github_tarball(repo, latest_sha, temp_path):
+                click.secho(f"! Warning: Failed to download {skill_name}", fg="yellow")
+                return "failed"
+
+            # Find the downloaded tarball
+            tarball = None
+            for f in temp_path.glob("*.tar.gz"):
+                tarball = f
+                break
+
+            if tarball is None:
+                click.secho("! Warning: Could not find downloaded tarball", fg="yellow")
+                return "failed"
+
+            # Extract skills
+            dest_dir = target_dir / config.EXTERNAL_SKILLS_DIR / skill_name
+            if not extract_skills_from_tarball(tarball, skills_path, dest_dir):
+                click.secho(f"! Warning: Failed to extract {skill_name}", fg="yellow")
+                return "failed"
+
+            click.secho(f"i Extracted {skill_name} to {dest_dir}", fg="blue")
+
+        # Save version
+        version_file.parent.mkdir(parents=True, exist_ok=True)
+        version_file.write_text(latest_sha)
+        click.secho(f"i Updated {skill_name} to {latest_sha[:7]}", fg="green")
+
+    return "success"
 
 
 def perform_update(

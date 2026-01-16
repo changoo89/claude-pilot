@@ -127,7 +127,12 @@ def version() -> None:
     is_flag=True,
     help="Non-interactive mode (for CI/CD)",
 )
-def init(path: Path, lang: str | None, force: bool, yes: bool) -> None:
+@click.option(
+    "--skip-external-skills",
+    is_flag=True,
+    help="Skip downloading external skills during initialization",
+)
+def init(path: Path, lang: str | None, force: bool, yes: bool, skip_external_skills: bool) -> None:
     """
     Initialize claude-pilot in a project directory.
 
@@ -139,6 +144,7 @@ def init(path: Path, lang: str | None, force: bool, yes: bool) -> None:
         language=lang,
         force=force,
         yes=yes,
+        skip_external_skills=skip_external_skills,
     )
     status = initializer.initialize()
 
@@ -176,12 +182,18 @@ def init(path: Path, lang: str | None, force: bool, yes: bool) -> None:
     is_flag=True,
     help="Apply statusline configuration to existing settings.json",
 )
+@click.option(
+    "--skip-external-skills",
+    is_flag=True,
+    help="Skip syncing external skills during update",
+)
 def update(
     target_dir: Path | None,
     strategy: str,
     skip_pip: bool,
     check_only: bool,
     apply_statusline: bool,
+    skip_external_skills: bool,
 ) -> None:
     """
     Update claude-pilot to the latest version.
@@ -204,6 +216,20 @@ def update(
             error("Failed to apply statusLine configuration")
             raise ClickException("statusLine application failed")
         return
+
+    # Sync external skills if not skipped
+    if not skip_external_skills and not check_only:
+        from claude_pilot.updater import sync_external_skills
+
+        click.echo()
+        sync_status = sync_external_skills(target_dir, skip=False)
+        if sync_status == "success":
+            success("External skills synced")
+        elif sync_status == "already_current":
+            info("External skills already up to date")
+        elif sync_status == "failed":
+            warning("External skills sync failed (continuing)")
+        click.echo()
 
     status = perform_update(target_dir, merge_strategy, skip_pip, check_only)
     if status == "updated" and not check_only:

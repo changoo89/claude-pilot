@@ -52,6 +52,7 @@ class ProjectInitializer:
         language: str | None = None,
         force: bool = False,
         yes: bool = False,
+        skip_external_skills: bool = False,
     ) -> None:
         """
         Initialize the ProjectInitializer.
@@ -61,11 +62,13 @@ class ProjectInitializer:
             language: Optional language code. If None, prompts user.
             force: Force re-initialization even if already initialized.
             yes: Non-interactive mode (use defaults).
+            skip_external_skills: Skip downloading external skills.
         """
         self.target_dir = target_dir.resolve()
         self.language = language
         self.force = force
         self.yes = yes
+        self.skip_external_skills = skip_external_skills
         self._backup_dir: Path | None = None
 
     def select_language(self) -> str:
@@ -361,6 +364,18 @@ class ProjectInitializer:
         # Write version file
         version_file = self.target_dir / ".claude" / ".pilot-version"
         version_file.write_text(config.VERSION)
+
+        # Sync external skills
+        console.print("[blue]i[/blue] Syncing external skills...")
+        from claude_pilot.updater import sync_external_skills
+
+        sync_status = sync_external_skills(self.target_dir, skip=self.skip_external_skills)
+        if sync_status == "success":
+            console.print("[green]✓[/green] External skills synced")
+        elif sync_status == "skipped":
+            console.print("[blue]i[/blue] External skills sync skipped")
+        elif sync_status == "failed":
+            console.print("[yellow]![/yellow] External skills sync failed (continuing)")
 
         console.print(f"[green]✓[/green] Version {config.VERSION} initialized\n")
         console.print("[bold green]Initialization complete![/bold green]\n")

@@ -316,19 +316,14 @@ def perform_auto_update(target_dir: Path) -> UpdateStatus:
     # Ensure .gitignore excludes .pilot/
     ensure_gitignore(target_dir)
 
-    # Setup Codex MCP if available
+    # Check Codex CLI availability for GPT delegation
     click.secho("i Checking Codex CLI availability...", fg="blue")
-    from claude_pilot.codex import setup_codex_mcp
+    from claude_pilot.codex import is_codex_available
 
-    codex_setup = setup_codex_mcp(target_dir)
-    if codex_setup:
-        mcp_file = target_dir / ".mcp.json"
-        if mcp_file.exists():
-            click.secho("✓ Codex MCP configured (.mcp.json)", fg="green")
-        else:
-            click.secho("i Codex CLI not available or not authenticated (skipping)", fg="blue")
+    if is_codex_available():
+        click.secho("✓ Codex CLI available (GPT delegation ready)", fg="green")
     else:
-        click.secho("! Codex MCP setup failed (continuing)", fg="yellow")
+        click.secho("i Codex CLI not available or not authenticated (skipping)", fg="blue")
 
     # Cleanup old backups (keep last 5)
     cleanup_old_backups(target_dir, keep=5)

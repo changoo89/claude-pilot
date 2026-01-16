@@ -66,6 +66,8 @@ MANAGED_FILES: list[tuple[str, str]] = [
     (".claude/scripts/worktree-utils.sh", ".claude/scripts/worktree-utils.sh"),
     # Statusline script (pending count display)
     (".claude/scripts/statusline.sh", ".claude/scripts/statusline.sh"),
+    # Codex sync script (GPT delegation via codex exec)
+    (".claude/scripts/codex-sync.sh", ".claude/scripts/codex-sync.sh"),
     # Version file
     (".claude/.pilot-version", ".claude/.pilot-version"),
     # Rules (new - Claude Code official pattern)
@@ -118,18 +120,7 @@ EXTERNAL_SKILLS: dict[str, dict[str, str]] = {
 EXTERNAL_SKILLS_DIR = ".claude/skills/external"
 EXTERNAL_SKILLS_VERSION_FILE = ".claude/.external-skills-version"
 
-# Codex MCP configuration
-CODEX_MCP_CONFIG = {
-    "mcpServers": {
-        "codex": {
-            "type": "stdio",
-            "command": "codex",
-            "args": ["-m", "gpt-5.2", "mcp-server"],
-        }
-    }
-}
-
-# Codex authentication file path
+# Codex authentication file path (for CLI availability check)
 CODEX_AUTH_PATH = ".codex/auth.json"
 
 

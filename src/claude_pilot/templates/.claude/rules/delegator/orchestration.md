@@ -1,24 +1,27 @@
 # Model Orchestration
 
-You have access to GPT experts via MCP tools. Use them strategically based on these guidelines.
+You have access to GPT experts via the `codex-sync.sh` script. Use them strategically based on these guidelines.
 
-## Available Tools
+## Delegation Method
 
-| Tool | Provider | Use For |
-|------|----------|---------|
-| `mcp__codex__codex` | GPT | Delegate to an expert (stateless) |
+| Method | Command | Use For |
+|--------|---------|---------|
+| Bash Script | `.claude/scripts/codex-sync.sh` | Delegate to an expert (synchronous) |
 
-> **Note:** `codex-reply` exists but requires a session ID not currently exposed to Claude Code. Each delegation is independent—include full context in every call.
+**Configuration:**
+- Model: `gpt-5.2` (override with `CODEX_MODEL` env var)
+- Reasoning: `xhigh` (override with `CODEX_REASONING_EFFORT` env var)
+- Timeout: `300s` (override with `CODEX_TIMEOUT` env var)
 
 ## Available Experts
 
 | Expert | Specialty | Prompt File |
 |--------|-----------|-------------|
-| **Architect** | System design, tradeoffs, complex debugging | `${CLAUDE_PLUGIN_ROOT}/prompts/architect.md` |
-| **Plan Reviewer** | Plan validation before execution | `${CLAUDE_PLUGIN_ROOT}/prompts/plan-reviewer.md` |
-| **Scope Analyst** | Pre-planning, catching ambiguities | `${CLAUDE_PLUGIN_ROOT}/prompts/scope-analyst.md` |
-| **Code Reviewer** | Code quality, bugs, security issues | `${CLAUDE_PLUGIN_ROOT}/prompts/code-reviewer.md` |
-| **Security Analyst** | Vulnerabilities, threat modeling | `${CLAUDE_PLUGIN_ROOT}/prompts/security-analyst.md` |
+| **Architect** | System design, tradeoffs, complex debugging | `.claude/rules/delegator/prompts/architect.md` |
+| **Plan Reviewer** | Plan validation before execution | `.claude/rules/delegator/prompts/plan-reviewer.md` |
+| **Scope Analyst** | Pre-planning, catching ambiguities | `.claude/rules/delegator/prompts/scope-analyst.md` |
+| **Code Reviewer** | Code quality, bugs, security issues | `.claude/rules/delegator/prompts/code-reviewer.md` |
+| **Security Analyst** | Vulnerabilities, threat modeling | `.claude/rules/delegator/prompts/security-analyst.md` |
 
 ---
 
@@ -30,8 +33,6 @@ You have access to GPT experts via MCP tools. Use them strategically based on th
 - Include ALL relevant context in every delegation prompt
 - For retries, include what was attempted and what failed
 - Don't assume the expert remembers previous interactions
-
-**Why:** Codex MCP returns session IDs in event notifications, but Claude Code only surfaces the final text response. Until this changes, treat each call as fresh.
 
 ---
 
@@ -78,10 +79,10 @@ Match the task to the appropriate expert based on triggers.
 **CRITICAL**: Read the expert's prompt file to get their system instructions:
 
 ```
-Read ${CLAUDE_PLUGIN_ROOT}/prompts/[expert].md
+Read .claude/rules/delegator/prompts/[expert].md
 ```
 
-For example, for Architect: `Read ${CLAUDE_PLUGIN_ROOT}/prompts/architect.md`
+For example, for Architect: `Read .claude/rules/delegator/prompts/architect.md`
 
 ### Step 3: Determine Mode
 | Task Type | Mode | Sandbox |
@@ -104,13 +105,35 @@ Use the 7-section format from `rules/delegation-format.md`.
 - Any previous attempts and their results (for retries)
 
 ### Step 6: Call the Expert
-```typescript
-mcp__codex__codex({
-  prompt: "[your 7-section delegation prompt with FULL context]",
-  "developer-instructions": "[contents of the expert's prompt file]",
-  sandbox: "[read-only or workspace-write based on mode]",
-  cwd: "[current working directory]"
-})
+
+Use the Bash tool to call `codex-sync.sh`:
+
+```bash
+.claude/scripts/codex-sync.sh "<mode>" "<delegation_prompt>"
+```
+
+**Parameters:**
+- `mode`: `read-only` (Advisory) or `workspace-write` (Implementation)
+- `delegation_prompt`: Your 7-section prompt with expert instructions prepended
+
+**Example (Advisory):**
+```bash
+.claude/scripts/codex-sync.sh "read-only" "You are a software architect...
+
+TASK: Analyze tradeoffs between Redis and in-memory caching.
+EXPECTED OUTCOME: Clear recommendation with rationale.
+CONTEXT: [user's situation, full details]
+..."
+```
+
+**Example (Implementation):**
+```bash
+.claude/scripts/codex-sync.sh "workspace-write" "You are a code reviewer...
+
+TASK: Fix the SQL injection vulnerability in user.ts.
+EXPECTED OUTCOME: Secure code with parameterized queries.
+CONTEXT: [relevant code snippets]
+..."
 ```
 
 ### Step 7: Handle Response
@@ -163,22 +186,38 @@ User: "What are the tradeoffs of Redis vs in-memory caching?"
 
 **Step 1**: Signal matches "Architecture decision" → Architect
 
-**Step 2**: Read `${CLAUDE_PLUGIN_ROOT}/prompts/architect.md`
+**Step 2**: Read `.claude/rules/delegator/prompts/architect.md`
 
 **Step 3**: Advisory mode (question, not implementation) → `read-only`
 
 **Step 4**: "Delegating to Architect: Analyze caching tradeoffs"
 
 **Step 5-6**:
-```typescript
-mcp__codex__codex({
-  prompt: `TASK: Analyze tradeoffs between Redis and in-memory caching for [context].
+```bash
+.claude/scripts/codex-sync.sh "read-only" "You are a software architect specializing in system design...
+
+TASK: Analyze tradeoffs between Redis and in-memory caching for [context].
+
 EXPECTED OUTCOME: Clear recommendation with rationale.
-CONTEXT: [user's situation, full details]
-...`,
-  "developer-instructions": "[contents of architect.md]",
-  sandbox: "read-only"
-})
+
+CONTEXT:
+- Current state: [what exists now]
+- Scale requirements: [expected load]
+- Infrastructure: [cloud provider, existing services]
+
+CONSTRAINTS:
+- Must work with existing Node.js backend
+- Budget considerations for managed services
+
+MUST DO:
+- Compare latency, scalability, operational complexity
+- Provide effort estimate (Quick/Short/Medium/Large)
+
+MUST NOT DO:
+- Over-engineer for hypothetical future needs
+
+OUTPUT FORMAT:
+Bottom line → Action plan → Effort estimate"
 ```
 
 **Step 7**: Synthesize response, add your assessment.
@@ -190,9 +229,10 @@ CONTEXT: [user's situation, full details]
 First attempt failed with "TypeError: Cannot read property 'x' of undefined"
 
 **Retry call:**
-```typescript
-mcp__codex__codex({
-  prompt: `TASK: Add input validation to the user registration endpoint.
+```bash
+.claude/scripts/codex-sync.sh "workspace-write" "You are a senior engineer conducting code review...
+
+TASK: Add input validation to the user registration endpoint.
 
 PREVIOUS ATTEMPT:
 - Added validation middleware to routes/auth.ts
@@ -207,11 +247,7 @@ CONTEXT:
 REQUIREMENTS:
 - Fix the undefined req.body issue
 - Ensure validation runs after body parser
-- Report all files modified`,
-  "developer-instructions": "[contents of code-reviewer.md or architect.md]",
-  sandbox: "workspace-write",
-  cwd: "/path/to/project"
-})
+- Report all files modified"
 ```
 
 ---

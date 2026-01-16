@@ -1,9 +1,9 @@
 """
 Codex integration for GPT expert delegation.
 
-This module provides functionality for detecting Codex CLI installation,
-checking authentication status, and generating MCP configuration for
-GPT expert delegation via Codex MCP server.
+This module provides functionality for detecting Codex CLI installation
+and checking authentication status. GPT delegation is handled via
+codex-sync.sh script using `codex exec` command.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import json
 import shutil
 from pathlib import Path
 
-from claude_pilot.config import CODEX_AUTH_PATH, CODEX_MCP_CONFIG
+from claude_pilot.config import CODEX_AUTH_PATH
 
 
 def detect_codex_cli() -> bool:
@@ -45,44 +45,11 @@ def check_codex_auth() -> bool:
         return False
 
 
-def setup_codex_mcp(target_dir: Path) -> bool:
+def is_codex_available() -> bool:
     """
-    Setup Codex MCP configuration in .mcp.json.
-
-    Creates or merges .mcp.json with Codex MCP server configuration.
-    Skips if Codex CLI is not installed or not authenticated.
-
-    Args:
-        target_dir: Target directory for .mcp.json file.
+    Check if Codex is fully available (installed and authenticated).
 
     Returns:
-        True if setup succeeded or was skipped, False on error.
+        True if Codex CLI is installed and authenticated, False otherwise.
     """
-    # Skip if Codex not available or not authenticated
-    if not detect_codex_cli():
-        return True
-    if not check_codex_auth():
-        return True
-
-    mcp_file = target_dir / ".mcp.json"
-
-    # Load existing config or create new
-    if mcp_file.exists():
-        try:
-            existing_config = json.loads(mcp_file.read_text())
-        except (json.JSONDecodeError, IOError):
-            existing_config = {"mcpServers": {}}
-    else:
-        existing_config = {"mcpServers": {}}
-
-    # Merge Codex config
-    if "mcpServers" not in existing_config:
-        existing_config["mcpServers"] = {}
-    existing_config["mcpServers"]["codex"] = CODEX_MCP_CONFIG["mcpServers"]["codex"]
-
-    # Write merged config
-    try:
-        mcp_file.write_text(json.dumps(existing_config, indent=2) + "\n")
-        return True
-    except IOError:
-        return False
+    return detect_codex_cli() and check_codex_auth()

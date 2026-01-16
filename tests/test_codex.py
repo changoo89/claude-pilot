@@ -2,7 +2,7 @@
 Tests for Codex integration functionality.
 
 This module tests Codex CLI detection, authentication checking,
-and MCP configuration generation for GPT expert delegation.
+and availability for GPT expert delegation via codex exec.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from claude_pilot.codex import check_codex_auth, detect_codex_cli, setup_codex_mcp
+from claude_pilot.codex import check_codex_auth, detect_codex_cli, is_codex_available
 
 
 class TestDetectCodexCli:
@@ -125,168 +125,42 @@ class TestCheckCodexAuth:
         assert result is False
 
 
-class TestSetupCodexMcp:
-    """Test setup_codex_mcp() function."""
+class TestIsCodexAvailable:
+    """Test is_codex_available() function."""
 
-    def test_setup_mcp_fresh(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test setup_codex_mcp() creates new .mcp.json when none exists (TS-5)."""
-        # Mock detect_codex_cli to return True
-        monkeypatch.setattr("claude_pilot.codex.detect_codex_cli", lambda: True)
-
-        # Mock check_codex_auth to return True
-        monkeypatch.setattr("claude_pilot.codex.check_codex_auth", lambda: True)
-
-        # Create target directory
-        result = setup_codex_mcp(tmp_path)
-
-        assert result is True
-
-        # Check .mcp.json was created
-        mcp_file = tmp_path / ".mcp.json"
-        assert mcp_file.exists()
-
-        # Verify content
-        import json
-
-        content = json.loads(mcp_file.read_text())
-        assert "mcpServers" in content
-        assert "codex" in content["mcpServers"]
-        assert content["mcpServers"]["codex"]["type"] == "stdio"
-        assert content["mcpServers"]["codex"]["command"] == "codex"
-        # Note: Plan specifies gpt-5.2, reference shows gpt-5.2-codex
-        # Using gpt-5.2 as per plan requirement
-        assert content["mcpServers"]["codex"]["args"] == ["-m", "gpt-5.2", "mcp-server"]
-
-    def test_setup_mcp_merge(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test setup_codex_mcp() merges with existing .mcp.json (TS-6)."""
-        # Create existing .mcp.json
-        existing_mcp = tmp_path / ".mcp.json"
-        import json
-
-        existing_content = {"mcpServers": {"existing-server": {"type": "stdio", "command": "existing"}}}
-        existing_mcp.write_text(json.dumps(existing_content))
-
-        # Mock detect_codex_cli to return True
-        monkeypatch.setattr("claude_pilot.codex.detect_codex_cli", lambda: True)
-
-        # Mock check_codex_auth to return True
-        monkeypatch.setattr("claude_pilot.codex.check_codex_auth", lambda: True)
-
-        # Setup
-        result = setup_codex_mcp(tmp_path)
-
-        assert result is True
-
-        # Verify existing server was preserved
-        content = json.loads(existing_mcp.read_text())
-        assert "existing-server" in content["mcpServers"]
-        assert "codex" in content["mcpServers"]
-
-    def test_setup_mcp_skip_not_installed(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    def test_available_when_installed_and_authenticated(
+        self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test setup_codex_mcp() skips when Codex not installed (TS-7)."""
-        # Mock detect_codex_cli to return False
+        """Test is_codex_available() returns True when installed and authenticated."""
+        monkeypatch.setattr("claude_pilot.codex.detect_codex_cli", lambda: True)
+        monkeypatch.setattr("claude_pilot.codex.check_codex_auth", lambda: True)
+
+        result = is_codex_available()
+        assert result is True
+
+    def test_not_available_when_not_installed(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test is_codex_available() returns False when not installed."""
         monkeypatch.setattr("claude_pilot.codex.detect_codex_cli", lambda: False)
+        monkeypatch.setattr("claude_pilot.codex.check_codex_auth", lambda: True)
 
-        # Setup
-        result = setup_codex_mcp(tmp_path)
+        result = is_codex_available()
+        assert result is False
 
-        assert result is True  # Function succeeds but skips setup
-
-        # Verify .mcp.json was NOT created
-        mcp_file = tmp_path / ".mcp.json"
-        assert not mcp_file.exists()
-
-    def test_setup_mcp_skip_not_authenticated(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test setup_codex_mcp() skips when Codex not authenticated."""
-        # Mock detect_codex_cli to return True
+    def test_not_available_when_not_authenticated(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test is_codex_available() returns False when not authenticated."""
         monkeypatch.setattr("claude_pilot.codex.detect_codex_cli", lambda: True)
-
-        # Mock check_codex_auth to return False
         monkeypatch.setattr("claude_pilot.codex.check_codex_auth", lambda: False)
 
-        # Setup
-        result = setup_codex_mcp(tmp_path)
+        result = is_codex_available()
+        assert result is False
 
-        assert result is True  # Function succeeds but skips setup
+    def test_not_available_when_neither(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test is_codex_available() returns False when neither installed nor authenticated."""
+        monkeypatch.setattr("claude_pilot.codex.detect_codex_cli", lambda: False)
+        monkeypatch.setattr("claude_pilot.codex.check_codex_auth", lambda: False)
 
-        # Verify .mcp.json was NOT created
-        mcp_file = tmp_path / ".mcp.json"
-        assert not mcp_file.exists()
-
-    def test_setup_mcp_malformed_existing(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test setup_codex_mcp() handles malformed existing .mcp.json (TS-8, lines 73-74)."""
-        # Create a malformed .mcp.json
-        existing_mcp = tmp_path / ".mcp.json"
-        existing_mcp.write_text('{"invalid": json}')
-
-        # Mock detect_codex_cli to return True
-        monkeypatch.setattr("claude_pilot.codex.detect_codex_cli", lambda: True)
-
-        # Mock check_codex_auth to return True
-        monkeypatch.setattr("claude_pilot.codex.check_codex_auth", lambda: True)
-
-        # Setup
-        result = setup_codex_mcp(tmp_path)
-
-        assert result is True  # Should succeed and create new config
-
-        # Verify .mcp.json was overwritten with valid config
-        import json
-
-        content = json.loads(existing_mcp.read_text())
-        assert "mcpServers" in content
-        assert "codex" in content["mcpServers"]
-
-    def test_setup_mcp_existing_without_mcp_servers_key(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test setup_codex_mcp() handles .mcp.json without mcpServers key (line 80)."""
-        # Create a .mcp.json with valid JSON but no mcpServers key
-        existing_mcp = tmp_path / ".mcp.json"
-        import json
-
-        existing_mcp.write_text(json.dumps({"other_key": "value"}))
-
-        # Mock detect_codex_cli to return True
-        monkeypatch.setattr("claude_pilot.codex.detect_codex_cli", lambda: True)
-
-        # Mock check_codex_auth to return True
-        monkeypatch.setattr("claude_pilot.codex.check_codex_auth", lambda: True)
-
-        # Setup
-        result = setup_codex_mcp(tmp_path)
-
-        assert result is True  # Should succeed
-
-        # Verify mcpServers key was added
-        content = json.loads(existing_mcp.read_text())
-        assert "mcpServers" in content
-        assert "codex" in content["mcpServers"]
-
-    def test_setup_mcp_write_failure(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test setup_codex_mcp() handles write failure (lines 87-88)."""
-        # Mock detect_codex_cli to return True
-        monkeypatch.setattr("claude_pilot.codex.detect_codex_cli", lambda: True)
-
-        # Mock check_codex_auth to return True
-        monkeypatch.setattr("claude_pilot.codex.check_codex_auth", lambda: True)
-
-        # Create a directory instead of a file to cause write failure
-        mcp_file = tmp_path / ".mcp.json"
-        mcp_file.mkdir()
-
-        # Setup
-        result = setup_codex_mcp(tmp_path)
-
-        assert result is False  # Should fail when can't write
+        result = is_codex_available()
+        assert result is False
 
 
 class TestDelegatorTemplates:

@@ -97,6 +97,7 @@
       "Bash(iptables:*)"
     ]
   },
+  "statusline": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/statusline.sh",
   "hooks": {
     "PreToolUse": [
       {

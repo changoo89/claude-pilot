@@ -1,7 +1,7 @@
 # claude-pilot - Claude Code Development Guide
 
 > **Last Updated**: 2026-01-16
-> **Version**: 3.3.4
+> **Version**: 3.3.6
 > **Template**: claude-pilot
 
 ---
@@ -20,9 +20,9 @@ Deployment: [e.g., Vercel, AWS, Docker]
 ```
 
 ### Current Status
-- **Version**: 3.3.4
+- **Version**: 3.3.6
 - **Stage**: Production
-- **Last Updated**: 2026-01-15
+- **Last Updated**: 2026-01-16
 
 ---
 

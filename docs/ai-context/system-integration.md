@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, data flow, shared patterns, and integration points
-> **Last Updated**: 2026-01-16 (Updated: statusline feature integration)
+> **Last Updated**: 2026-01-16 (Updated: external skills sync integration)
 
 ---
 
@@ -244,9 +244,103 @@ fi
 | `/03_close` | Releases lock | Lock file removed (or trap auto-removes) |
 | `worktree-utils.sh` | Lock/cleanup functions | Shared utilities |
 
-### /02_execute Command Workflow (Updated 2026-01-15)
+---
 
-### /01_confirm Command Workflow
+## External Skills Sync (v3.3.6)
+
+### Overview
+
+The external skills sync feature automatically downloads and updates Vercel agent-skills from GitHub, providing frontend developers with production-grade React optimization guidelines.
+
+### Components
+
+| File | Purpose |
+|------|---------|
+| `config.py` | EXTERNAL_SKILLS dict with Vercel configuration |
+| `updater.py` | sync_external_skills(), get_github_latest_sha(), download_github_tarball(), extract_skills_from_tarball() |
+| `initializer.py` | Calls sync_external_skills() during init |
+| `cli.py` | `--skip-external-skills` flag for init/update |
+
+### Sync Workflow
+
+```
+User runs: claude-pilot init/update
+      │
+      ├─► Check skip flag
+      │   └─► skip=True → Return "skipped"
+      │
+      ├─► Read existing version
+      │   └─► .claude/.external-skills-version
+      │
+      ├─► Fetch latest commit SHA
+      │   └─► GitHub API: GET /repos/{owner}/{repo}/commits/{branch}
+      │
+      ├─► Compare versions
+      │   └─► Same → Return "already_current"
+      │
+      ├─► Download tarball
+      │   └─► GET /repos/{owner}/{repo}/tarball/{ref}
+      │
+      ├─► Extract skills
+      │   ├─► Validate paths (no traversal)
+      │   ├─► Reject symlinks
+      │   └─► Copy to .claude/skills/external/
+      │
+      ├─► Save new version
+      │   └─► Write SHA to .external-skills-version
+      │
+      └─► Return "success"
+```
+
+### Security Features
+
+1. **Path Traversal Prevention**: Validates all extracted paths don't contain `..`
+2. **Symlink Rejection**: Rejects all symlinks to prevent arbitrary file writes
+3. **Streaming Download**: Uses chunked download for large tarballs
+4. **Temp Directory**: Downloads to temp directory before atomic move
+
+### Configuration
+
+```python
+EXTERNAL_SKILLS = {
+    "vercel-agent-skills": {
+        "repo": "vercel-labs/agent-skills",
+        "branch": "main",
+        "skills_path": "skills",
+    }
+}
+EXTERNAL_SKILLS_DIR = ".claude/skills/external"
+EXTERNAL_SKILLS_VERSION_FILE = ".claude/.external-skills-version"
+```
+
+### CLI Integration
+
+| Command | Flag | Behavior |
+|---------|------|----------|
+| `claude-pilot init` | `--skip-external-skills` | Skip downloading external skills |
+| `claude-pilot update` | `--skip-external-skills` | Skip syncing external skills |
+
+### Error Handling
+
+| Scenario | Behavior |
+|----------|----------|
+| Network failure | Warning message, continues with other operations |
+| Rate limit (403) | Warning message, returns "failed" |
+| Invalid tarball | Warning message, returns "failed" |
+| Already current | Info message, returns "already_current" |
+
+### Integration Points
+
+| Component | Integration | Data Flow |
+|-----------|-------------|-----------|
+| `initializer.py` | Calls sync_external_skills() | → `.claude/skills/external/` |
+| `updater.py` | GitHub API calls | → Latest commit SHA, tarball download |
+| `config.py` | EXTERNAL_SKILLS config | → Repository metadata |
+| `cli.py` | `--skip-external-skills` flag | → Skip conditional |
+
+---
+
+## /01_confirm Command Workflow
 
 The `/01_confirm` command extracts the plan from the `/00_plan` conversation and creates a plan file in `.pilot/plan/pending/`.
 
@@ -313,6 +407,8 @@ The `/01_confirm` command extracts the plan from the `/00_plan` conversation and
 | `/02_execute` worktree | Creates lock file | `.pilot/plan/.locks/{plan}.lock` → `/03_close` removes |
 | `/03_close` worktree | Releases lock file | Lock removed (or trap auto-removes on error) |
 | `claude-pilot update --apply-statusline` | Adds statusLine to settings | Updates `.claude/settings.json` with backup |
+| `claude-pilot init` | Syncs external skills | Downloads Vercel agent-skills to `.claude/skills/external/` |
+| `claude-pilot update` | Syncs external skills | Updates external skills from GitHub (skips if current) |
 | `/999_publish` Step 0.5 | Syncs templates | `.claude/` → `src/claude_pilot/templates/.claude/` |
 | `/999_publish` Step 3-5 | Updates all 6 version files | pyproject.toml, __init__.py, config.py, install.sh, .pilot-version files |
 
@@ -698,6 +794,7 @@ CONTEXT.md files provide Tier 2 (Component-level) documentation for major folder
 - `.claude/guides/CONTEXT.md` - Guide folder context (NEW)
 - `.claude/skills/CONTEXT.md` - Skill folder context (NEW)
 - `.claude/agents/CONTEXT.md` - Agent folder context (NEW)
+- `src/claude_pilot/CONTEXT.md` - Core package architecture, CLI patterns (NEW)
 - `.claude/skills/documentation-best-practices/SKILL.md` - Documentation standards (NEW)
 - `.claude/skills/vibe-coding/SKILL.md` - Code quality standards
 - `.claude/guides/gap-detection.md` - External service verification
@@ -886,5 +983,5 @@ Task:
 
 ---
 
-**Last Updated**: 2026-01-15
-**Template**: claude-pilot 3.3.4
+**Last Updated**: 2026-01-16
+**Version**: 3.3.6

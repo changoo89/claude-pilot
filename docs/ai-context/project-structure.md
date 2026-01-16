@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-16 (Updated: statusline.sh feature)
+> **Last Updated**: 2026-01-16 (Updated: external skills sync)
 
 ---
 
@@ -47,6 +47,8 @@ claude-pilot/
 │   │   └── CONTEXT-tier3.md.template
 │   ├── skills/             # Reusable skill modules (5)
 │   │   ├── CONTEXT.md      # Skill folder context (NEW)
+│   │   ├── external/       # External skills (Vercel agent-skills) (NEW)
+│   │   │   └── vercel-agent-skills/  # Downloaded from GitHub
 │   │   ├── documentation-best-practices/  # Documentation standards (NEW)
 │   │   ├── tdd/SKILL.md (+ REFERENCE.md)
 │   │   ├── ralph-loop/SKILL.md (+ REFERENCE.md)
@@ -95,10 +97,10 @@ claude-pilot/
 │       │       ├── scripts/
 │       │       │   └── statusline.sh  # Statusline script (NEW)
 │       │       └── settings.json      # StatusLine config (UPDATED)
-│       ├── cli.py          # CLI with --apply-statusline flag (UPDATED)
-│       ├── config.py       # MANAGED_FILES with statusline.sh (UPDATED)
-│       ├── initializer.py  # Init command with .gitignore handling
-│       └── updater.py      # Update with apply_statusline() (UPDATED)
+│       ├── cli.py          # CLI with --skip-external-skills flag (UPDATED)
+│       ├── config.py       # EXTERNAL_SKILLS config (UPDATED)
+│       ├── initializer.py  # Init with external skills sync (UPDATED)
+│       └── updater.py      # External skills sync functions (UPDATED)
 ├── tests/                  # Test files
 ├── CLAUDE.md               # Tier 1: Project documentation
 ├── README.md               # Project README
@@ -412,6 +414,15 @@ claude-pilot update --apply-statusline
 
 ## Version History
 
+### v3.3.6 (2026-01-16)
+
+- **External Skills Sync**: GitHub API integration for Vercel agent-skills
+- **New flag**: `--skip-external-skills` for init/update commands
+- **New functions**: sync_external_skills(), get_github_latest_sha(), download_github_tarball(), extract_skills_from_tarball()
+- **New config**: EXTERNAL_SKILLS dict with Vercel agent-skills configuration
+- **New tests**: 25 external skills tests (90% coverage for new code)
+- **Security features**: Path traversal prevention, symlink rejection in tarball extraction
+
 ### v3.3.5 (2026-01-16)
 
 - **Statusline Feature**: Added pending plan count display to Claude Code statusline
@@ -507,6 +518,7 @@ claude-pilot update --apply-statusline
 - `.claude/guides/claude-code-standards.md` - Official Claude Code standards (NEW)
 - `.claude/skills/CONTEXT.md` - Skill folder context (NEW)
 - `.claude/agents/CONTEXT.md` - Agent folder context (NEW)
+- `src/claude_pilot/CONTEXT.md` - Core package architecture (NEW)
 - `.claude/skills/documentation-best-practices/SKILL.md` - Documentation standards (NEW)
 - `.claude/guides/3tier-documentation.md` - 3-Tier system guide
 - `.claude/guides/prp-framework.md` - Problem-Requirements-Plan
@@ -519,5 +531,5 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-15
-**Template**: claude-pilot 3.3.4
+**Last Updated**: 2026-01-16
+**Version**: 3.3.6

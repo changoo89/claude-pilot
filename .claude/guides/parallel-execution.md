@@ -130,6 +130,9 @@ Task:
 | code-reviewer | opus | Read, Glob, Grep, Bash | Deep code review |
 | documenter | haiku | Read, Write | Documentation generation |
 
+> **⚠️ CRITICAL**: Agent names are case-sensitive. Always use lowercase:
+> - `explorer`, `researcher`, `coder`, `tester`, `validator`, `plan-reviewer`, `code-reviewer`, `documenter`
+
 ---
 
 ## Best Practices Summary

@@ -128,7 +128,7 @@ Existing Patterns: [list]
 
 **Execute in parallel** (see guide for full Task call templates):
 1. **Explorer Agent**: Explore codebase for related files, patterns, architecture
-2. **Researcher Agent**: Research external docs, best practices, code examples
+2. **researcher Agent**: Research external docs, best practices, code examples
 3. **Main Thread**: Detect test environment (see @.claude/guides/test-environment.md)
 
 ### Agent Coordination
@@ -136,14 +136,14 @@ Existing Patterns: [list]
 | Thread | Focus | Tools | Agent |
 |--------|-------|-------|-------|
 | Explore | Related code, patterns | Glob, Grep, Read | **Explorer Agent** |
-| Research | External docs | WebSearch, query-docs | **Researcher Agent** |
+| Research | External docs | WebSearch, query-docs | **researcher Agent** |
 | **Test Env** | **Detect test framework** | **Glob, Read** | **Main (inline)** |
 
 ### Result Merge
 
 After parallel agents complete:
 1. **Explorer Summary**: Add to "Explored Files" table
-2. **Researcher Summary**: Add to "Research Findings" table
+2. **researcher Summary**: Add to "Research Findings" table
 3. **Test Environment**: Add to plan as "Test Environment (Detected)" section
 4. **Integration**: Merge findings, identify conflicts, update plan
 
@@ -302,7 +302,7 @@ Time, Technical, Resource limits
   - [ ] Requirements Coverage Check table created
 - [ ] Step 1: Parallel exploration executed
   - [ ] Explorer agent completed (files, patterns)
-  - [ ] Researcher agent completed (external docs)
+  - [ ] researcher agent completed (external docs)
   - [ ] Test environment detected
 - [ ] Step 2: Execution Context compiled
   - [ ] Explored Files table created

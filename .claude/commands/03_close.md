@@ -28,21 +28,34 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 ## Step 1: Worktree Context (--wt flag)
 
 > **When**: Running /03_close from worktree, perform squash merge and cleanup
+> **SC-1**: Read context from plan file metadata instead of relying on is_in_worktree
 
 ```bash
-if is_in_worktree; then
-    CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+# Check if plan has worktree metadata (works regardless of current directory, SC-1)
+if grep -q "## Worktree Info" "$ACTIVE_PLAN_PATH" 2>/dev/null; then
     WORKTREE_META="$(read_worktree_metadata "$ACTIVE_PLAN_PATH")"
 
     if [ -n "$WORKTREE_META" ]; then
-        IFS='|' read -r WT_BRANCH WT_PATH WT_MAIN <<< "$WORKTREE_META"
-        MAIN_PROJECT_DIR="$(get_main_project_dir)"
-        LOCK_FILE="${MAIN_PROJECT_DIR}/.pilot/plan/.locks/$(basename "$ACTIVE_PLAN_PATH").lock"
+        # Parse 5 fields: branch|worktree_path|main_branch|main_project|lock_file (SC-5)
+        IFS='|' read -r WT_BRANCH WT_PATH WT_MAIN MAIN_PROJECT_DIR LOCK_FILE <<< "$WORKTREE_META"
+
+        # Validate required fields (CRITICAL: prevent errors from empty metadata)
+        if [ -z "$WT_BRANCH" ] || [ -z "$WT_PATH" ] || [ -z "$WT_MAIN" ] || [ -z "$MAIN_PROJECT_DIR" ]; then
+            echo "ERROR: Invalid worktree metadata - required fields missing" >&2
+            echo "Parsed values: branch='$WT_BRANCH' path='$WT_PATH' main='$WT_MAIN' project='$MAIN_PROJECT_DIR'" >&2
+            exit 1
+        fi
+
+        # Validate main project directory exists
+        if [ ! -d "$MAIN_PROJECT_DIR" ]; then
+            echo "ERROR: Main project directory not found: $MAIN_PROJECT_DIR" >&2
+            exit 1
+        fi
 
         # Error trap: cleanup lock on any failure
         trap "rm -rf \"$LOCK_FILE\" 2>/dev/null" EXIT ERR
 
-        # 1. Change to main project
+        # 1. Change to main project (from metadata, SC-1)
         cd "$MAIN_PROJECT_DIR" || exit 1
 
         # 2. Generate commit message from plan
@@ -52,17 +65,24 @@ if is_in_worktree; then
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 
-        # 3. Squash merge
-        do_squash_merge "$WT_BRANCH" "$WT_MAIN" "$COMMIT_MSG"
+        # 3. Squash merge (with fallback on failure, SC-1)
+        if ! do_squash_merge "$WT_BRANCH" "$WT_MAIN" "$COMMIT_MSG"; then
+            echo "WARNING: Squash merge failed. Worktree preserved for manual resolution." >&2
+            printf "To retry: cd '%s' && git checkout '%s' && git merge --squash '%s'\\n" "$WT_PATH" "$WT_MAIN" "$WT_BRANCH" >&2
+            # Still cleanup lock but don't remove worktree
+            rm -rf "$LOCK_FILE" 2>/dev/null
+            trap - EXIT ERR
+            # Continue to move plan to done but skip cleanup
+        else
+            # 4. Cleanup worktree, branch, directory
+            cleanup_worktree "$WT_PATH" "$WT_BRANCH"
 
-        # 4. Cleanup worktree, branch, directory
-        cleanup_worktree "$WT_PATH" "$WT_BRANCH"
+            # 5. Remove lock file (explicit cleanup, trap handles errors, SC-7)
+            rm -rf "$LOCK_FILE"
 
-        # 5. Remove lock file (explicit cleanup, trap handles errors)
-        rm -rf "$LOCK_FILE"
-
-        # Clear trap on success
-        trap - EXIT ERR
+            # Clear trap on success
+            trap - EXIT ERR
+        fi
     fi
 fi
 ```
@@ -123,8 +143,20 @@ else
     mv "$ACTIVE_PLAN_PATH" "$DONE_PATH"
 fi
 
-# Clear active pointer
+# Clear active pointers (both main and worktree branch keys, SC-4, SC-7)
 [ -f "$ACTIVE_PTR" ] && rm -f "$ACTIVE_PTR"
+
+# If this was a worktree plan, also clear the dual active pointers
+if grep -q "## Worktree Info" "$DONE_PATH" 2>/dev/null; then
+    WT_META="$(read_worktree_metadata "$DONE_PATH" 2>/dev/null)"
+    if [ -n "$WT_META" ]; then
+        IFS='|' read -r WT_BRANCH WT_PATH WT_MAIN MAIN_PROJECT LOCK_FILE <<< "$WT_META"
+        # Clear worktree branch active pointer
+        WT_KEY="$(printf "%s" "$WT_BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
+        WT_PTR="$PROJECT_ROOT/.pilot/plan/active/${WT_KEY}.txt"
+        [ -f "$WT_PTR" ] && rm -f "$WT_PTR"
+    fi
+fi
 ```
 
 ---

@@ -62,6 +62,7 @@ plan_to_branch() {
 # Create a Git worktree for parallel execution
 # Usage: create_worktree "branch-name" "plan-file" "main-branch"
 # Creates worktree in ../project-wt-{branch-shortname}
+# Returns: Absolute path to worktree directory
 create_worktree() {
     local branch_name="$1"
     local plan_file="$2"
@@ -84,16 +85,21 @@ create_worktree() {
         return 1
     fi
 
+    # Convert to absolute path (SC-2)
+    worktree_dir="$(cd "$worktree_dir" && pwd)"
+
     printf "%s" "$worktree_dir"
 }
 
 # Add worktree metadata to plan file
-# Usage: add_worktree_metadata "plan-path" "branch" "worktree-path" "main-branch"
+# Usage: add_worktree_metadata "plan-path" "branch" "worktree-path" "main-branch" ["main-project"] ["lock-file"]
 add_worktree_metadata() {
     local plan_path="$1"
     local branch="$2"
     local worktree_path="$3"
     local main_branch="$4"
+    local main_project="${5:-}"
+    local lock_file="${6:-}"
     local timestamp
 
     timestamp="$(date -u +"%Y-%m-%dT%H:%M:%S")"
@@ -106,8 +112,18 @@ add_worktree_metadata() {
 - Branch: ${branch}
 - Worktree Path: ${worktree_path}
 - Main Branch: ${main_branch}
-- Created At: ${timestamp}
 EOF
+
+    # Add optional fields if provided (SC-3, SC-7)
+    if [ -n "$main_project" ]; then
+        echo "- Main Project: ${main_project}" >> "$plan_path"
+    fi
+
+    if [ -n "$lock_file" ]; then
+        echo "- Lock File: ${lock_file}" >> "$plan_path"
+    fi
+
+    echo "- Created At: ${timestamp}" >> "$plan_path"
 }
 
 # Detect if current directory is a Git worktree
@@ -128,17 +144,30 @@ is_in_worktree() {
 
 # Get worktree metadata from plan file
 # Usage: read_worktree_metadata "plan-path"
-# Outputs: branch|worktree_path|main_branch (pipe-delimited)
+# Outputs: branch|worktree_path|main_branch|main_project|lock_file (pipe-delimited)
+# Returns: 0 if all required fields found, 1 otherwise
 read_worktree_metadata() {
     local plan_path="$1"
-    local branch worktree_path main_branch
+    local branch worktree_path main_branch main_project lock_file
 
-    branch="$(grep -A1 '^## Worktree Info' "$plan_path" 2>/dev/null | grep '^-' | grep 'Branch:' | sed 's/.*Branch: *//' | head -1)"
-    worktree_path="$(grep -A1 '^## Worktree Info' "$plan_path" 2>/dev/null | grep '^-' | grep 'Worktree Path:' | sed 's/.*Worktree Path: *//' | head -1)"
-    main_branch="$(grep -A1 '^## Worktree Info' "$plan_path" 2>/dev/null | grep '^-' | grep 'Main Branch:' | sed 's/.*Main Branch: *//' | head -1)"
+    # Extract the Worktree Info section (multi-line parsing, SC-5)
+    local worktree_section
+    worktree_section="$(sed -n '/^## Worktree Info/,/^## /p' "$plan_path" 2>/dev/null | sed '$d')"
 
+    if [ -z "$worktree_section" ]; then
+        return 1
+    fi
+
+    # Parse each field from the section
+    branch="$(printf "%s" "$worktree_section" | grep 'Branch:' | sed 's/.*Branch: *//' | head -1)"
+    worktree_path="$(printf "%s" "$worktree_section" | grep 'Worktree Path:' | sed 's/.*Worktree Path: *//' | head -1)"
+    main_branch="$(printf "%s" "$worktree_section" | grep 'Main Branch:' | sed 's/.*Main Branch: *//' | head -1)"
+    main_project="$(printf "%s" "$worktree_section" | grep 'Main Project:' | sed 's/.*Main Project: *//' | head -1)"
+    lock_file="$(printf "%s" "$worktree_section" | grep 'Lock File:' | sed 's/.*Lock File: *//' | head -1)"
+
+    # Return pipe-delimited values (SC-5)
     if [ -n "$branch" ] && [ -n "$worktree_path" ] && [ -n "$main_branch" ]; then
-        printf "%s|%s|%s" "$branch" "$worktree_path" "$main_branch"
+        printf "%s|%s|%s|%s|%s" "$branch" "$worktree_path" "$main_branch" "$main_project" "$lock_file"
         return 0
     fi
 
@@ -232,6 +261,7 @@ resolve_conflicts_interactive() {
 
 # Cleanup worktree, branch, and directory
 # Usage: cleanup_worktree "worktree-path" "branch"
+# Handles dirty worktrees with --force option (SC-6)
 cleanup_worktree() {
     local worktree_path="$1"
     local branch="$2"
@@ -242,10 +272,15 @@ cleanup_worktree() {
 
     echo "Cleaning up worktree..."
 
-    # Remove worktree
+    # Remove worktree (try normal first, then force for dirty state, SC-6)
     if git worktree list | grep -q "$worktree_path"; then
         echo "Removing worktree: $worktree_path"
-        git worktree remove "$worktree_path" 2>&1 || true
+        # Try normal removal first
+        if ! git worktree remove "$worktree_path" 2>/dev/null; then
+            # Force removal for dirty worktrees
+            echo "Worktree has uncommitted changes, using --force"
+            git worktree remove --force "$worktree_path" 2>&1 || true
+        fi
     fi
 
     # Remove directory if it still exists

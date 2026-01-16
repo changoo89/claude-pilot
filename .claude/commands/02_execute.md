@@ -72,8 +72,16 @@ if is_worktree_mode "$@"; then
     MAIN_BRANCH="main"; git rev-parse --verify "$MAIN_BRANCH" >/dev/null 2>&1 || MAIN_BRANCH="master"
     WORKTREE_DIR="$(create_worktree "$BRANCH_NAME" "$PLAN_FILENAME" "$MAIN_BRANCH")" || exit 1
 
-    # Add worktree metadata to plan
-    add_worktree_metadata "$IN_PROGRESS_PATH" "$BRANCH_NAME" "$WORKTREE_DIR" "$MAIN_BRANCH"
+    # Store dual active pointers BEFORE cd to worktree (SC-4)
+    # This ensures main branch key is set while we're still in main project
+    mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
+    MAIN_KEY="$(printf "%s" "$MAIN_BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
+    WT_KEY="$(printf "%s" "$BRANCH_NAME" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
+    printf "%s" "$IN_PROGRESS_PATH" > "$PROJECT_ROOT/.pilot/plan/active/${MAIN_KEY}.txt"
+    printf "%s" "$IN_PROGRESS_PATH" > "$PROJECT_ROOT/.pilot/plan/active/${WT_KEY}.txt"
+
+    # Add worktree metadata to plan (with main project and lock file, SC-3, SC-7)
+    add_worktree_metadata "$IN_PROGRESS_PATH" "$BRANCH_NAME" "$WORKTREE_DIR" "$MAIN_BRANCH" "$PROJECT_ROOT" "$LOCK_FILE"
 
     PLAN_PATH="$IN_PROGRESS_PATH"
     cd "$WORKTREE_DIR" || exit 1

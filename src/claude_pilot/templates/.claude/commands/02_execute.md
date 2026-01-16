@@ -138,6 +138,9 @@ Read plan, extract: Deliverables, Phases, Tasks, Acceptance Criteria, Test Plan
 
 ## Step 3: Delegate to Coder Agent (Context Isolation)
 
+### Default Behavior
+Always delegate implementation to Coder Agent for context isolation.
+
 ### 🚀 MANDATORY ACTION: Coder Agent Invocation
 
 > **CRITICAL**: YOU MUST invoke the Coder Agent NOW using the Task tool for context isolation.
@@ -145,7 +148,7 @@ Read plan, extract: Deliverables, Phases, Tasks, Acceptance Criteria, Test Plan
 
 **Why Agent?**: Coder Agent runs in **isolated context window** (~80K tokens internally). Only summary returns here (8x token efficiency).
 
-**EXECUTE IMMEDIATELY - DO NOT SKIP**:
+**EXECUTE IMMEDIATELY**:
 
 ```markdown
 Task:
@@ -249,7 +252,7 @@ Implementation complete. All SCs met.
 - **Validator** (Haiku): Type check, lint, coverage thresholds
 - **Code-Reviewer** (Opus): Deep review for async bugs, memory leaks, security issues
 
-**EXECUTE IMMEDIATELY - DO NOT SKIP**:
+**EXECUTE IMMEDIATELY**:
 
 ```markdown
 Task:
@@ -384,83 +387,68 @@ IF REVIEW_CONTAINS_CRITICAL_ISSUES:
     LOG: "Critical review findings detected"
 ```
 
-### 3.6.2 Feedback Loop (Conditional)
+### 3.6.2 Feedback Loop (Auto-Fix)
 
 **IF NO CRITICAL ISSUES** (`CRITICAL_ISSUES = 0`):
 - Proceed to Step 5 (Ralph Loop) or next step
 
 **IF CRITICAL ISSUES FOUND** (`CRITICAL_ISSUES > 0`):
 
+> **Auto-Fix Mode**: Critical issues trigger automatic Coder Agent re-invocation without user confirmation.
+
 ```bash
 ITERATION=1
 MAX_ITERATIONS=3
 
 WHILE [ $ITERATION -le $MAX_ITERATIONS ]; do
-    echo "=== Feedback Loop Iteration $ITERATION ==="
+    echo "=== Auto-Fix Iteration $ITERATION ==="
 
-    # Present findings to user
-    AskUserQuestion:
-      title: "Critical Issues Found - Feedback Required"
-      question: |
-        Verification found ${CRITICAL_ISSUES} critical issue(s):
+    # Log critical issues found
+    LOG: "Critical issues detected: ${CRITICAL_ISSUES}"
+    LOG: "Test Results: {TEST_SUMMARY}"
+    LOG: "Type/Lint: {VALIDATOR_SUMMARY}"
+    LOG: "Code Review: {REVIEW_SUMMARY}"
 
-        **Test Results**: {TEST_SUMMARY}
-        **Type/Lint**: {VALIDATOR_SUMMARY}
-        **Code Review**: {REVIEW_SUMMARY}
+    # AUTO-INVOKE Coder Agent (NO user confirmation required)
+    Task:
+      subagent_type: coder
+      prompt: |
+        Fix the following critical issues found during verification:
 
-        How would you like to proceed?
-      options:
-        - label: "Re-invoke Coder Agent to fix"
-          value: "reinvent"
-        - label: "Fix manually"
-          value: "manual"
-        - label: "Accept with issues"
-          value: "accept"
+        **Test Failures**: {TEST_FAILURES}
+        **Type/Lint Errors**: {VALIDATION_ERRORS}
+        **Code Review Issues**: {CRITICAL_REVIEW_FINDINGS}
 
-    # Process user choice
-    IF USER_CHOICE == "reinvest":
-        # Re-invoke Coder Agent with specific fixes
-        Task:
-          subagent_type: coder
-          prompt: |
-            Fix the following critical issues found during verification:
+        Plan Path: {PLAN_PATH}
+        Implement fixes using TDD + Ralph Loop.
+        Return summary with test results and coverage.
 
-            **Test Failures**: {TEST_FAILURES}
-            **Type/Lint Errors**: {VALIDATION_ERRORS}
-            **Code Review Issues**: {CRITICAL_REVIEW_FINDINGS}
+    # Re-run verification (Step 3.5)
+    GOTO Step 3.5
 
-            Plan Path: {PLAN_PATH}
-            Implement fixes using TDD + Ralph Loop.
-            Return summary with test results and coverage.
-
-        # Re-run verification (Step 3.5)
-        GOTO Step 3.5
-
-    ELIF USER_CHOICE == "manual":
-        LOG: "User will fix manually - pausing for intervention"
-        BREAK LOOP
-
-    ELIF USER_CHOICE == "accept":
-        LOG: "User accepted with issues - proceeding"
+    # Check if issues resolved
+    IF CRITICAL_ISSUES == 0:
+        LOG: "✅ All critical issues resolved in iteration $ITERATION"
         BREAK LOOP
 
     ITERATION=$((ITERATION + 1))
 done
 
-# Check loop completion
-IF [ $ITERATION -gt $MAX_ITERATIONS ]; then
-    LOG: "Max feedback iterations reached - requires user intervention"
+# ONLY ask user AFTER max iterations reached with remaining issues
+IF [ $ITERATION -gt $MAX_ITERATIONS ] AND [ $CRITICAL_ISSUES -gt 0 ]; then
+    LOG: "Max iterations reached - requires user intervention"
     AskUserQuestion:
-      title: "Feedback Loop Maxed Out"
+      title: "Auto-Fix Loop Completed - Issues Remain"
       question: |
-        Reached ${MAX_ITERATIONS} iterations without resolution.
-        Critical issues remain:
+        Auto-fix completed ${MAX_ITERATIONS} iterations but critical issues remain:
         {REMAINING_ISSUES}
 
         How would you like to proceed?
       options:
-        - label: "Continue anyway"
+        - label: "Continue anyway (accept with issues)"
           value: "continue"
+        - label: "Fix manually"
+          value: "manual"
         - label: "Cancel and investigate"
           value: "cancel"
 fi

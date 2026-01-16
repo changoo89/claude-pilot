@@ -71,6 +71,16 @@ MANAGED_FILES: list[tuple[str, str]] = [
     # Rules (new - Claude Code official pattern)
     (".claude/rules/core/workflow.md", ".claude/rules/core/workflow.md"),
     (".claude/rules/documentation/tier-rules.md", ".claude/rules/documentation/tier-rules.md"),
+    # Codex Delegator (new - GPT expert delegation)
+    (".claude/rules/delegator/delegation-format.md", ".claude/rules/delegator/delegation-format.md"),
+    (".claude/rules/delegator/model-selection.md", ".claude/rules/delegator/model-selection.md"),
+    (".claude/rules/delegator/orchestration.md", ".claude/rules/delegator/orchestration.md"),
+    (".claude/rules/delegator/triggers.md", ".claude/rules/delegator/triggers.md"),
+    (".claude/rules/delegator/prompts/architect.md", ".claude/rules/delegator/prompts/architect.md"),
+    (".claude/rules/delegator/prompts/code-reviewer.md", ".claude/rules/delegator/prompts/code-reviewer.md"),
+    (".claude/rules/delegator/prompts/plan-reviewer.md", ".claude/rules/delegator/prompts/plan-reviewer.md"),
+    (".claude/rules/delegator/prompts/scope-analyst.md", ".claude/rules/delegator/prompts/scope-analyst.md"),
+    (".claude/rules/delegator/prompts/security-analyst.md", ".claude/rules/delegator/prompts/security-analyst.md"),
     # Guides (new - methodology documentation)
     (".claude/guides/prp-framework.md", ".claude/guides/prp-framework.md"),
     (".claude/guides/parallel-execution.md", ".claude/guides/parallel-execution.md"),

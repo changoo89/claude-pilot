@@ -7,10 +7,9 @@ for downloading and syncing skills from external GitHub repositories.
 
 from __future__ import annotations
 
-from collections.abc import Generator
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -70,7 +69,7 @@ class TestGetGithubLatestSha:
     def test_get_github_latest_sha_http_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test get_github_latest_sha() handles HTTP error (TS-3)."""
 
-        def _mock_get_http_error(url: str, timeout: int | None = None, **kwargs: Any) -> None:
+        def _mock_get_http_error(url: str, timeout: int | None = None, **kwargs: Any) -> MagicMock:
             import requests
             mock_response = MagicMock()
             mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(
@@ -88,7 +87,7 @@ class TestGetGithubLatestSha:
 
         def _mock_get_rate_limit(
             url: str, timeout: int | None = None, **kwargs: Any
-        ) -> None:
+        ) -> MagicMock:
             import requests
             mock_response = MagicMock()
             mock_response.status_code = 403
@@ -248,7 +247,7 @@ class TestExtractSkillsFromTarball:
 
         # Create an empty tarball
         tarball_path = tmp_path / "empty.tar.gz"
-        with tarfile.open(tarball_path, "w:gz") as tar:
+        with tarfile.open(tarball_path, "w:gz"):
             pass  # Empty tarball
 
         dest_dir = tmp_path / "extracted"
@@ -261,7 +260,6 @@ class TestExtractSkillsFromTarball:
     ) -> None:
         """Test extract_skills_from_tarball() skips symlinks (Security: Critical #2)."""
         import tarfile
-        import io
 
         # Create a tarball with a symlink
         tarball_path = tmp_path / "malicious.tar.gz"
@@ -289,8 +287,8 @@ class TestExtractSkillsFromTarball:
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Test extract_skills_from_tarball() blocks path traversal (Security: Critical #1)."""
-        import tarfile
         import io
+        import tarfile
 
         # Create a tarball with path traversal
         tarball_path = tmp_path / "malicious.tar.gz"
@@ -338,8 +336,8 @@ class TestSyncExternalSkills:
         # Mock download_github_tarball to succeed
         def _mock_download(repo: str, ref: str, dest: Path) -> bool:
             # Create a mock tarball
-            import tarfile
             import io
+            import tarfile
 
             tarball_path = dest / f"{repo.replace('/', '-')}-{ref[:7]}.tar.gz"
 
@@ -443,8 +441,8 @@ class TestSyncExternalSkills:
 
         # Mock download_github_tarball to succeed
         def _mock_download(repo: str, ref: str, dest: Path) -> bool:
-            import tarfile
             import io
+            import tarfile
 
             tarball_path = dest / f"{repo.replace('/', '-')}-{ref[:7]}.tar.gz"
 

@@ -4,6 +4,7 @@ Tests for claude_pilot.cli module.
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
@@ -60,8 +61,9 @@ class TestApplyStatuslineFlag:
 
     def test_apply_statusline_flag_calls_function(self, tmp_path: Path) -> None:
         """Test that --apply-statusline flag calls apply_statusline function."""
-        from claude_pilot.cli import main
         from unittest.mock import patch
+
+        from claude_pilot.cli import main
 
         runner = CliRunner()
 
@@ -76,8 +78,9 @@ class TestApplyStatuslineFlag:
 
     def test_apply_statusline_flag_failure_exits_with_error(self, tmp_path: Path) -> None:
         """Test that --apply-statusline flag exits with error on failure."""
-        from claude_pilot.cli import main
         from unittest.mock import patch
+
+        from claude_pilot.cli import main
 
         runner = CliRunner()
 

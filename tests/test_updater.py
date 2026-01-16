@@ -453,8 +453,9 @@ class TestApplyStatusline:
 
     def test_apply_statusline_handles_write_error(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test apply_statusline() handles write errors gracefully."""
-        from claude_pilot.updater import apply_statusline
         import json
+
+        from claude_pilot.updater import apply_statusline
 
         # Create .claude directory with existing settings.json
         claude_dir = tmp_path / ".claude"
@@ -484,8 +485,8 @@ class TestApplyStatusline:
 
     def test_apply_statusline_backup_failure_continues(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test apply_statusline() continues when backup creation fails."""
+
         from claude_pilot.updater import apply_statusline
-        import shutil
 
         # Create .claude directory with existing settings.json
         claude_dir = tmp_path / ".claude"

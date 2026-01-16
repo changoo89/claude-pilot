@@ -99,11 +99,24 @@ claude-pilot/
 │       │   └── .claude/
 │       │       ├── scripts/
 │       │       │   └── statusline.sh  # Statusline script (NEW)
-│       │       └── settings.json      # StatusLine config (UPDATED)
+│       │       ├── settings.json      # StatusLine config (UPDATED)
+│       │       └── rules/
+│       │           └── delegator/     # Codex delegation orchestration (NEW)
+│       │               ├── delegation-format.md
+│       │               ├── model-selection.md
+│       │               ├── orchestration.md
+│       │               ├── triggers.md
+│       │               └── prompts/    # GPT expert prompts (NEW)
+│       │                   ├── architect.md
+│       │                   ├── code-reviewer.md
+│       │                   ├── plan-reviewer.md
+│       │                   ├── scope-analyst.md
+│       │                   └── security-analyst.md
 │       ├── cli.py          # CLI with --skip-external-skills flag (UPDATED)
+│       ├── codex.py        # Codex CLI detection, auth check, MCP setup (NEW)
 │       ├── config.py       # EXTERNAL_SKILLS config (UPDATED)
-│       ├── initializer.py  # Init with external skills sync (UPDATED)
-│       └── updater.py      # External skills sync functions (UPDATED)
+│       ├── initializer.py  # Init with external skills + Codex sync (UPDATED)
+│       └── updater.py      # External skills + Codex sync functions (UPDATED)
 ├── tests/                  # Test files
 ├── CLAUDE.md               # Tier 1: Project documentation
 ├── README.md               # Project README
@@ -560,4 +573,4 @@ claude-pilot update --apply-statusline
 ---
 
 **Last Updated**: 2026-01-16
-**Version**: 3.4.0
+**Version**: 3.4.0 (Codex integration)

@@ -92,6 +92,18 @@ project-root/
 ├── tests/                  # Test files
 ├── CLAUDE.md               # This file
 └── README.md               # Project README
+
+## Codex Integration (v3.4.0)
+
+**Optional GPT Expert Delegation**: When Codex CLI is installed and authenticated, claude-pilot automatically:
+- Detects Codex CLI presence
+- Verifies authentication status
+- Generates `.mcp.json` with GPT 5.2 model config
+- Copies orchestration rules (4 files) and expert prompts (5 files)
+
+**Silent Skip**: If Codex not installed, init/update proceed normally without errors.
+
+**See**: `docs/ai-context/system-integration.md` for detailed Codex integration documentation.
 ```
 
 ---
@@ -318,10 +330,13 @@ Located in `.claude/scripts/hooks/`:
 | serena | Semantic code operations |
 | grep-app | Advanced search |
 | sequential-thinking | Complex reasoning |
+| codex (Optional) | GPT expert delegation (auto-configured if Codex CLI installed) |
 
 ### Configuration
 
 See `.claude/settings.json` for MCP configuration.
+
+**Codex MCP** (auto-generated): `.mcp.json` with GPT 5.2 model
 
 ---
 

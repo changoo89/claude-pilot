@@ -18,9 +18,10 @@ This package contains the core functionality for the claude-pilot CLI tool, incl
 | `__init__.py` | Package initialization, version export | 10 |
 | `__main__.py` | Package entry point for `python -m claude_pilot` | 5 |
 | `cli.py` | Click-based CLI commands (init, update, version) | 230 |
+| `codex.py` | Codex CLI detection, auth check, MCP setup (NEW) | 101 |
 | `config.py` | Configuration constants, version, managed files, external skills config | 157 |
-| `initializer.py` | Project initialization logic, language selection, template copying | 380 |
-| `updater.py` | Update management, external skills sync, GitHub API integration | 1000+ |
+| `initializer.py` | Project initialization logic, language selection, template copying | 392 |
+| `updater.py` | Update management, external skills sync, GitHub API integration | 1010+ |
 | `py.typed` | PEP 561 type marker for mypy | 0 |
 
 ---
@@ -93,6 +94,14 @@ All CLI commands follow this structure:
 6. **Extract**: Validate paths, reject symlinks
 7. **Save**: Write new SHA to version file
 
+### Codex MCP Setup Pattern (v3.4.0)
+
+1. **Detect CLI**: Check if `codex` command available (`shutil.which`)
+2. **Check Auth**: Verify `~/.codex/auth.json` has valid tokens
+3. **Load Config**: Read existing `.mcp.json` or create new
+4. **Merge Config**: Add Codex MCP server to `mcpServers.codex`
+5. **Write Config**: Atomic write to `.mcp.json` with GPT 5.2 model
+
 ---
 
 ## Security Considerations
@@ -119,6 +128,7 @@ All CLI commands follow this structure:
 | `cli.py` | User interface | → Commands → initializer/updater |
 | `initializer.py` | Project setup | → .claude/ directory creation |
 | `updater.py` | Updates | → GitHub API, tarball download |
+| `codex.py` | Codex MCP setup | → .mcp.json (GPT 5.2 config) |
 | `config.py` | Configuration | ← All modules read constants |
 
 ---
@@ -132,6 +142,7 @@ All CLI commands follow this structure:
 | `tests/test_initializer.py` | Init command tests | 80%+ |
 | `tests/test_updater.py` | Update command tests | 80%+ |
 | `tests/test_external_skills.py` | External skills sync tests | 90%+ |
+| `tests/test_codex.py` | Codex detection & MCP setup tests (NEW) | 81%+ |
 
 ### Running Tests
 
@@ -158,4 +169,4 @@ pytest tests/test_external_skills.py
 ---
 
 **Last Updated**: 2026-01-16
-**Version**: 3.3.6
+**Version**: 3.4.0

@@ -10,12 +10,10 @@ Tests the statusline.sh script behavior including:
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
-from typing import Any
-from unittest.mock import MagicMock, patch
 
 import pytest
-import subprocess
 
 from claude_pilot import config
 

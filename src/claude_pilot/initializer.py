@@ -377,6 +377,20 @@ class ProjectInitializer:
         elif sync_status == "failed":
             console.print("[yellow]![/yellow] External skills sync failed (continuing)")
 
+        # Setup Codex MCP if available
+        from claude_pilot.codex import setup_codex_mcp
+
+        console.print("[blue]i[/blue] Checking Codex CLI availability...")
+        codex_setup = setup_codex_mcp(self.target_dir)
+        if codex_setup:
+            mcp_file = self.target_dir / ".mcp.json"
+            if mcp_file.exists():
+                console.print("[green]✓[/green] Codex MCP configured (.mcp.json)")
+            else:
+                console.print("[blue]i[/blue] Codex CLI not available or not authenticated (skipping)")
+        else:
+            console.print("[yellow]![/yellow] Codex MCP setup failed (continuing)")
+
         console.print(f"[green]✓[/green] Version {config.VERSION} initialized\n")
         console.print("[bold green]Initialization complete![/bold green]\n")
         console.print("[blue]Next steps:[/blue]")

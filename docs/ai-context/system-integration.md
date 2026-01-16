@@ -360,6 +360,150 @@ EXTERNAL_SKILLS_VERSION_FILE = ".claude/.external-skills-version"
 
 ---
 
+## Codex Delegator Integration (v3.4.0)
+
+### Overview
+
+The Codex delegator integration provides optional GPT expert delegation via Codex MCP server, enabling multi-LLM orchestration (Claude + GPT 5.2) for specialized tasks like architecture, security review, and code review.
+
+### Components
+
+| File | Purpose |
+|------|---------|
+| `codex.py` | Codex CLI detection, auth check, MCP setup |
+| `initializer.py` | Calls setup_codex_mcp() during init |
+| `updater.py` | Calls setup_codex_mcp() during update |
+| `templates/.claude/rules/delegator/*` | 4 orchestration rules (delegation-format, model-selection, orchestration, triggers) |
+| `templates/.claude/rules/delegator/prompts/*` | 5 GPT expert prompts (architect, code-reviewer, plan-reviewer, scope-analyst, security-analyst) |
+
+### Codex Detection & Setup Workflow
+
+```
+User runs: claude-pilot init/update
+      │
+      ├─► 1. Detect Codex CLI (shutil.which("codex"))
+      │   └─► Not found → Skip (silent)
+      │
+      ├─► 2. Check Codex Auth (~/.codex/auth.json)
+      │   └─► No valid tokens → Skip (silent)
+      │
+      ├─► 3. Read existing .mcp.json (or create new)
+      │   └─► Parse JSON, validate structure
+      │
+      ├─► 4. Merge Codex MCP config
+      │   └─► Add mcpServers.codex with GPT 5.2 model
+      │
+      └─► 5. Write .mcp.json atomically
+          └─► Return success/failure
+```
+
+### Codex MCP Configuration
+
+Generated `.mcp.json` structure:
+```json
+{
+  "mcpServers": {
+    "codex": {
+      "type": "stdio",
+      "command": "codex",
+      "args": ["-m", "gpt-5.2", "mcp-server"]
+    }
+  }
+}
+```
+
+**Key Features**:
+- **Model**: GPT 5.2 (NOT gpt-5.2-codex)
+- **Type**: stdio (command-based MCP server)
+- **Merge**: Preserves existing MCP servers in .mcp.json
+- **Silent Skip**: No errors if Codex not installed
+
+### Integration Points
+
+| Component | Integration | Data Flow |
+|-----------|-------------|-----------|
+| `initializer.py` | Calls setup_codex_mcp() after external skills sync | → .mcp.json with Codex config |
+| `updater.py` | Calls setup_codex_mcp() during auto update | → .mcp.json with Codex config |
+| `codex.py` | Core detection & setup logic | → Detect → Auth → Merge → Write |
+| `templates/.claude/rules/delegator/*` | Orchestration rules | → Copied to project .claude/rules/ |
+| `templates/.claude/rules/delegator/prompts/*` | GPT expert prompts | → Copied to project .claude/rules/delegator/prompts/ |
+
+### GPT Expert Delegation
+
+Available experts via Codex MCP:
+
+| Expert | Specialty | Use For |
+|--------|-----------|---------|
+| Architect | System design, tradeoffs | Architecture decisions, complex debugging |
+| Code Reviewer | Code quality, bugs | Code review, finding issues |
+| Plan Reviewer | Plan validation | Reviewing work plans before execution |
+| Scope Analyst | Requirements analysis | Catching ambiguities before work starts |
+| Security Analyst | Vulnerabilities, threats | Security audits, hardening |
+
+### Delegation Rules (4 Files)
+
+Located in `templates/.claude/rules/delegator/`:
+
+| File | Purpose |
+|------|---------|
+| `delegation-format.md` | 7-section format for delegation prompts |
+| `model-selection.md` | Expert directory, operating modes, codex parameters |
+| `orchestration.md` | Stateless design, retry flow, cost awareness |
+| `triggers.md` | PROACTIVE/REACTIVE delegation triggers |
+
+### Expert Prompts (5 Files)
+
+Located in `templates/.claude/rules/delegator/prompts/`:
+
+| File | Expert | Mode | Output |
+|------|--------|------|--------|
+| `architect.md` | Architect | Advisory/Implementation | Recommendation + plan / Changes + verification |
+| `code-reviewer.md` | Code Reviewer | Advisory/Implementation | Issues + verdict / Fixes + verification |
+| `plan-reviewer.md` | Plan Reviewer | Advisory | APPROVE/REJECT + justification |
+| `scope-analyst.md` | Scope Analyst | Advisory | Intent + findings + questions + risks |
+| `security-analyst.md` | Security Analyst | Advisory/Implementation | Vulnerabilities + risk / Hardening + verification |
+
+### User Experience
+
+**New Projects** (`claude-pilot init`):
+- Detects Codex CLI if installed
+- Checks authentication status
+- Creates `.mcp.json` with Codex MCP config
+- Copies 4 orchestration rules to `.claude/rules/delegator/`
+- Copies 5 expert prompts to `.claude/rules/delegator/prompts/`
+
+**Existing Projects** (`claude-pilot update`):
+- Same detection and setup process
+- Merges Codex config into existing `.mcp.json`
+- Updates orchestration rules and prompts if newer version available
+
+**No Codex Installed**:
+- Silent skip (no errors or warnings)
+- Other init/update operations proceed normally
+
+### Security Considerations
+
+1. **Authentication Check**: Only enables if valid tokens in `~/.codex/auth.json`
+2. **Path Safety**: Uses `Path` objects for cross-platform compatibility
+3. **Merge Strategy**: Preserves existing MCP servers in `.mcp.json`
+4. **Silent Failure**: Returns `True` on skip (not installed) to avoid breaking init/update
+
+### Testing
+
+Test file: `tests/test_codex.py` (11 tests, 81% coverage)
+
+| Test | Scenario |
+|------|----------|
+| `test_detect_codex_installed` | Codex CLI present |
+| `test_detect_codex_not_installed` | Codex CLI not found |
+| `test_codex_authenticated` | Valid auth.json with tokens |
+| `test_codex_not_authenticated` | No/invalid auth.json |
+| `test_setup_mcp_fresh` | Create new .mcp.json |
+| `test_setup_mcp_merge` | Merge into existing .mcp.json |
+| `test_setup_mcp_skip` | Skip when Codex not installed |
+
+---
+
 ## /00_plan Command Workflow (Updated 2026-01-16)
 
 The `/00_plan` command generates SPEC-First plans with **User Requirements Collection (Step 0)** to prevent omissions.
@@ -524,7 +668,9 @@ The `/01_confirm` command extracts the plan from the `/00_plan` conversation, cr
 | `/03_close` worktree | Releases lock file | Lock removed (or trap auto-removes on error) |
 | `claude-pilot update --apply-statusline` | Adds statusLine to settings | Updates `.claude/settings.json` with backup |
 | `claude-pilot init` | Syncs external skills | Downloads Vercel agent-skills to `.claude/skills/external/` |
+| `claude-pilot init` | Sets up Codex MCP | Creates `.mcp.json` with GPT 5.2 config (if Codex installed) |
 | `claude-pilot update` | Syncs external skills | Updates external skills from GitHub (skips if current) |
+| `claude-pilot update` | Updates Codex MCP | Merges Codex config into `.mcp.json` (if Codex installed) |
 | `/999_publish` Step 0.5 | Syncs templates | `.claude/` → `src/claude_pilot/templates/.claude/` |
 | `/999_publish` Step 3-5 | Updates all 6 version files | pyproject.toml, __init__.py, config.py, install.sh, .pilot-version files |
 
@@ -1100,4 +1246,4 @@ Task:
 ---
 
 **Last Updated**: 2026-01-16
-**Version**: 3.4.0
+**Version**: 3.4.0 (Codex integration)

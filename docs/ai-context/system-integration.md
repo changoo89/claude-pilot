@@ -360,11 +360,11 @@ EXTERNAL_SKILLS_VERSION_FILE = ".claude/.external-skills-version"
 
 ---
 
-## Codex Delegator Integration (v3.4.0)
+## Codex Delegator Integration (v4.0.3)
 
 ### Overview
 
-The Codex delegator integration provides optional GPT expert delegation via Codex MCP server, enabling multi-LLM orchestration (Claude + GPT 5.2) for specialized tasks like architecture, security review, and code review.
+The Codex delegator integration provides optional GPT expert delegation via `codex-sync.sh` Bash script, enabling multi-LLM orchestration (Claude + GPT 5.2) for specialized tasks like architecture, security review, and code review.
 
 ### Components
 
@@ -1245,5 +1245,5 @@ Task:
 
 ---
 
-**Last Updated**: 2026-01-16
-**Version**: 3.4.0 (Codex Delegator Integration)
+**Last Updated**: 2026-01-17
+**Version**: 4.0.3 (Codex Delegator Integration)

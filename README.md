@@ -180,7 +180,7 @@ Update to the latest version:
 claude-pilot update
 
 # Manual merge (generates guide for manual review)
-claude-pilot update --manual
+claude-pilot update --strategy manual
 ```
 
 **What gets updated:**

@@ -65,7 +65,174 @@ You are the Code-Reviewer Agent. Your mission is to perform deep, comprehensive 
 4. **Filter by priority**: Report only high/critical issues
 5. **Return structured feedback**
 
-## Output Format
+---
+
+## GPT Security Analyst Delegation (Optional)
+
+> **Purpose**: Leverage GPT Security Analyst for security-related code review
+> **Trigger**: Code involves authentication, authorization, sensitive data, input validation
+> **Reference**: @.claude/rules/delegator/orchestration.md
+
+### When to Delegate to GPT Security Analyst
+
+| Scenario | Action |
+|----------|--------|
+| **Authentication/Authorization code** | Delegate to GPT Security Analyst |
+| **Sensitive data handling** (PII, credentials, payments) | Delegate to GPT Security Analyst |
+| **Input validation from user input** | Delegate to GPT Security Analyst |
+| **External API integration** | Delegate to GPT Security Analyst |
+| **General code review** | Handle with Claude Opus (no GPT) |
+
+### Delegation Flow
+
+**Trigger Detection**:
+
+```bash
+# PSEUDO-CODE: Check if code involves security-sensitive areas
+if grep -qiE "auth|password|token|credential|secret|api.*key|encrypt|decrypt" "$FILES"; then
+    echo "Security-related code detected - delegating to GPT Security Analyst"
+    # Proceed to GPT_DELEGATION section below
+fi
+```
+
+**GPT Call Pattern**:
+
+1. **Read expert prompt**: `Read .claude/rules/delegator/prompts/security-analyst.md`
+2. **Check Codex CLI availability**:
+   ```bash
+   if ! command -v codex &> /dev/null; then
+       echo "Warning: Codex CLI not installed - falling back to Claude-only security analysis"
+       # Skip GPT delegation, use Claude's built-in security analysis
+       return 0
+   fi
+   ```
+3. **Build delegation prompt**:
+   ```bash
+   .claude/scripts/codex-sync.sh "read-only" "$(cat .claude/rules/delegator/prompts/security-analyst.md)
+
+   TASK: Review the following code for security vulnerabilities.
+
+   EXPECTED OUTCOME:
+   - Vulnerability report with severity ratings
+   - Specific security issues found
+   - Remediation recommendations
+   - Risk rating (CRITICAL/HIGH/MEDIUM/LOW)
+
+   CONTEXT:
+   - Files reviewed: ${FILES}
+   - Code context: ${CODE_CONTEXT}
+   - Security-sensitive areas: auth, input validation, data handling
+
+   MUST DO:
+   - Check OWASP Top 10 categories
+   - Identify injection vulnerabilities (SQL, XSS, command)
+   - Verify authentication/authorization
+   - Check input validation and sanitization
+   - Look for secret/credential exposure
+
+   OUTPUT FORMAT:
+   Threat summary → Vulnerabilities (by severity) → Recommendations → Risk rating"
+   ```
+3. **Synthesize response**: Extract security findings and add to review
+
+### Example: Authentication Code Review
+
+**Trigger**: Reviewing `src/auth/login.ts`
+
+```bash
+# Read expert prompt
+Read .claude/rules/delegator/prompts/security-analyst.md
+
+# Delegate to GPT
+.claude/scripts/codex-sync.sh "read-only" "You are a security engineer...
+
+TASK: Review authentication code for security vulnerabilities.
+
+EXPECTED OUTCOME:
+- Vulnerability assessment
+- Specific security issues
+- Remediation steps
+- Risk rating
+
+CONTEXT:
+$(cat <<'EOF'
+File: src/auth/login.ts
+Function: authenticateUser()
+- Handles user login
+- Validates credentials
+- Issues JWT tokens
+EOF
+)
+
+FILES:
+$(cat src/auth/login.ts)
+
+MUST DO:
+- Check for timing attacks in password comparison
+- Verify JWT secret storage
+- Check for credential logging
+- Validate rate limiting
+- Verify session management
+
+OUTPUT FORMAT:
+Threat summary → Vulnerabilities → Recommendations → Risk rating"
+```
+
+### Role Split: Claude Opus vs GPT Security Analyst
+
+| Situation | Use Claude Opus | Use GPT Security Analyst |
+|-----------|-----------------|--------------------------|
+| General code quality review | ✅ Use Claude | - |
+| Async bugs, memory leaks | ✅ Use Claude | - |
+| **Authentication code** | - | ✅ **Use GPT** |
+| **Authorization checks** | - | ✅ **Use GPT** |
+| **Sensitive data handling** | - | ✅ **Use GPT** |
+| **Input validation** | - | ✅ **Use GPT** |
+| **External API calls** | code-reviewer → | ✅ **Use GPT** |
+
+### Output Format with GPT Security Findings
+
+When GPT Security Analyst is invoked, include a dedicated security section:
+
+```markdown
+### Security Review (GPT Security Analyst)
+
+#### Threat Summary
+Authentication flow reviewed with focus on credential handling and token management.
+
+#### Critical Vulnerabilities 🚨
+
+##### 1. Timing Attack Risk in Password Comparison
+- **Location**: `src/auth/login.ts:45`
+- **Severity**: Critical
+- **Finding**: String comparison vulnerable to timing attacks
+```typescript
+if (user.password === inputPassword) { // Vulnerable
+```
+- **Recommendation**: Use constant-time comparison
+```typescript
+import { timingSafeEqual } from 'crypto';
+if (timingSafeEqual(Buffer.from(user.password), Buffer.from(inputPassword))) {
+```
+
+#### Recommendations
+- Implement rate limiting for login attempts
+- Use secure JWT storage (HttpOnly cookies)
+- Add account lockout after failed attempts
+- Log security events for audit trail
+
+#### Risk Rating
+**HIGH** - Critical vulnerabilities require immediate fix
+```
+
+### Cost Awareness
+
+- **Security review = high value** - GPT cost justified for security-critical code
+- **Include full code context** - Avoid back-and-forth for missing information
+- **Specific security focus** - Don't use GPT for general code quality
+- **Hybrid approach**: Claude for general review, GPT for security-specific analysis
+
+---
 
 ```markdown
 ## Review Summary

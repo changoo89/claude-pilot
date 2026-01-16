@@ -673,13 +673,13 @@ def _update_hook_path(command: str) -> str:
     import re
     rel_match = re.search(r'(["\']?)\.claude/', command)
     if rel_match and not command.startswith("$"):
-        quote = rel_match.group(1)
+        opening_quote = rel_match.group(1)
         # Extract everything from .claude/ onwards
         claude_start = command.find(".claude/")
         if claude_start >= 0:
             rest = command[claude_start:]  # ".claude/scripts/hooks/xxx.sh" or ".claude/scripts/hooks/xxx.sh'"
-            # Remove trailing quote if present
-            if rest.endswith('"') or rest.endswith("'"):
+            # Remove trailing quote if present and matches opening quote
+            if opening_quote and rest.endswith(opening_quote):
                 trailing = rest[-1]
                 rest = rest[:-1]
             else:
@@ -807,7 +807,7 @@ def apply_hooks(target_dir: Path | None = None) -> bool:
 
     # Create backup and write updated settings
     if updated:
-        click.secho(f"i Added missing hook types and updating paths", fg="blue")
+        click.secho("i Added missing hook types and updating paths", fg="blue")
     else:
         click.secho(f"i Updating {update_count} hook path(s) to $CLAUDE_PROJECT_DIR pattern", fg="blue")
     backup_path = _create_settings_backup(settings_path, target_dir)

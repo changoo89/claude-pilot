@@ -109,12 +109,23 @@ Use the 7-section format from `rules/delegation-format.md`.
 Use the Bash tool to call `codex-sync.sh`:
 
 ```bash
+# Check if Codex CLI is installed before attempting delegation
+if ! command -v codex &> /dev/null; then
+    echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
+    # Skip GPT delegation, continue with Claude analysis
+    return 0
+fi
+
 .claude/scripts/codex-sync.sh "<mode>" "<delegation_prompt>"
 ```
 
 **Parameters:**
 - `mode`: `read-only` (Advisory) or `workspace-write` (Implementation)
 - `delegation_prompt`: Your 7-section prompt with expert instructions prepended
+
+**Fallback Behavior:**
+- If Codex CLI is not installed, the script will log a warning and gracefully fall back to Claude-only analysis
+- No errors will be raised; delegation will be skipped automatically
 
 **Example (Advisory):**
 ```bash

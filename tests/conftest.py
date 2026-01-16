@@ -66,3 +66,9 @@ def mock_subprocess_run() -> Generator[MagicMock, None, None]:
 
     with patch("subprocess.run", return_value=mock_result) as mock_run:
         yield mock_run
+
+
+@pytest.fixture
+def project_root() -> Path:
+    """Return the project root directory."""
+    return Path(__file__).parent.parent

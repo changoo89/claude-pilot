@@ -11,7 +11,7 @@
 Framework: Python CLI Tool
 Language: Python 3.10+
 Package Manager: Poetry/pip
-Version: 3.4.0
+Version: 4.0.3
 Deployment: PyPI package distribution
 ```
 
@@ -31,7 +31,7 @@ claude-pilot/
 │   │   ├── 90_review.md    # Review code
 │   │   ├── 91_document.md  # Update docs
 │   │   ├── 92_init.md      # Initialize 3-Tier docs
-│   │   └── 999_publish.md  # Publish to npm
+│   │   └── 999_publish.md  # Publish to PyPI
 │   ├── guides/             # Methodology guides (10)
 │   │   ├── CONTEXT.md      # Guide folder context (NEW)
 │   │   ├── claude-code-standards.md  # Official Claude Code standards (NEW)
@@ -572,5 +572,5 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-16
-**Version**: 3.4.0 (Codex Delegator Integration)
+**Last Updated**: 2026-01-17
+**Version**: 4.0.3 (Codex Delegator Integration)

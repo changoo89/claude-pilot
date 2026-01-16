@@ -247,6 +247,107 @@ Execute all 8 reviews for every plan:
 
 ---
 
+## Step 10: GPT Expert Review (Optional - For Complex Plans)
+
+> **Purpose**: Leverage GPT experts for high-difficulty analysis beyond standard review
+> **Trigger**: Architecture decisions, security concerns, complex plans (5+ SCs)
+> **Reference**: @.claude/rules/delegator/orchestration.md
+
+### When to Use GPT Experts
+
+| Scenario | GPT Expert | Trigger |
+|----------|------------|---------|
+| **Architecture review** | Architect | Plan involves system design, tradeoffs, scalability |
+| **Security review** | Security Analyst | Plan handles auth, sensitive data, external APIs |
+| **Large plan validation** | Plan Reviewer | 5+ success criteria, complex dependencies |
+| **Scope ambiguity** | Scope Analyst | Unclear requirements, multiple interpretations |
+
+### GPT Expert Call Pattern
+
+**Delegation Flow**:
+
+1. **Detect trigger**: Check if plan matches GPT expert scenarios
+2. **Read expert prompt**: `Read .claude/rules/delegator/prompts/[expert].md`
+3. **Build delegation prompt**: Use 7-section format from `rules/delegation-format.md`
+4. **Call codex-sync.sh**:
+   ```bash
+   .claude/scripts/codex-sync.sh "read-only" "You are a software architect...
+
+   TASK: Review the plan at {PLAN_PATH} for architectural soundness.
+   EXPECTED OUTCOME: Architecture assessment with recommendations.
+   CONTEXT:
+   - Plan scope: {SCOPE_SUMMARY}
+   - Technical approach: {APPROACH_SUMMARY}
+   - Success criteria: {SC_SUMMARY}
+
+   MUST DO:
+   - Evaluate scalability, maintainability, technical feasibility
+   - Identify architectural gaps or risks
+   - Provide actionable recommendations
+
+   OUTPUT FORMAT:
+   Bottom line → Critical issues → Recommendations → Effort estimate"
+   ```
+5. **Synthesize response**: Extract key findings and apply to plan
+
+### Example: Architecture Review for Complex Plan
+
+**Trigger**: Plan involves microservices architecture or significant system design
+
+```bash
+# Before calling GPT, read expert prompt
+Read .claude/rules/delegator/prompts/architect.md
+
+# Then delegate
+.claude/scripts/codex-sync.sh "read-only" "$(cat .claude/rules/delegator/prompts/architect.md)
+
+TASK: Review architecture approach for plan at: $PLAN_PATH
+
+EXPECTED OUTCOME:
+- Architecture assessment (sound/needs revision/risk identified)
+- Critical architectural issues
+- Recommendations for improvements
+- Effort estimate (Quick/Short/Medium/Large)
+
+CONTEXT:
+$(extract_plan_context "$PLAN_PATH")
+
+MUST DO:
+- Evaluate technical feasibility
+- Check for scalability concerns
+- Identify missing architectural considerations
+- Assess long-term maintainability
+
+MUST NOT DO:
+- Over-engineer for hypothetical future needs
+- Introduce unnecessary complexity
+
+OUTPUT FORMAT:
+Bottom line (2-3 sentences)
+→ Critical Issues (if any)
+→ Recommendations (prioritized)
+→ Effort estimate"
+```
+
+### Role Split: Claude vs GPT
+
+| Situation | Use Claude Agent | Use GPT Expert |
+|-----------|-----------------|----------------|
+| Standard plan review | plan-reviewer (Sonnet) | - |
+| Large/complex plan (5+ SCs) | plan-reviewer → | **Plan Reviewer (GPT)** |
+| Architecture questions | - | **Architect (GPT)** |
+| Security concerns | code-reviewer (Opus) → | **Security Analyst (GPT)** |
+| Ambiguous scope | - | **Scope Analyst (GPT)** |
+
+### Cost Awareness
+
+- **GPT calls cost money** - Use for high-value analysis only
+- **Hybrid approach**: Claude for standard review, GPT for complex cases
+- **One well-structured call** beats multiple vague ones
+- **Include full context** to avoid retry costs
+
+---
+
 ## Success Criteria
 
 - [ ] All 8 mandatory reviews completed

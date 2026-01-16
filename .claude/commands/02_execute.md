@@ -439,7 +439,7 @@ WHILE [ $ITERATION -le $MAX_ITERATIONS ]; do
         Return summary with test results and coverage.
 
     # Re-run verification (Step 3.5)
-    GOTO Step 3.5
+    # PSEUDO-CODE: Return to Step 3.5 Parallel Verification
 
     # Check if issues resolved
     IF CRITICAL_ISSUES == 0:
@@ -501,6 +501,179 @@ IF [ $WORKING_AGENTS -eq 0 ]; then
         - "Continue anyway"
         - "Cancel and investigate"
 fi
+```
+
+---
+
+## Step 3.7: GPT Expert Escalation (Optional - For Persistent Issues)
+
+> **Purpose**: Leverage GPT experts for complex issues that Claude agents cannot resolve
+> **Trigger**: 2+ failed Coder Agent attempts on same issue
+> **Reference**: @.claude/rules/delegator/orchestration.md
+
+### When to Escalate to GPT
+
+| Scenario | GPT Expert | Trigger |
+|----------|------------|---------|
+| **Persistent bugs** | Architect | 2+ failed fix attempts on same issue |
+| **Security vulnerabilities** | Security Analyst | Security-related code issues |
+| **Architecture deadlock** | Architect | Design decision blocking progress |
+| **Complex debugging** | Architect | Cannot identify root cause |
+
+### GPT Escalation Flow
+
+**Entry Condition**: After 2+ failed Coder Agent attempts on same issue
+
+```bash
+FAILED_ATTEMPTS=0
+MAX_ATTEMPTS=2
+
+# Track failed attempts in feedback loop
+WHILE [ $ITERATION -le $MAX_ITERATIONS ]; do
+    # Invoke Coder Agent
+    TASK_RESULT=$(invoke_coder_agent)
+
+    IF [ $TASK_RESULT == "FAILED" ]; then
+        FAILED_ATTEMPTS=$((FAILED_ATTEMPTS + 1))
+    fi
+
+    IF [ $FAILED_ATTEMPTS -ge $MAX_ATTEMPTS ]; then
+        LOG: "⚠️ Max Claude attempts reached - escalating to GPT Architect"
+        # PSEUDO-CODE: Proceed to Step 3.7 GPT Escalation
+    fi
+done
+```
+
+### GPT Expert Call Pattern
+
+**Delegation Flow**:
+
+1. **Read expert prompt**: `Read .claude/rules/delegator/prompts/architect.md`
+2. **Check Codex CLI availability**:
+   ```bash
+   if ! command -v codex &> /dev/null; then
+       echo "Warning: Codex CLI not installed - falling back to Claude-only debugging"
+       # Skip GPT delegation, use Claude's built-in analysis
+       return 0
+   fi
+   ```
+3. **Build delegation prompt**: Include full context of what was attempted
+4. **Call codex-sync.sh**:
+   ```bash
+   .claude/scripts/codex-sync.sh "read-only" "$(cat .claude/rules/delegator/prompts/architect.md)
+
+   TASK: Debug and fix the following issue that resisted 2+ fix attempts.
+
+   PREVIOUS ATTEMPTS:
+   - Attempt 1: {WHAT_WAS_TRIED_1}
+     Error: {ERROR_1}
+     Files modified: {FILES_1}
+   - Attempt 2: {WHAT_WAS_TRIED_2}
+     Error: {ERROR_2}
+     Files modified: {FILES_2}
+
+   EXPECTED OUTCOME:
+   - Root cause analysis
+   - Working fix that resolves the issue
+   - Files modified
+
+   CONTEXT:
+   - Plan: {PLAN_PATH}
+   - Success Criteria: {SC_LIST}
+   - Current implementation: {RELEVANT_CODE}
+
+   MUST DO:
+   - Analyze why previous attempts failed
+   - Identify the root cause
+   - Provide a working solution
+
+   OUTPUT FORMAT:
+   Summary → Root cause → Fix approach → Files modified"
+   ```
+4. **Synthesize response**: Extract fix and apply via Coder Agent
+
+### Example: Persistent Bug Escalation
+
+**Trigger**: Same bug failed 2 times with Claude Coder Agent
+
+```bash
+# Read expert prompt first
+Read .claude/rules/delegator/prompts/architect.md
+
+# Build delegation prompt with full context
+.claude/scripts/codex-sync.sh "read-only" "You are a software architect...
+
+TASK: Fix the persistent race condition in payment processing.
+
+PREVIOUS ATTEMPTS:
+- Attempt 1: Added mutex lock
+  Error: Still getting duplicate charges
+  Files: src/payment/processor.ts
+- Attempt 2: Added transaction ID check
+  Error: Race condition still occurs
+  Files: src/payment/processor.ts, src/database.ts
+
+EXPECTED OUTCOME:
+- Root cause of the race condition
+- Fix that prevents duplicate charges
+- Verification approach
+
+CONTEXT:
+$(cat <<EOF
+Payment flow:
+1. User submits payment
+2. Processor creates charge
+3. Database saves transaction
+4. Return success
+
+Race condition occurs between steps 2-3 when multiple requests arrive simultaneously.
+EOF
+)
+
+MUST DO:
+- Identify the exact race condition
+- Provide atomic operation fix
+- Suggest verification test
+
+OUTPUT FORMAT:
+Root cause → Fix approach → Code example → Verification"
+```
+
+### Role Split: When to Use GPT vs Claude
+
+| Situation | Claude Coder | GPT Architect |
+|-----------|--------------|---------------|
+| First attempt at bug fix | ✅ Use Claude | - |
+| Second attempt (retry) | ✅ Use Claude | - |
+| **Third attempt (escalation)** | - | ✅ **Use GPT** |
+| Simple implementation | ✅ Use Claude | - |
+| Architecture decisions | - | ✅ **Use GPT** |
+| Security fixes | code-reviewer → | ✅ **Security Analyst** |
+
+### Cost Awareness
+
+- **Escalate after 2+ Claude attempts** - Avoid premature GPT calls
+- **Include full context** - All previous attempts, errors, and code
+- **One comprehensive call** - Better than multiple small calls
+- **Verify GPT fix** - Still need to run tests after applying GPT suggestion
+
+### After GPT Escalation
+
+```bash
+# Apply GPT suggestion via Coder Agent
+IF GPT_PROVIDED_FIX:
+    Task:
+      subagent_type: coder
+      prompt: |
+        Implement the fix suggested by GPT Architect:
+
+        {GPT_SUGGESTION}
+
+        Plan Path: {PLAN_PATH}
+        Implement using TDD + Ralph Loop.
+
+    # Re-run verification
+    # PSEUDO-CODE: Return to Step 3.5 Parallel Verification
 ```
 
 ---

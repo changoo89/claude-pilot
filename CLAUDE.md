@@ -1,50 +1,30 @@
 # claude-pilot - Claude Code Development Guide
 
-> **Last Updated**: 2026-01-16
-> **Version**: 3.4.0
+> **Last Updated**: 2026-01-17
+> **Version**: 4.0.3
 > **Template**: claude-pilot
-
----
-
-## Project Overview
-
-### One-Line Description
-[Brief description of what this project does]
-
-### Technology Stack
-```yaml
-Framework: [e.g., Next.js 14, React 18, Express]
-Language: [e.g., TypeScript, Python, Go]
-Database: [e.g., PostgreSQL, MongoDB, SQLite]
-Deployment: [e.g., Vercel, AWS, Docker]
-```
-
-### Current Status
-- **Version**: 3.4.0
-- **Stage**: Production
-- **Last Updated**: 2026-01-16
 
 ---
 
 ## Quick Start
 
-### For New Tasks
-
-1. **Planning**: `/00_plan "describe your task"`
-2. **Confirmation**: `/01_confirm` (after reviewing plan)
-3. **Execution**: `/02_execute` (TDD + Ralph Loop)
-4. **Completion**: `/03_close` (archive and commit)
-
-### Common Commands
+### Workflow Commands
 
 | Task | Command | Description |
 |------|---------|-------------|
-| Create plan | `/00_plan` | Generate SPEC-First plan (with User Requirements Collection) |
-| Confirm plan | `/01_confirm` | Review plan + Requirements Verification |
-| Execute work | `/02_execute` | Implement with TDD |
-| Review code | `/90_review` | Multi-angle analysis |
-| Update docs | `/91_document` | Auto-sync documentation |
-| Publish | `/999_publish` | Sync templates, bump version, deploy |
+| Plan | `/00_plan "task"` | Generate SPEC-First plan |
+| Confirm | `/01_confirm` | Review plan + requirements verification |
+| Execute | `/02_execute` | Implement with TDD |
+| Review | `/90_review` | Multi-angle code review |
+| Document | `/91_document` | Auto-sync documentation |
+| Close | `/03_close` | Archive and commit |
+
+### Development Workflow
+
+1. **SPEC-First**: What/Why/How/Success Criteria/Constraints
+2. **TDD Cycle**: Red (failing test) → Green (minimal code) → Refactor (clean up)
+3. **Ralph Loop**: Iterate until tests pass, coverage ≥80%, type-check clean, lint clean
+4. **Quality Gates**: Functions ≤50 lines, Files ≤200 lines, Nesting ≤3 levels
 
 ---
 
@@ -53,180 +33,60 @@ Deployment: [e.g., Vercel, AWS, Docker]
 ```
 project-root/
 ├── .claude/
-│   ├── commands/           # Slash commands (6)
-│   │   ├── 00_plan.md      # Create SPEC-First plan
-│   │   ├── 01_confirm.md   # Confirm plan
-│   │   ├── 02_execute.md   # Execute with TDD
-│   │   ├── 03_close.md     # Close & archive
-│   │   ├── 90_review.md    # Review code
-│   │   └── 91_document.md  # Update docs
-│   ├── guides/             # Methodology guides (9)
-│   │   ├── claude-code-standards.md  # Official Claude Code standards (NEW)
-│   │   ├── prp-framework.md          # Problem-Requirements-Plan
-│   │   ├── gap-detection.md          # External service verification
-│   │   ├── parallel-execution.md     # Parallel execution patterns
-│   │   ├── 3tier-documentation.md    # Documentation system
-│   │   ├── review-checklist.md       # Code review criteria
-│   │   ├── test-environment.md       # Test framework detection
-│   │   ├── requirements-tracking.md  # User Requirements Collection (NEW)
-│   │   └── requirements-verification.md # Requirements Verification (NEW)
-│   ├── skills/             # Reusable skill modules (5)
-│   │   ├── documentation-best-practices/  # Documentation standards (NEW)
-│   │   ├── tdd/SKILL.md (+ REFERENCE.md)
-│   │   ├── ralph-loop/SKILL.md (+ REFERENCE.md)
-│   │   ├── vibe-coding/SKILL.md (+ REFERENCE.md)
-│   │   └── git-master/SKILL.md (+ REFERENCE.md)
+│   ├── commands/           # Slash commands (7)
+│   ├── guides/             # Methodology guides (10)
+│   ├── skills/             # TDD, Ralph Loop, Vibe Coding, Git Master
 │   ├── agents/             # Specialized agent configs (8)
-│   ├── templates/          # PRP, CONTEXT, SKILL templates
 │   └── scripts/hooks/      # Type check, lint, todos
-├── .pilot/                 # Plan management
-│   └── plan/
-│       ├── pending/        # Awaiting confirmation
-│       ├── in_progress/    # Currently executing
-│       ├── done/           # Completed plans
-│       └── active/         # Branch pointers
+├── .pilot/plan/            # Plan management (pending/in_progress/done)
 ├── scripts/                # Sync and build scripts
-│   ├── sync-templates.sh   # Pre-deploy templates sync
-│   └── verify-version-sync.sh  # Version consistency check
 ├── src/ or lib/            # Source code
 ├── tests/                  # Test files
-├── CLAUDE.md               # This file
+├── CLAUDE.md               # This file (Tier 1: Project standards)
 └── README.md               # Project README
-
-## Codex Integration (v3.4.0)
-
-**Optional GPT Expert Delegation**: When Codex CLI is installed and authenticated, claude-pilot automatically:
-- Detects Codex CLI presence
-- Verifies authentication status
-- Generates `.mcp.json` with GPT 5.2 model config
-- Copies orchestration rules (4 files) and expert prompts (5 files)
-
-**Silent Skip**: If Codex not installed, init/update proceed normally without errors.
-
-**See**: `docs/ai-context/system-integration.md` for detailed Codex integration documentation.
 ```
 
----
-
-## Development Workflow
-
-### SPEC-First Development
-
-Every feature starts with clear requirements:
-
-1. **What** (Functionality): What needs to be built
-2. **Why** (Context): Business value and rationale
-3. **How** (Approach): Implementation strategy
-4. **Success Criteria**: Measurable acceptance criteria
-5. **Constraints**: Technical/time/resource limits
-
-### TDD Cycle (Red-Green-Refactor)
-
-1. **Red**: Write failing test
-2. **Green**: Implement minimal code to pass
-3. **Refactor**: Clean up while keeping tests green
-4. **Repeat**: Until all criteria met
-
-### Ralph Loop
-
-Autonomous iteration until all tests pass:
-- Run verification (tests, type-check, lint)
-- If all pass -> check completion
-- If failures -> fix and continue
-- Max 7 iterations before review
-
-### Enhanced Plan Workflow (External Services)
-
-> **For plans involving external APIs, databases, file operations, async operations, or environment variables**
-
-#### New Severity Levels
-
-| Level | Symbol | Description | Action Required |
-|-------|--------|-------------|-----------------|
-| **BLOCKING** | 🛑 | Cannot proceed | Triggers Interactive Recovery (dialogue until resolved) |
-| **Critical** | 🚨 | Must fix | Acknowledge and fix before execution |
-| **Warning** | ⚠️ | Should fix | Advisory, but recommended |
-| **Suggestion** | 💡 | Nice to have | Optional improvements |
-
-#### Gap Detection Review
-
-All plans with external service keywords trigger automatic Gap Detection Review:
-- **External API**: SDK vs HTTP, endpoint verification, error handling
-- **Database Operations**: Migration files, rollback strategy
-- **Async Operations**: Timeouts, concurrent limits, race conditions
-- **File Operations**: Path resolution, existence checks, cleanup
-- **Environment**: Env var documentation, existence checks, no secrets
-- **Error Handling**: No silent catches, user notification, graceful degradation
-
-#### Interactive Recovery
-
-When BLOCKING findings are detected, `/01_confirm` enters dialogue mode:
-1. Present each BLOCKING finding with context
-2. Use `AskUserQuestion` to gather missing details
-3. Update plan with user responses
-4. Re-run review to verify fixes
-5. Continue until BLOCKING = 0 or max 5 iterations
-
-#### Escape Hatches
-
-| Flag | Purpose | Effect |
-|------|---------|--------|
-| `--lenient` | Bypass strict verification | BLOCKING → WARNING, plan saved with warnings |
-| `--no-review` | Skip auto-review entirely | No review run, faster workflow |
-
-#### Plan Structure for External Services
-
-Plans involving external services must include:
-
-**External Service Integration** section:
-- API Calls Required table (From, To, Endpoint, SDK/HTTP, Status, Verification)
-- New Endpoints to Create table
-- Environment Variables Required table
-- Error Handling Strategy table
-
-**Implementation Details Matrix**:
-- WHO (Service), WHAT (Action), HOW (Mechanism), VERIFY (Check)
-
-**Gap Verification Checklist**:
-- 6 categories with 3-4 verification questions each
+**See**: `docs/ai-context/project-structure.md` for detailed directory layout.
 
 ---
 
-## Context Engineering
+## Codex Integration (v4.0.3)
 
-### Hierarchical Documentation
+**GPT Expert Delegation**: claude-pilot supports optional GPT expert delegation via `codex-sync.sh` script for high-difficulty analysis.
 
-Optimized token usage with layered docs:
+**Integration Points**:
+- **Commands**: `/90_review` (GPT expert review for complex plans), `/02_execute` (GPT escalation after 2+ failed attempts)
+- **Agents**: `code-reviewer` (GPT Security Analyst for security code), `plan-reviewer` (GPT Plan Reviewer for large plans)
+- **Delegation Rules**: `.claude/rules/delegator/` (orchestration, triggers, delegation format)
 
-- **L0** (Immediate): Quick reference, 30-second context
-- **L1** (Structural): Architecture, patterns, workflows
-- **L2** (Detailed): Implementation details, best practices
-- **L3** (Reference): Deep dives, history, alternatives
+**Role Split: Claude vs GPT**:
 
-### Folder CONTEXT.md
+| Situation | Claude Agent | GPT Expert |
+|-----------|--------------|------------|
+| General code review | code-reviewer (Opus) | - |
+| **Security-related code** | code-reviewer → | **Security Analyst** |
+| General plan review | plan-reviewer (Sonnet) | - |
+| **Large plan (5+ SCs)** | plan-reviewer → | **Plan Reviewer** |
+| **Architecture decisions** | - | **Architect** |
+| **2+ failed fix attempts** | - | **Architect (fresh perspective)** |
+| **Unclear scope** | - | **Scope Analyst** |
 
-Each major folder should have a CONTEXT.md:
+**GPT Expert Usage Guide**:
+- **Reference**: `.claude/rules/delegator/orchestration.md` - Full delegation flow
+- **Trigger Detection**: `.claude/rules/delegator/triggers.md` - When to delegate
+- **Cost Awareness**: Use GPT for high-value tasks only (architecture, security, complex debugging)
+- **Delegation Command**: `.claude/scripts/codex-sync.sh "<mode>" "<prompt>"`
 
-```markdown
-# [Folder Name] Context
+**Legacy MCP Cleanup**:
+- Old `mcp__codex__codex` references replaced with `codex-sync.sh` Bash script
+- MCP server approach deprecated in favor of direct Codex CLI calls
+- Remove codex MCP entry from `~/.claude/settings.json` if present
 
-## Purpose
-[What this folder does]
-
-## Key Files
-| File | Purpose |
-|------|---------|
-
-## Common Tasks
-- **Task**: Description -> Command
-
-## Patterns
-- **Pattern**: Description
-```
+**See**: `.claude/rules/delegator/orchestration.md` for detailed GPT integration documentation.
 
 ---
 
-## Testing Strategy
+## Testing & Quality
 
 ### Coverage Targets
 
@@ -236,87 +96,77 @@ Each major folder should have a CONTEXT.md:
 | Core Modules | 90%+ | Required |
 | UI Components | 70%+ | Nice to have |
 
-### Running Tests
+### Test Commands (Python)
 
 ```bash
 # All tests
-npm test
+pytest
 
 # Coverage
-npm run test:coverage
+pytest --cov
 
 # Watch mode
-npm test -- --watch
+pytest -watch
 
 # Specific test
-npm test -- --grep "test name"
+pytest tests/test_feature.py -k "test_name"
 ```
 
----
+### Quality Standards
 
-## Quality Standards
-
-### Code Quality
-
-- **Type Safety**: Use TypeScript (or equivalent)
-- **Linting**: Pass all lint rules
-- **Formatting**: Consistent code style
+- **Type Safety**: `mypy .`
+- **Linting**: `ruff check .`
 - **Documentation**: Public APIs documented
-
-### Commit Standards
-
-- Conventional commits: `type(scope): description`
-- Types: feat, fix, refactor, chore, docs, style, test
-- Include Co-Authored-By: Claude <noreply@anthropic.com>
+- **Commits**: Conventional commits with Co-Authored-By
 
 ---
 
-## Environment Setup
+## Documentation System
 
-### Prerequisites
+### 3-Tier Hierarchy
 
-- Node.js 18+ (or equivalent for your language)
-- Claude Code CLI
-- Git
+- **Tier 1**: `CLAUDE.md` (this file) - Project standards, workflows
+- **Tier 2**: `docs/ai-context/*.md` - System integration, project structure
+- **Tier 3**: `{component}/CONTEXT.md` - Component-level architecture
 
-### Installation
+### Key Documentation Files
 
-```bash
-# Install dependencies
-npm install
+| File | Purpose |
+|------|---------|
+| `docs/ai-context/system-integration.md` | CLI workflow, external skills, Codex delegation |
+| `docs/ai-context/project-structure.md` | Directory layout, key files |
+| `docs/ai-context/docs-overview.md` | Navigation for all documentation |
 
-# Copy claude-pilot files (if using)
-git clone https://github.com/changoo89/claude-pilot.git
-cp -r claude-pilot/.claude ./
-```
+### Component CONTEXT.md Files
 
-### Environment Variables
+| Folder | CONTEXT.md | Purpose |
+|--------|-----------|---------|
+| `.claude/commands/` | [CONTEXT.md](.claude/commands/CONTEXT.md) | Command workflow |
+| `.claude/guides/` | [CONTEXT.md](.claude/guides/CONTEXT.md) | Methodology patterns |
+| `.claude/skills/` | [CONTEXT.md](.claude/skills/CONTEXT.md) | Skill reference |
+| `.claude/agents/` | [CONTEXT.md](.claude/agents/CONTEXT.md) | Agent types |
 
-```bash
-# Required
-ENV_VAR=value
-
-# Optional
-OPTIONAL_VAR=value
-```
+**See**: `docs/ai-context/docs-overview.md` for complete documentation navigation.
 
 ---
 
-## Hooks Configuration
+## Agent Ecosystem
 
-### Enabled Hooks
+### Model Allocation
 
-- **PreToolUse**: Type check, lint before edits
-- **PostToolUse**: Type check after edits
-- **Stop**: Todo completion check
+| Model | Agents | Purpose |
+|-------|--------|---------|
+| Haiku | explorer, researcher, validator, documenter | Fast, cost-efficient |
+| Sonnet | coder, tester, plan-reviewer | Balanced quality/speed |
+| Opus | code-reviewer | Deep reasoning |
 
-### Hook Scripts
+### Parallel Execution
 
-Located in `.claude/scripts/hooks/`:
-- `typecheck.sh`: TypeScript validation
-- `lint.sh`: ESLint/Pylint/gofmt
-- `check-todos.sh`: Ralph continuation enforcement
-- `branch-guard.sh`: Protected branch warnings
+- **Planning**: Explorer + Researcher (parallel)
+- **Execution**: Coder agents (parallel SC implementation)
+- **Verification**: Tester + Validator + Code-Reviewer (parallel)
+
+**See**: `.claude/guides/parallel-execution.md` for detailed patterns.
 
 ---
 
@@ -330,118 +180,40 @@ Located in `.claude/scripts/hooks/`:
 | serena | Semantic code operations |
 | grep-app | Advanced search |
 | sequential-thinking | Complex reasoning |
-| codex (Optional) | GPT expert delegation (auto-configured if Codex CLI installed) |
+| codex (Optional) | GPT expert delegation |
 
-### Configuration
-
-See `.claude/settings.json` for MCP configuration.
-
-**Codex MCP** (auto-generated): `.mcp.json` with GPT 5.2 model
-
----
-
-## Agent Ecosystem
-
-### Model Allocation Strategy
-
-| Model | Agents | Purpose |
-|-------|--------|---------|
-| **Haiku** | explorer, researcher, validator, documenter | Fast, cost-efficient for repetitive/structured tasks |
-| **Sonnet** | coder, tester, plan-reviewer | Balance of quality and speed for complex tasks |
-| **Opus** | code-reviewer | Deep reasoning for critical review (async bugs, memory leaks) |
-
-### Agent Types
-
-| Agent | Model | Tools | Purpose |
-|-------|-------|-------|---------|
-| explorer | haiku | Glob, Grep, Read | Fast codebase exploration |
-| researcher | haiku | WebSearch, WebFetch, query-docs | External docs research |
-| coder | sonnet | Read, Write, Edit, Bash | TDD implementation |
-| tester | sonnet | Read, Write, Bash | Test writing and execution |
-| validator | haiku | Bash, Read | Type check, lint, coverage |
-| plan-reviewer | sonnet | Read, Glob, Grep | Plan analysis and gap detection |
-| code-reviewer | opus | Read, Glob, Grep, Bash | Deep code review |
-| documenter | haiku | Read, Write | Documentation generation |
-
-### Parallel Execution Patterns
-
-The workflow supports parallel execution for maximum efficiency:
-
-- **Planning**: Explorer + Researcher (parallel exploration) - Step 0 of `/00_plan`
-- **Execution**: Coder agents (parallel SC implementation) - Step 3 of `/02_execute`
-- **Verification**: Tester + Validator + Code-Reviewer (parallel verification) - Step 3.5 of `/02_execute`
-- **Review Feedback**: Optional Coder re-invoation for critical findings - Step 3.6 of `/02_execute`
-- **Review**: Optional parallel multi-angle review - `/90_review`
-
-**Agent Invocation**: All commands use **MANDATORY ACTION** sections with imperative language ("YOU MUST invoke... NOW") to ensure reliable agent delegation.
-
-See `.claude/guides/parallel-execution.md` for detailed patterns.
-
----
-
-## Important Notes
-
-### Before Committing
-
-- [ ] All tests pass
-- [ ] Type check clean
-- [ ] Lint clean
-- [ ] Documentation updated
-- [ ] No secrets included
-
-### Before Deploying
-
-- [ ] Run test suite
-- [ ] Check environment variables
-- [ ] Review migration files (if DB)
-- [ ] Verify API compatibility
+**Configuration**: See `.claude/settings.json` for MCP configuration.
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
-
 | Issue | Solution |
 |-------|----------|
-| Type errors | Run `npx tsc --noEmit` |
+| Type errors | Run `mypy .` |
 | Test failures | Check test names and fixtures |
 | Hook errors | Check script permissions |
 | Plan not found | Run `/00_plan` first |
 
 ---
 
+## Pre-Commit Checklist
+
+- [ ] All tests pass (`pytest`)
+- [ ] Coverage ≥80% (core ≥90%)
+- [ ] Type check clean (`mypy .`)
+- [ ] Lint clean (`ruff check .`)
+- [ ] Documentation updated
+- [ ] No secrets included
+
+---
+
 ## Related Documentation
 
-### 3-Tier Documentation System
-
-This project uses a hierarchical documentation system:
-
-- **Tier 1**: `CLAUDE.md` (this file) - Project standards, workflows
-- **Detailed Docs**: `docs/ai-context/` - System integration, project structure
-- **Tier 2**: `{component}/CONTEXT.md` - Component-level architecture
-- **Tier 3**: `{feature}/CONTEXT.md` - Feature-level implementation
-
-### docs/ai-context/ Files
-
-| File | Purpose |
-|------|---------|
-| `docs/ai-context/system-integration.md` | Command workflows, integration points |
-| `docs/ai-context/project-structure.md` | Directory layout, key files |
-| `docs/ai-context/docs-overview.md` | Navigation for all documentation |
-
-### Component CONTEXT.md Files (Tier 2)
-
-| Folder | CONTEXT.md | Purpose |
-|--------|-----------|---------|
-| `.claude/commands/` | [CONTEXT.md](.claude/commands/CONTEXT.md) | Command workflow, file list |
-| `.claude/guides/` | [CONTEXT.md](.claude/guides/CONTEXT.md) | Guide usage, methodology patterns |
-| `.claude/skills/` | [CONTEXT.md](.claude/skills/CONTEXT.md) | Skill list, auto-discovery mechanism |
-| `.claude/agents/` | [CONTEXT.md](.claude/agents/CONTEXT.md) | Agent types, model allocation |
-
-### External References
-
-- [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit) - 3-Tier Documentation System
+- **System Integration**: `docs/ai-context/system-integration.md` - CLI workflow, external skills, Codex
+- **Project Structure**: `docs/ai-context/project-structure.md` - Directory layout, key files
+- **Documentation Overview**: `docs/ai-context/docs-overview.md` - Complete documentation navigation
+- **3-Tier System**: [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
 
 ---
 
@@ -463,5 +235,5 @@ This project uses a hierarchical documentation system:
 
 ---
 
-**Template Version**: claude-pilot 3.3.4
-**Last Updated**: 2026-01-15
+**Template Version**: claude-pilot 4.0.3
+**Last Updated**: 2026-01-17

@@ -12,7 +12,7 @@ You MUST scan incoming messages for delegation triggers. This is NOT optional.
 
 When a trigger matches:
 1. Identify the appropriate expert
-2. Read their prompt file from `${CLAUDE_PLUGIN_ROOT}/prompts/[expert].md`
+2. Read their prompt file from `.claude/rules/delegator/prompts/[expert].md`
 3. Follow the delegation flow in `rules/orchestration.md`
 
 ---
@@ -120,28 +120,32 @@ Set the sandbox based on what the task requires, not the expert type.
 
 **Examples:**
 
-```typescript
-// Architect analyzing (advisory)
-mcp__codex__codex({
-  prompt: "Analyze tradeoffs of Redis vs in-memory caching",
-  sandbox: "read-only"
-})
+```bash
+# Architect analyzing (advisory)
+.claude/scripts/codex-sync.sh "read-only" "You are a software architect...
+TASK: Analyze tradeoffs of Redis vs in-memory caching.
+EXPECTED OUTCOME: Clear recommendation with rationale.
+CONTEXT: [user's situation, full details]
+..."
 
-// Architect implementing (implementation)
-mcp__codex__codex({
-  prompt: "Refactor the caching layer to use Redis",
-  sandbox: "workspace-write"
-})
+# Architect implementing (implementation)
+.claude/scripts/codex-sync.sh "workspace-write" "You are a software architect...
+TASK: Refactor the caching layer to use Redis.
+EXPECTED OUTCOME: Working Redis integration.
+CONTEXT: [relevant code snippets]
+..."
 
-// Security Analyst reviewing (advisory)
-mcp__codex__codex({
-  prompt: "Review this auth flow for vulnerabilities",
-  sandbox: "read-only"
-})
+# Security Analyst reviewing (advisory)
+.claude/scripts/codex-sync.sh "read-only" "You are a security engineer...
+TASK: Review this auth flow for vulnerabilities.
+EXPECTED OUTCOME: Vulnerability report with risk rating.
+CONTEXT: [auth flow code]
+..."
 
-// Security Analyst hardening (implementation)
-mcp__codex__codex({
-  prompt: "Fix the SQL injection vulnerability in user.ts",
-  sandbox: "workspace-write"
-})
+# Security Analyst hardening (implementation)
+.claude/scripts/codex-sync.sh "workspace-write" "You are a security engineer...
+TASK: Fix the SQL injection vulnerability in user.ts.
+EXPECTED OUTCOME: Secure code with parameterized queries.
+CONTEXT: [vulnerable code snippet]
+..."
 ```

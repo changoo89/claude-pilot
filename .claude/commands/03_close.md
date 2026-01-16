@@ -206,15 +206,16 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     REPOS_TO_COMMIT+=("$(pwd)")
 fi
 
-# Prompt for external repos
-echo "Were any external repositories modified? (paths space-separated, or Enter to skip):"
-read -r EXTERNAL_REPOS_INPUT
-
-for EXTERNAL_REPO in $EXTERNAL_REPOS_INPUT; do
-    if [ -d "$EXTERNAL_REPO" ] && (cd "$EXTERNAL_REPO" && git rev-parse --git-dir > /dev/null 2>&1); then
-        REPOS_TO_COMMIT+=("$EXTERNAL_REPO")
-    fi
-done
+# Note: External repos must be specified via argument or environment variable
+# Non-interactive mode - no prompt for external repos
+# To commit external repos, use: EXTERNAL_REPOS="/path/to/repo1 /path/to/repo2" /03_close
+if [ -n "${EXTERNAL_REPOS:-}" ]; then
+    for EXTERNAL_REPO in $EXTERNAL_REPOS; do
+        if [ -d "$EXTERNAL_REPO" ] && (cd "$EXTERNAL_REPO" && git rev-parse --git-dir > /dev/null 2>&1); then
+            REPOS_TO_COMMIT+=("$EXTERNAL_REPO")
+        fi
+    done
+fi
 ```
 
 ### 7.2 Commit Repositories
@@ -237,6 +238,63 @@ for REPO in "${REPOS_TO_COMMIT[@]}"; do
     git commit -m "${TITLE}
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
+
+    cd - > /dev/null
+done
+```
+
+### 7.3 Safe Git Push (Optional, Non-Blocking)
+
+> **Safety First**: Dry-run verification, graceful degradation, no force push
+
+```bash
+# Only push if this is a git repository with a remote
+for REPO in "${REPOS_TO_COMMIT[@]}"; do
+    echo "Checking git push for: $REPO"
+    cd "$REPO" || continue
+
+    # Skip if not a git repository
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        echo "  → Not a git repository, skipping push"
+        cd - > /dev/null
+        continue
+    fi
+
+    # Skip if no remote configured
+    if ! git config --get remote.origin.url > /dev/null 2>&1; then
+        echo "  → No remote configured, skipping push"
+        cd - > /dev/null
+        continue
+    fi
+
+    # Check for uncommitted changes (safety check)
+    if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+        echo "  → Uncommitted changes detected, skipping push"
+        cd - > /dev/null
+        continue
+    fi
+
+    # Get current branch
+    CURRENT_BRANCH="$(git branch --show-current 2>/dev/null)"
+    if [ -z "$CURRENT_BRANCH" ]; then
+        echo "  → Cannot determine branch, skipping push"
+        cd - > /dev/null
+        continue
+    fi
+
+    # Dry-run verification (safety check)
+    echo "  → Dry-run verification for $CURRENT_BRANCH..."
+    if git push --dry-run origin "$CURRENT_BRANCH" > /dev/null 2>&1; then
+        # Dry-run successful, proceed with actual push
+        echo "  → Pushing to origin/$CURRENT_BRANCH..."
+        if git push origin "$CURRENT_BRANCH"; then
+            echo "  ✓ Push successful"
+        else
+            echo "  ✗ Push failed (but commit was created)"
+        fi
+    else
+        echo "  → Dry-run failed, skipping push (commit was created)"
+    fi
 
     cd - > /dev/null
 done

@@ -11,13 +11,13 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 | `00_plan.md` | Create SPEC-First plan | 298 | Planning | Explore codebase, gather requirements, design execution plan through dialogue (read-only) |
 | `01_confirm.md` | Confirm plan + gap detection | 281 | Planning | Review plan, run gap detection, resolve BLOCKING issues, move to in_progress |
 | `02_execute.md` | Execute with TDD + Ralph Loop | 637 | Execution | Implement features using TDD, atomic lock mechanism (worktree), parallel verification |
-| `03_close.md` | Archive and commit | 236 | Completion | Archive completed plan, worktree cleanup (with error trap), create git commit |
+| `03_close.md` | Archive and commit | 325 | Completion | Archive completed plan, worktree cleanup (with error trap), create git commit, safe git push |
 | `90_review.md` | Multi-angle code review | 268 | Quality | Run comprehensive code review with multiple agent perspectives |
 | `91_document.md` | Sync documentation | 288 | Maintenance | Update CLAUDE.md, sync templates, ensure consistency |
 | `92_init.md` | Initialize new project | 209 | Setup | Initialize new project with claude-pilot template |
 | `999_publish.md` | Sync templates + deploy | 222 | Release | Sync templates from upstream, bump version, deploy |
 
-**Total**: 8 commands, 2439 lines (average: 305 lines per command)
+**Total**: 8 commands, 2528 lines (average: 316 lines per command)
 
 ## Common Tasks
 
@@ -55,16 +55,17 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
   6. Ralph Loop iterates until all quality gates pass
 
 ### Close and Archive
-- **Task**: Archive plan, worktree cleanup, create git commit
+- **Task**: Archive plan, worktree cleanup, create git commit, safe git push
 - **Command**: `/03_close`
-- **Output**: Plan in `.pilot/plan/done/`, worktree removed, git commit created
+- **Output**: Plan in `.pilot/plan/done/`, worktree removed, git commit created, changes pushed to remote
 - **Process**:
   1. Move plan from in_progress to done
   2. **Worktree mode**: Complete cleanup (worktree, branch, directory, lock)
   3. **Error trap**: Auto-releases lock on any failure
   4. Generate commit message from plan content
   5. Create git commit (if user approves)
-  6. Update active plan pointer
+  6. Safe git push (dry-run verification, graceful degradation)
+  7. Update active plan pointer
 
 ### Review Code
 - **Task**: Multi-angle code review

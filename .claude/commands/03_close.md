@@ -252,11 +252,118 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 done
 ```
 
+### 7.2.5 Helper Functions for Git Push
+
+```bash
+# Get simplified error message from git push exit code and output
+get_push_error_message() {
+    local exit_code="$1"
+    local error_output="$2"
+
+    case "$exit_code" in
+        1)
+            if echo "$error_output" | grep -qi "non-fast-forward"; then
+                echo "Remote has new commits - run 'git pull' before pushing"
+            elif echo "$error_output" | grep -qi "protected"; then
+                echo "Branch is protected - push not allowed directly"
+            else
+                echo "Push rejected - check repository status"
+            fi
+            ;;
+        128)
+            if echo "$error_output" | grep -qi "authentication"; then
+                echo "Authentication failed - check your credentials"
+            elif echo "$error_output" | grep -qi "could not read\|connection\|network"; then
+                echo "Network error - connection failed"
+            elif echo "$error_output" | grep -qi "not found"; then
+                echo "Remote repository not found - check remote URL"
+            else
+                echo "Push failed - check remote configuration"
+            fi
+            ;;
+        *)
+            echo "Push failed (exit code: $exit_code)"
+            ;;
+    esac
+}
+
+# Git push with retry logic for transient failures
+git_push_with_retry() {
+    local remote_name="${1:-origin}"  # Remote name (default: origin)
+    local branch="$2"
+    local max_retries="${3:-3}"
+    local retry_count=0
+    local exit_code=0
+    local error_output=""
+
+    while [ "$retry_count" -lt "$max_retries" ]; do
+        # Capture both stdout and stderr
+        error_output="$(git push "$remote_name" "$branch" 2>&1)"
+        exit_code=$?
+
+        if [ "$exit_code" -eq 0 ]; then
+            return 0
+        fi
+
+        # Don't retry on exit code 1 (non-fast-forward, requires manual fix)
+        if [ "$exit_code" -eq 1 ]; then
+            return $exit_code
+        fi
+
+        # Retry on exit code 128 (network, auth, transient errors)
+        retry_count=$((retry_count + 1))
+
+        if [ "$retry_count" -lt "$max_retries" ]; then
+            local wait_time=$((2 ** retry_count))
+            echo "  → Network error (attempt $retry_count/$max_retries), retrying in ${wait_time}s..."
+            sleep "$wait_time"
+        fi
+    done
+
+    # All retries exhausted, return the last exit code
+    return $exit_code
+}
+
+# Print push failure summary
+print_push_summary() {
+    if [ ${#PUSH_FAILURES[@]} -eq 0 ]; then
+        return
+    fi
+
+    echo ""
+    echo "════════════════════════════════════════════════════════════"
+    echo "⚠️  Git Push Summary"
+    echo "════════════════════════════════════════════════════════════"
+    echo ""
+    if [ ${#PUSH_FAILURES[@]} -eq 1 ]; then
+        echo "Push failed for 1 repository:"
+    else
+        echo "Push failed for ${#PUSH_FAILURES[@]} repositories:"
+    fi
+    echo ""
+
+    for repo in "${!PUSH_FAILURES[@]}"; do
+        IFS='|' read -r error_type message <<< "${PUSH_FAILURES[$repo]}"
+        echo "  📁 $repo"
+        echo "     ❌ $message"
+        echo ""
+    done
+
+    echo "💡 Tip: Commits were created successfully. Push manually with:"
+    echo "   git push origin <branch>"
+    echo "════════════════════════════════════════════════════════════"
+}
+```
+
 ### 7.3 Safe Git Push (Optional, Non-Blocking)
 
 > **Safety First**: Dry-run verification, graceful degradation, no force push
 
 ```bash
+# Initialize push tracking
+declare -A PUSH_FAILURES
+declare -A PUSH_RESULTS
+
 # Only push if this is a git repository with a remote
 for REPO in "${REPOS_TO_COMMIT[@]}"; do
     echo "Checking git push for: $REPO"
@@ -265,6 +372,7 @@ for REPO in "${REPOS_TO_COMMIT[@]}"; do
     # Skip if not a git repository
     if ! git rev-parse --git-dir > /dev/null 2>&1; then
         echo "  → Not a git repository, skipping push"
+        PUSH_RESULTS["$REPO"]="skipped"
         cd - > /dev/null
         continue
     fi
@@ -272,6 +380,7 @@ for REPO in "${REPOS_TO_COMMIT[@]}"; do
     # Skip if no remote configured
     if ! git config --get remote.origin.url > /dev/null 2>&1; then
         echo "  → No remote configured, skipping push"
+        PUSH_RESULTS["$REPO"]="skipped"
         cd - > /dev/null
         continue
     fi
@@ -279,6 +388,7 @@ for REPO in "${REPOS_TO_COMMIT[@]}"; do
     # Check for uncommitted changes (safety check)
     if ! git diff-index --quiet HEAD -- 2>/dev/null; then
         echo "  → Uncommitted changes detected, skipping push"
+        PUSH_RESULTS["$REPO"]="skipped"
         cd - > /dev/null
         continue
     fi
@@ -287,26 +397,47 @@ for REPO in "${REPOS_TO_COMMIT[@]}"; do
     CURRENT_BRANCH="$(git branch --show-current 2>/dev/null)"
     if [ -z "$CURRENT_BRANCH" ]; then
         echo "  → Cannot determine branch, skipping push"
+        PUSH_RESULTS["$REPO"]="skipped"
         cd - > /dev/null
         continue
     fi
 
     # Dry-run verification (safety check)
     echo "  → Dry-run verification for $CURRENT_BRANCH..."
-    if git push --dry-run origin "$CURRENT_BRANCH" > /dev/null 2>&1; then
+    DRYRUN_OUTPUT="$(git push --dry-run origin "$CURRENT_BRANCH" 2>&1)"
+    DRYRUN_EXIT=$?
+
+    if [ "$DRYRUN_EXIT" -eq 0 ]; then
         # Dry-run successful, proceed with actual push
         echo "  → Pushing to origin/$CURRENT_BRANCH..."
-        if git push origin "$CURRENT_BRANCH"; then
+        PUSH_OUTPUT="$(git_push_with_retry "origin" "$CURRENT_BRANCH" 2>&1)"
+        PUSH_EXIT=$?
+
+        if [ "$PUSH_EXIT" -eq 0 ]; then
             echo "  ✓ Push successful"
+            PUSH_RESULTS["$REPO"]="success"
         else
-            echo "  ✗ Push failed (but commit was created)"
+            # Get simplified error message
+            ERROR_MSG="$(get_push_error_message $PUSH_EXIT "$PUSH_OUTPUT")"
+            echo "  ✗ $ERROR_MSG"
+            PUSH_FAILURES["$REPO"]="push_failed|$ERROR_MSG"
+            PUSH_RESULTS["$REPO"]="failed"
         fi
     else
-        echo "  → Dry-run failed, skipping push (commit was created)"
+        # Dry-run failed - get simplified error message
+        ERROR_MSG="$(get_push_error_message $DRYRUN_EXIT "$DRYRUN_OUTPUT")"
+        echo "  → Dry-run failed: $ERROR_MSG (commit was created)"
+        PUSH_FAILURES["$REPO"]="dryrun_failed|$ERROR_MSG"
+        PUSH_RESULTS["$REPO"]="failed"
     fi
 
     cd - > /dev/null
 done
+
+# Print push failure summary if any failures occurred
+if [ ${#PUSH_FAILURES[@]} -gt 0 ]; then
+    print_push_summary
+fi
 ```
 
 ---

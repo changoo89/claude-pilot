@@ -11,13 +11,13 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 | `00_plan.md` | Create SPEC-First plan | 355 | Planning | Collect user requirements verbatim, explore codebase, gather requirements, design execution plan through dialogue (read-only) |
 | `01_confirm.md` | Confirm plan + gap detection + requirements verification | 315 | Planning | Review plan, verify requirements coverage (Step 2.7), run gap detection, resolve BLOCKING issues, move to in_progress |
 | `02_execute.md` | Execute with TDD + Ralph Loop | 654 | Execution | Plan detection (MANDATORY), atomic lock mechanism (worktree), parallel verification |
-| `03_close.md` | Archive and commit | 325 | Completion | Archive completed plan, worktree cleanup (with error trap), create git commit, safe git push |
+| `03_close.md` | Archive and commit | 465 | Completion | Archive completed plan, worktree cleanup (with error trap), create git commit, safe git push with retry logic and failure tracking |
 | `90_review.md` | Multi-angle code review | 268 | Quality | Run comprehensive code review with multiple agent perspectives |
 | `91_document.md` | Sync documentation | 288 | Maintenance | Update CLAUDE.md, sync templates, ensure consistency |
 | `92_init.md` | Initialize new project | 209 | Setup | Initialize new project with claude-pilot template |
 | `999_publish.md` | Sync templates + deploy | 222 | Release | Sync templates from upstream, bump version, deploy |
 
-**Total**: 8 commands, 2636 lines (average: 330 lines per command)
+**Total**: 8 commands, 2776 lines (average: 347 lines per command)
 
 ## Common Tasks
 
@@ -69,8 +69,45 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
   3. **Error trap**: Auto-releases lock on any failure
   4. Generate commit message from plan content
   5. Create git commit (if user approves)
-  6. Safe git push (dry-run verification, graceful degradation)
+  6. **Safe git push** (dry-run verification, retry logic, failure tracking, summary):
+     - Helper functions: `get_push_error_message()`, `git_push_with_retry()`, `print_push_summary()`
+     - Retry logic: 3 attempts with exponential backoff (2s, 4s, 8s) for transient failures
+     - Error tracking: `PUSH_FAILURES` and `PUSH_RESULTS` arrays store push outcomes
+     - Simplified error messages: User-friendly messages instead of raw git output
+     - Non-blocking: Push failures don't exit workflow; summary shown at end
   7. Update active plan pointer
+
+### Git Push Behavior (Step 7.3)
+The `/03_close` command implements robust git push handling:
+
+**Features**:
+- **Dry-run verification**: Tests push before actual execution
+- **Retry logic**: Transient failures (network, auth) retry up to 3 times
+- **Exponential backoff**: Wait times of 2s, 4s, 8s between retries
+- **Error simplification**: Maps git exit codes to user-friendly messages
+- **Failure tracking**: Stores all push failures and displays summary at end
+- **Non-blocking**: Workflow continues even if push fails
+
+**Error Messages**:
+- Non-fast-forward: "Remote has new commits - run 'git pull' before pushing"
+- Authentication failed: "Authentication failed - check your credentials"
+- Network error: "Network error - connection failed"
+- Repository not found: "Remote repository not found - check remote URL"
+- Branch protected: "Branch is protected - push not allowed directly"
+
+**Output Example**:
+```
+⚠️  Git Push Summary
+════════════════════════════════════════════════════════════
+Push failed for 1 repository:
+
+  📁 /Users/user/project
+     ❌ Remote has new commits - run 'git pull' before pushing
+
+💡 Tip: Commits were created successfully. Push manually with:
+   git push origin <branch>
+════════════════════════════════════════════════════════════
+```
 
 ### Review Code
 - **Task**: Multi-angle code review

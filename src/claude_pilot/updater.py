@@ -229,6 +229,13 @@ def copy_template_from_package(
         dest.parent.mkdir(parents=True, exist_ok=True)
         with src.open("rb") as f_src:
             dest.write_bytes(f_src.read())
+
+        # Set executable permission for shell scripts (.sh files)
+        # This ensures hooks can run after deployment
+        if str(dest).endswith('.sh'):
+            import stat
+            dest.chmod(dest.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
         return True
     except (OSError, IOError):
         return False
@@ -656,17 +663,49 @@ def _update_hook_path(command: str) -> str:
 
     Converts relative paths like '.claude/scripts/hooks/typecheck.sh'
     to '"$CLAUDE_PROJECT_DIR"/.claude/scripts/hooks/typecheck.sh'.
+    Also updates hardcoded absolute paths to use the variable.
     """
     if _is_hook_path_updated(command):
         return command
 
     # Handle relative paths starting with .claude/
-    if command.startswith(".claude/"):
-        return f'"$CLAUDE_PROJECT_DIR"/{command}'
+    # This catches both ".claude/..." and quoted forms
+    import re
+    rel_match = re.search(r'(["\']?)\.claude/', command)
+    if rel_match and not command.startswith("$"):
+        quote = rel_match.group(1)
+        # Extract everything from .claude/ onwards
+        claude_start = command.find(".claude/")
+        if claude_start >= 0:
+            rest = command[claude_start:]  # ".claude/scripts/hooks/xxx.sh" or ".claude/scripts/hooks/xxx.sh'"
+            # Remove trailing quote if present
+            if rest.endswith('"') or rest.endswith("'"):
+                trailing = rest[-1]
+                rest = rest[:-1]
+            else:
+                trailing = ''
+            return f'"$CLAUDE_PROJECT_DIR"/{rest}{trailing}'
 
-    # Handle paths that might have quotes or other formats
-    if "/.claude/" in command:
-        return command  # Already has a path prefix
+    # Handle hardcoded absolute paths (e.g., "/Users/xxx/.claude/...")
+    # We look for the pattern and extract the part after .claude/
+    if "/.claude/" in command and not command.startswith("$"):
+        # Find the .claude/ position
+        claude_pos = command.find("/.claude/")
+        if claude_pos > 0:
+            # Extract the full path from .claude/ onwards
+            abs_part = command[claude_pos:]  # "/.claude/scripts/hooks/xxx.sh" or "/.claude/scripts/hooks/xxx.sh""
+
+            # Get the relative part
+            rel_part = abs_part[len("/.claude/"):]  # "scripts/hooks/xxx.sh"
+
+            # Handle trailing quotes
+            trailing_quote = ''
+            if rel_part.endswith('"') or rel_part.endswith("'"):
+                trailing_quote = rel_part[-1]
+                rel_part = rel_part[:-1]
+
+            # Reconstruct with $CLAUDE_PROJECT_DIR
+            return f'"$CLAUDE_PROJECT_DIR"/.claude/{rel_part}{trailing_quote}'
 
     return command
 
@@ -717,6 +756,9 @@ def apply_hooks(target_dir: Path | None = None) -> bool:
     User customizations (additional hooks, matchers) are preserved.
     Only the command paths are updated to the new pattern.
 
+    Missing hook types (PreToolUse, PostToolUse, Stop) are added
+    from DEFAULT_HOOKS if they don't exist in user's configuration.
+
     Args:
         target_dir: Optional target directory. Defaults to current working directory.
 
@@ -748,15 +790,26 @@ def apply_hooks(target_dir: Path | None = None) -> bool:
         settings["hooks"] = DEFAULT_HOOKS
         return _write_settings_atomically(settings, settings_path, backup_path)
 
+    # Ensure all required hook types exist (PreToolUse, PostToolUse, Stop)
+    updated = False
+    for hook_type in DEFAULT_HOOKS.keys():
+        if hook_type not in settings["hooks"]:
+            click.secho(f"i Adding missing {hook_type} hooks", fg="blue")
+            settings["hooks"][hook_type] = DEFAULT_HOOKS[hook_type]
+            updated = True
+
     # Update existing hooks paths
     updated_hooks, update_count = _update_hooks_in_settings(settings["hooks"])
 
-    if update_count == 0:
-        click.secho("i Hooks already use $CLAUDE_PROJECT_DIR paths", fg="blue")
+    if update_count == 0 and not updated:
+        click.secho("i Hooks already use $CLAUDE_PROJECT_DIR paths and all types present", fg="blue")
         return True
 
     # Create backup and write updated settings
-    click.secho(f"i Updating {update_count} hook path(s) to $CLAUDE_PROJECT_DIR pattern", fg="blue")
+    if updated:
+        click.secho(f"i Added missing hook types and updating paths", fg="blue")
+    else:
+        click.secho(f"i Updating {update_count} hook path(s) to $CLAUDE_PROJECT_DIR pattern", fg="blue")
     backup_path = _create_settings_backup(settings_path, target_dir)
     settings["hooks"] = updated_hooks
     return _write_settings_atomically(settings, settings_path, backup_path)

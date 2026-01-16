@@ -212,6 +212,13 @@ class ProjectInitializer:
             dest.parent.mkdir(parents=True, exist_ok=True)
             with src.open("rb") as f_src:
                 dest.write_bytes(f_src.read())
+
+            # Set executable permission for shell scripts (.sh files)
+            # This ensures hooks can run after initialization
+            if str(dest).endswith('.sh'):
+                import stat
+                dest.chmod(dest.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
             return True
         except (OSError, IOError) as e:
             console.print(f"[red]Error:[/red] Failed to copy {dest}: {e}")

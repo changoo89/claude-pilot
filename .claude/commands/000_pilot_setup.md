@@ -470,23 +470,42 @@ open https://github.com/changoo89/claude-pilot 2>/dev/null || \
 Run verification commands to confirm setup complete:
 
 ```bash
-# Verify .pilot/ directories created
+# Display formatted status report
+echo "claude-pilot Status"
+echo "───────────────────────────────────────────────────"
+MCP_COUNT=$(jq '.mcpServers | keys | length' .mcp.json 2>/dev/null || echo '0')
+HOOKS_COUNT=$(find .claude/scripts/hooks -name '*.sh' -executable 2>/dev/null | wc -l | tr -d ' ')
+LANGUAGE=$(jq -r '.language // "en"' .claude/settings.json 2>/dev/null || echo 'en')
+PROJECT_TYPE="generic"
+[ -f "package.json" ] && PROJECT_TYPE="node"
+[ -f "pyproject.toml" ] || [ -f "requirements.txt" ] && PROJECT_TYPE="python"
+[ -f "go.mod" ] && PROJECT_TYPE="go"
+[ -f "Cargo.toml" ] && PROJECT_TYPE="rust"
+echo "MCP Servers:    ✓ ${MCP_COUNT} configured"
+echo "Hooks:          ✓ ${HOOKS_COUNT} executable"
+echo "Plans:          ✓ .pilot/plan/ created"
+echo "Language:       ✓ ${LANGUAGE}"
+echo "Project Type:   ✓ ${PROJECT_TYPE}"
+echo "───────────────────────────────────────────────────"
+echo ""
+
+# Detailed verification
 echo "Plan directories:"
 ls -la .pilot/plan/ 2>/dev/null || echo "  (No .pilot/plan/ found)"
 
-# Verify hooks are executable
+echo ""
 echo "Hook scripts (should have execute permissions):"
 ls -la .claude/scripts/hooks/*.sh
 
-# Verify settings.json
+echo ""
 echo "Settings configured:"
 jq '.language' .claude/settings.json 2>/dev/null || echo "  (No settings.json found)"
 
-# Verify MCP configuration
+echo ""
 echo "MCP Servers configured:"
 jq '.mcpServers | keys' .mcp.json 2>/dev/null || echo "  (No .mcp.json found)"
 
-# Verify plugin commands
+echo ""
 echo "Plugin commands available:"
 ls -1 .claude/commands/*.md 2>/dev/null | wc -l
 

@@ -23,6 +23,37 @@ _Extract plan from conversation, create plan file in pending/, run auto-review w
 
 ---
 
+## Step 0.5: GPT Delegation Trigger Check (MANDATORY)
+
+> **⚠️ CRITICAL**: Check for GPT delegation triggers before plan confirmation
+> **Full guide**: @.claude/rules/delegator/triggers.md
+
+| Trigger | Signal | Action |
+|---------|--------|--------|
+| Large plan | Plan has 5+ success criteria (SC items) | Delegate to GPT Plan Reviewer |
+| User explicitly requests | "ask GPT", "consult GPT", "review this plan" | Delegate to GPT Plan Reviewer |
+
+### Delegation Flow
+
+1. **STOP**: Scan plan for trigger signals
+2. **MATCH**: Identify expert type from triggers
+3. **READ**: Load expert prompt file from `.claude/rules/delegator/prompts/plan-reviewer.md`
+4. **CHECK**: Verify Codex CLI is installed (graceful fallback if not)
+5. **EXECUTE**: Call `codex-sync.sh "read-only" "<prompt>"` or continue with Claude agents
+6. **CONFIRM**: Log delegation decision
+
+### Graceful Fallback
+
+```bash
+if ! command -v codex &> /dev/null; then
+    echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
+    # Skip GPT delegation, continue with Claude analysis
+    return 0
+fi
+```
+
+---
+
 ## Step 1: Extract Plan from Conversation
 
 ### 1.1 Review Context

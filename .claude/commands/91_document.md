@@ -19,6 +19,37 @@ _Update documentation with full auto-sync and hierarchical CONTEXT.md management
 
 ---
 
+## Step 0.5: GPT Delegation Trigger Check (MANDATORY)
+
+> **⚠️ CRITICAL**: Check for GPT delegation triggers before documentation
+> **Full guide**: @.claude/rules/delegator/triggers.md
+
+| Trigger | Signal | Action |
+|---------|--------|--------|
+| Complex documentation | 3+ component CONTEXT.md files affected | Delegate to GPT Architect |
+| User explicitly requests | "ask GPT", "consult GPT", "review documentation" | Delegate to GPT Architect |
+
+### Delegation Flow
+
+1. **STOP**: Scan documentation task for trigger signals
+2. **MATCH**: Identify expert type from triggers
+3. **READ**: Load expert prompt file from `.claude/rules/delegator/prompts/architect.md`
+4. **CHECK**: Verify Codex CLI is installed (graceful fallback if not)
+5. **EXECUTE**: Call `codex-sync.sh "read-only" "<prompt>"` or continue with Claude agents
+6. **CONFIRM**: Log delegation decision
+
+### Graceful Fallback
+
+```bash
+if ! command -v codex &> /dev/null; then
+    echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
+    # Skip GPT delegation, continue with Claude analysis
+    return 0
+fi
+```
+
+---
+
 ## Step 0: Detect Mode
 
 | Mode | Trigger | Action |

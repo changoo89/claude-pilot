@@ -20,9 +20,6 @@ set -euo pipefail
 
 # Configuration
 MODEL="${CODEX_MODEL:-gpt-5.2}"
-# Reasoning effort: low (fast), medium (balanced), high (deep), xhigh (maximum)
-# Default: medium for balanced speed/quality (overrides global xhigh config)
-REASONING_EFFORT="${CODEX_REASONING_EFFORT:-medium}"
 TIMEOUT_SEC="${CODEX_TIMEOUT:-300}"  # 5 minutes default
 
 # Parse arguments
@@ -74,7 +71,6 @@ cd "$WORKDIR"
 run_codex() {
     codex exec \
         -m "$MODEL" \
-        -c "reasoning_effort=\"$REASONING_EFFORT\"" \
         -s "$MODE" \
         --json \
         "$PROMPT" 2>&1

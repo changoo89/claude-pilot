@@ -18,6 +18,37 @@ _Automated PyPI publishing workflow with version bumping and git integration._
 
 ---
 
+## Step 0.5: GPT Delegation Trigger Check (MANDATORY)
+
+> **⚠️ CRITICAL**: Check for GPT delegation triggers before publishing
+> **Full guide**: @.claude/rules/delegator/triggers.md
+
+| Trigger | Signal | Action |
+|---------|--------|--------|
+| Security review | Keywords: "security", "auth", "credential" in user input | Delegate to GPT Security Analyst |
+| User explicitly requests | "ask GPT", "consult GPT", "security review" | Delegate to GPT Security Analyst |
+
+### Delegation Flow
+
+1. **STOP**: Scan user input for trigger signals
+2. **MATCH**: Identify expert type from triggers
+3. **READ**: Load expert prompt file from `.claude/rules/delegator/prompts/security-analyst.md`
+4. **CHECK**: Verify Codex CLI is installed (graceful fallback if not)
+5. **EXECUTE**: Call `codex-sync.sh "read-only" "<prompt>"` or continue with Claude agents
+6. **CONFIRM**: Log delegation decision
+
+### Graceful Fallback
+
+```bash
+if ! command -v codex &> /dev/null; then
+    echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
+    # Skip GPT delegation, continue with Claude analysis
+    return 0
+fi
+```
+
+---
+
 ## Step 0: Pre-flight Checks
 
 Check tools (python3, twine, git), git status, and branch. Warn if uncommitted changes or not on main/master.

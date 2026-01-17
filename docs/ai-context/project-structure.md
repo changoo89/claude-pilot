@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-17 (Updated: GPT Expert Integration)
+> **Last Updated**: 2026-01-17 (Updated: GPT Delegation Expansion)
 
 ---
 
@@ -81,13 +81,26 @@ claude-pilot/
 │   │   └── worktree-utils.sh  # Worktree utilities (lock, cleanup)
 │   └── rules/              # Core rules
 │       ├── core/workflow.md
-│       └── documentation/tier-rules.md
+│       ├── documentation/tier-rules.md
+│       └── delegator/      # GPT delegation orchestration
+│           ├── orchestration.md
+│           ├── triggers.md
+│           ├── delegation-format.md
+│           ├── model-selection.md
+│           ├── pattern-standard.md # NEW v4.0.5
+│           └── prompts/       # GPT expert prompts (5)
 ├── .pilot/                 # Plan management
-│   └── plan/
-│       ├── pending/        # Awaiting confirmation
-│       ├── in_progress/    # Currently executing
-│       ├── done/           # Completed plans
-│       └── active/         # Branch pointers
+│   ├── plan/
+│   │   ├── pending/        # Awaiting confirmation
+│   │   ├── in_progress/    # Currently executing
+│   │   ├── done/           # Completed plans
+│   │   └── active/         # Branch pointers
+│   └── tests/              # Integration tests (NEW v4.0.5)
+│       ├── test_00_plan_delegation.test.sh
+│       ├── test_01_confirm_delegation.test.sh
+│       ├── test_91_document_delegation.test.sh
+│       ├── test_graceful_fallback.test.sh
+│       └── test_no_delegation.test.sh
 ├── docs/                   # Project documentation
 │   ├── ai-context/         # 3-Tier detailed docs
 │   │   ├── system-integration.md

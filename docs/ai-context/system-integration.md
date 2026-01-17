@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, data flow, shared patterns, and integration points
-> **Last Updated**: 2026-01-17 (Updated: GPT Delegation Auto-Delegation and Reasoning Effort Configuration)
+> **Last Updated**: 2026-01-17 (Updated: GPT Delegation Expansion to All Commands)
 
 ---
 
@@ -540,12 +540,18 @@ echo 'export CODEX_REASONING_EFFORT="medium"' >> ~/.zshrc
 
 | Component | Integration | Data Flow |
 |-----------|-------------|-----------|
-| `/90_review` | GPT Expert Review (Step 10) | Architecture review → GPT Architect |
+| `/00_plan` | GPT Delegation (Step 0.5) | Architecture decisions → GPT Architect (NEW v4.0.5) |
+| `/01_confirm` | GPT Delegation (Step 2.5) | Large plans (5+ SCs) → GPT Plan Reviewer (NEW v4.0.5) |
 | `/02_execute` | Auto-Delegation (Step 3.1.1) | CODER_BLOCKED → GPT Architect (automatic) |
 | `/02_execute` | GPT Escalation (Step 4) | 2+ Coder failures → GPT Architect |
+| `/90_review` | GPT Expert Review (Step 10) | Architecture review → GPT Architect |
+| `/91_document` | GPT Delegation (Step 3) | Complex documentation → GPT Architect (NEW v4.0.5) |
+| `/03_close` | GPT Delegation (Step 5) | Completion review → GPT Plan Reviewer (NEW v4.0.5) |
+| `/999_publish` | GPT Delegation (Step 2) | Publishing validation → GPT Security Analyst (NEW v4.0.5) |
 | `code-reviewer` | GPT Security Analyst Delegation | Security code → GPT Security Analyst |
 | `plan-reviewer` | GPT Plan Reviewer Delegation | Large plans (5+ SCs) → GPT Plan Reviewer |
 | `rules/delegator/*` | Orchestration rules | Delegation flow, triggers, format |
+| `rules/delegator/pattern-standard.md` | Standardized pattern | NEW v4.0.5 |
 | `rules/delegator/prompts/*` | GPT expert prompts | 5 expert system instructions |
 
 **Key Features**:
@@ -567,7 +573,7 @@ Available experts via Codex CLI:
 | Scope Analyst | Requirements analysis | Catching ambiguities before work starts |
 | Security Analyst | Vulnerabilities, threats | Security audits, hardening |
 
-### Delegation Rules (4 Files)
+### Delegation Rules (5 Files)
 
 Located in `.claude/rules/delegator/`:
 
@@ -577,6 +583,7 @@ Located in `.claude/rules/delegator/`:
 | `model-selection.md` | Expert directory, operating modes, codex parameters |
 | `orchestration.md` | Stateless design, retry flow, cost awareness |
 | `triggers.md` | PROACTIVE/REACTIVE delegation triggers |
+| `pattern-standard.md` | Standardized GPT delegation pattern across commands (NEW v4.0.5) |
 
 ### Expert Prompts (5 Files)
 
@@ -1430,5 +1437,5 @@ Task:
 
 ---
 
-**Last Updated**: 2026-01-17 (GPT Delegation Improvements)
+**Last Updated**: 2026-01-17 (GPT Delegation Expansion)
 **Version**: 4.0.5

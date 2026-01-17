@@ -39,6 +39,71 @@ echo 'export CODEX_REASONING_EFFORT="medium"' >> ~/.zshrc
 **Global Config**: `xhigh` in `~/.codex/config.toml` (overridden by script)
 **Recommendation**: Use `medium` for development, `high` for critical security reviews
 
+## Unified GPT Delegation Pattern
+
+> **Standard**: @.claude/rules/delegator/pattern-standard.md
+
+All commands follow the same GPT delegation pattern:
+
+### Trigger Detection Table
+
+| Command | Trigger Pattern | Detection Method | GPT Expert | Mode |
+|---------|----------------|------------------|------------|------|
+| `/00_plan` | Regex: `(tradeoff|design|structure|architecture)` | `grep -qiE` on user input | Architect | Advisory |
+| `/01_confirm` | Count: `$(grep -c "^SC-" plan.md) -ge 5` | Count SC items | Plan Reviewer | Advisory |
+| `/02_execute` | Marker: `<CODER_BLOCKED>` | Coder agent output | Architect | Implementation |
+| `/90_review` | Count: `$(grep -c "^SC-" plan.md) -ge 5` | Count SC items | Plan Reviewer | Advisory |
+| `/91_document` | Files: `$(find . -name "CONTEXT.md" | wc -l) -ge 3` | Count affected components | Architect | Advisory |
+| `/03_close` | Explicit: `grep -qi "review\|validate\|audit"` | User input keywords | Plan Reviewer | Advisory |
+| `/999_publish` | Keywords: `grep -qiE "security|auth|credential"` | User input keywords | Security Analyst | Advisory |
+
+### Command Template: GPT Delegation Trigger Check
+
+**Copy this template into each command**:
+
+```markdown
+## Step X.X: GPT Delegation Trigger Check (MANDATORY)
+
+> **⚠️ CRITICAL**: Check for GPT delegation triggers
+> **Full guide**: @.claude/rules/delegator/triggers.md
+
+| Trigger | Signal | Action |
+|---------|--------|--------|
+| [Trigger 1] | [Signal description] | Delegate to [Expert] |
+| [Trigger 2] | [Signal description] | Delegate to [Expert] |
+
+### Delegation Flow
+
+1. **STOP**: Scan input for trigger signals
+2. **MATCH**: Identify expert type from triggers
+3. **READ**: Load expert prompt file from `.claude/rules/delegator/prompts/`
+4. **CHECK**: Verify Codex CLI is installed (graceful fallback if not)
+5. **EXECUTE**: Call `codex-sync.sh` or continue with Claude agents
+6. **CONFIRM**: Log delegation decision
+
+### Graceful Fallback
+
+```bash
+if ! command -v codex &> /dev/null; then
+    echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
+    # Skip GPT delegation, continue with Claude analysis
+    return 0
+fi
+```
+
+> **Note**: This is bash code/pseudocode to be used in actual bash function calls. Commands are markdown files that guide Claude agents; the `return 0` applies when implementing shell functions/scripts that call `codex-sync.sh`.
+
+```
+
+### Graceful Fallback (CRITICAL)
+
+**MANDATORY**: All GPT delegation points MUST include graceful fallback.
+
+- Graceful fallback is **NOT** an error
+- Log warning message
+- Return success (exit 0) to allow continuation
+- Continue with Claude agents
+
 ## Available Experts
 
 | Expert | Specialty | Prompt File |

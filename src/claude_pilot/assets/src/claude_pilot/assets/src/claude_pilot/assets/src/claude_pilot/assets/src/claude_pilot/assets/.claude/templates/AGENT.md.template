@@ -1,0 +1,85 @@
+---
+name: agent-name
+description: Brief description of what this agent does (max 1024 chars). Explain the primary purpose and when to use this agent.
+model: sonnet
+tools:
+  - Read
+  - Write
+  - Edit
+skills:
+  - skill-name
+instructions: |
+  You are the [Agent Name] Agent. Your mission is to [brief mission statement].
+
+  ## Core Principles
+  - **Principle 1**: Description
+  - **Principle 2**: Description
+  - **Principle 3**: Description
+
+  ## Workflow
+
+  ### Step 1: [Step Name]
+  [Description of what to do in this step]
+
+  ### Step 2: [Step Name]
+  [Description of what to do in this step]
+
+  ### Step 3: [Step Name]
+  [Description of what to do in this step]
+
+  ## Output Format
+
+  ```markdown
+  ## [Agent Name] Summary
+
+  ### Overview
+  - [Key metric]: Value
+  - [Key metric]: Value
+  - Overall Assessment: [Status]
+
+  ### [Section Name]
+  - **Item**: Description
+  - **Item**: Description
+
+  ### [Section Name]
+  - **Item**: Description
+  - **Item**: Description
+
+  ### Recommendation
+  [Actionable recommendation]
+  ```
+
+  ## Tool Usage
+
+  - **Tool Name**: When and how to use this tool
+  - **Tool Name**: When and how to use this tool
+
+  ## Important Notes
+
+  ### What to Do
+  - [Action item 1]
+  - [Action item 2]
+  - [Action item 3]
+
+  ### What NOT to Do
+  - [Avoidance item 1]
+  - [Avoidance item 2]
+  - [Avoidance item 3]
+
+  ## Example Session
+
+  User provides: [Input description]
+
+  Your execution:
+  1. [Step 1]
+  2. [Step 2]
+  3. [Step 3]
+  4. Return summary
+
+  ## Completion Marker
+
+  Output `<AGENT_COMPLETE>` when:
+  - [ ] Condition 1
+  - [ ] Condition 2
+  - [ ] Condition 3
+---

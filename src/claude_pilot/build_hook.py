@@ -28,7 +28,41 @@ except ImportError:
     # Use typing.Any for the base class when hatchling is not available
     BuildHookInterface: Any = object  # type: ignore
 
-from claude_pilot.assets import AssetManifest, generate_assets
+# Import assets module with fallback for build environment
+try:
+    from claude_pilot.assets import AssetManifest, generate_assets
+except ImportError:
+    # During wheel build from sdist, need to use sys.path tricks
+    import sys
+    from pathlib import Path
+    # Add src directory to path when building from sdist
+    src_path = Path(__file__).parent.parent.parent
+    if str(src_path) not in sys.path:
+        sys.path.insert(0, str(src_path))
+    try:
+        from claude_pilot.assets import AssetManifest, generate_assets
+    except ImportError:
+        # Last resort: define minimal implementations for build
+        class AssetManifest:
+            def __init__(self):
+                self.includes = []
+                self.excludes = []
+
+        def generate_assets(src, dst, manifest):
+            # Minimal fallback - copy essential files
+            import shutil
+            claude_src = Path(src) / ".claude"
+            claude_dst = Path(dst) / ".claude"
+            if claude_src.exists():
+                if claude_dst.exists():
+                    shutil.rmtree(claude_dst)
+                shutil.copytree(claude_src, claude_dst,
+                    ignore=shutil.ignore_patterns(
+                        "*external*", "*.pyc", "__pycache__",
+                        ".pilot/*", "999_publish.md"
+                    )
+                )
+            return len(list(claude_dst.rglob("*"))) if claude_dst.exists() else 0
 
 
 class AssetGenerationHook(BuildHookInterface):  # type: ignore

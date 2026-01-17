@@ -1,0 +1,233 @@
+# SKILL: [Skill Name]
+
+> **Purpose**: [One-line description of what this skill does]
+> **Target**: [Who should use this skill - e.g., developers working on database operations]
+> **Last Updated**: [Date]
+
+---
+
+## Quick Start (30 seconds)
+
+### When to Use This Skill
+Use this skill when you need to:
+- [Use case 1]
+- [Use case 2]
+- [Use case 3]
+
+### Quick Reference
+```bash
+# Common command 1
+[command]
+
+# Common command 2
+[command]
+```
+
+---
+
+## What This Skill Covers
+
+### In Scope
+- [Capability 1]
+- [Capability 2]
+- [Capability 3]
+
+### Out of Scope
+- [What's NOT covered 1] → See [Other Skill]
+- [What's NOT covered 2] → See [Other Skill]
+
+---
+
+## Core Concepts
+
+### Concept 1: [Name]
+**Definition**: Brief explanation
+
+**Why it matters**: Rationale
+
+**Example**:
+```typescript
+// Code example
+```
+
+### Concept 2: [Name]
+**Definition**: Brief explanation
+
+**Why it matters**: Rationale
+
+**Example**:
+```typescript
+// Code example
+```
+
+---
+
+## Typical Workflows
+
+### Workflow 1: [Task Name]
+
+**Prerequisites**:
+- [Prerequisite 1]
+- [Prerequisite 2]
+
+**Steps**:
+1. [Step 1 with command/action]
+2. [Step 2 with command/action]
+3. [Step 3 with command/action]
+
+**Verification**:
+```bash
+# How to verify it worked
+[verification command]
+```
+
+### Workflow 2: [Task Name]
+
+**Prerequisites**:
+- [Prerequisite 1]
+- [Prerequisite 2]
+
+**Steps**:
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+
+**Verification**:
+```bash
+[verification command]
+```
+
+---
+
+## Common Patterns
+
+### Pattern 1: [Name]
+**Use case**: When to use this pattern
+
+**Implementation**:
+```typescript
+// Example code
+```
+
+**Caveats**:
+- [Gotcha 1]
+- [Gotcha 2]
+
+### Pattern 2: [Name]
+**Use case**: When to use this pattern
+
+**Implementation**:
+```typescript
+// Example code
+```
+
+**Caveats**:
+- [Gotcha 1]
+- [Gotcha 2]
+
+---
+
+## Troubleshooting
+
+### Issue: [Problem Description]
+**Symptoms**: What you see
+
+**Diagnosis**:
+```bash
+# How to diagnose
+[diagnostic command]
+```
+
+**Solution**:
+[Step-by-step fix]
+
+---
+
+## Best Practices
+
+### Do's ✅
+- [Best practice 1 with brief explanation]
+- [Best practice 2 with brief explanation]
+- [Best practice 3 with brief explanation]
+
+### Don'ts ❌
+- [Common mistake 1 to avoid]
+- [Common mistake 2 to avoid]
+- [Common mistake 3 to avoid]
+
+---
+
+## Integration with Other Skills
+
+### Related Skills
+- **[Skill 1]**: [How it relates]
+- **[Skill 2]**: [How it relates]
+- **[Skill 3]**: [How it relates]
+
+### Call Patterns
+```
+This Skill → [Other Skill]
+     ↓
+[Output becomes input]
+```
+
+---
+
+## Examples
+
+### Example 1: [Use Case]
+**Scenario**: [Description]
+
+**Approach**:
+```typescript
+// Code example
+```
+
+**Result**: [What you get]
+
+### Example 2: [Use Case]
+**Scenario**: [Description]
+
+**Approach**:
+```typescript
+// Code example
+```
+
+**Result**: [What you get]
+
+---
+
+## Performance Considerations
+
+- [Performance tip 1]
+- [Performance tip 2]
+- [Performance tip 3]
+
+---
+
+## Security Notes
+
+- [Security consideration 1]
+- [Security consideration 2]
+
+---
+
+## Further Reading
+
+### Internal Documentation
+- [Related doc 1]
+- [Related doc 2]
+
+### External Resources
+- [Resource 1](URL)
+- [Resource 2](URL)
+
+---
+
+## FAQ
+
+### Q: [Common question]?
+**A**: [Answer]
+
+### Q: [Common question]?
+**A**: [Answer]

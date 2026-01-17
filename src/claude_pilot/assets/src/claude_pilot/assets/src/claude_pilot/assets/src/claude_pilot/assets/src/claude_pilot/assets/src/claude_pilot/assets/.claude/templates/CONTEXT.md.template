@@ -1,0 +1,113 @@
+# CONTEXT.md - Hierarchical Context for [Folder/Module Name]
+
+> **Purpose**: Provide focused context for AI agents working on this specific area
+> **Last Updated**: [Date]
+> **Maintainer**: [Your Name]
+
+---
+
+## Quick Reference (L0 - Immediate)
+
+### What this is
+[Brief 1-2 sentence description of this folder/module's purpose]
+
+### Key Files
+| File | Purpose |
+|------|---------|
+| [main-file] | Primary entry point |
+| [config-file] | Configuration |
+| [test-file] | Test coverage |
+
+### Common Tasks
+- **Task 1**: Description → Command/Reference
+- **Task 2**: Description → Command/Reference
+- **Task 3**: Description → Command/Reference
+
+---
+
+## Architecture (L1 - Structural)
+
+### Component Relationships
+```
+[Component A] → [Component B] → [Component C]
+       ↓              ↓              ↓
+   [Utility]    [Service]    [Repository]
+```
+
+### Data Flow
+1. Input comes from [Source]
+2. Processed by [Component]
+3. Output to [Destination]
+
+---
+
+## Implementation Details (L2 - Deep Dive)
+
+### Patterns Used
+- **Pattern**: [Name] - Purpose and usage
+- **Pattern**: [Name] - Purpose and usage
+
+### Important Constraints
+- [Constraint 1 with rationale]
+- [Constraint 2 with rationale]
+- [Constraint 3 with rationale]
+
+### Dependencies
+```typescript
+// Internal
+import { something } from '../related-module'
+
+// External
+import { library } from 'external-package'
+```
+
+---
+
+## Testing Strategy
+
+### Test Coverage Areas
+- ☐ Unit tests for [Component]
+- ☐ Integration tests for [Flow]
+- ☐ Edge case handling
+
+### Running Tests
+```bash
+# Unit tests
+npm test -- [pattern]
+
+# Coverage
+npm test -- --coverage
+```
+
+---
+
+## Common Pitfalls
+
+### Don't
+- ❌ [Common mistake 1]
+- ❌ [Common mistake 2]
+
+### Do
+- ✅ [Best practice 1]
+- ✅ [Best practice 2]
+
+---
+
+## Related Documentation
+
+- **Parent Context**: `../CONTEXT.md`
+- **Related Module**: `../sibling-folder/CONTEXT.md`
+- **Project Root**: `../../CLAUDE.md`
+
+---
+
+## Notes
+
+### Workarounds
+[Temporary solutions that need future attention]
+
+### Technical Debt
+[Known issues with planned resolution]
+
+### Future Enhancements
+[Planned improvements not yet implemented]

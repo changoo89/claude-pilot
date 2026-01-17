@@ -1,0 +1,163 @@
+# [Component Name] - Component Context (Tier 2)
+
+> **Purpose**: Component-level architecture and integration documentation
+> **Last Updated**: [Date]
+> **Tier**: 2 (Component - Architecture & Integration)
+> **Maintainer**: [Your Name]
+
+---
+
+## Quick Reference
+
+### What this is
+[1-2 sentence description of this component's purpose and responsibility]
+
+### Current Status
+| Aspect | Status |
+|--------|--------|
+| Stability | [Stable/Evolving/Experimental] |
+| Last Major Change | [Date] |
+| Dependencies | [List key dependencies] |
+
+---
+
+## Component Overview
+
+### Purpose
+[Detailed description of what this component does and its role in the system]
+
+### Responsibilities
+- [Primary responsibility 1]
+- [Primary responsibility 2]
+- [Primary responsibility 3]
+
+---
+
+## Development Guidelines
+
+### When to Work Here
+- **Use for**: [Scenarios that belong in this component]
+- **Don't use for**: [Scenarios that belong elsewhere]
+
+### Key Constraints
+- [Constraint 1 with rationale]
+- [Constraint 2 with rationale]
+- [Constraint 3 with rationale]
+
+---
+
+## Key Component Structure
+
+### Directory Layout
+```
+[component-name]/
+├── [file1]           # Purpose
+├── [file2]           # Purpose
+└── [subfolder/]      # Purpose
+```
+
+### Key Files
+| File | Purpose | Notes |
+|------|---------|-------|
+| [file1] | [Purpose] | [Usage notes] |
+| [file2] | [Purpose] | [Usage notes] |
+| [file3] | [Purpose] | [Usage notes] |
+
+---
+
+## Implementation Highlights
+
+### Core Patterns
+- **[Pattern Name]**: [Purpose and how it's used]
+- **[Pattern Name]**: [Purpose and how it's used]
+- **[Pattern Name]**: [Purpose and how it's used]
+
+### Architectural Decisions
+| Decision | Rationale |
+|----------|-----------|
+| [Decision 1] | [Why this approach was chosen] |
+| [Decision 2] | [Why this approach was chosen] |
+
+---
+
+## Integration Points
+
+### Dependencies (Inbound)
+| Component | Interface | Purpose |
+|-----------|-----------|---------|
+| [Component A] | [API/Module] | [What it provides] |
+| [Component B] | [API/Module] | [What it provides] |
+
+### Dependents (Outbound)
+| Component | Interface | Purpose |
+|-----------|-----------|---------|
+| [Component X] | [API/Module] | [What this provides] |
+| [Component Y] | [API/Module] | [What this provides] |
+
+---
+
+## Critical Implementation Details
+
+### Performance Considerations
+- [Performance characteristic 1]
+- [Performance characteristic 2]
+
+### Security Considerations
+- [Security consideration 1]
+- [Security consideration 2]
+
+### Error Handling Strategy
+- [Error handling approach 1]
+- [Error handling approach 2]
+
+---
+
+## Development Notes
+
+### Common Tasks
+| Task | Description | Reference |
+|------|-------------|-----------|
+| [Task 1] | [How to do it] | [Link/Location] |
+| [Task 2] | [How to do it] | [Link/Location] |
+
+### Testing Guidelines
+- **Unit tests**: [Location and coverage target]
+- **Integration tests**: [Location and what they cover]
+- **Running tests**: [Command]
+
+### Known Limitations
+- [Limitation 1]
+- [Limitation 2]
+
+---
+
+## Common Pitfalls
+
+### Don't
+- ❌ [Common mistake 1 with explanation]
+- ❌ [Common mistake 2 with explanation]
+
+### Do
+- ✅ [Best practice 1]
+- ✅ [Best practice 2]
+
+---
+
+## Related Documentation
+
+- **Tier 1 (Project)**: `../../CLAUDE.md`
+- **Tier 3 (Features)**: [List of feature-level CONTEXT.md files]
+- **Related Components**: [List of sibling component CONTEXT.md files]
+
+---
+
+## Notes
+
+### Workarounds
+[Temporary solutions that need future attention]
+
+### Technical Debt
+[Known issues with planned resolution]
+
+### Future Enhancements
+[Planned improvements not yet implemented]

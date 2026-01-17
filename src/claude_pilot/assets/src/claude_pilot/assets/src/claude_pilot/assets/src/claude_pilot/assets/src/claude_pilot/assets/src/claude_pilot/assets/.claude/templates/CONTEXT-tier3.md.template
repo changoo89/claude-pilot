@@ -1,0 +1,205 @@
+# [Feature Name] - Feature Context (Tier 3)
+
+> **Purpose**: Feature-level implementation details and working documentation
+> **Last Updated**: [Date]
+> **Tier**: 3 (Feature - Implementation Details)
+> **Component**: [Parent Component Name]
+
+---
+
+## Quick Reference
+
+### What this is
+[1-2 sentence description of this feature's purpose and functionality]
+
+### Current Status
+| Aspect | Status |
+|--------|--------|
+| Development | [Planning/In Progress/Stable/Deprecated] |
+| Last Changed | [Date] |
+| Test Coverage | [X%] |
+
+---
+
+## Architecture & Patterns
+
+### Design Pattern(s) Used
+- **[Pattern Name]**: [Explanation of how this pattern is applied]
+
+### Data Flow
+```
+[Input/Trigger] → [Process/Function] → [Output/Result]
+       ↓                ↓                  ↓
+   [Detail]        [Detail]           [Detail]
+```
+
+### State Management
+| State | Initial | Updates | Source |
+|-------|---------|---------|--------|
+| [State 1] | [Value] | [How/when] | [Source] |
+| [State 2] | [Value] | [How/when] | [Source] |
+
+---
+
+## Integration & Performance
+
+### External Dependencies
+```typescript
+// Example format
+import { dependency } from 'external-package'
+```
+
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| [Package 1] | [Version] | [Usage] |
+| [Package 2] | [Version] | [Usage] |
+
+### Internal Dependencies
+| Module/Function | Purpose |
+|-----------------|---------|
+| [Module 1] | [Why it's needed] |
+| [Module 2] | [Why it's needed] |
+
+### Performance Characteristics
+- **Time Complexity**: [O(n) / O(1) / etc.]
+- **Space Complexity**: [O(n) / O(1) / etc.]
+- **Optimization Notes**: [Any performance considerations]
+
+---
+
+## Implementation Decisions
+
+### Decision Log
+| Date | Decision | Rationale | Alternatives Considered |
+|------|----------|-----------|-------------------------|
+| [Date] | [What was decided] | [Why this choice] | [What was rejected and why] |
+
+### Trade-offs
+| Choice | Benefit | Cost |
+|--------|---------|------|
+| [Choice 1] | [What we gain] | [What we pay] |
+| [Choice 2] | [What we gain] | [What we pay] |
+
+---
+
+## Code Examples
+
+### Common Usage
+```typescript
+// Example: Typical usage pattern
+function exampleUsage() {
+  // Step 1
+  const result = doSomething()
+
+  // Step 2
+  return result
+}
+```
+
+### Edge Cases Handled
+```typescript
+// Example: Edge case handling
+function handleEdgeCase(input) {
+  if (edgeCondition) {
+    // Special handling
+  }
+}
+```
+
+### Common Modifications
+| Change | Location | How to |
+|--------|----------|--------|
+| [Change 1] | [File/Function] | [Steps] |
+| [Change 2] | [File/Function] | [Steps] |
+
+---
+
+## Testing Strategy
+
+### Test Coverage
+| Type | Location | Coverage |
+|------|----------|----------|
+| Unit | [Test file] | [X%] |
+| Integration | [Test file] | [X%] |
+| E2E | [Test file] | [X%] |
+
+### Running Tests
+```bash
+# Run tests for this feature
+npm test -- [pattern]
+
+# With coverage
+npm test -- --coverage [pattern]
+```
+
+### Key Test Cases
+| Case | Description | Expected |
+|------|-------------|----------|
+| [Test 1] | [What it tests] | [Expected result] |
+| [Test 2] | [What it tests] | [Expected result] |
+
+---
+
+## Development Workflow
+
+### Making Changes
+1. [Step 1: What to do first]
+2. [Step 2: What to do next]
+3. [Step 3: Final steps]
+
+### Debugging Tips
+- **Issue**: [Common problem] → **Solution**: [How to fix]
+- **Issue**: [Common problem] → **Solution**: [How to fix]
+
+### Validation
+```bash
+# Type check
+npx tsc --noEmit [file]
+
+# Lint
+npm run lint [file]
+
+# Test
+npm test -- [pattern]
+```
+
+---
+
+## Common Pitfalls
+
+### Don't
+- ❌ [Mistake 1]: [Why it's problematic]
+- ❌ [Mistake 2]: [Why it's problematic]
+
+### Do
+- ✅ [Practice 1]: [Why it helps]
+- ✅ [Practice 2]: [Why it helps]
+
+---
+
+## Related Documentation
+
+- **Parent Component (Tier 2)**: `../CONTEXT.md`
+- **Project (Tier 1)**: `../../../CLAUDE.md`
+- **Related Features**: [List of related feature CONTEXT.md files]
+
+---
+
+## Notes
+
+### Current Workarounds
+[Any temporary solutions in use]
+
+### Known Issues
+| Issue | Impact | Planned Fix |
+|-------|--------|-------------|
+| [Issue 1] | [Severity/Effect] | [When/how to fix] |
+| [Issue 2] | [Severity/Effect] | [When/how to fix] |
+
+### Future Improvements
+- [Improvement 1]
+- [Improvement 2]
+
+### Refactoring Opportunities
+- [Opportunity 1]: [What and why]
+- [Opportunity 2]: [What and why]

@@ -11,6 +11,33 @@ You have access to GPT experts via the `codex-sync.sh` script. Use them strategi
 **Configuration:**
 - Model: `gpt-5.2` (override with `CODEX_MODEL` env var)
 - Timeout: `300s` (override with `CODEX_TIMEOUT` env var)
+- Reasoning Effort: `medium` (override with `CODEX_REASONING_EFFORT` env var)
+
+### Reasoning Effort
+
+Control Codex reasoning effort via environment variable:
+
+**Available Levels**:
+- `low`: Fast response (~30s), good for simple questions
+- `medium`: Balanced (~1-2min), default for most tasks
+- `high`: Deep analysis (~3-5min), for complex problems
+- `xhigh`: Maximum reasoning (~5-10min), most thorough but slowest
+
+**Usage**:
+```bash
+# Set for current session
+export CODEX_REASONING_EFFORT="medium"
+
+# Set for single command
+CODEX_REASONING_EFFORT="low" .claude/scripts/codex-sync.sh ...
+
+# Set permanently (add to ~/.zshrc or ~/.bashrc)
+echo 'export CODEX_REASONING_EFFORT="medium"' >> ~/.zshrc
+```
+
+**Default**: `medium` (set in `codex-sync.sh`)
+**Global Config**: `xhigh` in `~/.codex/config.toml` (overridden by script)
+**Recommendation**: Use `medium` for development, `high` for critical security reviews
 
 ## Available Experts
 

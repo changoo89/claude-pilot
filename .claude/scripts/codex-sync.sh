@@ -20,7 +20,9 @@ set -euo pipefail
 
 # Configuration
 MODEL="${CODEX_MODEL:-gpt-5.2}"
-REASONING_EFFORT="${CODEX_REASONING_EFFORT:-}"
+# Reasoning effort: low (fast), medium (balanced), high (deep), xhigh (maximum)
+# Default: medium for balanced speed/quality (overrides global xhigh config)
+REASONING_EFFORT="${CODEX_REASONING_EFFORT:-medium}"
 TIMEOUT_SEC="${CODEX_TIMEOUT:-300}"  # 5 minutes default
 
 # Parse arguments
@@ -43,8 +45,9 @@ fi
 
 # Check if codex is installed
 if ! command -v codex &> /dev/null; then
-    echo "Error: Codex CLI not found. Install with: npm install -g @openai/codex" >&2
-    exit 1
+    echo "Warning: Codex CLI not installed - falling back to Claude-only analysis" >&2
+    echo "To enable GPT delegation, install: npm install -g @openai/codex" >&2
+    exit 0  # Graceful fallback - return success to allow Claude to continue
 fi
 
 # Check if jq is installed (for JSON parsing)

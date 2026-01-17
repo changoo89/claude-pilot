@@ -1,7 +1,7 @@
 # claude-pilot - Claude Code Development Guide
 
 > **Last Updated**: 2026-01-17
-> **Version**: 4.0.4
+> **Version**: 4.0.5
 
 ---
 
@@ -49,7 +49,7 @@ project-root/
 
 ---
 
-## Codex Integration (v4.0.4)
+## Codex Integration (v4.0.5)
 
 **GPT Expert Delegation**: Optional GPT delegation via `codex-sync.sh` for high-difficulty analysis.
 
@@ -59,6 +59,12 @@ project-root/
 | Large plan (5+ SCs) | **Plan Reviewer** |
 | Architecture decisions | **Architect** |
 | 2+ failed fix attempts | **Architect** |
+| Coder blocked (automatic) | **Architect** (auto-delegate) |
+
+**Configuration**:
+- Default reasoning effort: `medium` (1-2min response)
+- Override: `export CODEX_REASONING_EFFORT="low|medium|high|xhigh"`
+- Graceful fallback: Claude-only analysis if Codex CLI not installed
 
 **Full guide**: `.claude/rules/delegator/orchestration.md`
 
@@ -127,5 +133,5 @@ project-root/
 
 ---
 
-**Template Version**: claude-pilot 4.0.4
+**Template Version**: claude-pilot 4.0.5
 **Last Updated**: 2026-01-17

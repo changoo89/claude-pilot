@@ -146,6 +146,7 @@ claude-pilot/
 | File | Purpose |
 |------|---------|
 | `.claude/settings.json` | MCP server configuration |
+| `.claude/scripts/codex-sync.sh` | GPT expert delegation with reasoning effort configuration |
 | `package.json` | npm dependencies, scripts, version |
 | `.gitignore` | Git exclusions |
 
@@ -423,6 +424,17 @@ claude-pilot update --apply-statusline
 
 ## Version History
 
+### v4.0.5 (2026-01-17)
+
+- **GPT Delegation Improvements**: Auto-delegation and performance optimization
+  - Auto-delegation on CODER_BLOCKED: `/02_execute` now automatically delegates to GPT Architect when coder is blocked (no user prompt needed)
+  - Reasoning effort optimization: Default changed from empty (xhigh) to "medium" for faster response times (1-2min vs 5+ minutes)
+  - Graceful fallback: `codex-sync.sh` now checks for Codex CLI installation and gracefully falls back to Claude-only analysis if not installed
+  - Environment variable configuration: Added `CODEX_REASONING_EFFORT` for per-task reasoning effort tuning
+  - Updated files: `.claude/commands/02_execute.md`, `.claude/scripts/codex-sync.sh`, `.claude/rules/delegator/orchestration.md`
+  - Updated documentation: `docs/ai-context/system-integration.md` with reasoning effort levels and usage examples
+  - Verification: All 3 success criteria met (auto-delegation, response time, environment variable override)
+
 ### v4.0.4 (2026-01-17)
 
 - **SSOT Assets Build Hook**: Single Source of Truth for Claude Code assets
@@ -588,5 +600,5 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-17 (Concise-First Documentation)
-**Version**: 4.0.4
+**Last Updated**: 2026-01-17 (GPT Delegation Improvements)
+**Version**: 4.0.5

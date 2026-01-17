@@ -128,7 +128,28 @@ Task:
 | Marker | Meaning | Action |
 |--------|---------|--------|
 | `<CODER_COMPLETE>` | All SCs met, tests pass, coverage达标 | Proceed to next step |
-| `<CODER_BLOCKED>` | Cannot complete | Use `AskUserQuestion` for guidance |
+| `<CODER_BLOCKED>` | Cannot complete | **AUTO-DELEGATE to GPT Architect** |
+
+### 3.1.1 Auto-Delegation to GPT Architect
+
+> **MANDATORY**: When Coder returns `<CODER_BLOCKED>`, automatically delegate to GPT Architect
+
+**Trigger**: Coder agent reports it cannot complete the work
+
+**Action**:
+1. Read `.claude/rules/delegator/prompts/architect.md`
+2. Build delegation prompt with context:
+   - What the coder was trying to do
+   - What blocked it
+   - Relevant code snippets
+   - Error messages
+3. Call: `.claude/scripts/codex-sync.sh "workspace-write" "<prompt>"`
+4. Process Architect response
+5. Re-invoke Coder with Architect guidance
+
+**Fallback**: If Architect also fails, then use `AskUserQuestion`
+
+**Delegation Count**: Track attempts, max 2 auto-delegations before fallback
 
 ### 3.2 Verify Coder Output (TDD Enforcement)
 

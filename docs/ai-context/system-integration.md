@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, data flow, shared patterns, and integration points
-> **Last Updated**: 2026-01-17 (Updated: GPT Expert Integration with Commands and Agents)
+> **Last Updated**: 2026-01-17 (Updated: GPT Delegation Auto-Delegation and Reasoning Effort Configuration)
 
 ---
 
@@ -516,13 +516,33 @@ CONTEXT: [user's situation, full details]
 **Configuration**:
 - **Model**: `gpt-5.2` (override with `CODEX_MODEL` env var)
 - **Timeout**: `300s` (override with `CODEX_TIMEOUT` env var)
+- **Reasoning Effort**: `medium` (override with `CODEX_REASONING_EFFORT` env var)
+
+**Reasoning Effort Levels** (Updated 2026-01-17):
+- `low`: Fast response (~30s), good for simple questions
+- `medium`: Balanced (~1-2min), default for most tasks (overrides global xhigh config)
+- `high`: Deep analysis (~3-5min), for complex problems
+- `xhigh`: Maximum reasoning (~5-10min), most thorough but slowest
+
+**Usage**:
+```bash
+# Set for current session
+export CODEX_REASONING_EFFORT="medium"
+
+# Set for single command
+CODEX_REASONING_EFFORT="low" .claude/scripts/codex-sync.sh ...
+
+# Set permanently (add to ~/.zshrc or ~/.bashrc)
+echo 'export CODEX_REASONING_EFFORT="medium"' >> ~/.zshrc
+```
 
 ### Integration Points
 
 | Component | Integration | Data Flow |
 |-----------|-------------|-----------|
 | `/90_review` | GPT Expert Review (Step 10) | Architecture review → GPT Architect |
-| `/02_execute` | GPT Escalation (Step 3.7) | 2+ Coder failures → GPT Architect |
+| `/02_execute` | Auto-Delegation (Step 3.1.1) | CODER_BLOCKED → GPT Architect (automatic) |
+| `/02_execute` | GPT Escalation (Step 4) | 2+ Coder failures → GPT Architect |
 | `code-reviewer` | GPT Security Analyst Delegation | Security code → GPT Security Analyst |
 | `plan-reviewer` | GPT Plan Reviewer Delegation | Large plans (5+ SCs) → GPT Plan Reviewer |
 | `rules/delegator/*` | Orchestration rules | Delegation flow, triggers, format |
@@ -531,7 +551,8 @@ CONTEXT: [user's situation, full details]
 **Key Features**:
 - **Model**: GPT 5.2 (via Codex CLI)
 - **Script**: Bash wrapper for `codex exec` command
-- **Fallback**: Graceful skip if Codex CLI not installed
+- **Fallback**: Graceful skip if Codex CLI not installed (logs warning, returns success)
+- **Auto-Delegation**: Automatic GPT Architect call when Coder returns BLOCKED (no user prompt needed)
 - **Validation**: Checks Codex authentication status
 
 ### GPT Expert Delegation
@@ -1409,5 +1430,5 @@ Task:
 
 ---
 
-**Last Updated**: 2026-01-17 (Concise-First Documentation)
-**Version**: 4.0.4
+**Last Updated**: 2026-01-17 (GPT Delegation Improvements)
+**Version**: 4.0.5

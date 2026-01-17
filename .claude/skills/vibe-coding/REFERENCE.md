@@ -249,6 +249,120 @@ processor = OrderProcessor(PostgreSQLDatabase())  # Works!
 
 ---
 
+## Missing VIBE Principles
+
+### Self-Documenting Code
+
+**Definition**: Code should reveal its intent through clear naming and structure, minimizing the need for comments.
+
+```python
+# ❌ POOR: Unclear naming, requires comments
+def proc(d, l):
+    # Process data with limit
+    r = []
+    for x in d:
+        if x > l:
+            r.append(x * 2)
+    return r
+
+# ✅ GOOD: Self-documenting names, no comments needed
+def filter_and_double_values(data, minimum_value):
+    """Filter values above minimum and double them."""
+    return [value * 2 for value in data if value > minimum_value]
+```
+
+**Guidelines**:
+- **Variables**: `user_input` not `d`, `max_retries` not `n`
+- **Functions**: `calculate_total_price` not `calc`, `send_email_notification` not `notify`
+- **Booleans**: `is_active`, `has_permission`, `can_process` (prefix with is/has/can)
+- **Collections**: `users`, `user_list`, `active_users` (plural names)
+
+### Single Abstraction Level
+
+**Definition**: Functions should operate at one conceptual level, mixing high-level strategy with low-level details.
+
+```python
+# ❌ POOR: Mixed abstraction levels
+def process_order(order):
+    # High-level: Validate order
+    if not order.items:
+        raise ValueError("No items")
+
+    # Low-level: Parse JSON
+    import json
+    items = json.loads(order.items_json)
+
+    # High-level: Calculate pricing
+    total = sum(item["price"] for item in items)
+
+    # Low-level: Database connection
+    import psycopg2
+    conn = psycopg2.connect("...")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO orders ...")
+
+    # Mixed levels make code hard to understand
+
+# ✅ GOOD: Single abstraction level
+def process_order(order):
+    """High-level orchestration of order processing."""
+    validated_order = validate_order(order)
+    pricing = calculate_pricing(validated_order)
+    saved_order = save_order_to_database(pricing)
+    send_confirmation(saved_order)
+    return saved_order
+
+def save_order_to_database(order):
+    """Low-level database operation (separate function)."""
+    import psycopg2
+    conn = psycopg2.connect("...")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO orders ...")
+```
+
+**Guidelines**:
+- **High-level functions**: Orchestrate other functions, reveal business logic
+- **Low-level functions**: Handle implementation details (database, JSON, HTTP)
+- **Rule**: One function should not mix "what" (business logic) with "how" (implementation)
+
+### Principle of Least Surprise (POLS)
+
+**Definition**: Code should behave predictably, following conventions and avoiding hidden side effects.
+
+```python
+# ❌ VIOLATION: Hidden side effects, surprising behavior
+def get_user(user_id):
+    user = db.find_user(user_id)
+    # SURPRISE: Also logs to file (hidden side effect)
+    logger.info(f"User accessed: {user_id}")
+    # SURPRISE: Updates last_accessed timestamp (mutation)
+    user.last_accessed = datetime.now()
+    db.save(user)
+    return user
+
+# ✅ GOOD: Predictable, no surprises
+def get_user(user_id):
+    """Get user by ID (no side effects)."""
+    return db.find_user(user_id)
+
+def log_user_access(user_id):
+    """Log user access (explicit function)."""
+    logger.info(f"User accessed: {user_id}")
+
+def update_last_accessed(user):
+    """Update last accessed timestamp (explicit function)."""
+    user.last_accessed = datetime.now()
+    db.save(user)
+```
+
+**Guidelines**:
+- **No hidden mutations**: Functions should not modify arguments unless obvious from name
+- **No hidden side effects**: Logging, I/O, network calls should be explicit
+- **Follow conventions**: `get_xxx` returns data, `set_xxx` modifies data, `is_xxx` returns bool
+- **Consistent naming**: Similar operations have similar names
+
+---
+
 ## Refactoring Patterns
 
 ### Extract Method Pattern

@@ -1211,14 +1211,18 @@ CONTEXT.md files provide Tier 2 (Component-level) documentation for major folder
 ## Related Documentation
 
 - `.claude/guides/prp-framework.md` - Problem-Requirements-Plan definition
+- `.claude/guides/prp-template.md` - PRP template (NEW 2026-01-17)
 - `.claude/guides/claude-code-standards.md` - Official Claude Code standards (NEW)
+- `.claude/guides/test-plan-design.md` - Test plan methodology (NEW 2026-01-17)
+- `.claude/guides/worktree-setup.md` - Worktree setup script (NEW 2026-01-17)
 - `.claude/commands/CONTEXT.md` - Command folder context (NEW)
 - `.claude/guides/CONTEXT.md` - Guide folder context (NEW)
 - `.claude/skills/CONTEXT.md` - Skill folder context (NEW)
 - `.claude/agents/CONTEXT.md` - Agent folder context (NEW)
 - `src/claude_pilot/CONTEXT.md` - Core package architecture, CLI patterns (NEW)
 - `.claude/skills/documentation-best-practices/SKILL.md` - Documentation standards (NEW)
-- `.claude/skills/vibe-coding/SKILL.md` - Code quality standards
+- `.claude/skills/vibe-coding/SKILL.md` - Code quality standards (Quick Reference, ~50 lines)
+- `.claude/skills/vibe-coding/REFERENCE.md` - Code quality detailed guide (NEW 2026-01-17)
 - `.claude/guides/gap-detection.md` - External service verification
 - `.claude/skills/tdd/SKILL.md` - Test-driven development
 - `.claude/skills/ralph-loop/SKILL.md` - Autonomous iteration
@@ -1405,5 +1409,5 @@ Task:
 
 ---
 
-**Last Updated**: 2026-01-17
-**Version**: 4.0.4 (SSOT Assets Build Hook)
+**Last Updated**: 2026-01-17 (Concise-First Documentation)
+**Version**: 4.0.4

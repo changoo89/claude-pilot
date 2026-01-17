@@ -32,19 +32,23 @@ claude-pilot/
 │   │   ├── 91_document.md  # Update docs
 │   │   ├── 92_init.md      # Initialize 3-Tier docs
 │   │   └── 999_publish.md  # Publish to PyPI
-│   ├── guides/             # Methodology guides (12)
+│   ├── guides/             # Methodology guides (14)
 │   │   ├── CONTEXT.md      # Guide folder context (NEW)
 │   │   ├── claude-code-standards.md  # Official Claude Code standards (NEW)
 │   │   ├── prp-framework.md          # Problem-Requirements-Plan
+│   │   ├── prp-template.md           # PRP template (NEW 2026-01-17)
 │   │   ├── gap-detection.md          # External service verification
 │   │   ├── parallel-execution.md     # Parallel execution patterns
 │   │   ├── 3tier-documentation.md    # Documentation system
 │   │   ├── review-checklist.md       # Code review criteria
 │   │   ├── test-environment.md       # Test framework detection
+│   │   ├── test-plan-design.md       # Test plan methodology (NEW 2026-01-17)
+│   │   ├── worktree-setup.md         # Worktree setup script (NEW 2026-01-17)
 │   │   ├── requirements-tracking.md  # User Requirements Collection (NEW)
 │   │   ├── requirements-verification.md # Requirements Verification (NEW)
 │   │   └── instruction-clarity.md    # LLM-readable instruction patterns (NEW)
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
+│   │   ├── prp-template.md            # PRP template (NEW 2026-01-17)
 │   │   ├── gap-checklist.md
 │   │   ├── CONTEXT-tier2.md.template
 │   │   └── CONTEXT-tier3.md.template
@@ -119,14 +123,14 @@ claude-pilot/
 
 ### Command Workflow
 
-| File | Purpose | Agent Pattern |
-|------|---------|---------------|
-| `.claude/commands/00_plan.md` | Generate SPEC-First plan with PRP analysis, Phase Boundary Protection (Level 3) | **MANDATORY**: Parallel Explorer + Researcher (Step 0) |
-| `.claude/commands/01_confirm.md` | Extract plan, create file, auto-review with Interactive Recovery | **MANDATORY**: Plan-Reviewer (Step 4) |
-| `.claude/commands/02_execute.md` | Atomic plan move (Step 1), implement with TDD + Ralph Loop | **MANDATORY**: Parallel Coders (Step 2.3), Parallel Verification (Step 2.4), Coder Delegation (Step 3) |
-| `.claude/commands/03_close.md` | Archive plan, commit changes | **MANDATORY**: Documenter (Step 5) |
-| `.claude/commands/90_review.md` | Review code or plans | **MANDATORY**: Plan-Reviewer (single or parallel) |
-| `.claude/commands/91_document.md` | Update documentation | **OPTIONAL**: Documenter |
+| File | Purpose | Lines | Agent Pattern |
+|------|---------|-------|---------------|
+| `.claude/commands/00_plan.md` | Generate SPEC-First plan with PRP analysis, Phase Boundary Protection (Level 3) | 156 | **MANDATORY**: Parallel Explorer + Researcher (Step 0) |
+| `.claude/commands/01_confirm.md` | Extract plan, create file, auto-review with Interactive Recovery | 318 | **MANDATORY**: Plan-Reviewer (Step 4) |
+| `.claude/commands/02_execute.md` | Atomic plan move (Step 1), implement with TDD + Ralph Loop | 266 | **MANDATORY**: Parallel Coders (Step 2.3), Parallel Verification (Step 2.4), Coder Delegation (Step 3) |
+| `.claude/commands/03_close.md` | Archive plan, commit changes | 247 | **MANDATORY**: Documenter (Step 5) |
+| `.claude/commands/90_review.md` | Review code or plans | 284 | **MANDATORY**: Plan-Reviewer (single or parallel) |
+| `.claude/commands/91_document.md` | Update documentation | 266 | **OPTIONAL**: Documenter |
 
 ### Documentation
 
@@ -164,7 +168,7 @@ The `/01_confirm` command now includes **Step 1.5: Conversation Highlights Extra
 ### Command File
 
 - **Location**: `.claude/commands/01_confirm.md`
-- **Lines**: 247 (slightly above 200-line Vibe Coding limit, accepted)
+- **Lines**: 247 (within 300-line limit for commands)
 - **Sections**:
   1. Extract Plan from Conversation
   1.5. Conversation Highlights Extraction (NEW)
@@ -270,7 +274,7 @@ When Tier 1 exceeds 300 lines, detailed sections move here:
 Located in `.claude/skills/{skill_name}/`:
 
 **Progressive Disclosure Pattern** (v3.3.2+):
-- `SKILL.md`: Quick reference (~75 lines, loaded every session)
+- `SKILL.md`: Quick reference (~50 lines, loaded every session)
 - `REFERENCE.md`: Detailed documentation (400-700 lines, loaded on-demand via @import)
 
 | Skill | Purpose |
@@ -584,5 +588,5 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-17
-**Version**: 4.0.4 (SSOT Assets Build Hook)
+**Last Updated**: 2026-01-17 (Concise-First Documentation)
+**Version**: 4.0.4

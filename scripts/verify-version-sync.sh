@@ -16,7 +16,7 @@ echo ""
 
 MISMATCH=0
 
-# Check all 6 version locations
+# Check all 5 version locations
 check_version() {
   local file="$1"
   local actual="$2"
@@ -33,7 +33,6 @@ check_version "__init__.py" "$(grep '__version__' src/claude_pilot/__init__.py |
 check_version "config.py" "$(grep 'VERSION =' src/claude_pilot/config.py | head -1 | sed 's/.*= *//' | tr -d '"')"
 check_version "install.sh" "$(grep 'VERSION=' install.sh | head -1 | sed 's/.*=//' | tr -d '"')"
 check_version ".pilot-version" "$(cat .claude/.pilot-version 2>/dev/null || echo 'missing')"
-check_version "templates/.pilot-version" "$(cat src/claude_pilot/templates/.claude/.pilot-version 2>/dev/null || echo 'missing')"
 
 echo ""
 if [ $MISMATCH -eq 0 ]; then

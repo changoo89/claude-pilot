@@ -91,16 +91,13 @@ claude-pilot/
 │   ├── plan-gap-analysis-external-api-calls.md
 │   └── slash-command-enhancement-examples.md
 ├── scripts/                # Sync and build scripts
-│   ├── sync-templates.sh   # Pre-deploy templates sync
 │   ├── verify-version-sync.sh  # Version consistency check
 │   └── codex-sync.sh       # GPT expert delegation (via .claude/scripts/)
 ├── src/                    # Source code
 │   └── claude_pilot/       # Main package
 │       ├── py.typed        # PEP 561 type marker
-│       ├── assets/         # Packaged assets (generated at build time) (NEW)
+│       ├── assets/         # Packaged assets (generated at build time)
 │       │   └── .claude/    # Curated Claude Code assets (build-time generation)
-│       ├── templates/      # Development templates (legacy, will be removed)
-│       │   └── .claude/
 │       ├── cli.py          # CLI with --skip-external-skills flag
 │       ├── codex.py        # Codex CLI detection, auth check, MCP setup
 │       ├── config.py       # EXTERNAL_SKILLS config (UPDATED: assets path)

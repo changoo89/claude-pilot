@@ -20,18 +20,27 @@ class TestStatuslineScript:
     """Test statusline.sh script functionality."""
 
     def get_statusline_script_path(self) -> Path:
-        """Get the path to the statusline.sh script from assets/templates."""
+        """Get the path to the statusline.sh script from assets or source."""
         import importlib.resources
 
-        # Try assets first (new location), fall back to templates (dev env)
+        # Try assets first (packaged location)
         try:
             assets_path = importlib.resources.files("claude_pilot") / "assets"
             if assets_path.is_dir():
-                return Path(str(assets_path)) / ".claude" / "scripts" / "statusline.sh"
+                script_path = Path(str(assets_path)) / ".claude" / "scripts" / "statusline.sh"
+                if script_path.exists():
+                    return script_path
         except (AttributeError, FileNotFoundError):
             pass
 
-        # Fall back to templates for development environment
+        # Fall back to source .claude directory for development environment
+        # Get the project root (tests/ is at project root)
+        project_root = Path(__file__).parent.parent
+        source_script = project_root / ".claude" / "scripts" / "statusline.sh"
+        if source_script.exists():
+            return source_script
+
+        # Last resort: try old templates path (should not exist anymore)
         templates_path = importlib.resources.files("claude_pilot") / "templates"
         return Path(str(templates_path)) / ".claude" / "scripts" / "statusline.sh"
 

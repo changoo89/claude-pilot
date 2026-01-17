@@ -368,8 +368,8 @@ A backup has been created. Check the `.claude-backups/` directory.
 Compare your current files with the latest templates:
 
 ```bash
-# View bundled templates location
-python3 -c "import importlib.resources; print(importlib.resources.files('claude_pilot/templates'))"
+# View bundled assets location
+python3 -c "import importlib.resources; print(importlib.resources.files('claude_pilot') / 'assets')"
 ```
 
 ## Step 3: Manual Merge Commands

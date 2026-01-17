@@ -24,38 +24,28 @@ Check tools (python3, twine, git), git status, and branch. Warn if uncommitted c
 
 ---
 
-## Step 0.5: Sync Templates (CRITICAL)
+## Step 0.5: Asset Generation (AUTOMATIC)
 
-> **⚠️ CRITICAL**: Templates must be synced before version bump.
-> **Script**: See `/scripts/sync-templates.sh`
-> **Purpose**: Ensures PyPI package includes latest template content
+> **✅ AUTOMATIC**: Build hook generates assets during wheel build.
+> **Script**: `src/claude_pilot/build_hook.py` (Hatchling custom hook)
+> **Purpose**: Ensures PyPI package includes latest `.claude/` content
 
 ### Quick Reference
 
-| Substep | Action | Source → Dest |
-|---------|--------|--------------|
-| 0.5.1 | Sync commands | `.claude/commands/*.md` → `templates/.claude/commands/` |
-| 0.5.2 | Sync skills | `.claude/skills/*/` → `templates/.claude/skills/` |
-| 0.5.3 | Sync guides | `.claude/guides/*.md` → `templates/.claude/guides/` |
-| 0.5.4 | Sync agents | `.claude/agents/*.md` → `templates/.claude/agents/` |
-| 0.5.5 | Sync rules | `.claude/rules/*` → `templates/.claude/rules/` |
-| 0.5.6 | Sync templates | `.claude/templates/*.template` → `templates/.claude/templates/` |
-| 0.5.7 | Sync hooks | `.claude/scripts/hooks/*.sh` → `templates/.claude/scripts/hooks/` |
+| Component | Action | Source → Dest |
+|-----------|--------|--------------|
+| Build Hook | Generate assets | `.claude/**` → `src/claude_pilot/assets/.claude/**` (filtered) |
+| Asset Manifest | Curate content | Include/exclude patterns (see `assets.py`) |
 
-### Sync Commands
+### How It Works
 
-```bash
-# Quick sync using script (recommended)
-bash scripts/sync-templates.sh
+The build hook automatically runs during `python3 -m build`:
+1. Reads `.claude/**` source files
+2. Filters using `AssetManifest` (excludes external skills, 999_publish, etc.)
+3. Generates `src/claude_pilot/assets/.claude/**`
+4. Packages assets in wheel
 
-# Or manual sync
-bash -c 'for f in 00_plan 01_confirm 02_execute 03_close 90_review 91_document 92_init; do
-  cp .claude/commands/${f}.md src/claude_pilot/templates/.claude/commands/; done'
-
-# Verify sync
-find .claude -type f \( -name "*.md" -o -name "*.sh" -o -name "*.template" \) | wc -l
-find src/claude_pilot/templates/.claude -type f \( -name "*.md" -o -name "*.sh" -o -name "*.template" \) | wc -l
-```
+**No manual sync needed!**
 
 ---
 
@@ -86,7 +76,6 @@ Read current from `pyproject.toml`, parse components, calculate new version base
 - `src/claude_pilot/config.py`
 - `install.sh`
 - `.claude/.pilot-version`
-- `templates/.claude/.pilot-version`
 
 **On mismatch**: Use `AskUserQuestion` with options: "Auto-fix now (recommended)" or "Abort"
 
@@ -103,7 +92,6 @@ sed -i '' "s/__version__ = \"$CURRENT_VERSION\"/__version__ = \"$NEW_VERSION\"/"
 sed -i '' "s/VERSION = \"$CURRENT_VERSION\"/VERSION = \"$NEW_VERSION\"/" src/claude_pilot/config.py
 sed -i '' "s/VERSION=\"$CURRENT_VERSION\"/VERSION=\"$NEW_VERSION\"/" install.sh
 echo "$NEW_VERSION" > .claude/.pilot-version
-echo "$NEW_VERSION" > src/claude_pilot/templates/.claude/.pilot-version
 ```
 
 ---
@@ -168,7 +156,7 @@ Wait 3s for CDN propagation, run `pip3 install --dry-run` to verify version avai
 - [ ] Pre-publish version check passed (Step 3)
 - [ ] Templates synced successfully (Step 0.5)
 - [ ] Version bumped to new version
-- [ ] All 6 version files synchronized (verified in Step 5)
+- [ ] All 5 version files synchronized (verified in Step 5)
 - [ ] Post-update verification passed (Step 5)
 - [ ] Package built successfully
 - [ ] **Package contents verified (agents/, skills/, AGENT.md.template included)** (Step 7-1)

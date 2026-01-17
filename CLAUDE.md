@@ -26,8 +26,8 @@
 |------|---------|-------------|
 | Plan | `/00_plan "task"` | Generate SPEC-First plan |
 | Confirm | `/01_confirm` | Review plan + requirements verification |
-| Execute | `/02_execute` | Implement with TDD |
-| Review | `/90_review` | Multi-angle code review |
+| Execute | `/02_execute` | Implement with TDD (parallel SC execution) |
+| Review | `/90_review` | Multi-angle code review (parallel optional) |
 | Document | `/91_document` | Auto-sync documentation |
 | Close | `/03_close` | Archive and commit |
 | Setup | `/pilot:setup` | Configure MCP servers |
@@ -50,7 +50,7 @@ project-root/
 │   └── plugin.json         # Plugin metadata (version)
 ├── .claude/
 │   ├── commands/           # Slash commands (10)
-│   ├── guides/             # Methodology guides (12)
+│   ├── guides/             # Methodology guides (15)
 │   ├── skills/             # TDD, Ralph Loop, Vibe Coding, Git Master
 │   ├── agents/             # Specialized agent configs (8)
 │   ├── scripts/hooks/      # Type check, lint, todos, branch
@@ -88,24 +88,42 @@ project-root/
 
 ---
 
-## Codex Integration (v4.0.5)
+## Codex Integration (v4.1.0)
 
-**GPT Expert Delegation**: Optional GPT delegation via `codex-sync.sh` for high-difficulty analysis.
+**Intelligent GPT Delegation**: Context-aware, autonomous delegation via `codex-sync.sh` for high-difficulty analysis.
+
+### Delegation Triggers
+
+**Explicit Triggers** (Keyword-Based):
+- User explicitly requests: "ask GPT", "review architecture"
+
+**Semantic Triggers** (Heuristic-Based):
+- **Failure-based**: Agent fails 2+ times on same task
+- **Ambiguity**: Vague requirements, no success criteria
+- **Complexity**: 10+ success criteria, deep dependencies
+- **Risk**: Auth/credential keywords, security-sensitive code
+- **Progress stagnation**: No meaningful progress in N iterations
+
+**Description-Based** (Claude Code Official):
+- Agent descriptions with "use proactively" phrase
+- Semantic task matching by Claude Code
+
+### GPT Expert Mapping
 
 | Situation | GPT Expert |
 |-----------|------------|
 | Security-related code | **Security Analyst** |
 | Large plan (5+ SCs) | **Plan Reviewer** |
 | Architecture decisions | **Architect** |
-| 2+ failed fix attempts | **Architect** |
-| Coder blocked (automatic) | **Architect** (auto-delegate) |
+| 2+ failed fix attempts | **Architect** (progressive escalation) |
+| Coder blocked (automatic) | **Architect** (self-assessment) |
 
 **Configuration**:
 - Default reasoning effort: `medium` (1-2min response)
 - Override: `export CODEX_REASONING_EFFORT="low|medium|high|xhigh"`
 - Graceful fallback: Claude-only analysis if Codex CLI not installed
 
-**Full guide**: `.claude/rules/delegator/orchestration.md`
+**Full guide**: `.claude/guides/intelligent-delegation.md`
 
 ---
 
@@ -142,9 +160,9 @@ project-root/
 | Sonnet | coder, tester, plan-reviewer | Balanced quality/speed |
 | Opus | code-reviewer | Deep reasoning |
 
-**Parallel Execution**: Planning (Explorer + Researcher), Execution (Coders), Verification (Tester + Validator + Code-Reviewer)
+**Parallel Execution**: Planning (Explorer + Researcher), Execution (parallel Coder agents per SC), Verification (Tester + Validator + Code-Reviewer), Review (optional parallel multi-angle)
 
-**See**: `.claude/guides/parallel-execution.md`
+**See**: `.claude/guides/parallel-execution.md`, `.claude/guides/parallel-execution-REFERENCE.md`, `.claude/guides/intelligent-delegation.md`
 
 ---
 

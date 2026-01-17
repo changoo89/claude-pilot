@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Specialized agents with distinct capabilities, model allocations, and tool access. Agents are the execution engine of the claude-pilot workflow, each responsible for specific tasks in the development lifecycle.
+Specialized agents with distinct capabilities, model allocations, and tool access. Agents are the execution engine of the claude-pilot workflow, each responsible for specific tasks in the development lifecycle. **v4.1.0 adds intelligent self-assessment and autonomous delegation capabilities.**
 
 ## Key Agents
 
@@ -110,6 +110,11 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **Action**: Delegates for comprehensive plan validation
 - **Fallback**: Claude-only review if Codex not installed
 
+**Self-Assessment** (v4.1.0):
+- Confidence scoring (0.0-1.0) based on completeness
+- Returns `<PLAN_BLOCKED>` if confidence < 0.5
+- Recommends GPT Plan Reviewer delegation for large plans (5+ SCs)
+
 **Why Sonnet**: Analysis requires moderate reasoning.
 
 ### Deep Code Review
@@ -130,6 +135,11 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **Action**: Delegates for threat modeling, vulnerability assessment
 - **Fallback**: Claude-only review if Codex not installed
 
+**Self-Assessment** (v4.1.0):
+- Confidence scoring (0.0-1.0) based on issue severity
+- Returns `<REVIEWER_BLOCKED>` if confidence < 0.5
+- Recommends GPT Security Analyst delegation for security-sensitive code
+
 **Why Opus**: Critical issues require deepest reasoning. High cost justified for quality.
 
 ### Generate Documentation
@@ -147,6 +157,23 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 **Why Haiku**: Template-based generation, no deep reasoning.
 
 ## Patterns
+
+### Intelligent Delegation (v4.1.0)
+
+**Self-Assessment Pattern**:
+- Agents evaluate confidence after task completion
+- Confidence score: 0.0-1.0 (base - penalties)
+- Threshold: <0.5 → Recommend delegation
+
+**Progressive Escalation**:
+- Attempt 1 → Fail → Retry with Claude
+- Attempt 2 → Fail → Delegate to GPT
+- Prevents unnecessary Codex calls
+
+**Description-Based Routing** (Claude Code Official):
+- Agent descriptions include "use proactively" phrase
+- Claude Code matches tasks to agents semantically
+- Example: "Implementation agent using TDD. Use proactively for implementation tasks."
 
 ### Model Allocation Strategy
 
@@ -242,6 +269,8 @@ Agents work in parallel for efficiency:
 - Merge results after parallel phase
 
 **See**: @.claude/guides/parallel-execution.md for detailed patterns
+
+**See**: @.claude/guides/intelligent-delegation.md for intelligent delegation patterns
 
 ### Skill Integration Pattern
 

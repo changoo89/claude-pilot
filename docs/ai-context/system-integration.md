@@ -535,11 +535,50 @@ EXTERNAL_SKILLS_VERSION_FILE = ".claude/.external-skills-version"
 
 ---
 
-## Codex Delegator Integration (v4.0.4)
+## Codex Delegator Integration (v4.1.0)
 
 ### Overview
 
-The Codex delegator integration provides optional GPT expert delegation via `codex-sync.sh` Bash script, enabling multi-LLM orchestration (Claude + GPT 5.2) for specialized tasks like architecture, security review, and code review.
+The Codex delegator integration provides **intelligent, context-aware GPT expert delegation** via `codex-sync.sh` Bash script, enabling multi-LLM orchestration (Claude + GPT 5.2) for specialized tasks like architecture, security review, and code review.
+
+### Intelligent Delegation System (v4.1.0)
+
+**Evolution**: From rigid keyword matching to context-aware heuristics
+
+| Aspect | Old System (v4.0.5) | New System (v4.1.0) |
+|--------|---------------------|---------------------|
+| **Trigger detection** | `grep -qiE "(tradeoff|design)"` | Heuristic evaluation (failure, ambiguity, complexity, risk) |
+| **Decision-making** | Binary (match/no-match) | Confidence scoring (0.0-1.0) |
+| **Escalation** | Immediate or never | Progressive (after 2nd failure) |
+| **Agent autonomy** | Manual trigger only | Self-assessment with confidence |
+| **Claude Code integration** | None | Description-based routing |
+
+### Heuristic Framework
+
+**5 Heuristic Patterns**:
+1. **Failure-Based Escalation**: Delegate after 2+ failed attempts
+2. **Ambiguity Detection**: Vague requirements, no success criteria
+3. **Complexity Assessment**: 10+ SCs, deep dependencies
+4. **Risk Evaluation**: Auth/credential keywords, security code
+5. **Progress Stagnation**: No progress in N iterations
+
+**Confidence Scoring**:
+- Scale: 0.0-1.0
+- Threshold: <0.5 → MUST delegate
+- Formula: `confidence = base - (failures * 0.2) - (ambiguity * 0.3) - (complexity * 0.1)`
+
+### Description-Based Routing (Claude Code Official)
+
+**How it works**:
+1. Claude Code reads agent YAML frontmatter
+2. Parses `description` field for semantic meaning
+3. Looks for "use proactively" phrase
+4. When task matches, delegates automatically
+
+**Agents with "use proactively"**:
+- **coder**: "Use proactively for implementation tasks"
+- **plan-reviewer**: "Use proactively after plan creation"
+- **code-reviewer**: "Use proactively after code changes"
 
 ### Components
 
@@ -627,19 +666,20 @@ echo 'export CODEX_REASONING_EFFORT="medium"' >> ~/.zshrc
 
 | Component | Integration | Data Flow |
 |-----------|-------------|-----------|
-| `/00_plan` | GPT Delegation (Step 0.5) | Architecture decisions → GPT Architect (NEW v4.0.5) |
-| `/01_confirm` | GPT Delegation (Step 2.5) | Large plans (5+ SCs) → GPT Plan Reviewer (NEW v4.0.5) |
-| `/02_execute` | Auto-Delegation (Step 3.1.1) | CODER_BLOCKED → GPT Architect (automatic) |
-| `/02_execute` | GPT Escalation (Step 4) | 2+ Coder failures → GPT Architect |
-| `/90_review` | GPT Expert Review (Step 10) | Architecture review → GPT Architect |
-| `/91_document` | GPT Delegation (Step 3) | Complex documentation → GPT Architect (NEW v4.0.5) |
-| `/03_close` | GPT Delegation (Step 5) | Completion review → GPT Plan Reviewer (NEW v4.0.5) |
-| `/999_publish` | GPT Delegation (Step 2) | Publishing validation → GPT Security Analyst (NEW v4.0.5) |
-| `code-reviewer` | GPT Security Analyst Delegation | Security code → GPT Security Analyst |
-| `plan-reviewer` | GPT Plan Reviewer Delegation | Large plans (5+ SCs) → GPT Plan Reviewer |
-| `rules/delegator/*` | Orchestration rules | Delegation flow, triggers, format |
-| `rules/delegator/pattern-standard.md` | Standardized pattern | NEW v4.0.5 |
-| `rules/delegator/prompts/*` | GPT expert prompts | 5 expert system instructions |
+| `/00_plan` | Intelligent Delegation | Heuristic-based Architect delegation |
+| `/01_confirm` | Intelligent Delegation | Heuristic-based Plan Reviewer delegation |
+| `/02_execute` | Auto-Delegation | CODER_BLOCKED → GPT Architect (automatic) |
+| `/02_execute` | Progressive Escalation | 2+ failures → GPT Architect (not first) |
+| `/90_review` | Intelligent Delegation | Heuristic-based Code Reviewer delegation |
+| `/91_document` | Intelligent Delegation | Heuristic-based Architect delegation |
+| `/03_close` | Intelligent Delegation | Heuristic-based Plan Reviewer delegation |
+| `/999_publish` | Intelligent Delegation | Heuristic-based Security Analyst delegation |
+| `coder` | Self-Assessment | Confidence scoring → delegation recommendation |
+| `plan-reviewer` | Self-Assessment | Confidence scoring → delegation recommendation |
+| `code-reviewer` | Self-Assessment | Confidence scoring → delegation recommendation |
+| `rules/delegator/intelligent-triggers.md` | Heuristic patterns | NEW v4.1.0 |
+| `guides/intelligent-delegation.md` | System documentation | NEW v4.1.0 |
+| `templates/` | Long-running task templates | feature-list.json, init.sh, progress.md |
 
 **Key Features**:
 - **Model**: GPT 5.2 (via Codex CLI)

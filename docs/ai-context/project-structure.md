@@ -36,7 +36,7 @@ claude-pilot/
 │   │   ├── 91_document.md  # Update docs
 │   │   ├── 92_init.md      # Initialize 3-Tier docs
 │   │   └── 999_publish.md  # Publish to GitHub (deprecated)
-│   ├── guides/             # Methodology guides (14)
+│   ├── guides/             # Methodology guides (15)
 │   │   ├── CONTEXT.md      # Guide folder context
 │   │   ├── claude-code-standards.md  # Official Claude Code standards
 │   │   ├── prp-framework.md          # Problem-Requirements-Plan
@@ -50,12 +50,16 @@ claude-pilot/
 │   │   ├── worktree-setup.md         # Worktree setup script
 │   │   ├── requirements-tracking.md  # User Requirements Collection
 │   │   ├── requirements-verification.md # Requirements Verification
-│   │   └── instruction-clarity.md    # LLM-readable instruction patterns
+│   │   ├── instruction-clarity.md    # LLM-readable instruction patterns
+│   │   └── intelligent-delegation.md # Intelligent Codex delegation (NEW v4.1.0)
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
 │   │   ├── prp-template.md            # PRP template
 │   │   ├── gap-checklist.md
 │   │   ├── CONTEXT-tier2.md.template
-│   │   └── CONTEXT-tier3.md.template
+│   │   ├── CONTEXT-tier3.md.template
+│   │   ├── feature-list.json         # Feature list template (NEW v4.1.0)
+│   │   ├── init.sh                   # Init script template (NEW v4.1.0)
+│   │   └── progress.md               # Progress tracking template (NEW v4.1.0)
 │   ├── skills/             # Reusable skill modules (5)
 │   │   ├── CONTEXT.md      # Skill folder context
 │   │   ├── external/       # External skills (Vercel agent-skills)
@@ -90,6 +94,7 @@ claude-pilot/
 │       └── delegator/      # GPT delegation orchestration
 │           ├── orchestration.md
 │           ├── triggers.md
+│           ├── intelligent-triggers.md  # Heuristic-based triggers (NEW v4.1.0)
 │           ├── delegation-format.md
 │           ├── model-selection.md
 │           ├── pattern-standard.md
@@ -443,6 +448,17 @@ claude-pilot update --apply-statusline
   - Removed: `src/`, `pyproject.toml`, `install.sh`, `tests/`
   - Version bump: 4.0.5 → 4.1.0 (breaking change)
   - All functionality preserved (10 commands, 8 agents, 5 skills)
+
+- **Intelligent Codex Delegation**: Context-aware, autonomous decision-making
+  - Heuristic-based triggers (failure, ambiguity, complexity, risk, progress)
+  - Description-based routing (Claude Code official pattern)
+  - Agent self-assessment with confidence scoring (0.0-1.0)
+  - Progressive escalation (delegate after 2nd failure, not first)
+  - Long-running task templates (feature-list.json, init.sh, progress.md)
+  - New files: `intelligent-triggers.md`, `intelligent-delegation.md`
+  - Updated: Agent descriptions with "use proactively" phrase
+  - Updated: `triggers.md` with hybrid approach (explicit + semantic + description)
+  - Verification: All 7 success criteria met (SC-1 through SC-7)
 
 ### v4.0.5 (2026-01-17)
 

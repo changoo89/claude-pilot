@@ -104,6 +104,60 @@ fi
 - Return success (exit 0) to allow continuation
 - Continue with Claude agents
 
+### Non-Interactive Shell Considerations
+
+**Issue**: Commands available in terminal may not be found in non-interactive shells.
+
+**Cause**: Non-interactive shells (used by automation tools like Claude Code) don't source `~/.bashrc` or `~/.zshrc`. This means PATH may not include npm global bin directories where tools like `codex` are installed.
+
+**How `codex-sync.sh` Handles This**:
+
+The script automatically sources your shell rc file and uses multi-layered detection:
+
+1. **PATH Initialization**: Sources `~/.zshrc` or `~/.bashrc` to populate PATH
+2. **Layer 1 Detection**: Standard `command -v` check
+3. **Layer 2 Detection**: Checks common installation paths:
+   - `/opt/homebrew/bin` (macOS ARM)
+   - `/usr/local/bin` (macOS Intel / Linux)
+   - `/usr/bin` (Linux system)
+   - `$HOME/.local/bin` (User local)
+   - `$HOME/bin` (User bin)
+
+4. **Automatic PATH Update**: If found in common path, adds to PATH automatically
+
+**Troubleshooting**:
+
+If Codex is installed but not detected:
+
+```bash
+# Test from non-interactive shell (simulates Claude Code)
+env -i bash -c 'source ~/.zshrc 2>/dev/null; command -v codex'
+
+# Check your PATH configuration
+echo $PATH
+
+# Verify codex location
+which codex
+
+# Enable DEBUG mode for diagnostics
+DEBUG=1 .claude/scripts/codex-sync.sh "read-only" "test"
+```
+
+**User Setup**:
+
+Ensure Codex is installed in a location that's either:
+1. In your PATH (add to `~/.zshrc` or `~/.bashrc`)
+2. In one of the common paths checked by the script
+
+```bash
+# Install Codex globally
+npm install -g @openai/codex
+
+# Add npm global bin to PATH (if not already)
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
 ## Available Experts
 
 | Expert | Specialty | Prompt File |

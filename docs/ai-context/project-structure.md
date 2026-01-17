@@ -42,7 +42,8 @@ claude-pilot/
 │   │   ├── prp-framework.md          # Problem-Requirements-Plan
 │   │   ├── prp-template.md           # PRP template
 │   │   ├── gap-detection.md          # External service verification
-│   │   ├── parallel-execution.md     # Parallel execution patterns
+│   │   ├── parallel-execution.md            # Parallel execution patterns
+│   │   └── parallel-execution-REFERENCE.md  # Parallel execution deep reference (NEW 2026-01-17)
 │   │   ├── 3tier-documentation.md    # Documentation system
 │   │   ├── review-checklist.md       # Code review criteria
 │   │   ├── test-environment.md       # Test framework detection
@@ -138,9 +139,9 @@ claude-pilot/
 | `.claude/commands/000_pilot_setup.md` | MCP server configuration with merge strategy, GitHub star prompt | ~150 | N/A (setup command) |
 | `.claude/commands/00_plan.md` | Generate SPEC-First plan with PRP analysis, Phase Boundary Protection (Level 3) | 156 | **MANDATORY**: Parallel Explorer + Researcher (Step 0) |
 | `.claude/commands/01_confirm.md` | Extract plan, create file, auto-review with Interactive Recovery | 318 | **MANDATORY**: Plan-Reviewer (Step 4) |
-| `.claude/commands/02_execute.md` | Atomic plan move (Step 1), implement with TDD + Ralph Loop | 266 | **MANDATORY**: Parallel Coders (Step 2.3), Parallel Verification (Step 2.4), Coder Delegation (Step 3) |
+| `.claude/commands/02_execute.md` | Atomic plan move (Step 1), SC dependency analysis (Step 2.1), parallel Coder invocation (Step 2.2), implement with TDD + Ralph Loop | 456 | **MANDATORY**: SC Dependency Analysis (Step 2.1), Parallel Coders (Step 2.2), Auto-Delegation (Step 3.2), Parallel Verification (Step 3.5) |
 | `.claude/commands/03_close.md` | Archive plan, commit changes | 247 | **MANDATORY**: Documenter (Step 5) |
-| `.claude/commands/90_review.md` | Review code or plans | 284 | **MANDATORY**: Plan-Reviewer (single or parallel) |
+| `.claude/commands/90_review.md` | Review code or plans with optional parallel multi-angle review | 376 | **MANDATORY**: Plan-Reviewer (single or parallel multi-angle for complex plans) |
 | `.claude/commands/91_document.md` | Update documentation | 266 | **OPTIONAL**: Documenter |
 
 ### Documentation
@@ -461,6 +462,18 @@ claude-pilot update --apply-statusline
   - New files: `intelligent-triggers.md`, `intelligent-delegation.md`
   - Updated: Agent descriptions with "use proactively" phrase
   - Updated: `triggers.md` with hybrid approach (explicit + semantic + description)
+  - Verification: All 7 success criteria met (SC-1 through SC-7)
+
+- **Parallel Execution Improvement**: Enhanced parallel execution for independent tasks
+  - SC dependency analysis algorithm (Step 2.1 in 02_execute.md)
+  - Parallel Coder invocation for independent SCs (Step 2.2)
+  - Optional parallel multi-angle review (Step 9.5 in 90_review.md)
+  - Result integration pattern and partial failure handling
+  - Todo management pattern for parallel groups
+  - New file: `parallel-execution-REFERENCE.md` (deep reference)
+  - Updated: `02_execute.md` (SC dependency analysis, parallel coders), `90_review.md` (parallel multi-angle review)
+  - Updated: `codex-sync.sh` (PATH initialization, multi-layered command detection)
+  - Updated documentation: `system-integration.md`, `project-structure.md`
   - Verification: All 7 success criteria met (SC-1 through SC-7)
 
 ### v4.0.5 (2026-01-17)

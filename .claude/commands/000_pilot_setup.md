@@ -1,6 +1,6 @@
 # /pilot:setup
 
-> **Purpose**: Configure claude-pilot plugin with MCP servers and optional GitHub star
+> **Purpose**: Configure claude-pilot plugin with MCP servers, settings merge, and project initialization
 > **Scope**: Initial setup after plugin installation
 
 ---
@@ -8,9 +8,13 @@
 ## Overview
 
 This command sets up claude-pilot by:
-1. Configuring recommended MCP servers (with merge strategy for existing configs)
-2. Optionally prompting user to star the GitHub repository
-3. Verifying plugin installation
+1. Merging `.claude/settings.json` (hooks, LSP, permissions)
+2. Creating `.pilot/` directories for plan management
+3. Setting hooks executable permissions
+4. Prompting for language selection (en/ko/ja)
+5. Detecting project type and configuring LSP
+6. Configuring recommended MCP servers (with merge strategy)
+7. Optionally prompting user to star the GitHub repository
 
 ---
 
@@ -36,7 +40,234 @@ Expected output:
 
 ---
 
-## Step 2: Configure MCP Servers
+## Step 2: Merge .claude/settings.json
+
+**IMPORTANT**: This setup merges claude-pilot's settings with your existing settings, preserving your configurations.
+
+### Settings Merge Strategy
+
+**Logic**:
+1. Read user's existing `~/.claude/settings.json` (if exists)
+2. Merge claude-pilot's hooks, LSP, permissions
+3. Preserve user settings on conflict (user wins)
+4. Write merged settings to project `.claude/settings.json`
+
+```bash
+# Get user's home directory
+USER_HOME="${HOME}"
+USER_SETTINGS="${USER_HOME}/.claude/settings.json"
+PROJECT_SETTINGS=".claude/settings.json"
+
+# Check if user has existing settings
+if [ -f "$USER_SETTINGS" ]; then
+    echo "Existing user settings found. Merging configurations..."
+
+    # Check if jq is available
+    if ! command -v jq &> /dev/null; then
+        echo "WARNING: jq is required for settings merge"
+        echo "Install jq: brew install jq (macOS) or sudo apt-get install jq (Ubuntu)"
+        echo "Skipping settings merge. Using default settings."
+    else
+        # Create temporary merged settings
+        TMPFILE=$(mktemp)
+
+        # Merge strategy: Start with user settings, add plugin hooks/LSP/permissions
+        # User settings take precedence on conflicts
+        jq -s '
+            # Merge two settings objects
+            .[0] as $user | .[1] as $plugin |
+            {
+                # Use $schema from user if exists, otherwise plugin
+                ($user.$schema // $plugin.$schema) as $schema |
+                # Merge env (user takes precedence)
+                env: ($plugin.env // {}) + ($user.env // {}),
+                # Use language from selection (will be set in Step 5)
+                language: ($user.language // $plugin.language),
+                # Merge other boolean settings
+                alwaysThinkingEnabled: ($user.alwaysThinkingEnabled // $plugin.alwaysThinkingEnabled),
+                enableAllProjectMcpServers: ($user.enableAllProjectMcpServers // $plugin.enableAllProjectMcpServers),
+                # Merge enabled MCP servers (combine unique)
+                enabledMcpjsonServers: (($user.enabledMcpjsonServers // []) + ($plugin.enabledMcpjsonServers // [])) | unique,
+                # Merge permissions (combine unique)
+                permissions: {
+                    allow: (($user.permissions.allow // []) + ($plugin.permissions.allow // [])) | unique,
+                    ask: (($user.permissions.ask // []) + ($plugin.permissions.ask // [])) | unique,
+                    deny: (($user.permissions.deny // []) + ($plugin.permissions.deny // [])) | unique
+                },
+                # Merge hooks (user takes precedence on conflicts)
+                hooks: ($user.hooks // $plugin.hooks),
+                # Merge LSP (combine all)
+                lsp: ($plugin.lsp // {}) + ($user.lsp // {}),
+                # Preserve statusLine from user if exists
+                statusLine: ($user.statusLine // $plugin.statusLine)
+            } | if $schema != null then . + {"$schema": $schema} else . end
+        "$USER_SETTINGS" "$PROJECT_SETTINGS" > "$TMPFILE"
+
+        # Validate JSON before replacing
+        if jq empty "$TMPFILE" 2>/dev/null; then
+            mv "$TMPFILE" "$PROJECT_SETTINGS"
+            echo "Settings merged successfully. Your configurations preserved."
+        else
+            rm -f "$TMPFILE"
+            echo "ERROR: Invalid JSON generated during merge" >&2
+            echo "Using default settings."
+        fi
+    fi
+else
+    echo "No existing user settings found. Using default settings."
+    echo "These will be saved to: $PROJECT_SETTINGS"
+fi
+```
+
+---
+
+## Step 3: Create .pilot/ Directories
+
+Create the plan management directory structure:
+
+```bash
+# Create .pilot/plan directory structure
+echo "Creating .pilot/ directories..."
+
+mkdir -p .pilot/plan/pending
+mkdir -p .pilot/plan/in_progress
+mkdir -p .pilot/plan/done
+mkdir -p .pilot/plan/active
+
+echo "Created .pilot/plan/{pending,in_progress,done,active}/"
+```
+
+---
+
+## Step 4: Set Hooks Executable Permissions
+
+Ensure all hook scripts have execute permissions:
+
+```bash
+# Set execute permissions on all .sh files in hooks directory
+echo "Setting hooks executable permissions..."
+
+find .claude/scripts/hooks -name "*.sh" -type f -exec chmod +x {} \;
+
+# Verify permissions
+echo "Hook scripts permissions:"
+ls -la .claude/scripts/hooks/*.sh
+
+echo "All hook scripts now have execute permissions."
+```
+
+---
+
+## Step 5: Language Selection
+
+Prompt user to select their preferred language:
+
+**User Question**:
+```
+Select language / 언어 선택 / 语言选择:
+
+1. English (en)
+2. 한국어 (ko)
+3. 日本語 (ja)
+```
+
+### Handle Language Selection
+
+**Option 1: English (en)**
+```bash
+echo "Language set to English"
+
+# Update settings.json with selected language
+if [ -f ".claude/settings.json" ] && command -v jq &> /dev/null; then
+    TMPFILE=$(mktemp)
+    jq '.language = "en"' .claude/settings.json > "$TMPFILE"
+    jq empty "$TMPFILE" 2>/dev/null && mv "$TMPFILE" .claude/settings.json || rm -f "$TMPFILE"
+fi
+```
+
+**Option 2: 한국어 (ko)**
+```bash
+echo "언어가 한국어로 설정되었습니다"
+
+# Update settings.json with selected language
+if [ -f ".claude/settings.json" ] && command -v jq &> /dev/null; then
+    TMPFILE=$(mktemp)
+    jq '.language = "ko"' .claude/settings.json > "$TMPFILE"
+    jq empty "$TMPFILE" 2>/dev/null && mv "$TMPFILE" .claude/settings.json || rm -f "$TMPFILE"
+fi
+```
+
+**Option 3: 日本語 (ja)**
+```bash
+echo "言語が日本語に設定されました"
+
+# Update settings.json with selected language
+if [ -f ".claude/settings.json" ] && command -v jq &> /dev/null; then
+    TMPFILE=$(mktemp)
+    jq '.language = "ja"' .claude/settings.json > "$TMPFILE"
+    jq empty "$TMPFILE" 2>/dev/null && mv "$TMPFILE" .claude/settings.json || rm -f "$TMPFILE"
+fi
+```
+
+---
+
+## Step 6: Project Type Detection and LSP Configuration
+
+Detect project type and configure appropriate LSP servers:
+
+```bash
+# Detect project type
+echo "Detecting project type..."
+
+PROJECT_TYPE="unknown"
+if [ -f "package.json" ]; then
+    PROJECT_TYPE="node"
+    echo "Detected: Node.js project"
+elif [ -f "pyproject.toml" ] || [ -f "setup.py" ] || [ -f "requirements.txt" ]; then
+    PROJECT_TYPE="python"
+    echo "Detected: Python project"
+elif [ -f "go.mod" ]; then
+    PROJECT_TYPE="go"
+    echo "Detected: Go project"
+elif [ -f "Cargo.toml" ]; then
+    PROJECT_TYPE="rust"
+    echo "Detected: Rust project"
+else
+    echo "No specific project type detected. Using default LSP configuration."
+fi
+
+# Configure LSP based on project type
+if [ -f ".claude/settings.json" ] && command -v jq &> /dev/null; then
+    case "$PROJECT_TYPE" in
+        node)
+            echo "Configuring LSP for Node.js (TypeScript/JavaScript)..."
+            # Already configured in default settings.json
+            ;;
+        python)
+            echo "Configuring LSP for Python..."
+            # Already configured in default settings.json
+            ;;
+        go)
+            echo "Configuring LSP for Go..."
+            # Already configured in default settings.json
+            ;;
+        rust)
+            echo "Configuring LSP for Rust..."
+            # Already configured in default settings.json
+            ;;
+        *)
+            echo "Using default LSP configuration for all supported languages."
+            ;;
+    esac
+    echo "LSP configuration complete."
+else
+    echo "Skipping LSP configuration (jq not available or settings.json missing)."
+fi
+```
+
+---
+
+## Step 7: Configure MCP Servers
 
 ### MCP Merge Strategy
 
@@ -177,7 +408,7 @@ fi
 
 ---
 
-## Step 3: GitHub Star Prompt (Optional)
+## Step 8: GitHub Star Prompt (Optional)
 
 ### Prompt User
 
@@ -234,11 +465,23 @@ open https://github.com/changoo89/claude-pilot 2>/dev/null || \
 
 ---
 
-## Step 4: Verify Setup
+## Step 9: Verify Setup
 
 Run verification commands to confirm setup complete:
 
 ```bash
+# Verify .pilot/ directories created
+echo "Plan directories:"
+ls -la .pilot/plan/ 2>/dev/null || echo "  (No .pilot/plan/ found)"
+
+# Verify hooks are executable
+echo "Hook scripts (should have execute permissions):"
+ls -la .claude/scripts/hooks/*.sh
+
+# Verify settings.json
+echo "Settings configured:"
+jq '.language' .claude/settings.json 2>/dev/null || echo "  (No settings.json found)"
+
 # Verify MCP configuration
 echo "MCP Servers configured:"
 jq '.mcpServers | keys' .mcp.json 2>/dev/null || echo "  (No .mcp.json found)"

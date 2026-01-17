@@ -1,6 +1,6 @@
 ---
 name: coder
-description: Implementation agent executing TDD + Ralph Loop for feature development. Supports SC-based parallel execution for independent success criteria. Runs in isolated context, consuming ~80K tokens internally. Returns concise summary (1K tokens) to main orchestrator. Loads tdd, ralph-loop, vibe-coding, git-master skills.
+description: Implementation agent using TDD + Ralph Loop for feature development. Use proactively for implementation tasks requiring code changes. Supports SC-based parallel execution for independent success criteria. Runs in isolated context, consuming ~80K tokens internally. Returns concise summary (1K tokens) to main orchestrator. Loads tdd, ralph-loop, vibe-coding, git-master skills.
 model: sonnet
 tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
 skills: tdd, ralph-loop, vibe-coding, git-master
@@ -381,3 +381,61 @@ Any of:
 - Max 7 iterations reached
 - Unrecoverable error
 - User intervention needed
+
+---
+
+## Agent Self-Assessment
+
+**Purpose**: Enable autonomous delegation based on confidence scoring
+
+### Confidence Calculation
+
+**Formula**:
+```
+confidence = base_confidence - (failure_penalty * 0.2) - (ambiguity_penalty * 0.3) - (complexity_penalty * 0.1)
+```
+
+**Components**:
+- **base_confidence**: 0.8 (initial confidence)
+- **failure_penalty**: Number of failed Ralph Loop iterations (0-7)
+- **ambiguity_penalty**: Ambiguity score from plan (0.0-1.0)
+- **complexity_penalty**: Complexity score from plan (0.0-1.0)
+
+**Example Calculation**:
+```
+# Scenario: 3 failed attempts, ambiguous task, medium complexity
+base_confidence = 0.8
+failure_penalty = 3 (3 iterations)
+ambiguity_penalty = 0.6 (vague requirements, no test plan)
+complexity_penalty = 0.4 (5 SCs)
+
+confidence = 0.8 - (3 * 0.2) - (0.6 * 0.3) - (0.4 * 0.1)
+           = 0.8 - 0.6 - 0.18 - 0.04
+           = -0.02 → 0.0 (floor at 0.0)
+```
+
+**Thresholds**:
+- If confidence < 0.5: Return `<CODER_BLOCKED>` with delegation recommendation
+- If confidence >= 0.5: Continue with `<CODER_COMPLETE>` or proceed to next iteration
+
+### Self-Assessment Output Format
+
+Include in summary when confidence < 0.5:
+
+```markdown
+### Self-Assessment
+- **Confidence**: 0.4 (Low) - Recommend delegation
+- **Reasoning**:
+  - 3 failed attempts at implementation
+  - Ambiguous requirements (no success criteria)
+  - Medium complexity (5 SCs)
+- **Action**: Delegate to Architect for fresh perspective
+```
+
+### Delegation Decision Matrix
+
+| Confidence | Action | Output |
+|------------|--------|--------|
+| 0.9-1.0 | Proceed autonomously | `<CODER_COMPLETE>` |
+| 0.5-0.9 | Consider delegation | Continue with warning |
+| 0.0-0.5 | MUST delegate | `<CODER_BLOCKED>` + delegation recommendation |

@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Plan review specialist for analyzing plan quality, detecting gaps, and verifying completeness. Uses Read, Glob, Grep tools to examine plan files and codebase. Returns structured review with severity ratings to main orchestrator.
+description: Plan review specialist for analyzing plan quality, detecting gaps, and verifying completeness. Use proactively after plan creation to review completeness and clarity. Uses Read, Glob, Grep tools to examine plan files and codebase. Returns structured review with severity ratings to main orchestrator.
 model: sonnet
 tools: Read, Glob, Grep, Bash
 ---
@@ -432,3 +432,61 @@ When BLOCKING issues found, enter dialogue mode:
 - [ ] Feasible technical approach
 - [ ] Clear implementation steps
 - [ ] Measurable acceptance criteria
+
+---
+
+## Agent Self-Assessment
+
+**Purpose**: Enable autonomous delegation based on plan complexity and ambiguity
+
+### Confidence Calculation
+
+**Formula**:
+```
+confidence = base_confidence - (ambiguity_penalty * 0.4) - (complexity_penalty * 0.3) - (gap_penalty * 0.3)
+```
+
+**Components**:
+- **base_confidence**: 0.9 (high initial confidence for review task)
+- **ambiguity_penalty**: Ambiguity score from vague phrases (0.0-1.0)
+- **complexity_penalty**: Complexity score from SC count and dependencies (0.0-1.0)
+- **gap_penalty**: Gap severity score (BLOCKING=1.0, Critical=0.5, Warning=0.2)
+
+**Example Calculation**:
+```
+# Scenario: Complex plan with ambiguities and BLOCKING issues
+base_confidence = 0.9
+ambiguity_penalty = 0.7 (vague requirements, unclear scope)
+complexity_penalty = 0.8 (12 SCs, deep dependencies)
+gap_penalty = 1.0 (2 BLOCKING issues found)
+
+confidence = 0.9 - (0.7 * 0.4) - (0.8 * 0.3) - (1.0 * 0.3)
+           = 0.9 - 0.28 - 0.24 - 0.3
+           = 0.08 → Recommend delegation
+```
+
+**Thresholds**:
+- If confidence < 0.5: Recommend GPT Plan Reviewer delegation
+- If confidence >= 0.5: Proceed with Claude review
+
+### Self-Assessment Output Format
+
+Include in review when confidence < 0.5:
+
+```markdown
+### Self-Assessment
+- **Confidence**: 0.3 (Low) - Recommend GPT Plan Reviewer delegation
+- **Reasoning**:
+  - High ambiguity (vague requirements, unclear scope)
+  - High complexity (12 SCs, deep dependencies)
+  - 2 BLOCKING issues detected
+- **Action**: Delegate to GPT Plan Reviewer for deeper analysis
+```
+
+### Delegation Decision Matrix
+
+| Confidence | Action | Condition |
+|------------|--------|-----------|
+| 0.7-1.0 | Proceed autonomously | Clear plan, low complexity |
+| 0.5-0.7 | Consider GPT delegation | Medium complexity/ambiguity |
+| 0.0-0.5 | Recommend GPT delegation | High complexity/ambiguity or BLOCKING issues |

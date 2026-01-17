@@ -62,9 +62,18 @@ Read and extract: User requirements, Execution plan, Acceptance criteria, Test s
 
 1. Check Codex CLI availability:
    ```bash
+   # Check Codex CLI availability
    if ! command -v codex &> /dev/null; then
        echo "Warning: Codex CLI not installed - falling back to Claude-only review"
-       # Skip GPT delegation, use Claude plan-reviewer agent
+       # Skip GPT delegation, continue to Step 1 with Claude plan-reviewer
+       USE_GPT_DELEGATION="false"
+   else
+       USE_GPT_DELEGATION="true"
+   fi
+
+   # Only proceed with GPT delegation if available
+   if [ "$USE_GPT_DELEGATION" = "true" ] && [ "$PLAN_SC_COUNT" -ge 5 ]; then
+       # GPT delegation logic continues below
    fi
    ```
 2. Read expert prompt: `Read .claude/rules/delegator/prompts/plan-reviewer.md`
@@ -242,6 +251,88 @@ Execute all 8 reviews for every plan:
 | Risk identified | Risks | Add item |
 
 **Apply & Update History**: Read plan → Apply modifications → Write plan → Append to Review History (findings counts)
+
+---
+
+## Step 9.5: Optional Parallel Multi-Angle Review (Claude Agents)
+
+> **Purpose**: Leverage multiple Claude plan-reviewer agents concurrently for comprehensive analysis
+> **Trigger**: Complex plans (5+ SCs), high-stakes features, system-wide changes
+
+> **Note**: This is DIFFERENT from GPT delegation (Step 10). This uses Claude agents in parallel.
+
+### When to Use Parallel Multi-Angle Review
+
+| Condition | Use Parallel Review | Rationale |
+|-----------|-------------------|-----------|
+| Plan has 5+ success criteria | Yes | Multiple perspectives valuable |
+| High-stakes features (security, payments, auth) | Yes | Comprehensive coverage needed |
+| System-wide architectural changes | Yes | Complex interactions |
+| Time-sensitive review | No | Sequential faster for simple plans |
+| Resource constraints (cost) | No | Parallel review increases token usage |
+
+### Parallel Review Implementation
+
+**For complex plans**, invoke multiple plan-reviewer agents concurrently using Task tool:
+
+```markdown
+[Optional Parallel Multi-Angle Review - Complex Plans Only]
+
+Task:
+  subagent_type: plan-reviewer
+  prompt: |
+    Review plan from SECURITY angle:
+    - External API security
+    - Input validation
+    - Authentication/authorization
+    - Secret management
+
+    Plan Path: {PLAN_PATH}
+
+Task:
+  subagent_type: plan-reviewer
+  prompt: |
+    Review plan from QUALITY angle:
+    - Vibe Coding compliance
+    - Code quality standards
+    - Testing coverage
+    - Documentation completeness
+
+    Plan Path: {PLAN_PATH}
+
+Task:
+  subagent_type: plan-reviewer
+  prompt: |
+    Review plan from ARCHITECTURE angle:
+    - System design
+    - Component relationships
+    - Scalability considerations
+    - Integration points
+
+    Plan Path: {PLAN_PATH}
+```
+
+### 9.5.1 Process Parallel Review Results
+
+**Wait for ALL agents** to complete before proceeding.
+
+| Agent | Focus | Output |
+|-------|-------|--------|
+| **Security Reviewer** | Security vulnerabilities, auth, input validation | Security findings |
+| **Quality Reviewer** | Vibe Coding, code quality, testing, docs | Quality findings |
+| **Architecture Reviewer** | System design, scalability, integration | Architecture findings |
+
+**After ALL agents return**:
+1. Merge all findings into comprehensive review
+2. Apply findings to plan (Step 9)
+3. Update review history
+4. Proceed to Step 10 (GPT Expert Review - optional)
+
+### When NOT to Use Parallel Review
+
+- **Simple plans** (< 5 SCs): Single plan-reviewer sufficient
+- **Cost constraints**: Parallel review 3x token cost
+- **Time-sensitive**: Sequential faster for straightforward plans
 
 ---
 

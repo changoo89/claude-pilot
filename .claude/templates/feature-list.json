@@ -1,0 +1,26 @@
+{
+  "features": [
+    {
+      "id": "SC-1",
+      "name": "Feature Name",
+      "description": "Brief description of what this feature does",
+      "status": "failing",
+      "dependencies": [],
+      "verification": "test -f path/to/file || pytest tests/test_feature.py"
+    },
+    {
+      "id": "SC-2",
+      "name": "Another Feature",
+      "description": "Brief description",
+      "status": "failing",
+      "dependencies": ["SC-1"],
+      "verification": "grep -q 'function_name' src/main.ts"
+    }
+  ],
+  "metadata": {
+    "total": 2,
+    "completed": 0,
+    "failing": 2,
+    "last_updated": "2026-01-17T00:00:00Z"
+  }
+}

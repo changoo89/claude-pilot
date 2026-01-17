@@ -102,13 +102,156 @@ Read plan, extract: Deliverables, Phases, Tasks, Acceptance Criteria, Test Plan
 
 ---
 
-## Step 3: Delegate to Coder Agent (Context Isolation)
+## Step 2.1: SC Dependency Analysis (MANDATORY)
 
-> **Why Agent?**: Coder Agent runs in isolated context window (~80K tokens internally). Only summary returns here (8x token efficiency).
+> **🚨 CRITICAL**: Before invoking Coder agents, analyze SC dependencies to determine parallel execution strategy
 
-**🚀 MANDATORY ACTION**: Invoke Coder Agent NOW using Task tool
+> **Implementation**: This analysis is performed inline by reading the plan file. No separate script needed.
+
+### Dependency Analysis Process
+
+1. **Extract all Success Criteria** from plan file
+2. **Parse file paths** mentioned in each SC
+3. **Check for file overlaps** (conflicts - same file modified by multiple SCs)
+4. **Check for dependency keywords** ("requires", "depends on", "after", "needs")
+5. **Group SCs** by parallel execution capability
+
+### Dependency Analysis Table Template
+
+| SC | Files | Dependencies | Parallel Group | Notes |
+|----|-------|--------------|----------------|-------|
+| SC-1 | `src/auth/login.ts` | None | Group 1 | Independent |
+| SC-2 | `src/auth/logout.ts` | None | Group 1 | Independent |
+| SC-3 | `tests/auth.test.ts` | None | Group 1 | Independent |
+| SC-4 | `src/auth/middleware.ts` | SC-1 | Group 2 | Requires SC-1 |
+| SC-5 | `docs/auth.md` | SC-4 | Group 3 | Requires middleware |
+
+### File Conflict Detection
+
+**Rules**:
+- If 2+ SCs modify the same file → Sequential execution (different groups)
+- If SC-2 references SC-1 output → Sequential execution (SC-2 after SC-1)
+- If SCs have different files and no references → Parallel execution (same group)
+
+### Parallel Group Assignment
+
+- **Group 1**: Fully independent SCs (different files, no dependencies)
+- **Group 2**: SCs dependent on Group 1 completion
+- **Group 3+**: SCs dependent on previous groups
+
+### Output
+
+After analysis, produce:
+1. **Dependency table** (as shown above)
+2. **Execution strategy**: Parallel vs Sequential for each group
+3. **Todo list** organized by parallel groups
+
+---
+
+## Step 2.2: Parallel Coder Invocation (For Independent SCs)
+
+> **For Group 1 (Independent SCs)**: Invoke multiple Coder agents concurrently using Task tool
+
+> **For Group 2+ (Dependent SCs)**: Sequential execution after previous group completes
+
+### Parallel Execution Pattern (Group 1)
+
+**🚀 MANDATORY ACTION**: For each independent SC in Group 1, invoke a separate Coder agent NOW
 
 ```markdown
+[Parallel Group 1 - Independent SCs]
+
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-1: {SC-1_DESCRIPTION}
+
+    Plan Path: {PLAN_PATH}
+    Test Scenarios: {TS_LIST}
+
+    Implement using TDD + Ralph Loop. Return summary only.
+
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-2: {SC-2_DESCRIPTION}
+
+    Plan Path: {PLAN_PATH}
+    Test Scenarios: {TS_LIST}
+
+    Implement using TDD + Ralph Loop. Return summary only.
+
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-3: {SC-3_DESCRIPTION}
+
+    Plan Path: {PLAN_PATH}
+    Test Scenarios: {TS_LIST}
+
+    Implement using TDD + Ralph Loop. Return summary only.
+```
+
+### 2.2.1 Process Parallel Coder Results
+
+**Expected Output**: Each agent returns `<CODER_COMPLETE>` or `<CODER_BLOCKED>`
+
+**Wait for ALL agents** in parallel group to complete before proceeding.
+
+| Marker | Meaning | Action |
+|--------|---------|--------|
+| `<CODER_COMPLETE>` | SC met, tests pass, coverage ≥80% | Mark todo as complete |
+| `<CODER_BLOCKED>` | Cannot complete | **AUTO-DELEGATE to GPT Architect** |
+
+**After ALL agents return**:
+1. Mark all parallel todos as `completed` together
+2. Verify no file conflicts (should be none if dependency analysis correct)
+3. Integrate results (combine file lists, test results, coverage data)
+4. Proceed to Group 2 (if any) or to Step 3.5 (Verification)
+
+### Sequential Execution Pattern (Group 2+)
+
+For dependent SCs (Group 2+), invoke Coder agents **sequentially** after previous group completes:
+
+```markdown
+[Sequential Group 2 - Dependent SCs]
+
+# Invoke one Coder at a time, wait for completion before next
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-4: {SC-4_DESCRIPTION}
+    (Requires SC-1 to be complete)
+
+    Plan Path: {PLAN_PATH}
+    Test Scenarios: {TS_LIST}
+
+    Implement using TDD + Ralph Loop. Return summary only.
+
+# After SC-4 completes, then invoke SC-5, and so on...
+```
+
+### 2.2.2 Partial Failure Handling
+
+If 1 of N parallel agents fails:
+
+1. Note the failure with agent ID and SC
+2. Continue waiting for other parallel agents
+3. Present all results together (successes + failures)
+4. Re-invoke **only failed agent** (with error context from previous attempt)
+5. Merge successful results once retry succeeds
+
+**Fallback**: If 2+ retries fail, use `AskUserQuestion` for recovery options
+
+---
+
+## Step 2.3: Legacy Single Coder Pattern (Optional)
+
+> **For simple plans** (1-2 SCs, no clear parallelization benefit), use single Coder agent
+
+```markdown
+[Single Coder - For Simple Plans]
+
 Task:
   subagent_type: coder
   prompt: |
@@ -121,16 +264,31 @@ Task:
     Implement using TDD + Ralph Loop. Return summary only.
 ```
 
-### 3.1 Process Coder Results
+**When to use single Coder**:
+- Plan has 1-2 SCs only
+- No clear file separation between SCs
+- Sequential dependencies between all SCs
+- Resource constraints (cost optimization)
 
-**Expected Output**: `<CODER_COMPLETE>` or `<CODER_BLOCKED>`
+---
 
-| Marker | Meaning | Action |
-|--------|---------|--------|
-| `<CODER_COMPLETE>` | All SCs met, tests pass, coverage达标 | Proceed to next step |
-| `<CODER_BLOCKED>` | Cannot complete | **AUTO-DELEGATE to GPT Architect** |
+## Step 3: Process Coder Agent Results
 
-### 3.1.1 Auto-Delegation to GPT Architect
+> **Process results from parallel or sequential Coder invocation**
+
+### 3.1 Verify Coder Output (TDD Enforcement)
+
+> **🚨 CRITICAL - MANDATORY Verification**
+
+Required fields in agent output:
+- [ ] Test Files created
+- [ ] Test Results (PASS/FAIL counts)
+- [ ] Coverage percentage (≥80% overall, ≥90% core)
+- [ ] Ralph Loop iterations count
+
+**If verification fails**: Re-invoke with explicit instruction or use `AskUserQuestion`
+
+### 3.2 Auto-Delegation to GPT Architect
 
 > **MANDATORY**: When Coder returns `<CODER_BLOCKED>`, automatically delegate to GPT Architect
 
@@ -150,18 +308,6 @@ Task:
 **Fallback**: If Architect also fails, then use `AskUserQuestion`
 
 **Delegation Count**: Track attempts, max 2 auto-delegations before fallback
-
-### 3.2 Verify Coder Output (TDD Enforcement)
-
-> **🚨 CRITICAL - MANDATORY Verification**
-
-Required fields in agent output:
-- [ ] Test Files created
-- [ ] Test Results (PASS/FAIL counts)
-- [ ] Coverage percentage (≥80% overall, ≥90% core)
-- [ ] Ralph Loop iterations count
-
-**If verification fails**: Re-invoke with explicit instruction or use `AskUserQuestion`
 
 ---
 
@@ -191,7 +337,7 @@ Task:
     Focus: Async bugs, memory leaks, security issues.
 ```
 
-### 3.5.2 Process Verification Results
+### 3.5.1 Process Verification Results
 
 | Agent | Required Output | Success Criteria |
 |-------|----------------|------------------|
@@ -203,7 +349,29 @@ Task:
 
 ---
 
-## Step 4: GPT Expert Escalation (Optional)
+## Step 4: Result Integration Pattern
+
+### Parallel Agent Completion
+
+1. **Wait for all agents**: Task tool blocks until all complete
+2. **Process inline results**: Each agent returns summary with completion marker
+3. **Update todos**: Mark all parallel todos as `completed` together
+4. **Verify no conflicts**: Check file overlap (should be none if dependency analysis correct)
+5. **Merge results**: Combine file lists, test results, coverage data
+6. **Proceed to next phase**: Integration testing or next parallel group
+
+### Partial Failure Handling
+
+If 1 of 3 parallel agents fails:
+1. Note the failure with agent ID
+2. Continue waiting for other agents
+3. Present all results together
+4. Re-invoke only failed agent (with error context)
+5. Merge successful results once retry succeeds
+
+---
+
+## Step 5: GPT Expert Escalation (Optional)
 
 > **Trigger**: 2+ failed fix attempts, architecture decisions, security concerns
 > **Full guide**: @.claude/rules/delegator/orchestration.md
@@ -228,7 +396,7 @@ Read .claude/rules/delegator/prompts/[expert].md
 
 ---
 
-## Step 5: Todo Continuation Enforcement
+## Step 6: Todo Continuation Enforcement
 
 > **Principle**: Don't batch - mark todo as `in_progress` → Complete → Move to next
 
@@ -241,7 +409,7 @@ Read .claude/rules/delegator/prompts/[expert].md
 
 ---
 
-## Step 6: Update Plan Artifacts
+## Step 7: Update Plan Artifacts
 
 | Action | Method |
 |--------|--------|
@@ -251,7 +419,7 @@ Read .claude/rules/delegator/prompts/[expert].md
 
 ---
 
-## Step 7: Auto-Chain to Documentation
+## Step 8: Auto-Chain to Documentation
 
 > **Unless** `--no-docs` flag provided
 

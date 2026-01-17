@@ -53,19 +53,17 @@ When a trigger matches:
 
 ---
 
-## Available Experts
+## Trigger Patterns (Hybrid Approach)
 
-| Expert | Specialty | Use For |
-|--------|-----------|---------|
-| **Architect** | System design, tradeoffs | Architecture decisions, complex debugging |
-| **Plan Reviewer** | Plan validation | Reviewing work plans before execution |
-| **Scope Analyst** | Pre-planning analysis | Catching ambiguities before work starts |
-| **Code Reviewer** | Code quality, bugs | Reviewing code changes, finding issues |
-| **Security Analyst** | Vulnerabilities, threats | Security audits, hardening |
+This system uses **three complementary trigger types**:
 
-## Explicit Triggers (Highest Priority)
+1. **Explicit Triggers** (Keyword-based) - User explicitly requests delegation
+2. **Semantic Triggers** (Heuristic-based) - Intent matching via heuristic evaluation
+3. **Description-Based Triggers** (Claude Code official) - Agent description matching
 
-User explicitly requests delegation:
+### 1. Explicit Triggers (Keyword-Based)
+
+**Legacy pattern**: Direct keyword matching for backward compatibility
 
 | Phrase Pattern | Expert |
 |----------------|--------|
@@ -76,62 +74,164 @@ User explicitly requests delegation:
 | "review this code" | Code Reviewer |
 | "security review", "is this secure" | Security Analyst |
 
-## Semantic Triggers (Intent Matching)
+### 2. Semantic Triggers (Heuristic-Based)
+
+**Intelligent pattern**: Context-aware heuristic evaluation
+
+**Full reference**: @.claude/rules/delegator/intelligent-triggers.md
+
+#### Heuristic: Failure-Based Escalation (→ Architect)
+
+| Trigger | Detection | Action |
+|---------|-----------|--------|
+| Agent fails 2+ times on same task | `iteration_count >= 2` AND `<CODER_BLOCKED>` | Delegate to Architect |
+
+#### Heuristic: Ambiguity Detection (→ Scope Analyst)
+
+| Trigger | Detection | Action |
+|---------|-----------|--------|
+| Vague or unclear task description | `grep -qiE "(unclear|ambiguous|not sure|maybe)"` OR `$(grep -c "^SC-" plan.md) -eq 0` | Delegate to Scope Analyst |
+
+**Ambiguity Score** (0.0-1.0):
+- Base: 0.0
+- +0.3 if vague phrases in user input
+- +0.3 if no success criteria
+- +0.2 if no test plan
+- +0.2 if multiple valid interpretations exist
+
+**Threshold**: Score >= 0.5 → Delegate
+
+#### Heuristic: Complexity Assessment (→ Architect)
+
+| Trigger | Detection | Action |
+|---------|-----------|--------|
+| Task has many components | `$(grep -c "^SC-" plan.md) -ge 10` | Delegate to Architect |
+
+**Complexity Score** (0.0-1.0):
+- Base: 0.0
+- +0.1 per SC (max 0.5 at 5 SCs)
+- +0.2 per dependency level (max 0.4 at 2+ levels)
+- +0.1 if 10+ SCs (complex threshold)
+
+**Thresholds**:
+- Score >= 0.5 (5+ SCs) → Consider Architect delegation
+- Score >= 0.7 (10+ SCs) → MUST delegate to Architect
+
+#### Heuristic: Risk Evaluation (→ Security Analyst)
+
+| Trigger | Detection | Action |
+|---------|-----------|--------|
+| Security-sensitive code | `grep -qiE "(auth|credential|password|token|security)"` | Delegate to Security Analyst |
+
+**Risk Score** (0.0-1.0):
+- Base: 0.0
+- +0.4 if auth/credential keywords
+- +0.3 if security/vulnerability keywords
+- +0.2 if modifying auth-related files
+- +0.1 if destructive operations (delete, drop, truncate)
+
+**Threshold**: Score >= 0.4 → Delegate
+
+### 3. Description-Based Triggers (Claude Code Official)
+
+**Claude Code official pattern**: Agent description semantic matching
+
+**How it works**:
+1. Claude Code reads agent YAML frontmatter
+2. Parses `description` field for semantic meaning
+3. Looks for "use proactively" phrase as delegation signal
+4. When task matches agent description, delegates automatically
+
+**Agents with "use proactively"**:
+- **coder**: "Implementation agent using TDD. Use proactively for implementation tasks."
+- **plan-reviewer**: "Plan review specialist... Use proactively after plan creation..."
+- **code-reviewer**: "Critical code review agent... Use proactively after code changes..."
+
+**Verification**:
+- Agent description contains "use proactively"
+- Description clearly states when to use the agent
+- Task → Agent matching is obvious from description
+
+---
+
+## Available Experts
+
+| Expert | Specialty | Use For | Prompt File |
+|--------|-----------|---------|-------------|
+| **Architect** | System design, tradeoffs | Architecture decisions, complex debugging | `prompts/architect.md` |
+| **Plan Reviewer** | Plan validation | Reviewing work plans before execution | `prompts/plan-reviewer.md` |
+| **Scope Analyst** | Pre-planning analysis | Catching ambiguities before work starts | `prompts/scope-analyst.md` |
+| **Code Reviewer** | Code quality, bugs | Reviewing code changes, finding issues | `prompts/code-reviewer.md` |
+| **Security Analyst** | Vulnerabilities, threats | Security audits, hardening | `prompts/security-analyst.md` |
+
+---
+
+## Semantic Triggers by Expert (Intent Matching)
 
 ### Architecture & Design (→ Architect)
 
-| Intent Pattern | Example |
-|----------------|---------|
-| "how should I structure" | "How should I structure this service?" |
-| "what are the tradeoffs" | "Tradeoffs of this caching approach" |
-| "should I use [A] or [B]" | "Should I use microservices or monolith?" |
-| System design questions | "Design a notification system" |
-| After 2+ failed fix attempts | Escalation for fresh perspective |
+| Intent Pattern | Example | Trigger Type |
+|----------------|---------|--------------|
+| "how should I structure" | "How should I structure this service?" | Semantic |
+| "what are the tradeoffs" | "Tradeoffs of this caching approach" | Semantic |
+| "should I use [A] or [B]" | "Should I use microservices or monolith?" | Semantic |
+| System design questions | "Design a notification system" | Semantic |
+| After 2+ failed fix attempts | Escalation for fresh perspective | Heuristic |
+| 10+ success criteria | Complex plan requiring architecture | Heuristic |
 
 ### Plan Validation (→ Plan Reviewer)
 
-| Intent Pattern | Example |
-|----------------|---------|
-| "review this plan" | "Review my migration plan" |
-| "is this plan complete" | "Is this implementation plan complete?" |
-| "validate before I start" | "Validate my approach before starting" |
-| Before significant work | Pre-execution validation |
+| Intent Pattern | Example | Trigger Type |
+|----------------|---------|--------------|
+| "review this plan" | "Review my migration plan" | Explicit |
+| "is this plan complete" | "Is this implementation plan complete?" | Explicit |
+| "validate before I start" | "Validate my approach before starting" | Semantic |
+| Before significant work | Pre-execution validation | Heuristic |
+| 5+ success criteria | Large plan review | Heuristic |
 
 ### Requirements Analysis (→ Scope Analyst)
 
-| Intent Pattern | Example |
-|----------------|---------|
-| "what am I missing" | "What am I missing in these requirements?" |
-| "clarify the scope" | "Help clarify the scope of this feature" |
-| Vague or ambiguous requests | Before planning unclear work |
-| "before we start" | Pre-planning consultation |
+| Intent Pattern | Example | Trigger Type |
+|----------------|---------|--------------|
+| "what am I missing" | "What am I missing in these requirements?" | Semantic |
+| "clarify the scope" | "Help clarify the scope of this feature" | Semantic |
+| Vague or ambiguous requests | Before planning unclear work | Heuristic |
+| "before we start" | Pre-planning consultation | Semantic |
+| No success criteria | Ambiguity score >= 0.5 | Heuristic |
 
 ### Code Review (→ Code Reviewer)
 
-| Intent Pattern | Example |
-|----------------|---------|
-| "review this code" | "Review this PR" |
-| "find issues in" | "Find issues in this implementation" |
-| "what's wrong with" | "What's wrong with this function?" |
-| After implementing features | Self-review before merge |
+| Intent Pattern | Example | Trigger Type |
+|----------------|---------|--------------|
+| "review this code" | "Review this PR" | Explicit |
+| "find issues in" | "Find issues in this implementation" | Semantic |
+| "what's wrong with" | "What's wrong with this function?" | Semantic |
+| After implementing features | Self-review before merge | Heuristic |
+| "use proactively" in description | Automatic delegation | Description-based |
 
 ### Security (→ Security Analyst)
 
-| Intent Pattern | Example |
-|----------------|---------|
-| "security implications" | "Security implications of this auth flow" |
-| "is this secure" | "Is this token handling secure?" |
-| "vulnerabilities in" | "Any vulnerabilities in this code?" |
-| "threat model" | "Threat model for this API" |
-| "harden this" | "Harden this endpoint" |
+| Intent Pattern | Example | Trigger Type |
+|----------------|---------|--------------|
+| "security implications" | "Security implications of this auth flow" | Semantic |
+| "is this secure" | "Is this token handling secure?" | Semantic |
+| "vulnerabilities in" | "Any vulnerabilities in this code?" | Semantic |
+| "threat model" | "Threat model for this API" | Semantic |
+| "harden this" | "Harden this endpoint" | Semantic |
+| Auth/credential keywords | Risk score >= 0.4 | Heuristic |
+
+---
 
 ## Trigger Priority
 
-1. **Explicit user request** - Always honor direct requests
-2. **Security concerns** - When handling sensitive data/auth
-3. **Architecture decisions** - System design with long-term impact
-4. **Failure escalation** - After 2+ failed attempts
-5. **Don't delegate** - Default: handle directly
+1. **Explicit user request** - Always honor direct requests (keyword triggers)
+2. **Security concerns** - When handling sensitive data/auth (heuristic)
+3. **Architecture decisions** - System design with long-term impact (heuristic)
+4. **Failure escalation** - After 2+ failed attempts (heuristic)
+5. **Description-based** - Agent task matching (automatic)
+6. **Don't delegate** - Default: handle directly
+
+---
 
 ## When NOT to Delegate
 
@@ -142,6 +242,8 @@ User explicitly requests delegation:
 | Trivial bug fixes | Obvious solution |
 | Research/documentation | Use other tools |
 | First attempt at any fix | Try yourself first |
+
+---
 
 ## Advisory vs Implementation Mode
 

@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Critical code review agent for deep analysis using Opus model. Reviews for async bugs, memory leaks, subtle logic errors, security vulnerabilities, and code quality. Returns comprehensive review with actionable recommendations.
+description: Critical code review agent for deep analysis using Opus model. Use proactively after code changes for comprehensive review. Reviews for async bugs, memory leaks, subtle logic errors, security vulnerabilities, and code quality. Returns comprehensive review with actionable recommendations.
 model: opus
 tools: Read, Glob, Grep, Bash
 ---
@@ -364,3 +364,61 @@ Adapt review criteria based on project:
 - Look for .eslintrc, .pylintrc for lint rules
 - Check test coverage requirements
 - Review existing patterns for consistency
+
+---
+
+## Agent Self-Assessment
+
+**Purpose**: Enable autonomous delegation based on security sensitivity and code complexity
+
+### Confidence Calculation
+
+**Formula**:
+```
+confidence = base_confidence - (security_penalty * 0.4) - (complexity_penalty * 0.3) - (severity_penalty * 0.3)
+```
+
+**Components**:
+- **base_confidence**: 0.9 (high initial confidence for review task)
+- **security_penalty**: Security risk score (auth/credential keywords) (0.0-1.0)
+- **complexity_penalty**: Code complexity score (large files, deep nesting) (0.0-1.0)
+- **severity_penalty**: Issue severity score (Critical=1.0, High=0.5) (0.0-1.0)
+
+**Example Calculation**:
+```
+# Scenario: Security-related code with critical issues
+base_confidence = 0.9
+security_penalty = 0.8 (auth code, password handling)
+complexity_penalty = 0.6 (large files, complex logic)
+severity_penalty = 1.0 (2 critical security issues)
+
+confidence = 0.9 - (0.8 * 0.4) - (0.6 * 0.3) - (1.0 * 0.3)
+           = 0.9 - 0.32 - 0.18 - 0.3
+           = 0.1 → Recommend GPT Security Analyst delegation
+```
+
+**Thresholds**:
+- If confidence < 0.5: Recommend GPT Security Analyst delegation
+- If confidence >= 0.5: Proceed with Claude Opus review
+
+### Self-Assessment Output Format
+
+Include in review when confidence < 0.5:
+
+```markdown
+### Self-Assessment
+- **Confidence**: 0.2 (Low) - Recommend GPT Security Analyst delegation
+- **Reasoning**:
+  - High security risk (authentication code, password handling)
+  - High complexity (large files, complex logic)
+  - 2 critical security issues detected
+- **Action**: Delegate to GPT Security Analyst for deeper security analysis
+```
+
+### Delegation Decision Matrix
+
+| Confidence | Action | Condition |
+|------------|--------|-----------|
+| 0.7-1.0 | Proceed autonomously | General code review, low security risk |
+| 0.5-0.7 | Consider GPT delegation | Medium complexity or security concerns |
+| 0.0-0.5 | Recommend GPT delegation | High security risk or critical vulnerabilities |

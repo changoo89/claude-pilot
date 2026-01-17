@@ -438,11 +438,46 @@ When executing parallel tasks (multiple Task calls in same message):
 - Main orchestrator updates todos based on completion markers
 - All parallel todos marked complete together when ALL agents return
 
+**Todo Update Flow**:
+```markdown
+[Before Parallel Invocation]
+[Parallel Group 1]
+- 🔄 SC-1: Implement feature X (Coder Agent 1)
+- 🔄 SC-2: Implement feature Y (Coder Agent 2)
+- 🔄 SC-3: Implement feature Z (Coder Agent 3)
+
+[After ALL agents return with <CODER_COMPLETE>]
+[Parallel Group 1]
+- ✅ SC-1: Implement feature X (Coder Agent 1)
+- ✅ SC-2: Implement feature Y (Coder Agent 2)
+- ✅ SC-3: Implement feature Z (Coder Agent 3)
+```
+
 **Rationale**:
 - Aligns with general software development practices (CI/CD parallel jobs, Airflow DAG, Kubernetes Pod states)
 - Provides accurate progress visibility for users
 - Matches documented parallel execution patterns
 - Preserves backward compatibility with sequential work
+
+### File Conflict Prevention (CRITICAL)
+
+**Before parallel execution, always verify**:
+1. **Extract file paths** from each SC
+2. **Check for overlaps**: Same file modified by multiple SCs?
+3. **Detect dependencies**: SC-2 references SC-1 output?
+4. **Group assignment**: Independent SCs → Group 1, Dependent → Group 2+
+
+**Dependency Analysis Table** (from 02_execute.md):
+| SC | Files | Dependencies | Parallel Group | Notes |
+|----|-------|--------------|----------------|-------|
+| SC-1 | `src/auth/login.ts` | None | Group 1 | Independent |
+| SC-2 | `src/auth/logout.ts` | None | Group 1 | Independent |
+| SC-3 | `src/auth/middleware.ts` | SC-1 | Group 2 | Requires SC-1 |
+
+**Conflict Detection Rules**:
+- If 2+ SCs modify same file → Sequential execution (different groups)
+- If SC-2 references SC-1 output → Sequential execution (SC-2 after SC-1)
+- If SCs have different files + no references → Parallel execution (same group)
 
 ---
 

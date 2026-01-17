@@ -7,15 +7,11 @@
 ## Quick Start
 
 ```bash
-# Step 1: Add marketplace
-/plugin marketplace add changoo89/claude-pilot
-
-# Step 2: Install plugin
+# Install plugin (setup will run automatically)
 /plugin install claude-pilot
-
-# Step 3: Run setup
-/pilot:setup
 ```
+
+After installation, `/pilot:setup` will be prompted automatically to configure MCP servers and project settings.
 
 ---
 
@@ -123,18 +119,23 @@ Automation at key points:
 - **Claude Code** v1.0+ with plugin support
 - **GitHub CLI** (optional, for automatic starring)
 
-### 3-Line Installation
+### 1-Line Installation
 
 ```bash
-# Step 1: Add marketplace
-/plugin marketplace add changoo89/claude-pilot
-
-# Step 2: Install plugin
+# Install plugin (setup will run automatically after installation)
 /plugin install claude-pilot
-
-# Step 3: Run setup
-/pilot:setup
 ```
+
+### What Happens During Installation
+
+1. Plugin files are copied to `.claude/` directory
+2. You'll be prompted to run `/pilot:setup`
+3. Setup automatically:
+   - Configures recommended MCP servers
+   - Creates `.pilot/` directories for plan management
+   - Sets hooks executable permissions
+   - Prompts for language selection (English/Korean/Japanese)
+   - Detects project type and configures LSP
 
 ### What Gets Installed
 

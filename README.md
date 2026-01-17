@@ -7,22 +7,21 @@
 ## Quick Start
 
 ```bash
-# Install CLI globally
-curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash
+# Step 1: Add marketplace
+/plugin marketplace add changoo89/claude-pilot
 
-# Initialize in your project
-cd your-project
-claude-pilot init .
+# Step 2: Install plugin
+/plugin install claude-pilot
 
-# Start planning
-claude-pilot version
+# Step 3: Run setup
+/pilot:setup
 ```
 
 ---
 
 ## What is claude-pilot?
 
-**claude-pilot** is an opinionated preset for Claude Code that brings structure and discipline to AI-assisted development. It provides:
+**claude-pilot** is a Claude Code plugin that brings structure and discipline to AI-assisted development. It provides:
 
 - **SPEC-First TDD**: Test-Driven Development with clear success criteria
 - **Ralph Loop**: Autonomous iteration until all tests pass
@@ -31,6 +30,7 @@ claude-pilot version
 - **Integrated Hooks**: Type checking, linting, and todo validation
 - **Migration Support**: Auto-generate docs for existing projects with `/92_init`
 - **Multilingual**: Runtime language selection (English/Korean/Japanese)
+- **Pure Plugin**: No Python dependency, native Claude Code integration
 
 ---
 
@@ -44,6 +44,7 @@ claude-pilot version
 /03_close    → Complete and commit
 /90_review   → Auto-review code (multi-angle)
 /91_document → Auto-document changes
+/pilot:setup → Configure MCP servers
 ```
 
 ---
@@ -53,38 +54,27 @@ claude-pilot version
 ```
 claude-pilot/
 ├── README.md
-├── install.sh              # One-line CLI installer
-├── pyproject.toml          # Python package config
-├── CLAUDE.md               # Main project guide
-├── .claude/agents/         # Agent configurations (8 agents)
-├── .claude/
-│   ├── settings.json       # Hooks, LSP, language config
-│   ├── commands/           # Slash commands (7)
-│   ├── templates/          # CONTEXT.md, SKILL.md, Tier templates
-│   └── scripts/hooks/      # Typecheck, lint, todos, branch
-├── .pilot/                 # Plan management
+├── CHANGELOG.md           # Version history
+├── MIGRATION.md           # PyPI to plugin migration guide
+├── CLAUDE.md              # Main project guide
+├── .claude-plugin/        # Plugin manifests
+│   ├── marketplace.json   # Marketplace configuration
+│   └── plugin.json        # Plugin metadata
+├── .claude/               # Plugin components
+│   ├── agents/            # Agent configurations (8 agents)
+│   ├── commands/          # Slash commands (10)
+│   ├── skills/            # TDD, Ralph Loop, Vibe Coding, Git Master
+│   ├── guides/            # Methodology guides
+│   ├── templates/         # CONTEXT.md, SKILL.md templates
+│   ├── scripts/hooks/     # Typecheck, lint, todos, branch
+│   ├── hooks.json         # Hook definitions
+│   └── settings.json      # Example settings
+├── .pilot/                # Plan management
 │   └── plan/
-│       ├── pending/        # Plans awaiting confirmation
-│       ├── in_progress/    # Active plans
-│       ├── done/           # Completed plans
-│       └── active/         # Branch pointers
-└── src/                    # Python CLI source
-    └── claude_pilot/       # CLI package
-        ├── __init__.py
-        ├── __main__.py
-        ├── cli.py          # Click commands (init, update, version)
-        ├── config.py       # Configuration constants
-        ├── initializer.py   # Project initialization
-        ├── updater.py      # Update logic with merge strategies
-        └── templates/      # Bundled template files
-            ├── .claude/     # Template files
-            │   ├── commands/
-            │   ├── templates/
-            │   ├── scripts/hooks/
-            │   └── settings.json
-            ├── .pilot/
-            │   └── plan/
-            └── CLAUDE.md.template
+│       ├── pending/       # Plans awaiting confirmation
+│       ├── in_progress/   # Active plans
+│       └── done/          # Completed plans
+└── mcp.json               # Recommended MCP servers
 ```
 
 ---
@@ -128,117 +118,31 @@ Automation at key points:
 
 ## Installation
 
-### Step 1: Install CLI (One-time)
+### Prerequisites
 
-Install the claude-pilot CLI globally using pipx or pip:
+- **Claude Code** v1.0+ with plugin support
+- **GitHub CLI** (optional, for automatic starring)
 
-```bash
-# One-line install (automatically detects pipx or pip)
-curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash
-
-# Or manually with pipx (recommended)
-pipx install claude-pilot
-
-# Or with pip
-pip3 install --user claude-pilot
-```
-
-**What gets installed:**
-- `claude-pilot` command globally available
-- Templates bundled in package (offline-capable)
-- No project files modified yet
-
-### Step 2: Initialize Your Project
-
-Navigate to your project and initialize:
+### 3-Line Installation
 
 ```bash
-cd your-project
+# Step 1: Add marketplace
+/plugin marketplace add changoo89/claude-pilot
 
-# Initialize with interactive language selection
-claude-pilot init .
+# Step 2: Install plugin
+/plugin install claude-pilot
 
-# Or specify language directly
-claude-pilot init . --lang en
-
-# Or non-interactive mode (for CI/CD)
-claude-pilot init . -y --lang en
+# Step 3: Run setup
+/pilot:setup
 ```
 
-**What gets created:**
-- `.claude/` - Commands, templates, hooks, settings
-- `.pilot/` - Plan management directories
-- `CLAUDE.md` - Project documentation template
-- Configured with your selected language
+### What Gets Installed
 
-### Step 3: Update (Optional)
-
-Update to the latest version:
-
-```bash
-# Auto merge (default - preserves your files)
-claude-pilot update
-
-# Manual merge (generates guide for manual review)
-claude-pilot update --strategy manual
-```
-
-**What gets updated:**
-- Core commands (00-03, 90-92)
-- Templates and hooks
-- Version tracking
-
-**What gets preserved:**
-- Your `CLAUDE.md` customizations
-- Your `.claude/settings.json`
-- Your `.pilot/` plans
-- Custom commands you've added
-
-### Manual Install (Alternative)
-
-If you prefer manual setup or can't use the installer:
-
-```bash
-# Clone the repository
-git clone https://github.com/changoo89/claude-pilot.git
-cd claude-pilot
-
-# Install CLI
-pip3 install .
-
-# Initialize in your project
-cd your-project
-claude-pilot init .
-```
-
----
-
-## Updates
-
-Update claude-pilot to the latest version:
-
-```bash
-# Auto merge (recommended)
-claude-pilot update
-
-# Manual merge (review changes before applying)
-claude-pilot update --strategy manual
-
-# Show version info
-claude-pilot version
-```
-
-**Auto Merge** (default):
-- Creates backup in `.claude-backups/`
-- Updates all managed files
-- Preserves your customizations
-- Keeps last 5 backups
-
-**Manual Merge**:
-- Creates backup
-- Generates merge guide in `.claude-backups/MANUAL_MERGE_GUIDE.md`
-- You review and merge changes manually
-- Provides rollback instructions
+- **10 Slash Commands**: Plan, Confirm, Execute, Close, Review, Document, Init, Setup, Publish
+- **8 Agents**: Coder, Tester, Validator, Documenter, Explorer, Researcher, Plan Reviewer, Code Reviewer
+- **4 Skills**: TDD, Ralph Loop, Vibe Coding, Git Master
+- **MCP Servers**: context7, serena, grep-app, sequential-thinking (configured via `/pilot:setup`)
+- **Hooks**: Type checking, linting, todo validation, branch guard
 
 ---
 
@@ -256,7 +160,7 @@ Edit `.claude/settings.json`:
 
 ### MCP Servers
 
-Recommended MCPs (auto-installed):
+Run `/pilot:setup` to configure recommended MCPs:
 
 | MCP | Purpose |
 |-----|---------|
@@ -264,6 +168,11 @@ Recommended MCPs (auto-installed):
 | serena | Semantic code operations |
 | grep-app | Advanced search |
 | sequential-thinking | Complex reasoning |
+
+The setup command uses a merge strategy:
+- Preserves existing `.mcp.json` configurations
+- Adds only new servers
+- Skips servers with conflicting names
 
 ### Hook Customization
 
@@ -286,33 +195,13 @@ Edit `.claude/settings.json` hooks section:
 
 ## Usage Examples
 
-### Initialize New Project
-
-```bash
-# Navigate to your project
-cd your-project
-
-# Initialize (interactive - will prompt for language)
-claude-pilot init .
-
-# Or with language specified
-claude-pilot init . --lang en
-
-# For CI/CD (non-interactive)
-claude-pilot init . -y --lang en
-```
-
 ### Initialize Existing Project
 
 ```bash
-# Navigate to your existing project
-cd existing-project
+# In Claude Code
+/92_init
 
-# Initialize (will detect existing files)
-claude-pilot init .
-
-# If already initialized, use --force to reinitialize
-claude-pilot init . --force
+# Automatically generates 3-Tier documentation structure
 ```
 
 ### Start a New Feature
@@ -349,6 +238,44 @@ claude-pilot init . --force
 
 # Reviews code from multiple perspectives
 ```
+
+---
+
+## Updates
+
+```bash
+# Update to latest version
+/plugin update claude-pilot
+
+# Check current version
+# See .claude-plugin/plugin.json
+```
+
+---
+
+## Migration from PyPI (v4.0.5)
+
+**Breaking Change**: PyPI distribution discontinued in v4.1.0
+
+If you previously installed via `pip install claude-pilot`:
+
+1. **Uninstall Python package**:
+   ```bash
+   pipx uninstall claude-pilot
+   # OR
+   pip uninstall claude-pilot
+   ```
+
+2. **Install plugin** (follow 3-line installation above)
+
+3. **All functionality preserved** - commands, agents, skills work identically
+
+**Benefits of Migration**:
+- No Python dependency
+- Simpler updates (`/plugin update`)
+- Native Claude Code integration
+
+See [MIGRATION.md](MIGRATION.md) for detailed guide.
 
 ---
 
@@ -421,16 +348,24 @@ claude-pilot synthesizes best practices from these projects:
   - Ralph Loop autonomous iteration
   - Todo continuation enforcement
 
+- **[claude-delegator](https://github.com/jarrodwatts/claude-delegator)**
+  - Pure plugin architecture
+  - GitHub star prompting
+  - MCP server configuration
+
 ### Official Resources
 
 - **[Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)**
   - Official Anthropic guidelines
+- **[Claude Code Plugins Reference](https://code.claude.com/docs/en/plugins-reference)**
+  - Plugin development guide
 
 ---
 
 ## Guides
 
 - [Getting Started](GETTING_STARTED.md)
+- [Migration Guide](MIGRATION.md) - PyPI to plugin migration
 - [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit) - 3-Tier Documentation System
 
 ---
@@ -442,8 +377,7 @@ Contributions welcome! Please:
 1. Fork the repository
 2. Create a feature branch (`/00_plan "your feature"`)
 3. Follow TDD workflow (`/02_execute`)
-4. Ensure tests pass
-5. Submit PR with `/90_review` output
+4. Submit PR with `/90_review` output
 
 ---
 
@@ -462,13 +396,16 @@ A: Yes, MIT license allows commercial use.
 A: Edit `.claude/settings.json` and remove unwanted hooks from the hooks section.
 
 ### Q: Can I add my own MCPs?
-A: Yes, add them to `.claude/settings.json` under the mcp section.
+A: Yes, run `/pilot:setup` to add recommended MCPs, or manually edit `.mcp.json`.
 
 ### Q: What if I don't want TDD?
 A: Ralph Loop can be configured to skip tests. Edit `/02_execute` command to adjust.
 
 ### Q: How do I add a new language?
 A: Create translation files in `.claude/locales/` and add language code to settings.json.
+
+### Q: Do I need Python installed?
+A: No! The plugin is pure markdown/JSON - no Python required.
 
 ---
 

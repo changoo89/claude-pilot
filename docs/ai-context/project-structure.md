@@ -1,18 +1,18 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-17 (Updated: GPT Delegation Expansion)
+> **Last Updated**: 2026-01-17 (Updated: Pure Plugin Migration v4.1.0)
 
 ---
 
 ## Technology Stack
 
 ```yaml
-Framework: Python CLI Tool
-Language: Python 3.9+
-Package Manager: pip (Hatchling build backend)
-Version: 4.0.4
-Deployment: PyPI package distribution
+Framework: Claude Code Plugin
+Language: Markdown + JSON (no code runtime)
+Package Manager: Claude Code Plugin System
+Version: 4.1.0
+Deployment: GitHub Marketplace (plugin distribution)
 ```
 
 ---
@@ -21,9 +21,13 @@ Deployment: PyPI package distribution
 
 ```
 claude-pilot/
+├── .claude-plugin/         # Plugin manifests
+│   ├── marketplace.json    # Marketplace configuration
+│   └── plugin.json         # Plugin metadata (version source of truth)
 ├── .claude/
-│   ├── commands/           # Slash commands (9)
-│   │   ├── CONTEXT.md      # Command folder context (NEW)
+│   ├── commands/           # Slash commands (10)
+│   │   ├── CONTEXT.md      # Command folder context
+│   │   ├── 000_pilot_setup.md  # Setup command (NEW v4.1.0)
 │   │   ├── 00_plan.md      # Create SPEC-First plan
 │   │   ├── 01_confirm.md   # Confirm plan (with Step 1.5 extraction)
 │   │   ├── 02_execute.md   # Execute with TDD
@@ -31,38 +35,38 @@ claude-pilot/
 │   │   ├── 90_review.md    # Review code
 │   │   ├── 91_document.md  # Update docs
 │   │   ├── 92_init.md      # Initialize 3-Tier docs
-│   │   └── 999_publish.md  # Publish to PyPI
+│   │   └── 999_publish.md  # Publish to GitHub (deprecated)
 │   ├── guides/             # Methodology guides (14)
-│   │   ├── CONTEXT.md      # Guide folder context (NEW)
-│   │   ├── claude-code-standards.md  # Official Claude Code standards (NEW)
+│   │   ├── CONTEXT.md      # Guide folder context
+│   │   ├── claude-code-standards.md  # Official Claude Code standards
 │   │   ├── prp-framework.md          # Problem-Requirements-Plan
-│   │   ├── prp-template.md           # PRP template (NEW 2026-01-17)
+│   │   ├── prp-template.md           # PRP template
 │   │   ├── gap-detection.md          # External service verification
 │   │   ├── parallel-execution.md     # Parallel execution patterns
 │   │   ├── 3tier-documentation.md    # Documentation system
 │   │   ├── review-checklist.md       # Code review criteria
 │   │   ├── test-environment.md       # Test framework detection
-│   │   ├── test-plan-design.md       # Test plan methodology (NEW 2026-01-17)
-│   │   ├── worktree-setup.md         # Worktree setup script (NEW 2026-01-17)
-│   │   ├── requirements-tracking.md  # User Requirements Collection (NEW)
-│   │   ├── requirements-verification.md # Requirements Verification (NEW)
-│   │   └── instruction-clarity.md    # LLM-readable instruction patterns (NEW)
+│   │   ├── test-plan-design.md       # Test plan methodology
+│   │   ├── worktree-setup.md         # Worktree setup script
+│   │   ├── requirements-tracking.md  # User Requirements Collection
+│   │   ├── requirements-verification.md # Requirements Verification
+│   │   └── instruction-clarity.md    # LLM-readable instruction patterns
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
-│   │   ├── prp-template.md            # PRP template (NEW 2026-01-17)
+│   │   ├── prp-template.md            # PRP template
 │   │   ├── gap-checklist.md
 │   │   ├── CONTEXT-tier2.md.template
 │   │   └── CONTEXT-tier3.md.template
 │   ├── skills/             # Reusable skill modules (5)
-│   │   ├── CONTEXT.md      # Skill folder context (NEW)
-│   │   ├── external/       # External skills (Vercel agent-skills) (NEW)
+│   │   ├── CONTEXT.md      # Skill folder context
+│   │   ├── external/       # External skills (Vercel agent-skills)
 │   │   │   └── vercel-agent-skills/  # Downloaded from GitHub
-│   │   ├── documentation-best-practices/  # Documentation standards (NEW)
+│   │   ├── documentation-best-practices/  # Documentation standards
 │   │   ├── tdd/SKILL.md (+ REFERENCE.md)
 │   │   ├── ralph-loop/SKILL.md (+ REFERENCE.md)
 │   │   ├── vibe-coding/SKILL.md (+ REFERENCE.md)
 │   │   └── git-master/SKILL.md (+ REFERENCE.md)
 │   ├── agents/             # Specialized agent configs (8)
-│   │   ├── CONTEXT.md      # Agent folder context (NEW)
+│   │   ├── CONTEXT.md      # Agent folder context
 │   │   ├── explorer.md
 │   │   ├── researcher.md
 │   │   ├── coder.md
@@ -77,8 +81,9 @@ claude-pilot/
 │   │   │   ├── lint.sh
 │   │   │   ├── check-todos.sh
 │   │   │   └── branch-guard.sh
-│   │   ├── codex-sync.sh   # GPT expert delegation (CRITICAL)
+│   │   ├── codex-sync.sh   # GPT expert delegation
 │   │   └── worktree-utils.sh  # Worktree utilities (lock, cleanup)
+│   ├── hooks.json          # Hook definitions (NEW v4.1.0)
 │   └── rules/              # Core rules
 │       ├── core/workflow.md
 │       ├── documentation/tier-rules.md
@@ -87,7 +92,7 @@ claude-pilot/
 │           ├── triggers.md
 │           ├── delegation-format.md
 │           ├── model-selection.md
-│           ├── pattern-standard.md # NEW v4.0.5
+│           ├── pattern-standard.md
 │           └── prompts/       # GPT expert prompts (5)
 ├── .pilot/                 # Plan management
 │   ├── plan/
@@ -95,7 +100,7 @@ claude-pilot/
 │   │   ├── in_progress/    # Currently executing
 │   │   ├── done/           # Completed plans
 │   │   └── active/         # Branch pointers
-│   └── tests/              # Integration tests (NEW v4.0.5)
+│   └── tests/              # Integration tests (v4.0.5)
 │       ├── test_00_plan_delegation.test.sh
 │       ├── test_01_confirm_delegation.test.sh
 │       ├── test_91_document_delegation.test.sh
@@ -107,27 +112,11 @@ claude-pilot/
 │   │   └── project-structure.md
 │   ├── plan-gap-analysis-external-api-calls.md
 │   └── slash-command-enhancement-examples.md
-├── scripts/                # Sync and build scripts
-│   ├── verify-version-sync.sh  # Version consistency check
-│   └── codex-sync.sh       # GPT expert delegation (via .claude/scripts/)
-├── src/                    # Source code
-│   └── claude_pilot/       # Main package
-│       ├── py.typed        # PEP 561 type marker
-│       ├── assets/         # Packaged assets (generated at build time)
-│       │   └── .claude/    # Curated Claude Code assets (build-time generation)
-│       ├── cli.py          # CLI with --skip-external-skills flag
-│       ├── codex.py        # Codex CLI detection, auth check, MCP setup
-│       ├── config.py       # EXTERNAL_SKILLS config (UPDATED: assets path)
-│       ├── assets.py       # AssetManifest for curated assets (NEW)
-│       ├── build_hook.py   # Hatchling build hook for asset generation (NEW)
-│       ├── initializer.py  # Init with external skills + Codex sync
-│       └── updater.py      # External skills + Codex sync functions
-├── tests/                  # Test files
-│   ├── test_worktree_utils.py  # Worktree utilities tests (NEW: 8 tests, 2026-01-17)
+├── mcp.json                # Recommended MCP servers
 ├── CLAUDE.md               # Tier 1: Project documentation
 ├── README.md               # Project README
-├── pyproject.toml          # Package configuration
-└── CHANGELOG.md            # Version history
+├── CHANGELOG.md            # Version history
+└── MIGRATION.md            # PyPI to plugin migration guide (NEW v4.1.0)
 ```
 
 ---
@@ -138,6 +127,7 @@ claude-pilot/
 
 | File | Purpose | Lines | Agent Pattern |
 |------|---------|-------|---------------|
+| `.claude/commands/000_pilot_setup.md` | MCP server configuration with merge strategy, GitHub star prompt | ~150 | N/A (setup command) |
 | `.claude/commands/00_plan.md` | Generate SPEC-First plan with PRP analysis, Phase Boundary Protection (Level 3) | 156 | **MANDATORY**: Parallel Explorer + Researcher (Step 0) |
 | `.claude/commands/01_confirm.md` | Extract plan, create file, auto-review with Interactive Recovery | 318 | **MANDATORY**: Plan-Reviewer (Step 4) |
 | `.claude/commands/02_execute.md` | Atomic plan move (Step 1), implement with TDD + Ralph Loop | 266 | **MANDATORY**: Parallel Coders (Step 2.3), Parallel Verification (Step 2.4), Coder Delegation (Step 3) |
@@ -153,14 +143,18 @@ claude-pilot/
 | `docs/ai-context/system-integration.md` | Component interactions, workflows |
 | `docs/ai-context/project-structure.md` | This file: tech stack, layout |
 | `.claude/guides/3tier-documentation.md` | 3-Tier system guide |
+| `MIGRATION.md` | PyPI to plugin migration guide (v4.0.5 → v4.1.0) |
 
 ### Configuration
 
 | File | Purpose |
 |------|---------|
-| `.claude/settings.json` | MCP server configuration |
+| `.claude-plugin/marketplace.json` | Marketplace manifest |
+| `.claude-plugin/plugin.json` | Plugin manifest (version source of truth) |
+| `.claude/settings.json` | Example MCP server configuration |
+| `.claude/hooks.json` | Hook definitions (pre-commit, pre-push) |
 | `.claude/scripts/codex-sync.sh` | GPT expert delegation with reasoning effort configuration |
-| `package.json` | npm dependencies, scripts, version |
+| `mcp.json` | Recommended MCP servers |
 | `.gitignore` | Git exclusions |
 
 ### Templates
@@ -437,6 +431,19 @@ claude-pilot update --apply-statusline
 
 ## Version History
 
+### v4.1.0 (2026-01-17)
+
+- **Pure Plugin Migration**: Breaking change - PyPI distribution removed
+  - Plugin manifests: `.claude-plugin/marketplace.json`, `.claude-plugin/plugin.json`
+  - Setup command: `.claude/commands/000_pilot_setup.md` (MCP merge + GitHub star)
+  - Hooks configuration: `.claude/hooks.json`
+  - Migration guide: `MIGRATION.md` for PyPI users
+  - Updated README: Plugin-only installation (3-line)
+  - Updated CLAUDE.md: Plugin distribution references
+  - Removed: `src/`, `pyproject.toml`, `install.sh`, `tests/`
+  - Version bump: 4.0.5 → 4.1.0 (breaking change)
+  - All functionality preserved (10 commands, 8 agents, 5 skills)
+
 ### v4.0.5 (2026-01-17)
 
 - **GPT Delegation Improvements**: Auto-delegation and performance optimization
@@ -595,13 +602,12 @@ claude-pilot update --apply-statusline
 ## Related Documentation
 
 - `CLAUDE.md` - Tier 1: Project documentation
-- `.claude/commands/CONTEXT.md` - Command folder context (NEW)
-- `.claude/guides/CONTEXT.md` - Guide folder context (NEW)
-- `.claude/guides/claude-code-standards.md` - Official Claude Code standards (NEW)
-- `.claude/skills/CONTEXT.md` - Skill folder context (NEW)
-- `.claude/agents/CONTEXT.md` - Agent folder context (NEW)
-- `src/claude_pilot/CONTEXT.md` - Core package architecture (NEW)
-- `.claude/skills/documentation-best-practices/SKILL.md` - Documentation standards (NEW)
+- `.claude/commands/CONTEXT.md` - Command folder context
+- `.claude/guides/CONTEXT.md` - Guide folder context
+- `.claude/guides/claude-code-standards.md` - Official Claude Code standards
+- `.claude/skills/CONTEXT.md` - Skill folder context
+- `.claude/agents/CONTEXT.md` - Agent folder context
+- `.claude/skills/documentation-best-practices/SKILL.md` - Documentation standards
 - `.claude/guides/3tier-documentation.md` - 3-Tier system guide
 - `.claude/guides/prp-framework.md` - Problem-Requirements-Plan
 - `.claude/skills/vibe-coding/SKILL.md` - Code quality standards (Quick Reference)
@@ -610,8 +616,9 @@ claude-pilot update --apply-statusline
 - `.claude/skills/tdd/REFERENCE.md` - TDD detailed guide
 - `.claude/skills/ralph-loop/SKILL.md` - Autonomous iteration (Quick Reference)
 - `.claude/skills/ralph-loop/REFERENCE.md` - Ralph Loop detailed guide
+- `MIGRATION.md` - PyPI to plugin migration guide (v4.0.5 → v4.1.0)
 
 ---
 
-**Last Updated**: 2026-01-17 (GPT Delegation Improvements)
-**Version**: 4.0.5
+**Last Updated**: 2026-01-17 (Pure Plugin Migration v4.1.0)
+**Version**: 4.1.0

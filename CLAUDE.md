@@ -1,11 +1,24 @@
 # claude-pilot - Claude Code Development Guide
 
 > **Last Updated**: 2026-01-17
-> **Version**: 4.0.5
+> **Version**: 4.1.0
 
 ---
 
 ## Quick Start
+
+### Installation (3-Line)
+
+```bash
+# Step 1: Add marketplace
+/plugin marketplace add changoo89/claude-pilot
+
+# Step 2: Install plugin
+/plugin install claude-pilot
+
+# Step 3: Run setup
+/pilot:setup
+```
 
 ### Workflow Commands
 
@@ -17,6 +30,7 @@
 | Review | `/90_review` | Multi-angle code review |
 | Document | `/91_document` | Auto-sync documentation |
 | Close | `/03_close` | Archive and commit |
+| Setup | `/pilot:setup` | Configure MCP servers |
 
 ### Development Workflow
 
@@ -31,21 +45,46 @@
 
 ```
 project-root/
+├── .claude-plugin/         # Plugin manifests
+│   ├── marketplace.json    # Marketplace configuration
+│   └── plugin.json         # Plugin metadata (version)
 ├── .claude/
-│   ├── commands/           # Slash commands (9)
+│   ├── commands/           # Slash commands (10)
 │   ├── guides/             # Methodology guides (12)
 │   ├── skills/             # TDD, Ralph Loop, Vibe Coding, Git Master
 │   ├── agents/             # Specialized agent configs (8)
-│   └── scripts/hooks/      # Type check, lint, todos
+│   ├── scripts/hooks/      # Type check, lint, todos, branch
+│   └── hooks.json          # Hook definitions
 ├── .pilot/plan/            # Plan management (pending/in_progress/done)
-├── scripts/                # Sync and build scripts
-├── src/ or lib/            # Source code
-├── tests/                  # Test files
+├── docs/                   # Project documentation
+│   └── ai-context/         # 3-Tier detailed docs
+├── mcp.json                # Recommended MCP servers
 ├── CLAUDE.md               # This file (Tier 1: Project standards)
-└── README.md               # Project README
+├── README.md               # Project README
+├── CHANGELOG.md            # Version history
+└── MIGRATION.md            # PyPI to plugin migration guide
 ```
 
 **See**: `docs/ai-context/project-structure.md` for detailed directory layout.
+
+---
+
+## Plugin Distribution (v4.1.0)
+
+**Pure Plugin Architecture**: No Python dependency, native Claude Code integration
+
+**Installation**:
+```bash
+/plugin marketplace add changoo89/claude-pilot
+/plugin install claude-pilot
+/pilot:setup
+```
+
+**Updates**: `/plugin update claude-pilot`
+
+**Version Source**: `.claude-plugin/plugin.json` (single source of truth)
+
+**Migration**: See `MIGRATION.md` for PyPI to plugin migration guide
 
 ---
 
@@ -78,7 +117,9 @@ project-root/
 | Core Modules | 90%+ | Required |
 | UI Components | 70%+ | Nice to have |
 
-**Commands**: `pytest`, `pytest --cov`, `mypy .`, `ruff check .`
+**Commands**: Project-specific test commands (depends on language/framework)
+
+**Hooks**: Pre-commit type check, lint validation (`.claude/hooks.json`)
 
 ---
 
@@ -115,10 +156,10 @@ project-root/
 
 ## Pre-Commit Checklist
 
-- [ ] All tests pass (`pytest`)
+- [ ] All tests pass (project-specific)
 - [ ] Coverage ≥80% (core ≥90%)
-- [ ] Type check clean (`mypy .`)
-- [ ] Lint clean (`ruff check .`)
+- [ ] Type check clean (project-specific)
+- [ ] Lint clean (project-specific)
 - [ ] Documentation updated
 - [ ] No secrets included
 
@@ -129,9 +170,10 @@ project-root/
 - **System Integration**: `docs/ai-context/system-integration.md` - CLI workflow, external skills, Codex
 - **Project Structure**: `docs/ai-context/project-structure.md` - Directory layout, key files
 - **Documentation Overview**: `docs/ai-context/docs-overview.md` - Complete documentation navigation
+- **Migration Guide**: `MIGRATION.md` - PyPI to plugin migration (v4.0.5 → v4.1.0)
 - **3-Tier System**: [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
 
 ---
 
-**Template Version**: claude-pilot 4.0.5
+**Template Version**: claude-pilot 4.1.0 (Pure Plugin)
 **Last Updated**: 2026-01-17

@@ -1,7 +1,94 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, data flow, shared patterns, and integration points
-> **Last Updated**: 2026-01-17 (Updated: GPT Delegation Expansion to All Commands)
+> **Last Updated**: 2026-01-17 (Updated: Pure Plugin Migration v4.1.0)
+
+---
+
+## Plugin Architecture (v4.1.0)
+
+### Overview
+
+claude-pilot v4.1.0 is distributed as a pure Claude Code plugin via GitHub marketplace, eliminating Python packaging complexity.
+
+### Plugin Manifests
+
+| File | Purpose |
+|------|---------|
+| `.claude-plugin/marketplace.json` | Marketplace configuration (name, owner, plugins) |
+| `.claude-plugin/plugin.json` | Plugin metadata (version source of truth, commands, agents, skills) |
+
+### Installation Flow
+
+```
+User: /plugin marketplace add changoo89/claude-pilot
+      ↓
+Claude Code: Adds marketplace to registry
+      ↓
+User: /plugin install claude-pilot
+      ↓
+Claude Code: Downloads plugin, installs components
+      ↓
+User: /pilot:setup
+      ↓
+Plugin: Configures MCP servers (merge strategy), prompts GitHub star
+```
+
+### Setup Command (`/pilot:setup`)
+
+**Purpose**: Configure MCP servers with merge strategy
+
+**Features**:
+- Reads `mcp.json` for recommended servers
+- Merges with existing `.mcp.json` (preserves user configs)
+- Atomic write pattern (prevents race conditions)
+- GitHub star prompt (optional, via `gh` CLI)
+- Graceful fallback for missing `gh` CLI
+
+**Merge Strategy**:
+1. Check if project `.mcp.json` exists
+2. If exists: Merge recommended servers (preserve user's existing configurations)
+3. If not exists: Create new `.mcp.json` with recommended servers
+4. Conflict resolution: If server name exists, skip (preserve user's config)
+
+### Hooks Configuration
+
+**Location**: `.claude/hooks.json`
+
+```json
+{
+  "pre-commit": [
+    {"command": ".claude/scripts/hooks/typecheck.sh", "description": "Run type check"},
+    {"command": ".claude/scripts/hooks/lint.sh", "description": "Run lint check"}
+  ],
+  "pre-push": [
+    {"command": ".claude/scripts/hooks/branch-guard.sh", "description": "Prevent push from protected branches"}
+  ]
+}
+```
+
+### Version Management
+
+**Single Source of Truth**: `.claude-plugin/plugin.json` version field
+
+No more version synchronization across multiple files!
+
+**Update Process**:
+1. Update version in `.claude-plugin/plugin.json`
+2. Update CHANGELOG.md with release notes
+3. Commit changes: `git commit -m "Bump version to X.Y.Z"`
+4. Create tag: `git tag vX.Y.Z`
+5. Push: `git push origin main --tags`
+6. GitHub marketplace auto-detects new version from tag
+
+### Integration Points
+
+| Component | Integration | Data Flow |
+|-----------|-------------|-----------|
+| `.claude-plugin/plugin.json` | Plugin manifest | → Claude Code CLI loads plugin |
+| `/pilot:setup` | MCP configuration | → `.mcp.json` (merge strategy) |
+| `.claude/hooks.json` | Hook definitions | → Claude Code hooks system |
+| `mcp.json` | Recommended MCPs | → Merged into project `.mcp.json` |
 
 ---
 
@@ -1437,5 +1524,12 @@ Task:
 
 ---
 
-**Last Updated**: 2026-01-17 (GPT Delegation Expansion)
-**Version**: 4.0.5
+## Additional Documentation (v4.1.0)
+
+- `MIGRATION.md` - PyPI to plugin migration guide (v4.0.5 → v4.1.0)
+- `CHANGELOG.md` - Version history
+
+---
+
+**Last Updated**: 2026-01-17 (Pure Plugin Migration v4.1.0)
+**Version**: 4.1.0

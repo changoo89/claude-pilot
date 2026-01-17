@@ -1,0 +1,20 @@
+{
+  "name": "claude-pilot",
+  "owner": {
+    "name": "changoo89",
+    "url": "https://github.com/changoo89"
+  },
+  "plugins": [
+    {
+      "name": "claude-pilot",
+      "source": "./.",
+      "description": "SPEC-First development workflow: Plan -> Confirm -> Execute -> Review -> Document -> Close",
+      "category": "development",
+      "version": "4.1.0",
+      "author": {
+        "name": "changoo89",
+        "url": "https://github.com/changoo89"
+      }
+    }
+  ]
+}

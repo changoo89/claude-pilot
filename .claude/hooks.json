@@ -1,0 +1,18 @@
+{
+  "pre-commit": [
+    {
+      "command": ".claude/scripts/hooks/typecheck.sh",
+      "description": "Run type check"
+    },
+    {
+      "command": ".claude/scripts/hooks/lint.sh",
+      "description": "Run lint check"
+    }
+  ],
+  "pre-push": [
+    {
+      "command": ".claude/scripts/hooks/branch-guard.sh",
+      "description": "Prevent push from protected branches"
+    }
+  ]
+}

@@ -120,22 +120,51 @@ fi
 
 ---
 
-## Step 2: Locate Active Plan
+## Step 2: Locate Active Plan (Worktree-Aware)
+
+> **CRITICAL FIX**: Worktree-aware plan detection
+> **Problem**: `git rev-parse --show-toplevel` returns main project directory even from worktree
+> **Solution**: Check worktree metadata FIRST, then fall back to standard detection
 
 ```bash
-# Project root detection (always use project root, not current directory)
-PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+# Source worktree utilities (already loaded in Step 0)
+WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
+[ -f "$WORKTREE_UTILS" ] && . "$WORKTREE_UTILS"
 
-mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
-BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
-KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-ACTIVE_PTR="$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
+# 1. Worktree-first detection: Check if we're in a worktree and find matching plan
+ACTIVE_PLAN_PATH=""
 
-# Priority: explicit args, RUN_ID, active pointer
-[ -f "$ACTIVE_PTR" ] && ACTIVE_PLAN_PATH="$(cat "$ACTIVE_PTR")"
-[ -z "$ACTIVE_PLAN_PATH" ] && [ -n "$RUN_ID" ] && ACTIVE_PLAN_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${RUN_ID}.md"
+if is_in_worktree 2>/dev/null; then
+    # Search for plan with worktree metadata matching current worktree path
+    WORKTREE_PLAN="$(get_active_plan_from_metadata)"
+    if [ -n "$WORKTREE_PLAN" ] && [ -f "$WORKTREE_PLAN" ]; then
+        ACTIVE_PLAN_PATH="$WORKTREE_PLAN"
+        echo "DEBUG: Found worktree plan: $ACTIVE_PLAN_PATH" >&2
+    fi
+fi
 
-[ -z "$ACTIVE_PLAN_PATH" ] || [ ! -f "$ACTIVE_PLAN_PATH" ] && { echo "No active plan" >&2; exit 1; }
+# 2. Standard detection: If not in worktree or worktree plan not found
+if [ -z "$ACTIVE_PLAN_PATH" ]; then
+    # Project root detection (always use project root, not current directory)
+    PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+
+    mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
+    BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
+    KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
+    ACTIVE_PTR="$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
+
+    # Priority: explicit args, RUN_ID, active pointer, fallback to newest in_progress
+    [ -f "$ACTIVE_PTR" ] && ACTIVE_PLAN_PATH="$(cat "$ACTIVE_PTR")"
+    [ -z "$ACTIVE_PLAN_PATH" ] && [ -n "$RUN_ID" ] && ACTIVE_PLAN_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${RUN_ID}.md"
+
+    # Fallback: Find newest in_progress plan if no active pointer (handles missing pointers)
+    [ -z "$ACTIVE_PLAN_PATH" ] && ACTIVE_PLAN_PATH="$(ls -t "$PROJECT_ROOT/.pilot/plan/in_progress/"*.md 2>/dev/null | head -1)"
+fi
+
+# 3. Validate plan exists
+[ -z "$ACTIVE_PLAN_PATH" ] || [ ! -f "$ACTIVE_PLAN_PATH" ] && { echo "ERROR: No active plan found" >&2; echo "Searched in: .pilot/plan/in_progress/" >&2; exit 1; }
+
+echo "Active plan: $ACTIVE_PLAN_PATH" >&2
 ```
 
 ---

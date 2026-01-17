@@ -320,3 +320,54 @@ get_main_pilot_dir() {
 check_worktree_support() {
     git worktree --help >/dev/null 2>&1
 }
+
+# Get active plan from worktree metadata
+# Usage: plan=$(get_active_plan_from_metadata ["project_root"])
+# Returns: Path to active plan with worktree metadata, or empty if none
+# This function searches for plans in in_progress/ that match current worktree
+get_active_plan_from_metadata() {
+    local project_root="${1:-$(pwd)}"
+    local in_progress_dir="${project_root}/.pilot/plan/in_progress"
+    local current_worktree_path
+    current_worktree_path="$(pwd)"
+
+    # Check if we're in a worktree
+    if ! is_in_worktree; then
+        return 1
+    fi
+
+    # Suppress glob expansion errors
+    set +o nomatch 2>/dev/null || true
+
+    # Search for plan with worktree metadata matching current path
+    local plan
+    for plan in "${in_progress_dir}"/*.md; do
+        [ -f "$plan" ] 2>/dev/null || continue
+
+        # Check if plan has worktree metadata
+        if grep -q "## Worktree Info" "$plan" 2>/dev/null; then
+            local worktree_meta
+            worktree_meta="$(read_worktree_metadata "$plan" 2>/dev/null)" || continue
+
+            # Parse metadata using pipe (more portable than here-string)
+            local wt_branch wt_path wt_main main_project lock_file
+            wt_branch="$(printf "%s" "$worktree_meta" | cut -d'|' -f1)"
+            wt_path="$(printf "%s" "$worktree_meta" | cut -d'|' -f2)"
+            wt_main="$(printf "%s" "$worktree_meta" | cut -d'|' -f3)"
+            main_project="$(printf "%s" "$worktree_meta" | cut -d'|' -f4)"
+            lock_file="$(printf "%s" "$worktree_meta" | cut -d'|' -f5)"
+
+            # Verify required fields
+            [ -z "$wt_branch" ] && continue
+            [ -z "$wt_path" ] && continue
+
+            # Check if this plan's worktree path matches current directory
+            if [ "$current_worktree_path" = "$wt_path" ]; then
+                printf "%s" "$plan"
+                return 0
+            fi
+        fi
+    done
+
+    return 1
+}

@@ -110,7 +110,10 @@ claude-pilot/
 │       ├── test_01_confirm_delegation.test.sh
 │       ├── test_91_document_delegation.test.sh
 │       ├── test_graceful_fallback.test.sh
-│       └── test_no_delegation.test.sh
+│       ├── test_no_delegation.test.sh
+│       ├── test_codex_detection.test.sh    # Codex CLI detection tests (v4.1.0)
+│       ├── test_path_init.test.sh          # PATH initialization tests (v4.1.0)
+│       └── test_debug_mode.test.sh         # DEBUG mode tests (v4.1.0)
 ├── docs/                   # Project documentation
 │   ├── ai-context/         # 3-Tier detailed docs
 │   │   ├── system-integration.md
@@ -158,7 +161,7 @@ claude-pilot/
 | `.claude-plugin/plugin.json` | Plugin manifest (version source of truth) |
 | `.claude/settings.json` | Example MCP server configuration |
 | `.claude/hooks.json` | Hook definitions (pre-commit, pre-push) |
-| `.claude/scripts/codex-sync.sh` | GPT expert delegation with reasoning effort configuration |
+| `.claude/scripts/codex-sync.sh` | GPT expert delegation with PATH initialization, multi-layered detection, reasoning effort configuration |
 | `mcp.json` | Recommended MCP servers |
 | `.gitignore` | Git exclusions |
 

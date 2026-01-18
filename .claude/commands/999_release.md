@@ -105,6 +105,111 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 ```
 
+### 1.4 Validate Plugin Manifests
+
+> **CRITICAL**: Validate plugin.json and marketplace.json before release
+>
+> **Common pitfalls**:
+> - `agents` field in plugin.json requires actual YAML agent files
+> - `source` in marketplace.json must be local path (e.g., "./"), NOT GitHub URL
+> - `metadata` section is required in marketplace.json
+> - Missing `homepage`, `repository`, `license`, `keywords` causes installation failure
+
+```bash
+echo "Validating plugin manifests..."
+
+# Validate plugin.json
+# Check for invalid agents field (requires YAML agent files)
+if jq -e '.agents' .claude-plugin/plugin.json > /dev/null 2>&1; then
+    if [ "$(jq '.agents | type' .claude-plugin/plugin.json)" == '"array"' ]; then
+        AGENT_COUNT=$(jq '.agents | length' .claude-plugin/plugin.json)
+        YAML_AGENT_COUNT=$(find .claude/agents -name '*.yaml' -o -name '*.yml' 2>/dev/null | wc -l | tr -d ' ')
+        if [ "$AGENT_COUNT" -gt 0 ] && [ "$YAML_AGENT_COUNT" -eq 0 ]; then
+            echo "Error: plugin.json has agents field but no YAML agent files found"
+            echo "Either:"
+            echo "  1. Remove agents field from plugin.json, OR"
+            echo "  2. Create YAML agent files in .claude/agents/"
+            echo ""
+            echo "Found .md files in .claude/agents/:"
+            ls -1 .claude/agents/*.md 2>/dev/null | head -5
+            exit 1
+        fi
+    fi
+fi
+
+# Validate marketplace.json schema
+# Check for required metadata section
+if ! jq -e '.metadata' .claude-plugin/marketplace.json > /dev/null 2>&1; then
+    echo "Error: marketplace.json missing required 'metadata' section"
+    echo ""
+    echo "Required format:"
+    echo '  "metadata": {'
+    echo '    "description": "...",'
+    echo '    "version": "X.Y.Z",'
+    echo '    "pluginRoot": "./"'
+    echo '  }'
+    exit 1
+fi
+
+# Check metadata fields
+if ! jq -e '.metadata.description' .claude-plugin/marketplace.json > /dev/null 2>&1; then
+    echo "Error: marketplace.json metadata missing 'description' field"
+    exit 1
+fi
+
+if ! jq -e '.metadata.pluginRoot' .claude-plugin/marketplace.json > /dev/null 2>&1; then
+    echo "Error: marketplace.json metadata missing 'pluginRoot' field"
+    exit 1
+fi
+
+# Validate plugin entry has all required fields
+MISSING_FIELDS=()
+if ! jq -e '.plugins[0].homepage' .claude-plugin/marketplace.json > /dev/null 2>&1; then
+    MISSING_FIELDS+=("homepage")
+fi
+if ! jq -e '.plugins[0].repository' .claude-plugin/marketplace.json > /dev/null 2>&1; then
+    MISSING_FIELDS+=("repository")
+fi
+if ! jq -e '.plugins[0].license' .claude-plugin/marketplace.json > /dev/null 2>&1; then
+    MISSING_FIELDS+=("license")
+fi
+if ! jq -e '.plugins[0].keywords' .claude-plugin/marketplace.json > /dev/null 2>&1; then
+    MISSING_FIELDS+=("keywords")
+fi
+
+if [ ${#MISSING_FIELDS[@]} -gt 0 ]; then
+    echo "Error: marketplace.json plugin entry missing required fields: ${MISSING_FIELDS[*]}"
+    echo ""
+    echo "Required format:"
+    echo '  "plugins": [{'
+    echo '    "name": "...",'
+    echo '    "source": "./",'
+    echo '    "description": "...",'
+    echo '    "category": "...",'
+    echo '    "version": "...",'
+    echo '    "author": { "name": "...", "email": "..." },'
+    echo '    "homepage": "https://github.com/owner/repo",'
+    echo '    "repository": "https://github.com/owner/repo",'
+    echo '    "license": "MIT",'
+    echo '    "keywords": [...]'
+    echo '  }]'
+    exit 1
+fi
+
+# Verify source is a local path, not a URL
+SOURCE=$(jq -r '.plugins[0].source' .claude-plugin/marketplace.json)
+if echo "$SOURCE" | grep -qE '^https?://'; then
+    echo "Error: marketplace.json source must be a local path (e.g., './'), not a URL"
+    echo "Current source: $SOURCE"
+    echo ""
+    echo "The source field specifies where the plugin is located WITHIN the repository,"
+    echo "not the repository URL. Use './' for root-level plugins."
+    exit 1
+fi
+
+echo "✓ Plugin manifests validated"
+```
+
 ---
 
 ## Step 2: Parse Version Arguments
@@ -353,6 +458,11 @@ fi
 ## Success Criteria
 
 - [ ] Pre-flight checks passed (jq, git, remote, clean working tree)
+- [ ] Plugin manifests validated (plugin.json, marketplace.json)
+  - [ ] No invalid agents field (or YAML agent files exist)
+  - [ ] marketplace.json has metadata section
+  - [ ] marketplace.json has all required fields (homepage, repository, license, keywords)
+  - [ ] source field is local path, not URL
 - [ ] Version synced across all 3 files (plugin.json, marketplace.json, pilot-version)
 - [ ] CHANGELOG.md updated with release notes
 - [ ] Git commit created: "chore: bump version to X.Y.Z"
@@ -383,9 +493,27 @@ fi
 | jq not installed | Exit with install instructions |
 | Git remote not found | Exit with available remotes |
 | Working tree dirty | Exit with git status |
+| **Invalid agents field** | Exit: Remove agents field or create YAML agent files |
+| **Missing metadata section** | Exit: Add metadata with description, version, pluginRoot |
+| **Missing plugin fields** | Exit: Add homepage, repository, license, keywords |
+| **Invalid source (URL)** | Exit: Change source to local path (e.g., "./") |
 | Tag already exists | Exit with delete instructions |
 | Invalid version format | Exit with format examples |
 | GitHub release fails | Continue - tag already pushed |
+
+### Common Manifest Errors (from real debugging)
+
+**Error**: `plugins.0.source: Invalid input`
+- **Cause**: source field contains GitHub URL instead of local path
+- **Fix**: Change `"source": "https://github.com/..."` to `"source": "./"`
+
+**Error**: `agents: Invalid input`
+- **Cause**: plugin.json has agents field but no YAML agent files exist
+- **Fix**: Either remove agents field OR create *.yaml files in .claude/agents/
+
+**Error**: `Invalid schema`
+- **Cause**: marketplace.json missing metadata section or required fields
+- **Fix**: Add metadata section with description, version, pluginRoot
 
 ---
 

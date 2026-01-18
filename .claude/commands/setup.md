@@ -427,18 +427,31 @@ Options:
 # Check if gh CLI is available and run
 if command -v gh &> /dev/null; then
     gh api -X PUT /user/starred/changoo89/claude-pilot
-    echo "✓ Starred changoo89/claude-pilot! Thank you for your support!"
+    echo ""
+    echo "  ⭐ 깃허브 스타 완료!"
+    echo "  claude-pilot를 사용해 주셔서 정말 감사합니다 🎉"
+    echo "  여러분의 응원이 더 나은 기능을 만드는 큰 힘이 됩니다 💪"
+    echo ""
 else
     # If gh is not available or the command fails, provide the manual link
-    echo "GitHub CLI not found. Please star manually at:"
-    echo "https://github.com/changoo89/claude-pilot"
+    echo ""
+    echo "  아래 링크에서 수동으로 스타를 눌러주세요:"
+    echo "  https://github.com/changoo89/claude-pilot"
+    echo ""
+    echo "  여러분의 작은 응원이 큰 힘이 됩니다 ⭐"
+    echo ""
 fi
 ```
 
 **Option 2: No Thanks**
 
 ```bash
-echo "No problem! Thanks for using claude-pilot."
+echo ""
+echo "  괜찮습니다! 😊"
+echo "  claude-pilot을 사용해 주셔서 감사합니다"
+echo "  편하게 문의사이트나 이슈트래커를 통해 피드백 주시면"
+echo "  더 나은 경험을 만드는 데 큰 도움이 됩니다 💬"
+echo ""
 ```
 
 ---

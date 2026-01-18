@@ -29,6 +29,7 @@
 | Plan | `/00_plan "task"` | Generate SPEC-First plan |
 | Confirm | `/01_confirm` | Review plan + requirements verification |
 | Execute | `/02_execute` | Implement with TDD (parallel SC execution) |
+| Continue | `/00_continue` | Resume work from continuation state |
 | Review | `/90_review` | Multi-angle code review (parallel optional) |
 | Document | `/91_document` | Auto-sync documentation |
 | Close | `/03_close` | Archive and commit |
@@ -52,13 +53,18 @@ project-root/
 │   ├── marketplace.json    # Marketplace configuration
 │   └── plugin.json         # Plugin metadata (version)
 ├── .claude/
-│   ├── commands/           # Slash commands (10)
-│   ├── guides/             # Methodology guides (15)
+│   ├── commands/           # Slash commands (11)
+│   ├── guides/             # Methodology guides (17)
 │   ├── skills/             # TDD, Ralph Loop, Vibe Coding, Git Master
 │   ├── agents/             # Specialized agent configs (8)
 │   ├── scripts/hooks/      # Type check, lint, todos, branch
+│   ├── scripts/            # State management, Codex delegation
 │   └── hooks.json          # Hook definitions
-├── .pilot/plan/            # Plan management (pending/in_progress/done)
+├── .pilot/
+│   ├── plan/               # Plan management (pending/in_progress/done)
+│   ├── state/              # Continuation state (NEW v4.2.0)
+│   ├── scripts/            # State management scripts (NEW v4.2.0)
+│   └── tests/              # Integration tests
 ├── docs/                   # Project documentation
 │   └── ai-context/         # 3-Tier detailed docs
 ├── mcp.json                # Recommended MCP servers
@@ -130,6 +136,89 @@ project-root/
 
 ---
 
+## Sisyphus Continuation System (v4.2.0)
+
+**Intelligent Agent Continuation**: Agents persist work across sessions and continue until all todos complete.
+
+### Overview
+
+Inspired by the Greek myth of Sisyphus, the continuation system ensures "the boulder never stops" - agents continue working until completion or manual intervention. Tasks are completed automatically without manual restart.
+
+### Key Features
+
+**State Persistence**:
+- Continuation state stored in `.pilot/state/continuation.json`
+- Tracks: session UUID, branch, plan file, todos, iteration count
+- Automatic backup before writes (`.backup` file)
+
+**Agent Continuation**:
+- Agents check continuation state before stopping
+- Continue if incomplete todos exist and iterations < max (7)
+- Escape hatch: `/cancel`, `/stop`, `/done` commands
+
+**Granular Todo Breakdown**:
+- Todos broken into ≤15 minute chunks
+- Single owner per todo (coder, tester, validator, documenter)
+- Enables reliable continuation progress tracking
+
+### Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/00_continue` | Resume work from continuation state |
+| `/02_execute` | Creates/resumes continuation state automatically |
+| `/03_close` | Verifies all todos complete before closing |
+
+### Configuration
+
+```bash
+# Set continuation aggressiveness
+export CONTINUATION_LEVEL="normal"  # aggressive | normal | polite
+
+# Set max iterations (default: 7)
+export MAX_ITERATIONS=7
+```
+
+**Continuation Levels**:
+- `aggressive`: Maximum continuation, minimal pauses
+- `normal` (default): Balanced continuation
+- `polite`: More frequent checkpoints, user control
+
+### State File Format
+
+```json
+{
+  "version": "1.0",
+  "session_id": "uuid",
+  "branch": "main",
+  "plan_file": ".pilot/plan/in_progress/plan.md",
+  "todos": [
+    {"id": "SC-1", "status": "complete", "iteration": 1, "owner": "coder"},
+    {"id": "SC-2", "status": "in_progress", "iteration": 0, "owner": "coder"}
+  ],
+  "iteration_count": 1,
+  "max_iterations": 7,
+  "last_checkpoint": "2026-01-18T10:30:00Z",
+  "continuation_level": "normal"
+}
+```
+
+### Workflow
+
+1. **Plan**: `/00_plan "task"` → Generates granular todos (≤15 min each)
+2. **Execute**: `/02_execute` → Creates continuation state, starts work
+3. **Continue**: Agent continues automatically until:
+   - All todos complete, OR
+   - Max iterations reached (7), OR
+   - User interrupts (`/cancel`, `/stop`)
+4. **Resume**: `/00_continue` → If session interrupted
+5. **Close**: `/03_close` → Verifies all todos complete
+
+**Full guide**: `.claude/guides/continuation-system.md`
+**Todo granularity**: `.claude/guides/todo-granularity.md`
+
+---
+
 ## Testing & Quality
 
 | Scope | Target | Priority |
@@ -192,9 +281,11 @@ project-root/
 - **Project Structure**: `docs/ai-context/project-structure.md` - Directory layout, key files
 - **Documentation Overview**: `docs/ai-context/docs-overview.md` - Complete documentation navigation
 - **Migration Guide**: `MIGRATION.md` - PyPI to plugin migration (v4.0.5 → v4.1.0)
+- **Continuation System**: `.claude/guides/continuation-system.md` - Sisyphus agent continuation
+- **Todo Granularity**: `.claude/guides/todo-granularity.md` - Granular todo breakdown (≤15 min)
 - **3-Tier System**: [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)
 
 ---
 
-**Template Version**: claude-pilot 4.1.2 (GPT Delegation Prompt Improvements)
+**Template Version**: claude-pilot 4.2.0 (Sisyphus Continuation System)
 **Last Updated**: 2026-01-18

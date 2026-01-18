@@ -11,7 +11,7 @@
 Framework: Claude Code Plugin
 Language: Markdown + JSON (no code runtime)
 Package Manager: Claude Code Plugin System
-Version: 4.1.5
+Version: 4.2.0
 Deployment: GitHub Marketplace (plugin distribution)
 ```
 
@@ -26,8 +26,9 @@ claude-pilot/
 │   └── plugin.json         # Plugin metadata (version source of truth)
 ├── .gitattributes          # Git file attributes (LF line endings, executable bit enforcement for .sh files)
 ├── .claude/
-│   ├── commands/           # Slash commands (10)
+│   ├── commands/           # Slash commands (11)
 │   │   ├── CONTEXT.md      # Command folder context
+│   │   ├── 00_continue.md  # Resume from continuation state (NEW v4.2.0)
 │   │   ├── 000_pilot_setup.md  # Setup command (NEW v4.1.0)
 │   │   ├── 00_plan.md      # Create SPEC-First plan
 │   │   ├── 01_confirm.md   # Confirm plan (with Step 1.5 extraction)
@@ -37,7 +38,7 @@ claude-pilot/
 │   │   ├── 91_document.md  # Update docs
 │   │   ├── 92_init.md      # Initialize 3-Tier docs
 │   │   └── 999_release.md  # Bump version + git tag + GitHub release (v4.1.1+)
-│   ├── guides/             # Methodology guides (15)
+│   ├── guides/             # Methodology guides (17)
 │   │   ├── CONTEXT.md      # Guide folder context
 │   │   ├── claude-code-standards.md  # Official Claude Code standards
 │   │   ├── prp-framework.md          # Problem-Requirements-Plan
@@ -53,7 +54,9 @@ claude-pilot/
 │   │   ├── requirements-tracking.md  # User Requirements Collection
 │   │   ├── requirements-verification.md # Requirements Verification
 │   │   ├── instruction-clarity.md    # LLM-readable instruction patterns
-│   │   └── intelligent-delegation.md # Intelligent Codex delegation (NEW v4.1.0)
+│   │   ├── intelligent-delegation.md # Intelligent Codex delegation (NEW v4.1.0)
+│   │   ├── todo-granularity.md       # Granular todo breakdown (NEW v4.2.0)
+│   │   └── continuation-system.md    # Sisyphus agent continuation (NEW v4.2.0)
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
 │   │   ├── prp-template.md            # PRP template
 │   │   ├── gap-checklist.md
@@ -113,6 +116,13 @@ claude-pilot/
 │   │   ├── in_progress/    # Currently executing
 │   │   ├── done/           # Completed plans
 │   │   └── active/         # Branch pointers
+│   ├── state/              # Continuation state (NEW v4.2.0)
+│   │   ├── continuation.json       # Active continuation state
+│   │   └── continuation.json.backup # State backup
+│   ├── scripts/            # State management scripts (NEW v4.2.0)
+│   │   ├── state_read.sh   # Read continuation state
+│   │   ├── state_write.sh  # Write continuation state
+│   │   └── state_backup.sh # Backup continuation state
 │   └── tests/              # Integration tests (v4.0.5)
 │       ├── test_00_plan_delegation.test.sh
 │       ├── test_01_confirm_delegation.test.sh
@@ -121,7 +131,10 @@ claude-pilot/
 │       ├── test_no_delegation.test.sh
 │       ├── test_codex_detection.test.sh    # Codex CLI detection tests (v4.1.0)
 │       ├── test_path_init.test.sh          # PATH initialization tests (v4.1.0)
-│       └── test_debug_mode.test.sh         # DEBUG mode tests (v4.1.0)
+│       ├── test_debug_mode.test.sh         # DEBUG mode tests (v4.1.0)
+│       ├── test_00_continue.test.sh        # Continue command tests (NEW v4.2.0)
+│       ├── test_continuation_state.test.sh # State management tests (NEW v4.2.0)
+│       └── test_sc5_integration.test.sh    # Integration tests (NEW v4.2.0)
 ├── docs/                   # Project documentation
 │   ├── ai-context/         # 3-Tier detailed docs
 │   │   ├── system-integration.md
@@ -448,6 +461,24 @@ claude-pilot update --apply-statusline
 
 ## Version History
 
+### v4.2.0 (2026-01-18)
+
+**Sisyphus Continuation System**: Agent-based continuation for automatic task completion
+- **State management**: `.pilot/state/continuation.json` for session persistence
+- **Agent continuation**: Agents check state before stopping, continue until todos complete
+- **Granular todos**: `/00_plan` breaks down tasks into ≤15 minute chunks
+- **New command**: `/00_continue` for resuming interrupted sessions
+- **State scripts**: `state_read.sh`, `state_write.sh`, `state_backup.sh` with JSON validation and atomic writes
+- **Agent updates**: Added continuation logic to coder, tester, validator, documenter
+- **Command integration**: `/02_execute` creates/resumes state, `/03_close` verifies completion
+- **New guides**: `continuation-system.md` (355 lines), `todo-granularity.md` (672 lines)
+- **New tests**: 3 test files (test_00_continue, test_continuation_state, test_sc5_integration)
+- **Configuration**: `CONTINUATION_LEVEL` (aggressive/normal/polite), `MAX_ITERATIONS` (default: 7)
+- **Escape hatch**: `/cancel`, `/stop`, `/done` commands for manual interruption
+- **Features**: File locking (flock), JSON safety (jq), automatic backup, session UUID tracking
+- Updated files: All agents (4), commands (4), guides (2 new)
+- Verification: All 5 success criteria met (SC-1 through SC-5), 57/58 tests passed (98.3%)
+
 ### v4.1.2 (2026-01-18)
 
 **GPT Delegation Prompt Improvements**: Phase-specific context and validation
@@ -686,5 +717,5 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-18 (Plugin Deployment Permissions Fix v4.1.5)
-**Version**: 4.1.5
+**Last Updated**: 2026-01-18 (Sisyphus Continuation System v4.2.0)
+**Version**: 4.2.0

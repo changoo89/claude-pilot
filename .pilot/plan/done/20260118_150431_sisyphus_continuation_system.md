@@ -664,3 +664,31 @@ Add to `.claude/settings.json`:
 - No file locking (flock) in state_write.sh - uses atomic write pattern (temp file + mv) instead
 - This is acceptable for single-process continuation workflow
 - For parallel execution, rely on agent orchestration to prevent concurrent writes
+
+### Documentation Updates
+
+**Tier 1 (CLAUDE.md)**:
+- Added "Sisyphus Continuation System (v4.2.0)" section
+- Overview, key features, commands, configuration
+- State file format, workflow
+- Links to guides
+
+**Tier 2 (docs/ai-context/system-integration.md)**:
+- Added "Sisyphus Continuation System (v4.2.0)" section
+- Components table (state files, scripts, commands, guides)
+- State file format, workflow, integration points
+- Configuration (continuation levels, max iterations)
+- Agent continuation logic
+
+**Tier 3 (Feature-level)**:
+- `.claude/guides/continuation-system.md` - Full system guide
+- `.claude/guides/todo-granularity.md` - Granular todo breakdown (673 lines)
+- `.claude/commands/00_continue.md` - Resume command
+
+### Verification
+
+- [x] All success criteria verified PASS
+- [x] Documentation updated (Tier 1, Tier 2, Tier 3)
+- [x] State management functional (10 tests pass)
+- [x] Agent continuation prompts added (4 agents)
+- [x] Command integration complete (/02_execute, /03_close, /00_continue)

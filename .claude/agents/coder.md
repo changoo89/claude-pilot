@@ -439,3 +439,110 @@ Include in summary when confidence < 0.5:
 | 0.9-1.0 | Proceed autonomously | `<CODER_COMPLETE>` |
 | 0.5-0.9 | Consider delegation | Continue with warning |
 | 0.0-0.5 | MUST delegate | `<CODER_BLOCKED>` + delegation recommendation |
+
+---
+
+## ⚠️ CONTINUATION CHECK (CRITICAL)
+
+**Before stopping, you MUST check continuation state to prevent premature exit.**
+
+### Read Continuation State
+
+Before completing your work and returning a result:
+
+```bash
+# Read continuation state if it exists
+STATE_FILE=".pilot/state/continuation.json"
+if [ -f "$STATE_FILE" ]; then
+    .pilot/scripts/state_read.sh
+fi
+```
+
+### Check Completion Status
+
+After reading the state, verify:
+
+1. **All todos complete**: Check that `todos[*].status` == "complete"
+2. **Iteration count within limit**: Check `iteration_count` < `max_iterations`
+3. **No escape hatch triggered**: User hasn't typed `/cancel`, `/stop`, or `/done`
+
+### Decision Logic
+
+**IF** ANY of these conditions exist:
+- Some todos have status "pending" or "in_progress"
+- Iteration count < max_iterations
+- No escape hatch command received
+
+**THEN**:
+- **DO NOT STOP** - Continue with next incomplete todo
+- Update continuation state with current progress:
+  ```bash
+  TODOS_JSON='[{"id":"SC-1","status":"complete","iteration":1,"owner":"coder"}]'
+  .pilot/scripts/state_write.sh --plan-file "$PLAN_FILE" --todos "$TODOS_JSON" --iteration 1
+  ```
+- Return `<CODER_CONTINUE>` marker instead of `<CODER_COMPLETE>`
+
+**ELSE IF** ALL todos complete:
+- Return `<CODER_COMPLETE>` marker
+- Include summary of completed work
+
+### Update State Before Continuing
+
+When continuing (not stopping):
+
+```bash
+# Update current todo status to complete
+# Move to next todo
+UPDATED_TODOS='[
+  {"id":"SC-1","status":"complete","iteration":1,"owner":"coder"},
+  {"id":"SC-2","status":"in_progress","iteration":0,"owner":"coder"}
+]'
+
+.pilot/scripts/state_write.sh \
+  --plan-file ".pilot/plan/in_progress/plan.md" \
+  --todos "$UPDATED_TODOS" \
+  --iteration 2
+```
+
+### Escape Hatch
+
+**User Commands** - If user types any of these, you may stop immediately:
+- `/cancel` - Cancel current work
+- `/stop` - Stop and save state
+- `/done` - Mark as complete regardless of todos
+
+### State File Format Reference
+
+```json
+{
+  "version": "1.0",
+  "session_id": "uuid",
+  "branch": "main",
+  "plan_file": ".pilot/plan/in_progress/plan.md",
+  "todos": [
+    {"id": "SC-1", "status": "complete", "iteration": 1, "owner": "coder"},
+    {"id": "SC-2", "status": "in_progress", "iteration": 0, "owner": "coder"}
+  ],
+  "iteration_count": 1,
+  "max_iterations": 7,
+  "last_checkpoint": "2026-01-18T10:30:00Z",
+  "continuation_level": "normal"
+}
+```
+
+### Why This Matters
+
+**Sisyphus Philosophy**: The boulder never stops - agents continue until all todos complete or max iterations reached.
+
+**Completion Rate**: Prevents premature stopping that leads to abandoned work and incomplete features.
+
+**User Experience**: Users get complete features without manual intervention to restart agents.
+
+**State Tracking**: Continuation state provides recovery point if session is interrupted.
+
+### Integration with Ralph Loop
+
+When running Ralph Loop iterations:
+- Each iteration updates `iteration_count` in state
+- Check `max_iterations` limit before continuing
+- If limit reached, return `<CODER_BLOCKED>` with manual review recommendation

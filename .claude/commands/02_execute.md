@@ -28,6 +28,125 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 
 ---
 
+## Step 0.5: Continuation State Check (MANDATORY)
+
+> **🚨 CRITICAL**: Check for existing continuation state before starting execution
+> **Purpose**: Resume work from previous session or create new continuation state
+
+### State File Location
+
+`.pilot/state/continuation.json`
+
+### State Check Logic
+
+```bash
+# Source state management scripts
+STATE_READ=".pilot/scripts/state_read.sh"
+STATE_WRITE=".pilot/scripts/state_write.sh"
+STATE_BACKUP=".pilot/scripts/state_backup.sh"
+
+# Check if state file exists
+STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
+
+if [ -f "$STATE_FILE" ]; then
+    # Load existing state
+    CONTINUATION_STATE="$(cat "$STATE_FILE")"
+
+    # Extract session info
+    SESSION_ID="$(echo "$CONTINUATION_STATE" | jq -r '.session_id // empty')"
+    PLAN_PATH_FROM_STATE="$(echo "$CONTINUATION_STATE" | jq -r '.plan_file // empty')"
+    ITERATION_COUNT="$(echo "$CONTINUATION_STATE" | jq -r '.iteration_count // 0')"
+    INCOMPLETE_TODOS="$(echo "$CONTINUATION_STATE" | jq -r '.todos[] | select(.status != "complete") | .id')"
+
+    echo "📋 Continuation state found"
+    echo "   Session: $SESSION_ID"
+    echo "   Plan: $PLAN_PATH_FROM_STATE"
+    echo "   Iterations: $ITERATION_COUNT"
+    echo "   Incomplete todos: $(echo "$INCOMPLETE_TODOS" | wc -l)"
+
+    # Ask user what to do
+    echo ""
+    echo "Would you like to:"
+    echo "  1) Resume from continuation state"
+    echo "  2) Start fresh (clear state)"
+    echo ""
+
+    # Note: In non-interactive mode, default to resume
+    RESUME="${RESUME:-true}"
+
+    if [ "$RESUME" = "true" ]; then
+        echo "✓ Resuming from continuation state"
+        # Use plan path from state
+        PLAN_PATH="$PLAN_PATH_FROM_STATE"
+
+        # Load todos from state
+        TODO_LIST="$(echo "$CONTINUATION_STATE" | jq -r '.todos[]')"
+
+        # Find next incomplete todo
+        NEXT_TODO="$(echo "$CONTINUATION_STATE" | jq -r '.todos[] | select(.status == "in_progress" or .status == "pending") | .id' | head -1)"
+
+        if [ -n "$NEXT_TODO" ]; then
+            echo "→ Resuming with todo: $NEXT_TODO"
+        fi
+    else
+        echo "→ Starting fresh (clearing state)"
+        rm -f "$STATE_FILE"
+    fi
+else
+    # No state exists, will create after plan detection
+    echo "ℹ No continuation state found, will create new state"
+fi
+```
+
+### Integration with Plan Detection
+
+The continuation state check happens BEFORE plan detection (Step 1):
+- If state exists: Use plan path from state
+- If state doesn't exist: Proceed to Step 1 (Plan Detection)
+
+### State Creation After Plan Detection
+
+If no state exists, create new state after plan detection:
+
+```bash
+# Create new continuation state (if not exists)
+if [ ! -f "$STATE_FILE" ] && [ -n "$PLAN_PATH" ]; then
+    # Extract todos from plan
+    PLAN_TODOS="$(grep -E '^\- \[ \] ' "$PLAN_PATH" | sed 's/^- [ ]* //' | jq -R '.' | jq -s -c 'map({id: ., status: "pending", iteration: 0, owner: "coder"})')"
+
+    # Create state JSON
+    STATE_JSON=$(jq -n \
+        --arg version "1.0" \
+        --arg session_id "$(uuidgen)" \
+        --arg branch "$BRANCH" \
+        --arg plan_file "$PLAN_PATH" \
+        --argjson todos "$PLAN_TODOS" \
+        --argjson iteration_count 0 \
+        --argjson max_iterations 7 \
+        --arg continuation_level "normal" \
+        '{
+            version: $version,
+            session_id: $session_id,
+            branch: $branch,
+            plan_file: $plan_file,
+            todos: $todos,
+            iteration_count: $iteration_count,
+            max_iterations: $max_iterations,
+            last_checkpoint: now | todate,
+            continuation_level: $continuation_level
+        }')
+
+    # Backup and write state
+    mkdir -p "$(dirname "$STATE_FILE")"
+    [ -f "$STATE_FILE" ] && . "$STATE_BACKUP" "$STATE_FILE"
+    echo "$STATE_JSON" > "$STATE_FILE"
+
+    echo "✓ Created continuation state: $STATE_FILE"
+fi
+```
+
+---
+
 ## Step 1: Plan Detection (MANDATORY FIRST ACTION)
 
 > **🚨 YOU MUST DO THIS FIRST - NO EXCEPTIONS**
@@ -396,16 +515,168 @@ Read .claude/rules/delegator/prompts/[expert].md
 
 ---
 
+## Step 2.6: Update Continuation State After Each Todo (MANDATORY)
+
+> **🚨 CRITICAL**: Update continuation state after EVERY todo completion
+> **Purpose**: Maintain accurate progress tracking across agent invocations
+
+### State Update Timing
+
+Update continuation state AFTER each of these events:
+- Todo marked as `completed`
+- Test run finishes (pass or fail)
+- Ralph Loop iteration completes
+- Agent reports completion
+
+### State Update Logic
+
+```bash
+# Source state management scripts
+STATE_WRITE=".pilot/scripts/state_write.sh"
+STATE_BACKUP=".pilot/scripts/state_backup.sh"
+STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
+
+# Update state after todo completion (with file locking to prevent race conditions)
+update_continuation_state() {
+    local todo_id="$1"
+    local todo_status="$2"  # pending | in_progress | complete
+    local iteration="$3"
+
+    # Use flock for atomic read-modify-write (prevents TOCTOU race condition)
+    # Lock file: STATE_FILE.lock
+    (
+        flock -x 9 || { echo "Error: Failed to acquire lock on $STATE_FILE" >&2; exit 1; }
+
+        # Backup existing state (within lock for consistency)
+        [ -f "$STATE_FILE" ] && . "$STATE_BACKUP" "$STATE_DIR"
+
+        # Update todo status (within lock for atomicity)
+        UPDATED_STATE="$(cat "$STATE_FILE" | jq \
+            --arg todo_id "$todo_id" \
+            --arg todo_status "$todo_status" \
+            --argjson iteration "$iteration" \
+            '
+            if .todos then
+                .todos |= map(
+                    if .id == $todo_id then
+                        .status = $todo_status |
+                        .iteration = $iteration |
+                        if $todo_status == "complete" then
+                            .completed_at = now | todate
+                        else
+                            .
+                        end
+                    else
+                        .
+                    end
+                )
+            else
+                .
+            end |
+            .iteration_count += 1 |
+            .last_checkpoint = now | todate
+            ')"
+
+        # Write updated state (within lock for atomic write)
+        echo "$UPDATED_STATE" > "$STATE_FILE"
+
+        echo "✓ Updated continuation state"
+        echo "   Todo: $todo_id → $todo_status"
+        echo "   Iteration: $iteration"
+
+    ) 9>"$STATE_FILE.lock"
+}
+
+# Example: Mark todo as complete after Coder agent finishes
+# update_continuation_state "SC-1" "complete" 1
+
+# Example: Mark todo as in_progress when starting work
+# update_continuation_state "SC-2" "in_progress" 2
+```
+
+### Integration with Micro-Cycle
+
+The state update happens as part of the micro-cycle (Step 6):
+
+1. Edit/Write code
+2. Mark test todo as `in_progress` → **UPDATE STATE**
+3. Run tests
+4. Fix failures or mark complete → **UPDATE STATE**
+5. Repeat
+
+### Continuation Prompt Injection
+
+After updating state, check if work should continue:
+
+```bash
+# Check if all todos are complete
+ALL_COMPLETE="$(cat "$STATE_FILE" | jq -r '.todos[] | select(.status != "complete") | .id')"
+
+if [ -z "$ALL_COMPLETE" ]; then
+    echo "✅ All todos complete - work finished"
+else
+    # Get next incomplete todo
+    NEXT_TODO="$(cat "$STATE_FILE" | jq -r '.todos[] | select(.status == "pending") | .id' | head -1)"
+
+    if [ -n "$NEXT_TODO" ]; then
+        echo ""
+        echo "════════════════════════════════════════════════════════════"
+        echo "⚠️  CONTINUATION CHECK"
+        echo "════════════════════════════════════════════════════════════"
+        echo ""
+        echo "Incomplete todos detected: $(echo "$ALL_COMPLETE" | wc -l)"
+        echo "Next todo: $NEXT_TODO"
+        echo ""
+        echo "→ CONTINUING with next todo (Sisyphus mode)"
+        echo "════════════════════════════════════════════════════════════"
+        echo ""
+
+        # Continue with next todo (don't stop)
+        # Agent will automatically proceed to next incomplete todo
+    fi
+fi
+```
+
+### Max Iteration Protection
+
+Check iteration count to prevent infinite loops:
+
+```bash
+# Check max iterations
+MAX_ITERATIONS="$(cat "$STATE_FILE" | jq -r '.max_iterations // 7')"
+CURRENT_ITERATION="$(cat "$STATE_FILE" | jq -r '.iteration_count // 0')"
+
+if [ "$CURRENT_ITERATION" -ge "$MAX_ITERATIONS" ]; then
+    echo ""
+    echo "⚠️  MAX ITERATIONS REACHED ($CURRENT_ITERATION/$MAX_ITERATIONS)"
+    echo "→ Manual review required - continuation paused"
+    echo ""
+    echo "Remaining todos:"
+    cat "$STATE_FILE" | jq -r '.todos[] | select(.status != "complete") | "  - \(.id)"'
+    echo ""
+    echo "Use /00_continue to resume after review"
+    echo ""
+
+    # Return success (warning only, not error)
+    # Continuation paused but state remains valid
+    return 0
+fi
+```
+
+---
+
 ## Step 6: Todo Continuation Enforcement
 
 > **Principle**: Don't batch - mark todo as `in_progress` → Complete → Move to next
 
 **Micro-Cycle Compliance**:
 1. Edit/Write code
-2. Mark test todo as `in_progress`
+2. Mark test todo as `in_progress` → **UPDATE STATE** (see Step 2.6)
 3. Run tests
-4. Fix failures or mark complete
+4. Fix failures or mark complete → **UPDATE STATE** (see Step 2.6)
 5. Repeat
+
+**State Updates**: Every todo status change MUST update continuation state (Step 2.6)
 
 ---
 

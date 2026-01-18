@@ -140,6 +140,108 @@ fi
 
 ---
 
+## Step 2.5: Generate Granular Todos (MANDATORY)
+
+> **🚨 CRITICAL**: Break down Success Criteria into granular todos before plan finalization
+> **Full guide**: @.claude/guides/todo-granularity.md
+
+### Granularity Rules
+
+**Rule 1: Time Rule (≤15 Minutes)**
+- Every todo must be completable in 15 minutes or less
+- Estimate: Read (2-3 min) + Implement (5-10 min) + Test (2-3 min)
+- Warning signs: Contains "and", spans multiple files, vague words like "implement"
+
+**Rule 2: Owner Rule (Single Agent)**
+- Every todo must have ONE clear owner agent
+- Agent types: coder, tester, validator, documenter, explorer, researcher
+- Warning signs: "Implement and test" (coder + tester), "Write code and docs" (coder + documenter)
+
+**Rule 3: Atomic Rule (One File/Component)**
+- Every todo must modify ONE file or component
+- Scope: New file, Edit file, Delete, Test file
+- Warning signs: Multiple file paths in single todo
+
+### Todo Generation Process
+
+1. **Extract Success Criteria** from PRP analysis
+2. **Break down each SC** into granular todos following the 3 rules
+3. **Assign owner** to each todo (coder, tester, validator, documenter, etc.)
+4. **Estimate time** for each todo (target: ≤15 minutes)
+5. **Verify granularity** using the checklist below
+
+### Granularity Verification Checklist
+
+For each todo, verify:
+- [ ] Time: Can be completed in ≤15 minutes?
+- [ ] Owner: Has single, clear owner agent?
+- [ ] Atomic: Modifies only ONE file/component?
+- [ ] Specific: Clear what "done" looks like?
+- [ ] Testable: Can be verified independently?
+
+### Warning System
+
+If ANY todo violates the 3 rules:
+1. **WARN** user in plan document
+2. **SUGGEST** breaking down into smaller todos
+3. **PROVIDE** examples from @.claude/guides/todo-granularity.md
+
+### Todo Templates by Task Type
+
+**Feature Implementation**:
+```
+- SC-N: Create [component] in [file path] (coder, 10 min)
+- SC-N+1: Write tests for [component] (tester, 5 min)
+- SC-N+2: Verify [component] coverage ≥80% (validator, 2 min)
+```
+
+**Bug Fix**:
+```
+- SC-N: Fix [specific bug] in [file:line] (coder, 10 min)
+- SC-N+1: Add regression test for [bug] (tester, 5 min)
+- SC-N+2: Verify fix with test suite (validator, 2 min)
+```
+
+**Refactoring**:
+```
+- SC-N: Extract [logic] to [new file] (coder, 10 min)
+- SC-N+1: Update imports in [affected files] (coder, 5 min)
+- SC-N+2: Write tests for [extracted logic] (tester, 5 min)
+- SC-N+3: Verify all tests still pass (validator, 2 min)
+```
+
+**Documentation**:
+```
+- SC-N: Update [file] with [content] (documenter, 10 min)
+- SC-N+1: Verify documentation accuracy (validator, 2 min)
+```
+
+### Integration with Continuation System
+
+Granular todos enable the Sisyphus continuation system:
+- **Checkpoints**: Each todo is a continuation checkpoint
+- **Progress**: Clear progress tracking across agent invocations
+- **Resumption**: Easy to resume from incomplete todo
+- **Completion**: Higher likelihood of full completion
+
+### Output
+
+Add to plan document under "Execution Plan" section:
+```markdown
+## Granular Todo Breakdown
+
+| ID | Todo | Owner | Est. Time | Status |
+|----|------|-------|-----------|--------|
+| SC-1 | Create login endpoint in src/auth/login.ts | coder | 10 min | pending |
+| SC-2 | Write login endpoint tests | tester | 5 min | pending |
+| SC-3 | Verify login coverage ≥80% | validator | 2 min | pending |
+
+**Granularity Verification**: ✅ All todos comply with 3 rules
+**Warnings**: None
+```
+
+---
+
 ## Step 6: MANDATORY Ambiguous Confirmation
 
 > **🚨 CRITICAL**: After presenting plan, you MUST call `AskUserQuestion`

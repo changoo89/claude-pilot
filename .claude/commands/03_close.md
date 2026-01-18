@@ -180,6 +180,146 @@ If not complete: Update plan with remaining items, don't move to done
 
 ---
 
+## Step 3.5: Continuation Verification (MANDATORY)
+
+> **🚨 CRITICAL**: Verify ALL todos complete before archiving plan
+> **Purpose**: Prevent closing incomplete plans (Sisyphus enforcement)
+
+### State File Check
+
+```bash
+# Check for continuation state
+STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
+
+if [ -f "$STATE_FILE" ]; then
+    # Load state
+    CONTINUATION_STATE="$(cat "$STATE_FILE")"
+
+    # Check for incomplete todos
+    INCOMPLETE_TODOS="$(echo "$CONTINUATION_STATE" | jq -r '.todos[] | select(.status != "complete") | .id')"
+    INCOMPLETE_COUNT="$(echo "$INCOMPLETE_TODOS" | grep -c '^' || echo 0)"
+
+    echo "📋 Continuation State Check"
+    echo "═══════════════════════════════════════"
+    echo "State file: $STATE_FILE"
+    echo "Incomplete todos: $INCOMPLETE_COUNT"
+
+    if [ "$INCOMPLETE_COUNT" -gt 0 ]; then
+        echo ""
+        echo "⚠️  WARNING: Incomplete todos detected"
+        echo ""
+        echo "Remaining todos:"
+        echo "$INCOMPLETE_TODOS" | while read -r todo_id; do
+            todo_details="$(echo "$CONTINUATION_STATE" | jq -r ".todos[] | select(.id == \"$todo_id\")")"
+            echo "  - $todo_id"
+            echo "    Status: $(echo "$todo_details" | jq -r '.status')"
+            echo "    Owner: $(echo "$todo_details" | jq -r '.owner')"
+            echo "    Iteration: $(echo "$todo_details" | jq -r '.iteration')"
+        done
+        echo ""
+        echo "═══════════════════════════════════════"
+        echo ""
+        echo "Options:"
+        echo "  1) Continue work (run /00_continue)"
+        echo "  2) Close anyway (archive incomplete plan)"
+        echo "  3) Cancel closure (keep plan in_progress)"
+        echo ""
+
+        # Default to requiring explicit confirmation
+        CLOSE_INCOMPLETE="${CLOSE_INCOMPLETE:-false}"
+
+        if [ "$CLOSE_INCOMPLETE" != "true" ]; then
+            echo "❌ Refusing to close incomplete plan"
+            echo "   Use CLOSE_INCOMPLETE=true /03_close to force close"
+            exit 1
+        else
+            echo "⚠️  Closing incomplete plan (forced)"
+            echo "   Continuation state will be preserved"
+        fi
+    else
+        echo "✅ All todos complete"
+    fi
+else
+    echo "ℹ️  No continuation state found"
+    echo "   This might be a pre-Sisyphus plan"
+fi
+```
+
+### State File Preservation
+
+**CRITICAL**: Continuation state file is PRESERVED even after plan closure for recovery purposes:
+
+```bash
+# Archive continuation state to done/ folder
+if [ -f "$STATE_FILE" ]; then
+    STATE_ARCHIVE="$PROJECT_ROOT/.pilot/plan/done/${RUN_ID}_continuation_state.json"
+
+    # Copy state to archive
+    cp "$STATE_FILE" "$STATE_ARCHIVE"
+
+    echo "✓ Archived continuation state: $STATE_ARCHIVE"
+
+    # Note: Original state file is NOT deleted yet
+    # It will be deleted only after user confirms plan closure is complete
+fi
+```
+
+### State File Deletion (After Confirmation)
+
+Only delete continuation state AFTER user confirms plan closure is complete:
+
+```bash
+# This happens AFTER git commit and AFTER user confirms
+# Default: Keep state file for safety
+DELETE_STATE="${DELETE_STATE:-false}"
+
+if [ "$DELETE_STATE" = "true" ] && [ -f "$STATE_FILE" ]; then
+    # Create final backup before deletion
+    FINAL_BACKUP="$STATE_FILE.final.backup"
+    cp "$STATE_FILE" "$FINAL_BACKUP"
+
+    # Delete state file
+    rm -f "$STATE_FILE"
+
+    echo "✓ Deleted continuation state (backup: $FINAL_BACKUP)"
+else
+    echo "ℹ️  Continuation state preserved for recovery"
+    echo "   To delete: DELETE_STATE=true /03_close"
+fi
+```
+
+### Integration with Plan Closure
+
+The continuation verification happens BEFORE moving plan to done (Step 4):
+
+**Flow**:
+1. Step 3: Verify completion (plan-level checks)
+2. **Step 3.5: Continuation verification** (todo-level checks) ← NEW
+3. Step 4: Move to done (only if all todos complete)
+4. Step 7: Git commit
+5. Step 8: Delete state file (after user confirmation)
+
+### Escalation for Incomplete Todos
+
+If incomplete todos detected:
+
+**Option 1: Continue work**
+```bash
+/00_continue  # Resume from continuation state
+```
+
+**Option 2: Force close**
+```bash
+CLOSE_INCOMPLETE=true /03_close  # Archive incomplete plan
+```
+
+**Option 3: Cancel closure**
+```bash
+# Keep plan in in_progress/, continue work later
+```
+
+---
+
 ## Step 4: Move to Done
 
 ```bash

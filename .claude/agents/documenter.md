@@ -195,3 +195,104 @@ Output `<DOCS_COMPLETE>` when:
 - [ ] docs/ai-context/ updated (if needed)
 - [ ] Artifacts archived
 - [ ] Plan file updated with execution summary
+
+---
+
+## ⚠️ CONTINUATION CHECK (CRITICAL)
+
+**Before stopping, you MUST check continuation state to prevent premature exit.**
+
+### Read Continuation State
+
+Before completing your work and returning a result:
+
+```bash
+# Read continuation state if it exists
+STATE_FILE=".pilot/state/continuation.json"
+if [ -f "$STATE_FILE" ]; then
+    .pilot/scripts/state_read.sh
+fi
+```
+
+### Check Completion Status
+
+After reading the state, verify:
+
+1. **All documentation todos complete**: Check that `todos[*].status` == "complete"
+2. **Iteration count within limit**: Check `iteration_count` < `max_iterations`
+3. **No escape hatch triggered**: User hasn't typed `/cancel`, `/stop`, or `/done`
+
+### Decision Logic
+
+**IF** ANY of these conditions exist:
+- Some documentation todos have status "pending" or "in_progress"
+- Iteration count < max_iterations
+- No escape hatch command received
+
+**THEN**:
+- **DO NOT STOP** - Continue with next incomplete documentation todo
+- Update continuation state with current progress
+- Return `<DOCUMENTER_CONTINUE>` marker instead of `<DOCS_COMPLETE>`
+
+**ELSE IF** ALL documentation todos complete:
+- Return `<DOCS_COMPLETE>` marker
+- Include summary of documentation updates
+
+### Update State Before Continuing
+
+When continuing (not stopping):
+
+```bash
+# Update current documentation todo status to complete
+# Move to next documentation todo
+UPDATED_TODOS='[
+  {"id":"D-1","status":"complete","iteration":1,"owner":"documenter"},
+  {"id":"D-2","status":"in_progress","iteration":0,"owner":"documenter"}
+]'
+
+.pilot/scripts/state_write.sh \
+  --plan-file ".pilot/plan/in_progress/plan.md" \
+  --todos "$UPDATED_TODOS" \
+  --iteration 2
+```
+
+### Escape Hatch
+
+**User Commands** - If user types any of these, you may stop immediately:
+- `/cancel` - Cancel current documentation
+- `/stop` - Stop and save documentation state
+- `/done` - Mark as complete regardless of documentation todos
+
+### State File Format Reference
+
+```json
+{
+  "version": "1.0",
+  "session_id": "uuid",
+  "branch": "main",
+  "plan_file": ".pilot/plan/in_progress/plan.md",
+  "todos": [
+    {"id": "D-1", "status": "complete", "iteration": 1, "owner": "documenter"},
+    {"id": "D-2", "status": "in_progress", "iteration": 0, "owner": "documenter"}
+  ],
+  "iteration_count": 1,
+  "max_iterations": 7,
+  "last_checkpoint": "2026-01-18T10:30:00Z",
+  "continuation_level": "normal"
+}
+```
+
+### Why This Matters
+
+**Sisyphus Philosophy**: Documentation continues until all docs updated or max iterations reached.
+
+**Documentation Completeness**: Ensures CLAUDE.md, CONTEXT.md, and guides all reflect implementation.
+
+**Knowledge Preservation**: Prevents incomplete documentation that becomes outdated immediately.
+
+### Integration with Documentation Tasks
+
+When documenting a plan:
+- Each documentation task (CLAUDE.md, CONTEXT.md, guides) is a todo
+- Update state after each doc update
+- Continue until all docs updated or block limit reached

@@ -130,12 +130,10 @@ EOF
 # Usage: is_in_worktree
 # Returns: 0 if in worktree, 1 otherwise
 is_in_worktree() {
-    local git_dir
-    git_dir="$(git rev-parse --git-dir 2>/dev/null)" || return 1
-
-    # Check if .git file contains gitdir: (worktree marker)
-    if [ -f "$git_dir" ]; then
-        grep -q "^gitdir:" "$git_dir" 2>/dev/null
+    # Check if .git is a file (worktree marker) instead of a directory
+    if [ -f ".git" ]; then
+        # Verify it contains gitdir: pattern
+        grep -q "^gitdir:" .git 2>/dev/null
         return $?
     fi
 

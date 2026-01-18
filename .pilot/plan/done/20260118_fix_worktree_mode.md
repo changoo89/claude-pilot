@@ -1,8 +1,9 @@
 # Plan: Fix Worktree Mode Implementation
 
 > **Created**: 2026-01-18
-> **Status**: Pending
+> **Status**: Pending → In Progress → Done
 > **Priority**: High
+> **Completed**: 2026-01-18
 
 ## Problem Statement
 
@@ -254,3 +255,54 @@ Create integration tests for:
 - **Worktree Utilities**: @.claude/scripts/worktree-utils.sh
 - **Execute Command**: @.claude/commands/02_execute.md
 - **Close Command**: @.claude/commands/03_close.md
+
+---
+
+## Execution Summary
+
+### Changes Made
+
+**Files Modified**:
+1. `.claude/commands/02_execute.md` - Added worktree mode support with `--wt` flag
+2. `.claude/commands/03_close.md` - Updated worktree detection and merge flow
+3. `.claude/scripts/statusline.sh` - Worktree-aware plan counts
+4. `.claude/scripts/worktree-utils.sh` - Added worktree utility functions
+
+**Files Created**:
+1. `.claude/scripts/worktree-create.sh` - Worktree creation script (120 lines)
+2. `.pilot/tests/test_worktree_create.sh` - Integration tests (292 lines)
+
+### Implementation Details
+
+**Worktree Creation (SC-1, SC-2)**:
+- Created `.claude/scripts/worktree-create.sh` script
+- Implements `create_worktree()` function using `git worktree add`
+- Worktree directory format: `../project-wt-{branch-shortname}`
+- Returns absolute path for reliable cross-shell operations
+
+**Worktree Execution (SC-3, SC-4, SC-5)**:
+- Added `--wt` flag detection in `/02_execute`
+- Stores worktree metadata in plan file (branch, path, main branch, main project, lock file)
+- Updates continuation state to use worktree paths
+- Plan moved to worktree's `in_progress/` directory
+
+**Worktree Detection Fix**:
+- Fixed `is_in_worktree()` function to check `.git` file instead of `git rev-parse`
+- More reliable detection of worktree directories
+- Added `get_main_pilot_dir()` function for main repo access
+
+**Statusline Enhancement**:
+- Worktree-aware plan counting
+- Shows main repo's plan counts when in worktree mode
+- Uses `get_main_pilot_dir()` to access main repo's `.pilot` directory
+
+### Verification
+
+**Type**: Manual testing ✅
+**Tests**: All integration tests pass (test_worktree_create.sh)
+**Lint**: Bash syntax validation ✅
+**Coverage**: N/A (shell scripts, no coverage tool)
+
+### Follow-ups
+
+None - all success criteria met.

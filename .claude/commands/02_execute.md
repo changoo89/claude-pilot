@@ -242,62 +242,97 @@ if [ "$WORKTREE_MODE" = true ]; then
 
     echo "✓ Worktree created at: $WORKTREE_PATH"
 
-    # CRITICAL: Change to worktree directory
-    cd "$WORKTREE_PATH" || { echo "❌ Failed to cd to worktree" >&2; exit 1; }
+    # CRITICAL: Store worktree path for persistence across Bash tool calls
+    # NOTE: Bash tool resets cwd after each call, so we store the path explicitly
+    WORKTREE_PERSIST_FILE="$MAIN_PROJECT_ROOT/.pilot/worktree_active.txt"
+    echo "$WORKTREE_PATH" > "$WORKTREE_PERSIST_FILE"
+    echo "  Branch: $WT_BRANCH" >> "$WORKTREE_PERSIST_FILE"
+    echo "  Main Branch: $MAIN_BRANCH" >> "$WORKTREE_PERSIST_FILE"
+    echo "✓ Worktree path stored: $WORKTREE_PERSIST_FILE"
 
-    # Update PROJECT_ROOT to worktree
+    # Set environment variables (for this shell session only)
     export PROJECT_ROOT="$WORKTREE_PATH"
     export WORKTREE_ROOT="$WORKTREE_PATH"
     export PILOT_WORKTREE_MODE=1
     export PILOT_WORKTREE_BRANCH="$WT_BRANCH"
 
-    echo "✓ Changed to worktree directory"
-    echo "  Current directory: $(pwd)"
-    echo "  PROJECT_ROOT: $PROJECT_ROOT"
+    echo "✓ Worktree environment configured"
+    echo "  Worktree Path: $WORKTREE_PATH"
+    echo "  WORKTREE_ROOT: $WORKTREE_ROOT"
+    echo ""
+    echo "⚠️  NOTE: Bash tool resets cwd between calls."
+    echo "   All file operations must use absolute paths via WORKTREE_ROOT."
+fi
+
+# Restore worktree context if available (for worktree mode persistence)
+# NOTE: This must happen BEFORE plan detection to set correct paths
+MAIN_PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+WORKTREE_PERSIST_FILE="$MAIN_PROJECT_ROOT/.pilot/worktree_active.txt"
+
+if [ -f "$WORKTREE_PERSIST_FILE" ]; then
+    # Worktree mode active - restore paths
+    WORKTREE_PATH="$(head -1 "$WORKTREE_PERSIST_FILE")"
+    WORKTREE_BRANCH="$(sed -n '2p' "$WORKTREE_PERSIST_FILE" | cut -d' ' -f2-)"
+    MAIN_BRANCH="$(sed -n '3p' "$WORKTREE_PERSIST_FILE" | cut -d' ' -f2-)"
+    WORKTREE_ROOT="$WORKTREE_PATH"
+    PROJECT_ROOT="$WORKTREE_PATH"
+    WORKTREE_MODE="true"
+    PILOT_WORKTREE_MODE="1"
+
+    echo "🔄 Worktree context restored"
+    echo "  Worktree Path: $WORKTREE_PATH"
+    echo "  Worktree Branch: $WORKTREE_BRANCH"
+    echo ""
 fi
 
 # Plan detection (works in both standard and worktree mode)
 PLAN_PATH="${EXPLICIT_PATH}"
 
+# Use worktree path for plan detection if in worktree mode
+PLAN_SEARCH_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
+
 # Priority: Explicit path → Oldest pending → Most recent in_progress
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
 
 # IF pending, MUST move FIRST
 if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
     PLAN_FILENAME="$(basename "$PLAN_PATH")"
-    IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
-    mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
+    IN_PROGRESS_PATH="$PLAN_SEARCH_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
+    mkdir -p "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress"
     mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || { echo "❌ FATAL: Failed to move plan" >&2; exit 1; }
     PLAN_PATH="$IN_PROGRESS_PATH"
 fi
 
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
 
 # Final validation
 [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found. Run /00_plan first" >&2; exit 1; }
 
 # Add worktree metadata to plan file (worktree mode only)
-if [ "$WORKTREE_MODE" = true ]; then
+if [ "${WORKTREE_MODE:-false}" = true ]; then
     # Check if plan already has worktree info
     if ! grep -q "## Worktree Info" "$PLAN_PATH"; then
         # Add worktree metadata section (compatible with /03_close read_worktree_metadata)
         TEMP_PLAN="${PLAN_PATH}.tmp"
 
-        # Get main project path (before cd to worktree)
-        MAIN_PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+        # Use variables from persistence or creation
+        local wt_branch="${WORKTREE_BRANCH:-$WT_BRANCH}"
+        local wt_path="${WORKTREE_PATH:-}"
+        local main_branch="${MAIN_BRANCH:-}"
+        local main_project="${MAIN_PROJECT_ROOT:-}"
 
-        # Create lock file path
-        LOCK_FILE="${PROJECT_ROOT}/.pilot/plan/locks/worktree.lock"
+        # Create lock file path in worktree
+        LOCK_FILE="${WORKTREE_ROOT}/.pilot/plan/locks/worktree.lock"
 
         # Insert worktree info after problem statement
         awk '
             /^## Problem Statement/ { in_problem=1 }
             in_problem && /^$/ && !added {
                 print "## Worktree Info\\n"
-                print "Branch: '"$WT_BRANCH"'"
-                print "Worktree Path: '"$WORKTREE_PATH"'"
-                print "Main Branch: '"$MAIN_BRANCH"'"
-                print "Main Project: '"$MAIN_PROJECT_ROOT"'"
+                print "Branch: '"$wt_branch"'"
+                print "Worktree Path: '"$wt_path"'"
+                print "Main Branch: '"$main_branch"'"
+                print "Main Project: '"$main_project"'"
                 print "Lock File: '"$LOCK_FILE"'"
                 print ""
                 added=1
@@ -312,13 +347,16 @@ if [ "$WORKTREE_MODE" = true ]; then
 fi
 
 # Set active pointer
-mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
+# NOTE: In worktree mode, set pointer in worktree. In standard mode, set in main repo.
+ACTIVE_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
+mkdir -p "$ACTIVE_ROOT/.pilot/plan/active"
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-printf "%s" "$PLAN_PATH" > "$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
+printf "%s" "$PLAN_PATH" > "$ACTIVE_ROOT/.pilot/plan/active/${KEY}.txt"
 
 echo "✓ Plan ready: $PLAN_PATH"
 echo "  Branch: $BRANCH"
+[ "${WORKTREE_MODE:-false}" = true ] && echo "  Mode: Worktree" || echo "  Mode: Standard"
 ```
 
 **Standard mode** (without --wt):

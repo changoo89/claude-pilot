@@ -4,7 +4,9 @@
 #
 # This script follows the hater pattern:
 # 1. Call global statusline hook (shows model info)
-# 2. Append pending plan count
+# 2. Append pending and in-progress plan counts
+#
+# Worktree-aware: Shows main repo's plan counts when in worktree
 #
 # Requirements: jq for JSON parsing
 
@@ -15,6 +17,12 @@ input=$(cat)
 
 # Extract current directory from JSON
 cwd=$(echo "$input" | jq -r '.workspace.current_dir')
+
+# Source worktree utilities for worktree detection
+WORKTREE_UTILS="${cwd}/.claude/scripts/worktree-utils.sh"
+if [ -f "$WORKTREE_UTILS" ]; then
+    . "$WORKTREE_UTILS"
+fi
 
 # Get global statusline output (model info)
 # Global hook format: "📁 dirname | model_name"
@@ -27,13 +35,31 @@ else
     global_output="📁 ${cwd##*/} | $model"
 fi
 
+# Determine pilot directory (worktree-aware)
+# If in worktree, use main repo's .pilot directory
+# Otherwise, use local .pilot directory
+if is_in_worktree 2>/dev/null; then
+    pilot_dir="$(get_main_pilot_dir 2>/dev/null || echo "${cwd}/.pilot")"
+else
+    pilot_dir="${cwd}/.pilot"
+fi
+
 # Count pending plans (always show count, even when 0)
-pending_dir="${cwd}/.pilot/plan/pending/"
+pending_dir="${pilot_dir}/plan/pending/"
 if [ -d "$pending_dir" ]; then
     pending=$(find "$pending_dir" -type f ! -name '.gitkeep' 2>/dev/null | wc -l | tr -d ' ') || pending=0
 else
     pending=0
 fi
 
-# Combine global output with pending count
-echo "$global_output | 📋 P:$pending"
+# Count in-progress plans (always show count, even when 0)
+in_progress_dir="${pilot_dir}/plan/in_progress/"
+if [ -d "$in_progress_dir" ]; then
+    in_progress=$(find "$in_progress_dir" -type f ! -name '.gitkeep' 2>/dev/null | wc -l | tr -d ' ') || in_progress=0
+else
+    in_progress=0
+fi
+
+# Combine global output with plan counts
+# Format: "global_output | 📋 P:{pending} I:{in_progress}"
+echo "$global_output | 📋 P:$pending I:$in_progress"

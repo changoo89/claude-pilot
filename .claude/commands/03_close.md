@@ -105,10 +105,33 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
             trap - EXIT ERR
             # Continue to move plan to done but skip cleanup
         else
-            # 4. Cleanup worktree, branch, directory
+            # 4. Push squash merge to remote (SC-3)
+            echo "Pushing squash merge to remote..."
+            if ! git config --get remote.origin.url > /dev/null 2>&1; then
+                echo "  → No remote configured, skipping push"
+            else
+                # Use git_push_with_retry function (defined in Step 7.2.5)
+                PUSH_OUTPUT="$(git_push_with_retry "origin" "$WT_MAIN" 2>&1)"
+                PUSH_EXIT=$?
+
+                if [ "$PUSH_EXIT" -ne 0 ]; then
+                    # Push failed - preserve worktree for manual push (SC-4)
+                    ERROR_MSG="$(get_push_error_message $PUSH_EXIT "$PUSH_OUTPUT")"
+                    echo "  ✗ Push failed: $ERROR_MSG" >&2
+                    echo "  Worktree preserved for manual push" >&2
+                    echo "  To push manually: cd '$MAIN_PROJECT_DIR' && git push origin $WT_MAIN" >&2
+                    rm -rf "$LOCK_FILE" 2>/dev/null
+                    trap - EXIT ERR
+                    exit 1
+                else
+                    echo "  ✓ Push successful"
+                fi
+            fi
+
+            # 5. Cleanup worktree, branch, directory
             cleanup_worktree "$WT_PATH" "$WT_BRANCH"
 
-            # 5. Remove lock file (explicit cleanup, trap handles errors, SC-7)
+            # 6. Remove lock file (explicit cleanup, trap handles errors, SC-7)
             rm -rf "$LOCK_FILE"
 
             # Clear trap on success
@@ -587,9 +610,10 @@ print_push_summary() {
 }
 ```
 
-### 7.3 Safe Git Push (Optional, Non-Blocking)
+### 7.3 Safe Git Push (MANDATORY - Blocking on Failure)
 
 > **Safety First**: Dry-run verification, graceful degradation, no force push
+> **Blocking**: Plan closure blocks if push fails (exit 1)
 
 ```bash
 # Initialize push tracking
@@ -666,16 +690,32 @@ for REPO in "${REPOS_TO_COMMIT[@]}"; do
     cd - > /dev/null
 done
 
-# Print push failure summary if any failures occurred
-if [ ${#PUSH_FAILURES[@]} -gt 0 ]; then
+# Check if any push failed - block plan closure (SC-1)
+HAS_FAILED_PUSH=false
+for REPO in "${!PUSH_RESULTS[@]}"; do
+    if [ "${PUSH_RESULTS[$REPO]}" = "failed" ]; then
+        HAS_FAILED_PUSH=true
+        break
+    fi
+done
+
+if [ "$HAS_FAILED_PUSH" = true ]; then
+    # Print push failure summary
     print_push_summary
+
+    # Block plan closure (SC-1)
+    echo ""
+    echo "❌ ERROR: Git push failed - plan closure blocked" >&2
+    echo "   Commits were created locally but not pushed to remote." >&2
+    echo "   Fix the push issue and run /03_close again." >&2
+    exit 1
 fi
 ```
 
 ### 7.4 Verify Git Push Completed (MANDATORY)
 
 > **⚠️ CRITICAL**: After git push attempt, verify success or failure.
-> This ensures commits are actually pushed to remote.
+> This ensures commits are actually pushed to remote by comparing local and remote SHA.
 
 ### Verification Checklist
 
@@ -687,7 +727,27 @@ for REPO in "${!PUSH_RESULTS[@]}"; do
     echo "  Push Result: $RESULT"
 
     if [ "$RESULT" = "success" ]; then
-        echo "  ✅ Push confirmed - changes are in remote"
+        # Verify push by comparing local and remote SHA (SC-2)
+        cd "$REPO" || continue
+        CURRENT_BRANCH="$(git branch --show-current 2>/dev/null)"
+
+        # Get local SHA
+        LOCAL_SHA="$(git rev-parse HEAD 2>/dev/null)"
+
+        # Get remote SHA
+        REMOTE_SHA="$(git rev-parse "origin/$CURRENT_BRANCH" 2>/dev/null)"
+
+        # Compare SHAs to verify push succeeded
+        if [ -n "$LOCAL_SHA" ] && [ -n "$REMOTE_SHA" ] && [ "$LOCAL_SHA" = "$REMOTE_SHA" ]; then
+            echo "  ✅ Push verified - local and remote SHA match ($LOCAL_SHA)"
+        else
+            echo "  ⚠️  Push reported success but SHA mismatch!"
+            echo "     Local:  $LOCAL_SHA"
+            echo "     Remote: $REMOTE_SHA"
+            PUSH_FAILURES["$REPO"]="sha_mismatch|SHA mismatch after push"
+            PUSH_RESULTS["$REPO"]="failed"
+        fi
+        cd - > /dev/null
     elif [ "$RESULT" = "failed" ]; then
         echo "  ⚠️  Push failed - commit created locally only"
         echo "  💡 Manual push required: git push origin <branch>"
@@ -704,7 +764,7 @@ done
 ✅ Git push verified
 Repository: /Users/chanho/claude-pilot
   Push Result: success
-  ✅ Push confirmed - changes are in remote
+  ✅ Push verified - local and remote SHA match (abc123def...)
 ```
 
 **Failure**:
@@ -714,6 +774,16 @@ Repository: /Users/chanho/claude-pilot
   Push Result: failed
   ⚠️  Push failed - commit created locally only
   💡 Manual push required: git push origin <branch>
+```
+
+**SHA Mismatch**:
+```
+⚠️  Push verification failed
+Repository: /Users/chanho/claude-pilot
+  Push Result: success
+  ⚠️  Push reported success but SHA mismatch!
+     Local:  abc123def...
+     Remote: 456789ghi...
 ```
 
 ### If Push Verification Fails

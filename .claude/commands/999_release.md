@@ -645,6 +645,74 @@ fi
 
 ---
 
+## Step 7: Post-Release User Notification
+
+> **Notify users and provide update instructions**
+
+### 7.1 Display Update Instructions
+
+```bash
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo "✅ Release v$VERSION Complete!"
+echo "════════════════════════════════════════════════════════════"
+echo ""
+echo "Plugin users can update with:"
+echo ""
+echo "  /plugin marketplace update"
+echo "  /plugin update claude-pilot@claude-pilot"
+echo ""
+echo "Or if updates don't apply:"
+echo ""
+echo "  /plugin uninstall claude-pilot@claude-pilot"
+echo "  rm -rf ~/.claude/plugins/cache/claude-pilot"
+echo "  /plugin install claude-pilot@claude-pilot"
+echo ""
+echo "════════════════════════════════════════════════════════════"
+echo ""
+```
+
+### 7.2 Create Release Summary (Optional)
+
+```bash
+# Generate summary for project documentation
+cat > RELEASE_NOTES.md.tmp << EOF
+# claude-pilot v$VERSION Release Notes
+
+**Released**: $(date +%Y-%m-%d)
+
+## Installation
+
+\`\`\`bash
+/plugin marketplace add changoo89/claude-pilot
+/plugin install claude-pilot@claude-pilot
+\`\`\`
+
+## Updating from Previous Version
+
+\`\`\`bash
+# Method 1: Standard update
+/plugin marketplace update
+/plugin update claude-pilot@claude-pilot
+
+# Method 2: If update fails (cache issues)
+/plugin uninstall claude-pilot@claude-pilot
+rm -rf ~/.claude/plugins/cache/claude-pilot
+/plugin install claude-pilot@claude-pilot
+\`\`\`
+
+## What's Changed
+
+$(sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '$d')
+
+EOF
+
+cat RELEASE_NOTES.md.tmp
+rm -f RELEASE_NOTES.md.tmp
+```
+
+---
+
 ## Success Criteria
 
 - [ ] Pre-flight checks passed (jq, git, remote, clean working tree)
@@ -661,6 +729,8 @@ fi
 - [ ] Git commit created: "chore: bump version to X.Y.Z"
 - [ ] Git tag created and pushed: v{version}
 - [ ] GitHub release created (if gh CLI available and not --skip-gh)
+- [ ] Post-release instructions displayed to user
+- [ ] Update troubleshooting guide if new issues discovered
 
 ---
 
@@ -739,13 +809,212 @@ Auto-Generated CHANGELOG for v4.1.6
 
 ---
 
+## Troubleshooting
+
+### Issue: Plugin Update Doesn't Apply
+
+**Symptoms**: User runs `/plugin marketplace update` and `/plugin update` but still has old version.
+
+**Diagnosis**:
+```bash
+# Check cached version
+ls -la ~/.claude/plugins/cache/claude-pilot/claude-pilot/
+
+# Check installed version
+/plugin list | grep claude-pilot
+```
+
+**Solutions** (in order):
+1. **Force reinstall**:
+   ```bash
+   /plugin uninstall claude-pilot@claude-pilot
+   /plugin install claude-pilot@claude-pilot
+   ```
+
+2. **Clear cache**:
+   ```bash
+   rm -rf ~/.claude/plugins/cache/claude-pilot
+   /plugin install claude-pilot@claude-pilot
+   ```
+
+3. **Verify marketplace source**:
+   ```bash
+   # Should point to GitHub, NOT local path
+   cat .claude/settings.json | jq '.extraKnownMarketplaces'
+   ```
+
+### Issue: Commands Show Up Twice
+
+**Symptoms**: Commands appear with and without `claude-pilot:` prefix.
+
+**Root Cause**: Project has local `.claude/commands/` folder AND uses plugin.
+
+**Solution**: Remove local commands folder:
+```bash
+# Backup first
+cp -r .claude/commands .claude/commands.backup
+
+# Remove local commands
+rm -rf .claude/commands
+
+# Reload Claude Code
+```
+
+### Issue: Stop Hook Permission Denied
+
+**Symptoms**: `Stop hook error: Permission denied` for hook scripts.
+
+**Solution**: Add execute permissions:
+```bash
+find .claude/scripts/hooks -name "*.sh" -exec chmod +x {} \;
+```
+
+### Issue: Wrong Marketplace Source
+
+**Symptoms**: Plugin installs from wrong source or outdated version.
+
+**Diagnosis**:
+```bash
+# Check marketplace configuration
+cat .claude/settings.json | jq '.extraKnownMarketplaces'
+
+# Should see:
+# {
+#   "claude-pilot": {
+#     "source": {
+#       "source": "github",
+#       "repo": "changoo89/claude-pilot"
+#     }
+#   }
+# }
+```
+
+**Solution**: Update settings.json to use GitHub marketplace source.
+
+---
+
+## CI/CD Automation (Recommended)
+
+### GitHub Actions Workflow
+
+Create `.github/workflows/release.yml` for automated releases:
+
+```yaml
+name: Plugin Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: See CHANGELOG.md for details
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### Benefits
+
+- ✅ Automatic GitHub release creation on tag push
+- ✅ No manual release steps needed
+- ✅ Consistent release process
+- ✅ Integrates with `/999_release` workflow
+
+### Usage with /999_release
+
+```bash
+# Step 1: Run /999_release as usual
+/999_release minor
+
+# Step 2: Push tag (triggers GitHub Actions)
+git push origin main --tags
+
+# Step 3: GitHub Actions automatically creates release
+# No manual intervention needed!
+```
+
+---
+
+## Best Practices
+
+### For Plugin Maintainers
+
+1. **Always use `/999_release`** - Ensures version consistency
+2. **Test before releasing** - Use `--dry-run` flag
+3. **Document breaking changes** - Add to CHANGELOG manually if needed
+4. **Keep plugin.json updated** - Single source of truth for version
+5. **Monitor user issues** - Update troubleshooting guide as needed
+
+### For Plugin Users
+
+1. **Use GitHub marketplace source** - Not local paths
+2. **Don't copy commands/skills locally** - Let plugin handle it
+3. **Clear cache if updates fail** - See troubleshooting above
+4. **Report issues with details** - Include `/plugin list` output
+
+---
+
 ## Distribution Notes
 
-**Plugin Distribution Workflow**:
-- Maintainer: `/999_release` → git tag → GitHub release
-- User: `/plugin marketplace update` → `/plugin update claude-pilot@changoo89`
+### Plugin Distribution Workflow
 
-**No automatic deployment** - plugins track commit SHAs, not git tags or releases
+**Maintainer (You)**:
+1. `/999_release` - Bump version, tag, push to GitHub
+2. Git tag triggers plugin update detection
+
+**User (Plugin Consumers)**:
+```bash
+# Update marketplace to get latest version info
+/plugin marketplace update
+
+# Update plugin to latest version
+/plugin update claude-pilot@claude-pilot
+
+# If updates don't apply (cache issues):
+/plugin uninstall claude-pilot@claude-pilot
+rm -rf ~/.claude/plugins/cache/claude-pilot
+/plugin install claude-pilot@claude-pilot
+```
+
+### Why Updates Don't Auto-Apply
+
+**Common Issue**: Users run `/plugin marketplace update` but don't get latest changes.
+
+**Root Causes**:
+1. **Plugin cache stores old versions** - cached in `~/.claude/plugins/cache/`
+2. **Commit SHA tracking** - plugins track specific commits, not latest tag
+3. **No force-refresh** - `/plugin update` doesn't always clear cache
+
+**Solution**: Document cache clearing in release notes (Step 7.1)
+
+### Version Tracking
+
+**Single Source of Truth**: `.claude-plugin/plugin.json`
+
+```json
+{
+  "version": "4.1.8"  // Always update this file
+}
+```
+
+**Never manually edit**:
+- `.claude-plugin/marketplace.json` version (auto-synced)
+- `.pilot-version` (auto-synced)
 
 ---
 

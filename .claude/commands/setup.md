@@ -18,6 +18,16 @@ This command sets up claude-pilot by:
 
 ---
 
+## Setup Preparation
+
+Disable typecheck and lint hooks during setup to avoid unnecessary full project scans:
+
+```bash
+export PILOT_SETUP_IN_PROGRESS=1
+```
+
+---
+
 ## Step 1: Verify Plugin Installation
 
 First, confirm the plugin is properly installed:
@@ -512,6 +522,17 @@ echo "  /91_document - Auto-sync documentation"
 echo "  /999_publish - Publishing checklist"
 echo ""
 echo "Get started: /00_plan \"your task here\""
+```
+
+---
+
+## Cleanup
+
+Re-enable hooks by clearing the setup flag:
+
+```bash
+unset PILOT_SETUP_IN_PROGRESS
+echo "✓ Hooks re-enabled for normal development"
 ```
 
 ---

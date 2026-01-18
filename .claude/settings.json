@@ -108,7 +108,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "\\.(ts|js|tsx|jsx|py|go|rs)$",
         "hooks": [
           {
             "type": "command",
@@ -132,7 +132,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "\\.(ts|js|tsx|jsx|py|go|rs)$",
         "hooks": [
           {
             "type": "command",

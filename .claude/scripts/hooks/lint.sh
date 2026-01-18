@@ -4,6 +4,11 @@
 
 set -e
 
+# Skip during setup to avoid unnecessary full project scans
+if [ "$PILOT_SETUP_IN_PROGRESS" = "1" ]; then
+  exit 0
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

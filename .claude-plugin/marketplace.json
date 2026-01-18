@@ -10,7 +10,7 @@
       "source": ".",
       "description": "SPEC-First development workflow: Plan -> Confirm -> Execute -> Review -> Document -> Close",
       "category": "development",
-      "version": "4.1.0",
+      "version": "4.1.1",
       "author": {
         "name": "changoo89",
         "url": "https://github.com/changoo89"

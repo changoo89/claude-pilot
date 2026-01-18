@@ -1,185 +1,76 @@
 # Requirements Verification Guide
 
-> **Purpose**: Verify ALL user requirements are captured in the plan with 100% coverage
-> **Used by**: /01_confirm command (Step 1.7: Requirements Verification)
+> **Purpose**: Verify 100% requirements coverage before plan execution
+> **Full Reference**: @.claude/guides/requirements-verification-REFERENCE.md
+> **Used by**: `/01_confirm` Step 1.7
 
 ---
 
-## Quick Start
-
-### When to Use This Guide
-
-Use this guide when:
-- Running `/01_confirm` to verify requirements coverage
-- Reviewing plan before execution
-- Checking for missing requirements during planning
-
-### Quick Reference
+## Quick Reference
 
 ```markdown
 ### Requirements Coverage Verification
 
 | UR ID | User Input (Verbatim) | Mapped to SC? | SC ID | Status |
 |-------|----------------------|---------------|-------|--------|
-| UR-1  | "[exact user words]"  | ✅/❌         | SC-X  | Mapped/Missing |
+| UR-1  | "[exact words]"       | ✅/❌         | SC-X  | Mapped/Missing |
 
 **Coverage**: X/Y requirements (XX%)
 ```
-
----
-
-## Core Concepts
-
-### The Verification Problem
-
-Requirements collected during `/00_plan` may not make it into the final plan:
-- Planner forgets early requirements after long exploration
-- Conversation highlights omit some requirements
-- No explicit check before plan creation
-
-### The Verification Solution
-
-**Double-Check Mechanism**:
-1. Extract User Requirements (Verbatim) table
-2. Extract all Success Criteria from plan
-3. Verify 1:1 mapping (UR → SC)
-4. BLOCKING if any requirement missing
 
 ---
 
 ## Verification Process
 
-### Step 1: Extract User Requirements (Verbatim) Section
+### Step 1: Extract User Requirements
 
-**Action**: Locate "User Requirements (Verbatim)" table in conversation
+Locate "User Requirements (Verbatim)" table from conversation.
 
 **Collect**:
-- Total requirement count (UR-1, UR-2, etc.)
-- Each requirement's summary
+- Total count (UR-1, UR-2, ...)
+- Each requirement summary
 - Out-of-scope markers (⏭️)
 
-**Example Input**:
-```markdown
-## User Requirements (Verbatim)
-
-| ID | User Input (Original) | Summary |
-|----|----------------------|---------|
-| UR-1 | "00_plan 이 바로 시작되는 이슈" | Phase boundary violation |
-| UR-2 | "03_close에 git push" | Git push automation |
-| UR-3 | "검증 단계 추가해줘" | Add verification step |
-```
+**Full template**: @.claude/guides/requirements-verification-REFERENCE.md#step-1-extract-user-requirements-verbatim-section
 
 ### Step 2: Extract Success Criteria
 
-**Action**: List all SCs from PRP Analysis section
+List all SCs from PRP Analysis section.
 
 **Collect**:
 - Total SC count
 - Each SC description
-- SC identifiers (SC-1, SC-2, etc.)
+- SC identifiers (SC-1, SC-2, ...)
 
-**Example Input**:
-```markdown
-### Success Criteria
+**Full template**: @.claude/guides/requirements-verification-REFERENCE.md#step-2-extract-success-criteria
 
-SC-1: Add Requirements Collection step to 00_plan.md
-SC-2: Add Requirements Verification step to 01_confirm.md
-SC-3: Add git push to 03_close.md
-```
+### Step 3: Create Mapping Table
 
-### Step 3: Verify Coverage Mapping
+Compare URs to SCs for coverage.
 
-**Action**: Create mapping table comparing URs to SCs
-
-**Template**:
-```markdown
-### Requirements Coverage Verification
-
-| UR ID | User Input (Verbatim) | Mapped to SC? | SC ID | Status |
-|-------|----------------------|---------------|-------|--------|
-| UR-1  | "[exact user words]"  | ✅/❌         | SC-X  | Mapped/Missing |
-| UR-2  | "[exact user words]"  | ✅/❌         | SC-Y  | Mapped/Missing |
-
-**Coverage**: X/Y requirements (XX%)
-```
+| UR ID | Mapped? | SC ID | Status |
+|-------|---------|-------|--------|
+| UR-1  | ✅/❌   | SC-X  | Mapped/Missing |
 
 **Rules**:
-- **Mapped to SC?**: ✅ if SC exists, ❌ if missing
-- **SC ID**: Which SC covers this requirement
-- **Status**: "Mapped" if covered, "Missing" if not
+- ✅ = SC exists
+- ❌ = Missing (BLOCKING)
+- ⏭️ = Out of scope (OK)
 
-### Step 4: Check for BLOCKING Conditions
-
-**Severity Levels**:
+### Step 4: Check BLOCKING Conditions
 
 | Condition | Severity | Action |
 |-----------|----------|--------|
-| Missing requirement (no SC mapped) | 🛑 BLOCKING | Must add SC or mark out of scope |
-| Ambiguous requirement (unclear mapping) | ⚠️ Warning | Clarify with user |
-| Out of scope (explicitly excluded) | ✅ OK | Mark with ⏭️ in table |
+| Missing requirement | 🛑 | Must add SC |
+| Ambiguous mapping | ⚠️ | Clarify |
+| Out of scope | ✅ | Mark ⏭️ |
 
-**BLOCKING Trigger**: ANY in-scope requirement without SC mapping
+**BLOCKING**: ANY in-scope requirement without SC
 
-### Step 5: Handle BLOCKING Findings
+### Step 5: Handle BLOCKING
 
-**If BLOCKING findings exist**:
+If BLOCKING findings exist, present to user:
 
-```markdown
-## 🛑 BLOCKING: Missing Requirements
-
-The following user requirements are NOT mapped to Success Criteria:
-
-| UR ID | User Input | Issue |
-|-------|-----------|-------|
-| UR-2  | "[missing requirement]" | No SC found |
-
-**Action Required**: Before proceeding, you MUST either:
-1. Add Success Criteria to cover missing requirement(s), OR
-2. Mark requirement(s) as "Out of Scope" with user confirmation
-
-Use AskUserQuestion to resolve BLOCKING findings before plan creation.
-```
-
-**Resolution Options** (via AskUserQuestion):
-- A) Add SC to cover missing requirement
-- B) Mark as out of scope (with user confirmation)
-- C) Defer to implementation phase (adds TODO)
-
-### Step 6: Update Plan File
-
-**After verification complete**:
-
-Add to plan:
-```markdown
-## Requirements Coverage Check
-
-| Requirement | In Scope? | Success Criteria | Status |
-|-------------|-----------|------------------|--------|
-| UR-1 | ✅ | SC-1, SC-2 | Mapped |
-| UR-2 | ✅ | SC-3 | Mapped |
-| UR-3 | ⏭️ | Out of scope (user confirmed) | Excluded |
-| **Coverage** | 100% | All in-scope requirements mapped | ✅ |
-```
-
-**Status Values**:
-- **Mapped**: UR has corresponding SC
-- **Excluded**: UR marked out of scope
-- **Missing**: UR has no SC (BLOCKING)
-
-### Step 7: Verification Output Format
-
-**Success (100% coverage)**:
-```markdown
-## Requirements Coverage Check
-
-| Requirement | In Scope? | Success Criteria | Status |
-|-------------|-----------|------------------|--------|
-| UR-1 | ✅ | SC-1, SC-2 | Mapped |
-| UR-2 | ✅ | SC-3 | Mapped |
-| **Coverage** | 100% | All requirements mapped | ✅ |
-```
-
-**Failure (BLOCKING)**:
 ```markdown
 ## 🛑 BLOCKING: Missing Requirements
 
@@ -187,29 +78,39 @@ Add to plan:
 |-------|-----------|-------|
 | UR-2  | "[missing]" | No SC found |
 
-**Coverage**: 1/2 requirements (50%) ❌
+**Action**: Add SC OR mark out of scope
 ```
 
+**Resolution Options**:
+- A) Add SC
+- B) Mark out of scope
+- C) Defer to implementation (TODO)
+
+### Step 6: Update Plan
+
+Add to plan after verification:
+
+```markdown
+## Requirements Coverage Check
+
+| Requirement | In Scope? | Success Criteria | Status |
+|-------------|-----------|------------------|--------|
+| UR-1 | ✅ | SC-1, SC-2 | Mapped |
+| UR-2 | ⏭️ | Out of scope | Excluded |
+| **Coverage** | 100% | All mapped | ✅ |
+```
+
+**Full details**: @.claude/guides/requirements-verification-REFERENCE.md#step-6-update-plan-file
+
 ---
 
-## Entry Point: /01_confirm Step 1.7
+## Entry Point
 
-**Location**: `/01_confirm` command, Step 1.7 (after Conversation Highlights extraction, before file creation)
+**Location**: `/01_confirm` Step 1.7
 
-**MANDATORY**: Do NOT proceed to Step 2 (Generate Plan File Name) if BLOCKING findings exist.
+> **⚠️ MANDATORY**: Do NOT proceed to plan creation if BLOCKING findings exist
 
-Use AskUserQuestion to resolve ALL BLOCKING issues before plan file creation.
-
----
-
-## Success Criteria
-
-- [ ] All user requirements extracted from User Requirements (Verbatim) table
-- [ ] All Success Criteria extracted from PRP Analysis
-- [ ] Coverage mapping table created (UR → SC)
-- [ ] BLOCKING findings detected and reported
-- [ ] 100% coverage verified before plan creation
-- [ ] Requirements Coverage Check added to plan file
+Use `AskUserQuestion` to resolve ALL BLOCKING issues first.
 
 ---
 
@@ -217,38 +118,52 @@ Use AskUserQuestion to resolve ALL BLOCKING issues before plan file creation.
 
 ### Implicit Requirements
 
-Sometimes requirements are implicit (not directly stated):
-- "Make it secure" → May require multiple SCs (auth, encryption, etc.)
-- "Improve performance" → May require metrics, optimization, caching
+- "Make it secure" → May need multiple SCs
+- "Improve performance" → May need metrics, caching
 
-**Action**: Clarify with user if mapping unclear
+**Action**: Clarify if mapping unclear
 
 ### Composite Requirements
 
-One user requirement may map to multiple SCs:
-- UR-1: "Add search feature" → SC-1 (UI), SC-2 (API), SC-3 (indexing)
+One UR may map to multiple SCs:
+- UR-1: "Add search" → SC-1 (UI), SC-2 (API), SC-3 (indexing)
 
-**Action**: List all SCs in "Success Criteria" column: "SC-1, SC-2, SC-3"
+**Action**: List all SCs: "SC-1, SC-2, SC-3"
 
-### Out-of-Scope Requirements
+### Out-of-Scope
 
-User may confirm exclusion during verification:
-- Mark with ⏭️ in "In Scope?" column
-- Add note: "Out of scope (user confirmed)"
-- Update Coverage percentage (exclude from count)
+Mark with ⏭️ and note: "Out of scope (user confirmed)"
+
+---
+
+## Success Criteria
+
+- [ ] All URs extracted from User Requirements table
+- [ ] All SCs extracted from PRP Analysis
+- [ ] Coverage mapping created (UR → SC)
+- [ ] BLOCKING findings reported
+- [ ] 100% coverage verified
+- [ ] Requirements Coverage Check added to plan
 
 ---
 
 ## Integration Points
 
-- **00_plan.md**: Step 0 (User Requirements Collection) - creates table
-- **01_confirm.md**: Step 1.7 (Requirements Verification) - verifies table
-- **Plan template**: Requirements Coverage Check section
+| File | Step | Purpose |
+|------|------|---------|
+| `00_plan.md` | Step 0 | Creates UR table |
+| `01_confirm.md` | Step 1.7 | Verifies coverage |
+| Plan template | - | Coverage Check section |
 
 ---
 
-## Related Guides
+## See Also
 
-- @.claude/guides/requirements-tracking.md - Collection step in /00_plan
-- @.claude/guides/prp-framework.md - Problem-Requirements-Plan definition
-- @.claude/guides/gap-detection.md - External service verification
+- **@.claude/guides/requirements-tracking.md** - Collection in `/00_plan`
+- **@.claude/guides/prp-framework.md** - PRP definition
+- **@.claude/guides/gap-detection.md** - External service verification
+
+---
+
+**Version**: claude-pilot 4.2.0 (Requirements Verification)
+**Last Updated**: 2026-01-19

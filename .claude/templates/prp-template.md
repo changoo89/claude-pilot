@@ -2,6 +2,7 @@
 
 > **Purpose**: Standardized structure for SPEC-First planning documents
 > **Usage**: Template for /00_plan output
+> **Full Reference**: @.claude/guides/prp-framework.md
 
 ---
 
@@ -80,10 +81,10 @@
 
 | ID | Scenario | Input | Expected | Type | Test File |
 |----|----------|-------|----------|------|-----------|
-| TS-1 | {Happy path scenario} | {Test input} | {Expected output} | {Unit/Integration/E2E} | {test/file/path.test.ts} |
-| TS-2 | {Edge case scenario} | {Test input} | {Expected output} | {Unit} | {test/file/path.test.ts} |
-| TS-3 | {Error scenario} | {Test input} | {Expected output} | {Integration} | {test/file/path.test.ts} |
-| TS-4 | {Additional scenario} | {Test input} | {Expected output} | {E2E} | {test/file/path.test.ts} |
+| TS-1 | {Happy path} | {Input} | {Output} | {Unit/Integration} | {test/file/path.test.ts} |
+| TS-2 | {Edge case} | {Input} | {Output} | {Unit} | {test/file/path.test.ts} |
+
+**Additional scenarios**: Add TS-3, TS-4... as needed
 
 ### Test Environment
 
@@ -106,42 +107,32 @@
 
 ### Phase 2: Implementation (TDD Cycle)
 
-**For each Success Criterion**:
+> **Methodology**: @.claude/skills/tdd/SKILL.md
 
-#### Red Phase: Write Failing Test
-1. Generate test stub
-2. Write assertions
-3. Run tests → confirm RED (failing)
-4. Mark test todo as in_progress
-
-#### Green Phase: Minimal Implementation
-1. Write ONLY enough code to pass the test
-2. Run tests → confirm GREEN (passing)
-3. Mark test todo as complete
-
-#### Refactor Phase: Clean Up
-1. Apply Vibe Coding standards (SRP, DRY, KISS, Early Return)
-2. Run ALL tests → confirm still GREEN
+**For each SC**:
+1. **Red**: Write failing test → confirm RED
+2. **Green**: Minimal implementation → confirm GREEN
+3. **Refactor**: Apply Vibe Coding → confirm still GREEN
 
 ### Phase 3: Ralph Loop (Autonomous Completion)
 
-**Entry**: Immediately after first code change
+> **Methodology**: @.claude/skills/ralph-loop/SKILL.md
 
-**Loop until**:
-- [ ] All tests pass
+**Entry**: After first code change
+**Max iterations**: 7
+
+**Verify**:
+- [ ] Tests pass
 - [ ] Coverage ≥80% (core ≥90%)
 - [ ] Type check clean
 - [ ] Lint clean
-- [ ] All todos completed
 
-**Max iterations**: 7
+### Phase 4: Parallel Verification
 
-### Phase 4: Verification
-
-**Parallel verification** (3 agents):
-- [ ] Tester: Run tests, verify coverage
+**3 agents** (@.claude/guides/parallel-execution.md):
+- [ ] Tester: Tests, coverage
 - [ ] Validator: Type check, lint
-- [ ] Code-Reviewer: Review code quality
+- [ ] Code-Reviewer: Code quality
 
 ---
 
@@ -158,10 +149,10 @@
 - {Resources}
 
 ### Quality Constraints
-- **Coverage**: ≥80% overall, ≥90% core modules
-- **Type Safety**: Type check must pass
-- **Code Quality**: Lint must pass
-- **Standards**: Vibe Coding (functions ≤50 lines, files ≤200 lines, nesting ≤3 levels)
+- **Coverage**: ≥80% overall, ≥90% core
+- **Type Safety**: Type check pass
+- **Code Quality**: Lint pass
+- **Standards**: Vibe Coding (≤50 lines/function, ≤200 lines/file, ≤3 nesting)
 
 ---
 
@@ -175,13 +166,9 @@
 
 ## Completion Checklist
 
-**Before marking plan complete**:
-
-- [ ] All SCs marked complete
-- [ ] All tests pass
-- [ ] Coverage targets met (80%+ overall, 90%+ core)
-- [ ] Type check clean
-- [ ] Lint clean
+- [ ] All SCs complete
+- [ ] Tests pass, coverage ≥80% (core ≥90%)
+- [ ] Type check clean, lint clean
 - [ ] Code review passed
 - [ ] Documentation updated
 - [ ] Plan archived to `.pilot/plan/done/`
@@ -193,12 +180,11 @@
 - **PRP Framework**: @.claude/guides/prp-framework.md
 - **Test Plan Design**: @.claude/guides/test-plan-design.md
 - **Test Environment**: @.claude/guides/test-environment.md
-- **Parallel Execution**: @.claude/guides/parallel-execution.md
-- **TDD Methodology**: @.claude/skills/tdd/SKILL.md
+- **TDD**: @.claude/skills/tdd/SKILL.md
 - **Ralph Loop**: @.claude/skills/ralph-loop/SKILL.md
 - **Vibe Coding**: @.claude/skills/vibe-coding/SKILL.md
 
 ---
 
 **Template Version**: 1.0
-**Last Updated**: 2026-01-17
+**Last Updated**: 2026-01-19

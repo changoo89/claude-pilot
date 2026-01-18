@@ -1238,7 +1238,7 @@ The Sisyphus Continuation System enables agents to persist work across sessions 
 | `.pilot/scripts/state_backup.sh` | Backup before writes |
 | `.claude/commands/00_continue.md` | Resume command |
 | `.claude/guides/continuation-system.md` | Full system guide |
-| `@.claude/guides/todo-granularity/SKILL.md` | Todo breakdown guidelines |
+| `.claude/guides/todo-granularity.md` | Todo breakdown guidelines |
 
 ### State File Format
 

@@ -39,23 +39,7 @@ _Rapid bug fix workflow - automated planning, execution, and closure for simple 
 | Architecture decision | Keywords: "tradeoffs", "design", "structure", "architecture" | Delegate to GPT Architect |
 | Security concern | Keywords: "auth", "vulnerability", "credential", "security" | Delegate to GPT Security Analyst |
 
-### Delegation Flow
-
-1. **STOP**: Scan user input for trigger signals
-2. **MATCH**: Identify expert type from triggers
-3. **READ**: Load expert prompt file from `.claude/rules/delegator/prompts/`
-4. **CHECK**: Verify Codex CLI is installed (graceful fallback if not)
-5. **EXECUTE**: Call `codex-sync.sh "read-only" "<prompt>"` or continue
-6. **CONFIRM**: Log delegation decision
-
-### Graceful Fallback
-
-```bash
-if ! command -v codex &> /dev/null; then
-    echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
-    return 0
-fi
-```
+**See**: @.claude/commands/04_fix-details.md for delegation flow implementation
 
 ---
 
@@ -64,64 +48,15 @@ fi
 > **Purpose**: Reject complex tasks before plan generation
 > **Algorithm**: Complexity score calculation (0.0-1.0 scale)
 
-### Complexity Score Calculation
+**Threshold**: Score ≥0.5 → Reject, suggest `/00_plan`
 
-```bash
-# Get user input (argument provided to /04_fix)
-USER_INPUT="${1:-}"
+**Complexity Components**:
+- Input length >200 chars: +0.3
+- Architecture keywords: +0.3
+- >3 files mentioned: +0.2
+- Multiple tasks detected: +0.2
 
-# Calculate complexity score
-COMPLEXITY_SCORE=0.0
-
-# 1. Input Length Check (>200 chars → +0.3)
-INPUT_LENGTH="${#USER_INPUT}"
-if [ "$INPUT_LENGTH" -gt 200 ]; then
-    COMPLEXITY_SCORE=$(echo "$COMPLEXITY_SCORE + 0.3" | bc)
-fi
-
-# 2. Keyword Detection (+0.3 for architecture keywords)
-ARCH_KEYWORDS="refactor|redesign|architecture|tradeoffs|design|system"
-if echo "$USER_INPUT" | grep -qiE "$ARCH_KEYWORDS"; then
-    COMPLEXITY_SCORE=$(echo "$COMPLEXITY_SCORE + 0.3" | bc)
-fi
-
-# 3. File Count Detection (>3 files → +0.2)
-# Count unique file paths in input
-FILE_COUNT=$(echo "$USER_INPUT" | grep -oE '\w+\.\w+' | sort -u | wc -l)
-if [ "$FILE_COUNT" -gt 3 ]; then
-    COMPLEXITY_SCORE=$(echo "$COMPLEXITY_SCORE + 0.2" | bc)
-fi
-
-# 4. Multiple Tasks Detection (multiple "AND", "THEN", "ALSO" → +0.2)
-if echo "$USER_INPUT" | grep -qiE '\s+(and|then|also)\s+'; then
-    COMPLEXITY_SCORE=$(echo "$COMPLEXITY_SCORE + 0.2" | bc)
-fi
-
-# 5. Threshold Check (>=0.5 → Reject)
-THRESHOLD=0.5
-if (( $(echo "$COMPLEXITY_SCORE >= $THRESHOLD" | bc -l) )); then
-    echo "⚠️  Task too complex for /04_fix"
-    echo ""
-    echo "This task appears to require multiple steps (estimated 4+ success criteria)."
-    echo ""
-    echo "Reasons:"
-    [ "$INPUT_LENGTH" -gt 200 ] && echo "- Input length: $INPUT_LENGTH chars (>200 threshold)"
-    echo "$USER_INPUT" | grep -qiE "$ARCH_KEYWORDS" && echo "- Keywords detected: architecture-related keywords"
-    [ "$FILE_COUNT" -gt 3 ] && echo "- Files mentioned: $FILE_COUNT files (>3 threshold)"
-    echo "$USER_INPUT" | grep -qiE '\s+(and|then|also)\s+' && echo "- Multiple tasks detected"
-    echo ""
-    echo "Use /00_plan instead for:"
-    echo "- Complex bug fixes"
-    echo "- Multi-file refactoring"
-    echo "- Architecture decisions"
-    echo "- Feature development"
-    echo ""
-    echo "Example: /00_plan \"$USER_INPUT\""
-    exit 1
-fi
-
-echo "✓ Scope validation passed (complexity: $COMPLEXITY_SCORE)"
-```
+**See**: @.claude/commands/04_fix-details.md for detailed algorithm and rejection criteria
 
 ---
 
@@ -129,88 +64,14 @@ echo "✓ Scope validation passed (complexity: $COMPLEXITY_SCORE)"
 
 > **Purpose**: Create focused plan with 1-3 SCs for simple fixes
 
-### Plan Structure
+**Plan Structure**:
+- User Requirements (Verbatim)
+- PRP Analysis (What/Why/How)
+- Success Criteria (3 SCs)
+- Test Plan
+- Execution Plan (20 min total)
 
-```bash
-# Generate plan filename
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-PLAN_TITLE="fix_${TIMESTAMP}"
-PLAN_PATH=".pilot/plan/pending/${PLAN_TITLE}.md"
-
-# Extract bug description from user input
-BUG_DESCRIPTION="$USER_INPUT"
-
-# Create minimal plan
-cat > "$PLAN_PATH" << EOF
-# Fix: $BUG_DESCRIPTION
-
-> **Generated**: $(date +'%Y-%m-%d %H:%M:%S') | **Work**: $PLAN_TITLE
-
----
-
-## User Requirements (Verbatim)
-
-| ID | Timestamp | User Input (Original) | Summary |
-|----|-----------|----------------------|---------|
-| UR-1 | $(date +%H:%M) | $BUG_DESCRIPTION | Bug fix request |
-
----
-
-## PRP Analysis
-
-### What (Functionality)
-
-**Objective**: Fix the reported bug
-
-**Scope**:
-- **In Scope**: Bug fix as described
-- **Out of Scope**: Feature additions, refactoring
-
-### Why (Context)
-
-**Current Problem**: Bug reported in user input
-
-**Business Value**: Fix critical bug affecting functionality
-
-### How (Approach)
-
-**Implementation Strategy**:
-1. Analyze the bug
-2. Implement fix with TDD
-3. Verify with tests
-4. Close with commit
-
-### Success Criteria
-
-- [ ] **SC-1**: Analyze bug and identify root cause
-- [ ] **SC-2**: Implement fix with test coverage
-- [ ] **SC-3**: Verify fix and close with commit
-
----
-
-## Test Plan
-
-| ID | Scenario | Expected | Type |
-|----|----------|----------|------|
-| TS-1 | Fix resolves bug | Bug no longer occurs | Integration |
-| TS-2 | No regressions | Existing tests pass | Regression |
-
----
-
-## Execution Plan
-
-1. **SC-1**: Analyze bug (coder, 5 min)
-2. **SC-2**: Implement fix (coder, 10 min)
-3. **SC-3**: Verify and close (validator, 5 min)
-
----
-
-**Plan Version**: 1.0
-**Status**: Pending
-EOF
-
-echo "✓ Plan created: $PLAN_PATH"
-```
+**See**: @.claude/commands/04_fix-details.md for plan template and time estimation
 
 ---
 
@@ -252,9 +113,7 @@ No action needed here - state management is delegated to `/02_execute`.
 
 > **Purpose**: Auto-execute by calling /02_execute with generated plan
 
-### Execution Flow
-
-The command chains to `/02_execute` which will:
+**Execution Flow**:
 1. Read plan from `$PLAN_PATH`
 2. Implement SCs using TDD (Red-Green-Refactor)
 3. Run Ralph Loop until all quality gates pass
@@ -270,24 +129,11 @@ echo "Plan: $PLAN_PATH"
 echo "Branch: $BRANCH"
 echo ""
 
-# Call /02_execute with the generated plan
-# This ensures proper continuation state management and Ralph Loop integration
-echo "→ Invoking /02_execute with generated plan..."
-echo ""
-
 # Set environment variable to indicate this is a /04_fix execution
 export PILOT_FIX_MODE=1
 export PILOT_FIX_PLAN="$PLAN_PATH"
 
 # Execute the plan using /02_execute
-# The /02_execute command will:
-# - Move plan from pending to in_progress (if needed)
-# - Create/update continuation state
-# - Execute SCs with TDD + Ralph Loop
-# - Update continuation state on each iteration
-# - Return when complete or max iterations reached
-
-# Note: We invoke the skill directly to ensure proper execution
 /02_execute
 
 # Capture execution result
@@ -297,19 +143,7 @@ echo ""
 echo "→ /02_execute completed with result: $EXEC_RESULT"
 ```
 
-### Integration Notes
-
-**Why call `/02_execute` directly?**
-- Ensures consistent execution behavior across all commands
-- Leverages existing continuation state management (Step 2.6 in `/02_execute`)
-- Maintains Ralph Loop integration with state updates
-- Supports `/99_continue` resumption seamlessly
-
-**Continuation State Management**:
-- State file: `.pilot/state/continuation.json`
-- Updated automatically by `/02_execute` on each Ralph Loop iteration
-- Includes: session_id, branch, plan_file, todos, iteration_count, max_iterations
-- Compatible with `/99_continue` for resumption
+**See**: @.claude/commands/04_fix-details.md for integration notes and state management
 
 ---
 
@@ -344,7 +178,7 @@ echo "✅ All todos complete"
 
 > **Purpose**: User must approve changes before commit (SC-4)
 
-### Show Diff and Prompt
+**Show Diff and Prompt**:
 
 ```bash
 echo ""
@@ -363,17 +197,7 @@ echo ""
 # Prompt user for confirmation
 echo "Commit these changes? (y/n)"
 
-# Note: In actual command execution, this uses AskUserQuestion tool
-# For now, show the pattern:
-echo ""
-echo "Options:"
-echo "  y) Yes - commit changes and close plan"
-echo "  n) No - keep changes but don't commit"
-echo ""
-echo "→ If 'n': Use /99_continue to resume, or /03_close --no-commit to skip commit"
-echo ""
-
-# Default: Require explicit confirmation (set COMMIT_CONFIRM=true to proceed)
+# Default: Require explicit confirmation
 COMMIT_CONFIRM="${COMMIT_CONFIRM:-false}"
 
 if [ "$COMMIT_CONFIRM" != "true" ]; then
@@ -386,13 +210,13 @@ if [ "$COMMIT_CONFIRM" != "true" ]; then
 fi
 ```
 
+**See**: @.claude/commands/04_fix-details.md for confirmation flow details
+
 ---
 
 ## Step 8: Auto-Close on Success
 
 > **Purpose**: Archive plan and create commit (if user confirmed)
-
-### Close Plan
 
 ```bash
 if [ "$COMMIT_CONFIRM" = "true" ]; then
@@ -434,6 +258,8 @@ else
 fi
 ```
 
+**See**: @.claude/commands/04_fix-details.md for close process details
+
 ---
 
 ## Success Criteria
@@ -458,6 +284,8 @@ If work is incomplete:
 - Run `/99_continue` to resume work
 - Max 7 Ralph Loop iterations before manual intervention required
 
+**See**: @.claude/commands/04_fix-details.md for continuation workflow
+
 ---
 
 ## Related Commands
@@ -466,3 +294,5 @@ If work is incomplete:
 - **/99_continue** - Resume incomplete work
 - **/02_execute** - Standard execution workflow
 - **/03_close** - Manual plan closure
+
+**Detailed Reference**: @.claude/commands/04_fix-details.md

@@ -143,7 +143,7 @@ fi
 ## Step 2.5: Generate Granular Todos (MANDATORY)
 
 > **🚨 CRITICAL**: Break down Success Criteria into granular todos before plan finalization
-> **Full guide**: @.claude/guides/todo-granularity.md
+> **Full guide**: @.claude/guides/todo-granularity/SKILL.md
 
 ### Granularity Rules
 
@@ -184,7 +184,7 @@ For each todo, verify:
 If ANY todo violates the 3 rules:
 1. **WARN** user in plan document
 2. **SUGGEST** breaking down into smaller todos
-3. **PROVIDE** examples from @.claude/guides/todo-granularity.md
+3. **PROVIDE** examples from @.claude/guides/todo-granularity/SKILL.md
 
 ### Todo Templates by Task Type
 

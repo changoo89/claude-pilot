@@ -76,6 +76,21 @@ export MAX_ITERATIONS=7
 
 ---
 
+## Components
+
+| File | Purpose |
+|------|---------|
+| `.pilot/state/continuation.json` | Agent persistence state (JSON) |
+| `.pilot/state/continuation.json.backup` | State backup |
+| `.pilot/scripts/state_read.sh` | Read state with validation |
+| `.pilot/scripts/state_write.sh` | Write state atomically |
+| `.pilot/scripts/state_backup.sh` | Backup continuation state |
+| `.claude/commands/00_continue.md` | Resume command |
+| `.claude/guides/continuation-system.md` | Full system guide |
+| `.claude/guides/todo-granularity.md` | Todo breakdown guidelines |
+
+---
+
 ## Workflow
 
 1. **Plan**: `/00_plan "task"` → Generates granular todos (≤15 min each)
@@ -89,8 +104,47 @@ export MAX_ITERATIONS=7
 
 ---
 
+## Integration Points
+
+| Component | Integration | Data Flow |
+|-----------|-------------|-----------|
+| `/02_execute` | Creates state | `.pilot/state/continuation.json` |
+| `/00_continue` | Reads state | Loads todos, iteration count |
+| `/03_close` | Validates state | Verifies all todos complete |
+| Agent prompts | Read/Write state | Agents update todo status |
+| `.claude/settings.json` | Config | continuation.level, maxIterations |
+
+---
+
+## Agent Continuation Logic
+
+Agents with continuation checks:
+- `coder` - Implementation agent
+- `tester` - Test execution agent
+- `validator` - Type check/lint agent
+- `documenter` - Documentation agent
+
+**Continuation flow**:
+1. Agent completes current task
+2. **Before stopping**, checks `.pilot/state/continuation.json`
+3. **If** incomplete todos exist and iterations < max:
+   - Updates state with current progress
+   - Continues to next todo
+   - Does NOT stop
+4. **Else if** all todos complete:
+   - Returns completion marker
+   - Stops normally
+
+---
+
 ## See Also
 
 - **@.claude/guides/continuation-system.md** - Implementation guide
 - **@.claude/guides/todo-granularity.md** - Granular todo breakdown
 - **@CLAUDE.md** - Project standards (Tier 1)
+- **@docs/ai-context/system-integration.md** - Core workflows and integration
+
+---
+
+**Last Updated**: 2026-01-18
+**Version**: 4.2.0

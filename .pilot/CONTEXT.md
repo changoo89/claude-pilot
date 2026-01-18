@@ -184,7 +184,7 @@ The `.pilot` directory manages the complete lifecycle of plan execution:
 - **Tier 1 (Project)**: `../CLAUDE.md`
 - **Tier 3 (Scripts)**: `scripts/CONTEXT.md`
 - **Continuation System**: `.claude/guides/continuation-system.md`
-- **Todo Granularity**: `.claude/guides/todo-granularity.md`
+- **Todo Granularity**: `@.claude/guides/todo-granularity/SKILL.md`
 
 ---
 

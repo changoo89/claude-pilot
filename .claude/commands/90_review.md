@@ -49,8 +49,6 @@ Read and extract: User requirements, Execution plan, Acceptance criteria, Test s
 > **⚠️ CRITICAL**: Before starting review, check if GPT expert review is needed.
 > See: @.claude/rules/delegator/triggers.md
 
-### When to Delegate to GPT Plan Reviewer:
-
 | Condition | Action |
 |-----------|--------|
 | Plan has 5+ success criteria | Delegate to GPT Plan Reviewer |
@@ -58,74 +56,43 @@ Read and extract: User requirements, Execution plan, Acceptance criteria, Test s
 | Security-sensitive changes | Delegate to GPT Security Analyst |
 | Simple plan (< 5 SCs) | Use Claude plan-reviewer agent |
 
-### If Delegation Needed:
+**Implementation**:
+```bash
+# Check plan SC count and keywords
+PLAN_SC_COUNT=$(grep -c "^SC-" "$PLAN_PATH" 2>/dev/null || echo 0)
+HAS_ARCHITECTURE=$(grep -qiE "architecture|tradeoff|design" "$PLAN_PATH" && echo "true" || echo "false")
+HAS_SECURITY=$(grep -qiE "auth|credential|security|token" "$PLAN_PATH" && echo "true" || echo "false")
 
-1. Check Codex CLI availability:
-   ```bash
-   # Check Codex CLI availability
-   if ! command -v codex &> /dev/null; then
-       echo "Warning: Codex CLI not installed - falling back to Claude-only review"
-       # Skip GPT delegation, continue to Step 1 with Claude plan-reviewer
-       USE_GPT_DELEGATION="false"
-   else
-       USE_GPT_DELEGATION="true"
-   fi
+# Check Codex CLI and delegate if applicable
+if command -v codex &> /dev/null && ([ "$PLAN_SC_COUNT" -ge 5 ] || [ "$HAS_ARCHITECTURE" = "true" ] || [ "$HAS_SECURITY" = "true" ]); then
+    # Delegate to appropriate GPT expert
+    .claude/scripts/codex-sync.sh "read-only" "$(cat .claude/rules/delegator/prompts/[expert].md)"
+fi
+```
 
-   # Only proceed with GPT delegation if available
-   if [ "$USE_GPT_DELEGATION" = "true" ] && [ "$PLAN_SC_COUNT" -ge 5 ]; then
-       # GPT delegation logic continues below
-   fi
-   ```
-2. Read expert prompt: `Read .claude/rules/delegator/prompts/plan-reviewer.md`
-3. Call delegation: `.claude/scripts/codex-sync.sh "read-only" "<prompt>"`
-4. Synthesize findings
-5. Continue to Step 1
-
-### If No Delegation:
-
-Continue to Step 1 with Claude plan-reviewer agent (Step 4 below).
+**See**: @.claude/commands/90_review-details.md for detailed trigger detection and delegation flow
 
 ---
 
-## Step 1: Proactive Investigation
+## Step 1: Type Detection
 
-> **Principle**: Investigate all "needs investigation/confirmation/review" items upfront
+| Type | Keywords | Test File Required |
+|------|----------|---------------------|
+| **Code** | function, component, API, bug fix, src/, lib/ | Yes |
+| **Config** | .claude/, settings, rules, template, workflow | No (N/A allowed) |
+| **Documentation** | CLAUDE.md, README, guide, docs/, CONTEXT.md | No (N/A allowed) |
+| **Scenario** | test, validation, edge cases | Yes |
+| **Infra** | Vercel, env, deploy, CI/CD | Yes |
+| **DB** | migration, table, schema | Yes |
+| **AI** | LLM, prompts, AI | Yes |
 
-**Keywords**: "need to investigate", "confirm", "TODO", "check", "verify"
+**Test File Logic**: Code/Scenario/Infra/DB/AI require test file paths (BLOCKING if missing). Config/Documentation allow N/A.
 
-| Target | Method | Tools |
-|--------|--------|-------|
-| Existing code/patterns | Search similar impl | Glob, Grep, Read |
-| API docs | Check official docs | WebSearch |
-| Dependencies | npm/PyPI registry | Bash(npm/pip info) |
-
----
-
-## Step 2: Type Detection
-
-**Full activation matrix**: See @.claude/guides/review-checklist.md - Extended Reviews
-
-| Type | Keywords | Test File Requirement |
-|------|----------|----------------------|
-| **Code** | function, component, API, bug fix, src/, lib/ | **Required** |
-| **Config** | .claude/, settings, rules, template, workflow | **Optional** (N/A allowed) |
-| **Documentation** | CLAUDE.md, README, guide, docs/, CONTEXT.md | **Optional** (N/A allowed) |
-| **Scenario** | test, validation, edge cases | **Required** |
-| **Infra** | Vercel, env, deploy, CI/CD | **Required** |
-| **DB** | migration, table, schema | **Required** |
-| **AI** | LLM, prompts, AI | **Required** |
-
-**Test File Conditional Logic**:
-- **Code/Scenario/Infra/DB/AI**: Test file path required (BLOCKING if missing)
-- **Config/Documentation**: `N/A` or `Manual` acceptable
-
-**Auto-detection**: See @.claude/guides/review-checklist.md for bash implementation
+**See**: @.claude/commands/90_review-details.md for auto-detection implementation
 
 ---
 
-## Step 3: Mandatory Reviews (8 items)
-
-**Full checklist**: See @.claude/guides/review-checklist.md
+## Step 2: Mandatory Reviews (8 items)
 
 Execute all 8 reviews for every plan:
 
@@ -140,11 +107,11 @@ Execute all 8 reviews for every plan:
 | 7 | Project Alignment | Type check, API docs, affected areas |
 | 8 | Long-term Impact | Consequences, debt, scalability, rollback |
 
+**See**: @.claude/commands/90_review-details.md for detailed review criteria
+
 ---
 
-## Step 4: Vibe Coding Compliance
-
-**Vibe Coding**: See @.claude/skills/vibe-coding/SKILL.md
+## Step 3: Vibe Coding Compliance
 
 | Target | Limit | Check |
 |--------|-------|-------|
@@ -152,36 +119,26 @@ Execute all 8 reviews for every plan:
 | File | ≤200 lines | Plan respects boundaries? |
 | Nesting | ≤3 levels | Early return specified? |
 
----
-
-## Step 5: Extended Reviews (By Type)
-
-**Activation Matrix**: See @.claude/guides/review-checklist.md
-
-| Type | Keywords | Reviews |
-|------|----------|---------|
-| Code Mod | function, component, API, bug fix | A (API compat), B (Types), D (Tests) |
-| Documentation | CLAUDE.md, README, guide | C (Consistency) |
-| Scenario | test, validation, edge cases | H (Coverage) |
-| Infrastructure | Docker, env, deploy, CI/CD | F (Deployment) |
-| DB Schema | migration, table, column | E (Migration) |
-| AI/Prompts | GPT, Claude, prompts, LLM | G (Prompts) |
+**Vibe Coding**: See @.claude/skills/vibe-coding/SKILL.md
 
 ---
 
-## Step 6: Autonomous Review
+## Step 4: Extended Reviews (By Type)
 
-> **Self-judge beyond mandatory/extended items**
+| Type | Reviews |
+|------|---------|
+| Code Mod | A (API compat), B (Types), D (Tests) |
+| Documentation | C (Consistency) |
+| Scenario | H (Coverage) |
+| Infrastructure | F (Deployment) |
+| DB Schema | E (Migration) |
+| AI/Prompts | G (Prompts) |
 
-**Perspectives**: Security, Performance, UX, Maintainability, Concurrency, Error Recovery
+**See**: @.claude/commands/90_review-details.md for extended review details
 
 ---
 
-## Step 7: Gap Detection Review (MANDATORY)
-
-**Full gap detection**: See @.claude/guides/gap-detection.md
-
-### Severity Levels
+## Step 5: Gap Detection Review (MANDATORY)
 
 | Level | Symbol | Description |
 |-------|--------|-------------|
@@ -190,37 +147,20 @@ Execute all 8 reviews for every plan:
 | **Warning** | ⚠️ | Should fix |
 | **Suggestion** | 💡 | Nice to have |
 
-### Gap Detection Categories (9 items)
+**Categories**:
+- 9.1 External API
+- 9.2 Database Operations
+- 9.3 Async Operations
+- 9.4 File Operations
+- 9.5 Environment Variables
+- 9.6 Error Handling
+- 9.7 Test Plan Verification (BLOCKING)
 
-| # | Category | Trigger Keywords |
-|---|----------|-------------------|
-| 9.1 | External API | API, fetch, call, endpoint, SDK, HTTP |
-| 9.2 | Database Operations | database, migration, schema, table |
-| 9.3 | Async Operations | async, await, timeout, promise |
-| 9.4 | File Operations | file, read, write, temp, path |
-| 9.5 | Environment | env, .env, environment, variable |
-| 9.6 | Error Handling | try, catch, error, exception |
-| 9.7 | Test Plan Verification | **BLOCKING** - Always run |
-
-### 9.7 Test Plan Verification (BLOCKING)
-
-**Trigger**: Run for ALL plans
-
-| Check | Code Plans | Config/Doc Plans |
-|-------|------------|------------------|
-| Scenarios Defined | Required | Required |
-| Test Files Specified | Required | **Optional** (N/A allowed) |
-| Test Command Detected | Required | Optional |
-| Coverage Command | Required | Optional |
-| Test Environment | Required | Optional |
-
-**BLOCKING** (Code): Test Plan missing, no scenarios, no test file paths, no test/coverage commands
-**BLOCKING** (Config/Doc): Test Plan missing, no scenarios
-**Plan Type Detection**: See Step 2
+**See**: @.claude/guides/gap-detection.md for full gap detection methodology
 
 ---
 
-## Step 8: Results Summary
+## Step 6: Results Summary
 
 ```markdown
 # Plan Review Results
@@ -239,9 +179,7 @@ Execute all 8 reviews for every plan:
 
 ---
 
-## Step 9: Apply Findings to Plan
-
-> **Principle**: Review completion = Plan file improved with findings applied
+## Step 7: Apply Findings to Plan
 
 | Issue Type | Target Section | Method |
 |------------|----------------|--------|
@@ -250,98 +188,36 @@ Execute all 8 reviews for every plan:
 | Test gap | Test Plan | Add scenario |
 | Risk identified | Risks | Add item |
 
-**Apply & Update History**: Read plan → Apply modifications → Write plan → Append to Review History (findings counts)
+**Process**: Read plan → Apply modifications → Write plan → Append to Review History
+
+**See**: @.claude/commands/90_review-details.md for detailed application process
 
 ---
 
-## Step 9.5: Optional Parallel Multi-Angle Review (Claude Agents)
+## Step 8: Optional Parallel Multi-Angle Review
 
-> **Purpose**: Leverage multiple Claude plan-reviewer agents concurrently for comprehensive analysis
 > **Trigger**: Complex plans (5+ SCs), high-stakes features, system-wide changes
+> **Note**: Uses Claude agents in parallel (different from GPT delegation)
 
-> **Note**: This is DIFFERENT from GPT delegation (Step 10). This uses Claude agents in parallel.
+**When to Use**: 5+ SCs, security payments auth, system-wide changes
+**When NOT to Use**: Simple plans, cost constraints, time-sensitive
 
-### When to Use Parallel Multi-Angle Review
-
-| Condition | Use Parallel Review | Rationale |
-|-----------|-------------------|-----------|
-| Plan has 5+ success criteria | Yes | Multiple perspectives valuable |
-| High-stakes features (security, payments, auth) | Yes | Comprehensive coverage needed |
-| System-wide architectural changes | Yes | Complex interactions |
-| Time-sensitive review | No | Sequential faster for simple plans |
-| Resource constraints (cost) | No | Parallel review increases token usage |
-
-### Parallel Review Implementation
-
-**For complex plans**, invoke multiple plan-reviewer agents concurrently using Task tool:
-
-```markdown
-[Optional Parallel Multi-Angle Review - Complex Plans Only]
-
-Task:
-  subagent_type: plan-reviewer
-  prompt: |
-    Review plan from SECURITY angle:
-    - External API security
-    - Input validation
-    - Authentication/authorization
-    - Secret management
-
-    Plan Path: {PLAN_PATH}
-
-Task:
-  subagent_type: plan-reviewer
-  prompt: |
-    Review plan from QUALITY angle:
-    - Vibe Coding compliance
-    - Code quality standards
-    - Testing coverage
-    - Documentation completeness
-
-    Plan Path: {PLAN_PATH}
-
-Task:
-  subagent_type: plan-reviewer
-  prompt: |
-    Review plan from ARCHITECTURE angle:
-    - System design
-    - Component relationships
-    - Scalability considerations
-    - Integration points
-
-    Plan Path: {PLAN_PATH}
+**Implementation**:
+```bash
+# Invoke 3 plan-reviewer agents concurrently
+Task: subagent_type=plan-reviewer, prompt="Review from SECURITY angle..."
+Task: subagent_type=plan-reviewer, prompt="Review from QUALITY angle..."
+Task: subagent_type=plan-reviewer, prompt="Review from ARCHITECTURE angle..."
+# Wait for all, merge findings, apply to plan
 ```
 
-### 9.5.1 Process Parallel Review Results
-
-**Wait for ALL agents** to complete before proceeding.
-
-| Agent | Focus | Output |
-|-------|-------|--------|
-| **Security Reviewer** | Security vulnerabilities, auth, input validation | Security findings |
-| **Quality Reviewer** | Vibe Coding, code quality, testing, docs | Quality findings |
-| **Architecture Reviewer** | System design, scalability, integration | Architecture findings |
-
-**After ALL agents return**:
-1. Merge all findings into comprehensive review
-2. Apply findings to plan (Step 9)
-3. Update review history
-4. Proceed to Step 10 (GPT Expert Review - optional)
-
-### When NOT to Use Parallel Review
-
-- **Simple plans** (< 5 SCs): Single plan-reviewer sufficient
-- **Cost constraints**: Parallel review 3x token cost
-- **Time-sensitive**: Sequential faster for straightforward plans
+**See**: @.claude/commands/90_review-details.md for parallel review implementation
 
 ---
 
-## Step 10: GPT Expert Review (Optional - For Complex Plans)
+## Step 9: GPT Expert Review (Optional)
 
-> **Purpose**: Leverage GPT experts for high-difficulty analysis beyond standard review
 > **Trigger**: Architecture decisions, security concerns, complex plans (5+ SCs)
-
-**Full delegation guide**: See @.claude/rules/delegator/orchestration.md
 
 | Scenario | GPT Expert | Trigger |
 |----------|------------|---------|
@@ -351,6 +227,8 @@ Task:
 | **Scope ambiguity** | Scope Analyst | Unclear requirements, multiple interpretations |
 
 **Cost Awareness**: GPT calls cost money - use for high-value analysis only
+
+**See**: @.claude/rules/delegator/orchestration.md for delegation guide
 
 ---
 
@@ -365,6 +243,7 @@ Task:
 ---
 
 ## Related Guides
+
 - @.claude/guides/review-checklist.md - Comprehensive review checklist
 - @.claude/guides/gap-detection.md - External service verification
 - @.claude/skills/vibe-coding/SKILL.md - Code quality standards
@@ -372,4 +251,5 @@ Task:
 ---
 
 ## References
+
 - [Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)

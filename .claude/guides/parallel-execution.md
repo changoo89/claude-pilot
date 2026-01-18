@@ -1,207 +1,114 @@
 # Parallel Execution Guide
 
-> **Last Updated**: 2026-01-17
-> **Version**: 1.0.0
+> **Purpose**: Parallel agent execution for workflow efficiency
 > **Full Reference**: @.claude/guides/parallel-execution-REFERENCE.md
+> **Last Updated**: 2026-01-19
 
 ---
 
 ## Quick Reference
 
-| Pattern | Command | Agents | Purpose |
-|---------|---------|--------|---------|
-| **Parallel Exploration** | `/00_plan` Step 0 | Explorer + Researcher | Codebase + external docs |
-| **Parallel Coder** | `/02_execute` Step 2.3 | Multiple Coders | Independent SCs |
-| **Parallel Verify** | `/02_execute` Step 2.4 | Tester + Validator + Code-Reviewer | Multi-angle verification |
-| **Parallel Review** | `/90_review` (optional) | Multiple Plan-Reviewers | Complex plan analysis |
+| Pattern | Agents | Purpose |
+|---------|--------|---------|
+| **Parallel Exploration** | Explorer + Researcher | Codebase + external docs |
+| **Parallel Coder** | Multiple Coders | Independent SCs |
+| **Parallel Verify** | Tester + Validator + Code-Reviewer | Multi-angle verification |
+| **Parallel Review** | Multiple Plan-Reviewers | Complex plan analysis |
 
-**Key Benefits**: 50-70% faster, 8x token efficiency, specialized agents per task
-
-**See Also**: @docs/ai-context/system-integration.md - Agent coordination patterns
+**Benefits**: 50-70% faster, 8x token efficiency, specialized agents
 
 ---
 
-## Overview
-
-This guide documents parallel execution patterns for maximizing workflow efficiency through context isolation and concurrent agent execution.
-
-## Benefits
-
-| Benefit | Impact |
-|---------|--------|
-| **Speed** | 50-70% execution time reduction |
-| **Context Isolation** | 8x token efficiency |
-| **Quality** | Specialized agents per task |
-| **Scalability** | Independent tasks run concurrently |
-
 ## Model Allocation
 
-| Model | Agents | Rationale |
-|-------|--------|-----------|
+| Model | Agents | Purpose |
+|-------|--------|---------|
 | **Haiku** | explorer, researcher, validator, documenter | Fast, cost-efficient |
 | **Sonnet** | coder, tester, plan-reviewer | Quality + speed balance |
-| **Opus** | code-reviewer | Deep reasoning (async, memory, security) |
+| **Opus** | code-reviewer | Deep reasoning |
 
 ---
 
 ## Parallel Patterns
 
-### Pattern 1: Parallel Exploration (/00_plan)
+### Pattern 1: Parallel Exploration (`/00_plan`)
 
-**Use Case**: Explore codebase + research external docs concurrently
+**Use**: Explore codebase + research docs concurrently
 
-**Architecture**: Explorer (Glob/Grep/Read) + Researcher (WebSearch/Docs) → Result Merge
+**Architecture**: Explorer + Researcher → Result merge
 
-**Summary**: Launch both agents in parallel, merge findings into plan
+**Full details**: @.claude/guides/parallel-execution-REFERENCE.md#pattern-1
 
-**Full Details**: See @.claude/guides/parallel-execution-REFERENCE.md#pattern-1
+### Pattern 2: Parallel SC Implementation (`/02_execute`)
 
----
+**Use**: Execute independent SCs concurrently
 
-### Pattern 2: Parallel SC Implementation (/02_execute)
+**Architecture**: Coders (parallel) → Integration → Verification (parallel)
 
-**Use Case**: Execute independent Success Criteria concurrently
+**Requirements**: File isolation, SC dependency analysis, result merge
 
-**Architecture**: Multiple Coders (parallel) → Integration → Tester + Validator + Code-Reviewer (parallel)
+**Full details**: @.claude/guides/parallel-execution-REFERENCE.md#pattern-2
 
-**Key Requirements**:
-- **File isolation**: Each agent works on different files
-- **SC dependency analysis**: Group independent SCs together
-- **Result merge**: Combine after all agents complete
+### Pattern 3: Parallel Review (`/90_review`)
 
-**Summary**: Analyze dependencies, group independent SCs, execute in parallel, verify results
+**Use**: Multi-angle plan review
 
-**Full Details**: See @.claude/guides/parallel-execution-REFERENCE.md#pattern-2
+**When to use**: Large plans, high-stakes features, system-wide changes
 
----
+**When NOT to use**: Small changes, resource constraints, time-sensitive reviews
 
-### Pattern 3: Parallel Multi-Angle Review (/90_review)
-
-**Use Case**: Comprehensive plan review from multiple perspectives
-
-**Architecture**: Multiple Plan-Reviewers (Security, Quality, Testing, Architecture) → Report Merge
-
-**When to Use**:
-- Large, complex plans
-- High-stakes features (security, payments, auth)
-- System-wide architectural changes
-
-**When NOT to Use**:
-- Small, straightforward changes
-- Resource constraints
-- Time-sensitive reviews
-
-**Full Details**: See @.claude/guides/parallel-execution-REFERENCE.md#pattern-3
+**Full details**: @.claude/guides/parallel-execution-REFERENCE.md#pattern-3
 
 ---
 
 ## Task Tool Syntax
 
-### Basic Invocation
+**Basic invocation**:
 ```markdown
 Task:
   subagent_type: {agent_name}
-  prompt: |
-    {task_description}
+  prompt: {task_description}
 ```
 
-### Parallel Invocation
-```markdown
-# Multiple Task calls = parallel execution
-Task:
-  subagent_type: agent1
-  prompt: |
+**Parallel invocation**: Send multiple Task calls in same message
 
-Task:
-  subagent_type: agent2
-  prompt: |
-```
-
-### Agent Reference
-
-| Agent | Model | Tools | Use Case |
-|-------|-------|-------|----------|
-| explorer | haiku | Glob, Grep, Read | Fast codebase exploration |
-| researcher | haiku | WebSearch, WebFetch, query-docs | External docs research |
-| coder | sonnet | Read, Write, Edit, Bash | TDD implementation |
-| tester | sonnet | Read, Write, Bash | Test writing and execution |
-| validator | haiku | Bash, Read | Type check, lint, coverage |
-| plan-reviewer | sonnet | Read, Glob, Grep | Plan analysis and gap detection |
-| code-reviewer | opus | Read, Glob, Grep, Bash | Deep code review |
-| documenter | haiku | Read, Write | Documentation generation |
-
-> **⚠️ CRITICAL**: Agent names are case-sensitive. Always use lowercase:
-> - `explorer`, `researcher`, `coder`, `tester`, `validator`, `plan-reviewer`, `code-reviewer`, `documenter`
+**Agent names** (case-sensitive): `explorer`, `researcher`, `coder`, `tester`, `validator`, `plan-reviewer`, `code-reviewer`, `documenter`
 
 ---
 
-## Best Practices Summary
+## Best Practices
 
-### 1. Dependency Analysis
-Before parallel execution: File dependencies, SC dependencies, integration points
+1. **Dependency Analysis**: File/SC dependencies before parallel execution
+2. **File Conflict Prevention**: Each agent works on different files
+3. **Result Integration**: Wait for all agents, merge in order, run integration tests
+4. **Error Handling**: Process inline results (NOT TaskOutput), use `AskUserQuestion` for recovery
+5. **Resource Management**: Use Haiku for cost-sensitive, Opus for critical review
 
-### 2. File Conflict Prevention
-- Each agent works on different files
-- Clear file ownership per task
-- Merge results after parallel phase
-
-### 3. Result Integration
-- Wait for all agents to complete
-- Merge in predictable order
-- Run integration tests after merge
-
-### 4. Error Handling
-
-> **🚨 CRITICAL - TaskOutput Anti-Pattern**
-> **DO NOT** use `TaskOutput` after Task tool completion. Results are returned inline automatically.
-
-**Correct Pattern**: Process inline result directly, look for `<CODER_COMPLETE>` or `<CODER_BLOCKED>` markers
-
-**Error Recovery**: If agent fails, use `AskUserQuestion` for recovery options
-
-### 5. Resource Management
-- Use Haiku for cost-sensitive tasks
-- Reserve Opus for critical review only
-- Monitor token usage
-
-**Full Details**: See @.claude/guides/parallel-execution-REFERENCE.md#best-practices
+**Full details**: @.claude/guides/parallel-execution-REFERENCE.md#best-practices
 
 ---
 
 ## Todo Management
 
-### Default Rule (Sequential Work)
-- **Exactly one `in_progress` at a time**
-- Mark complete immediately after finishing
-
-### Parallel Group Rule (Parallel Work)
-- **Mark ALL parallel items as `in_progress` simultaneously**
-- Complete together when ALL agents return
-
-| Execution Type | Todo Rule | Example |
-|----------------|-----------|---------|
-| **Sequential** | One `in_progress` | Single Coder for all SCs |
-| **Parallel** | Multiple `in_progress` | Multiple Coders for independent SCs |
-
-**Full Details**: See @.claude/guides/parallel-execution-REFERENCE.md#todo-management
+| Type | Rule | Example |
+|------|------|---------|
+| **Sequential** | One `in_progress` at a time | Single Coder for all SCs |
+| **Parallel** | Multiple `in_progress` simultaneously | Multiple Coders for independent SCs |
 
 ---
 
 ## Anti-Patterns
 
-### Don't Parallelize When:
-- [ ] Tasks share the same files (conflict risk)
-- [ ] Tasks have dependencies (ordering matters)
-- [ ] Tasks are trivial (overhead > benefit)
-- [ ] Resource constraints exist (cost/speed)
-
-**Full Details**: See @.claude/guides/parallel-execution-REFERENCE.md#anti-patterns
+Don't parallelize when:
+- Tasks share same files (conflict risk)
+- Tasks have dependencies (ordering matters)
+- Tasks are trivial (overhead > benefit)
+- Resource constraints exist
 
 ---
 
 ## Verification Checklist
 
-After parallel execution:
 - [ ] All agents completed successfully
 - [ ] No file conflicts in output
 - [ ] Integration tests pass
@@ -215,45 +122,28 @@ After parallel execution:
 
 | Issue | Solution |
 |-------|----------|
-| Parallel agents have conflicts | Run sequentially, reorganize file ownership |
-| One agent failed, others succeeded | Re-run only failed agent |
+| Conflicts | Run sequentially, reorganize file ownership |
+| One agent failed | Re-run only failed agent |
 | Integration tests fail | Check missed integration points |
 | Token costs too high | Reduce parallelization, use Haiku more |
 
-**Full Details**: See @.claude/guides/parallel-execution-REFERENCE.md#troubleshooting
-
 ---
 
-## Examples Summary
+## Examples
 
-### Example 1: Simple Feature (Sequential)
-```
-Plan: Add simple utility function
-→ Single Coder agent (no parallelization needed)
-```
+| Complexity | Pattern |
+|------------|----------|
+| Simple feature | Single Coder (sequential) |
+| Medium feature | Parallel Coders + Sequential integration |
+| Complex feature | Parallel Coders + Parallel verification + Sequential integration |
 
-### Example 2: Medium Feature (Some Parallel)
-```
-Plan: Add auth + logout
-→ Parallel: Coder-SC1, Coder-SC2, Coder-SC3 (different files)
-→ Sequential: Integration
-```
-
-### Example 3: Complex Feature (Full Parallel)
-```
-Plan: Payment system integration
-→ Parallel: Coder-SC1, Coder-SC2, Coder-SC3, Coder-SC4
-→ Parallel: Tester, Validator, Code-Reviewer
-→ Sequential: Integration, docs
-```
-
-**Full Examples**: See @.claude/guides/parallel-execution-REFERENCE.md#examples
+**Full details**: @.claude/guides/parallel-execution-REFERENCE.md#examples
 
 ---
 
 ## Related Guides
 
-- **TDD Methodology**: @.claude/skills/tdd/SKILL.md
+- **TDD**: @.claude/skills/tdd/SKILL.md
 - **Ralph Loop**: @.claude/skills/ralph-loop/SKILL.md
 - **Vibe Coding**: @.claude/skills/vibe-coding/SKILL.md
 - **Gap Detection**: @.claude/guides/gap-detection.md
@@ -261,5 +151,5 @@ Plan: Payment system integration
 
 ---
 
-**Version**: 1.0.0
-**Last Updated**: 2026-01-17
+**Version**: 1.0.0 (Parallel Execution)
+**Last Updated**: 2026-01-19

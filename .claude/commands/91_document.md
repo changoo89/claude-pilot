@@ -22,31 +22,23 @@ _Update documentation with full auto-sync and hierarchical CONTEXT.md management
 ## Step 0.5: GPT Delegation Trigger Check (MANDATORY)
 
 > **⚠️ CRITICAL**: Check for GPT delegation triggers before documentation
-> **Full guide**: @.claude/rules/delegator/triggers.md
 
 | Trigger | Signal | Action |
 |---------|--------|--------|
 | Complex documentation | 3+ component CONTEXT.md files affected | Delegate to GPT Architect |
-| User explicitly requests | "ask GPT", "consult GPT", "review documentation" | Delegate to GPT Architect |
+| User explicitly requests | "ask GPT", "consult GPT" | Delegate to GPT Architect |
 
-### Delegation Flow
+**Delegation Flow**: STOP → MATCH expert → READ prompt → CHECK Codex → EXECUTE `codex-sync.sh` → CONFIRM
 
-1. **STOP**: Scan documentation task for trigger signals
-2. **MATCH**: Identify expert type from triggers
-3. **READ**: Load expert prompt file from `.claude/rules/delegator/prompts/architect.md`
-4. **CHECK**: Verify Codex CLI is installed (graceful fallback if not)
-5. **EXECUTE**: Call `codex-sync.sh "read-only" "<prompt>"` or continue with Claude agents
-6. **CONFIRM**: Log delegation decision
-
-### Graceful Fallback
-
+**Graceful Fallback**:
 ```bash
 if ! command -v codex &> /dev/null; then
     echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
-    # Skip GPT delegation, continue with Claude analysis
     return 0
 fi
 ```
+
+**See**: @.claude/rules/delegator/triggers.md for full guide
 
 ---
 
@@ -61,35 +53,20 @@ fi
 ### 💡 OPTIONAL ACTION: Documenter Agent Invocation
 
 > **For large documentation updates, you MAY invoke the documenter agent using the Task tool.**
-> This is optional. Use this agent for complex documentation tasks requiring extensive analysis.
-
-**OPTIONAL - USE AS NEEDED**:
 
 ```markdown
 Task:
   subagent_type: documenter
   prompt: |
-    Update documentation for the project:
-
-    Mode: {MODE}
-    RUN_ID: {RUN_ID} (if auto-sync)
-    Folder: {FOLDER_NAME} (if folder mode)
-
-    Execute full documentation sync:
-    - CLAUDE.md (Tier 1) - update if project-level changes
-    - Component CONTEXT.md (Tier 2) - generate/update for components
-    - docs/ai-context/ - update project-structure.md, system-integration.md
-    - Archive TDD artifacts (test-scenarios.md, coverage-report.txt, ralph-loop-log.md)
-
-    Apply 3-Tier Documentation System:
-    - Tier 1: CLAUDE.md (max 300 lines)
-    - Tier 2: Component CONTEXT.md (max 200 lines)
-    - Tier 3: Feature CONTEXT.md (max 150 lines)
-
+    Update documentation: Mode {MODE}, RUN_ID {RUN_ID}, Folder {FOLDER_NAME}
+    - CLAUDE.md (Tier 1, max 300 lines)
+    - Component CONTEXT.md (Tier 2, max 200 lines)
+    - docs/ai-context/ updates
+    - Archive TDD artifacts
     Return summary only.
 ```
 
-**WHEN TO USE**: Large projects, complex updates, or when you want isolated context for documentation tasks.
+**WHEN TO USE**: Large projects, complex updates
 
 ---
 
@@ -141,57 +118,28 @@ npx tsc --noEmit
 
 ### 2.4 Document Size Management
 
-**Purpose**: Ensure documents stay within size thresholds for optimal token usage.
-
-**Size Thresholds**:
-
-| Tier | File | Max Lines | Action When Exceeded |
-|------|------|-----------|---------------------|
-| **Tier 1** | CLAUDE.md | 300 lines | Split to docs/ai-context/ |
-| **Tier 2** | Component CONTEXT.md | 200 lines | Archive old sections |
-| **Tier 3** | Feature CONTEXT.md | 150 lines | Compress or split by feature |
+**Size Thresholds**: Tier 1 (CLAUDE.md): 300 lines, Tier 2 (Component CONTEXT.md): 200 lines, Tier 3 (Feature CONTEXT.md): 150 lines
 
 **Auto-Detection**:
-
 ```bash
-# Check Tier 1: CLAUDE.md
+# Check Tier 1
 if [ -f "CLAUDE.md" ]; then
     LINES=$(wc -l < CLAUDE.md)
-    if [ "$LINES" -gt 300 ]; then
-        echo "⚠️ CLAUDE.md exceeds 300 lines (current: $LINES)"
-        echo "Recommendation: Move detailed sections to docs/ai-context/"
-    fi
+    [ "$LINES" -gt 300 ] && echo "⚠️ CLAUDE.md exceeds 300 lines (current: $LINES)"
 fi
 
-# Check Tier 2/3: CONTEXT.md files
+# Check Tier 2/3
 find . -name "CONTEXT.md" -type f | while read -r ctx_file; do
     LINES=$(wc -l < "$ctx_file")
     DEPTH=$(echo "$ctx_file" | tr '/' '\n' | wc -l)
-
-    if [ $DEPTH -ge 3 ] || [[ "$ctx_file" =~ features/ ]]; then
-        # Tier 3 (150 line limit)
-        if [ "$LINES" -gt 150 ]; then
-            echo "⚠️ $ctx_file exceeds 150 lines (current: $LINES)"
-        fi
-    else
-        # Tier 2 (200 line limit)
-        if [ "$LINES" -gt 200 ]; then
-            echo "⚠️ $ctx_file exceeds 200 lines (current: $LINES)"
-        fi
-    fi
+    [ $DEPTH -ge 3 ] && [ "$LINES" -gt 150 ] && echo "⚠️ $ctx_file exceeds 150 lines"
+    [ $DEPTH -lt 3 ] && [ "$LINES" -gt 200 ] && echo "⚠️ $ctx_file exceeds 200 lines"
 done
 ```
 
-**Auto-Management Actions** (when triggered):
+**Actions**: Compress, Split, Archive, or Reorganize
 
-1. **Compress**: Summarize verbose sections, keep key information
-2. **Split**: Create sub-files for large features
-3. **Archive**: Move historical content to HISTORY.md
-4. **Reorganize**: Restructure for better clarity
-
-**Integration**: Automatically run when `/03_close` detects size thresholds, or manually with:
-- `/91_document auto-compress` - Compress oversized documents
-- `/91_document auto-split {file}` - Split a specific document
+**Manual triggers**: `/91_document auto-compress` or `/91_document auto-split {file}`
 
 ---
 
@@ -210,21 +158,11 @@ done
 
 ### 3.2 Templates
 
-**Tier 2 (Component)** - @.claude/templates/CONTEXT-tier2.md.template
-```markdown
-# {Component Name} - Component Context (Tier 2)
-## Purpose {Component responsibility}
-## Key Files {Directory layout}
-## Integration Points {Dependencies}
-```
+**Tier 2 (Component)**: Purpose, Key Files, Integration Points
 
-**Tier 3 (Feature)** - @.claude/templates/CONTEXT-tier3.md.template
-```markdown
-# {Feature Name} - Feature Context (Tier 3)
-## Architecture & Patterns {Design, data flow}
-## Implementation Decisions {Decision log}
-## Code Examples {Common usage}
-```
+**Tier 3 (Feature)**: Architecture & Patterns, Implementation Decisions, Code Examples
+
+**Templates**: @.claude/templates/CONTEXT-tier2.md.template, @.claude/templates/CONTEXT-tier3.md.template
 
 ### 3.3 Auto-Update Rules
 
@@ -243,22 +181,9 @@ done
 npm run test -- --coverage > "$RUN_DIR/coverage-report.txt" 2>&1
 ```
 
-**Create `$RUN_DIR/test-scenarios.md`**:
-```markdown
-# Test Scenarios
-## Implemented Tests
-| ID | Scenario | File | Status |
-| TS-1 | {name} | {path} | Pass |
-## Coverage Summary
-| Module | Coverage | Target | Status |
-| Overall | X% | 80% | ✅/❌ |
-```
+**test-scenarios.md**: Test ID, Scenario, File, Status
 
-**Update `$RUN_DIR/ralph-loop-log.md`**:
-```markdown
-# Ralph Loop Execution Log
-| Iteration | Tests | Types | Lint | Coverage | Status |
-```
+**ralph-loop-log.md**: Iteration, Tests, Types, Lint, Coverage, Status
 
 ---
 
@@ -274,14 +199,14 @@ npm run test -- --coverage > "$RUN_DIR/coverage-report.txt" 2>&1
 - project-structure.md, system-integration.md, docs-overview.md
 
 ## Context Engineering (3-Tier)
-### Tier 2 (Component): {component}/CONTEXT.md
-### Tier 3 (Feature): {feature}/CONTEXT.md
+- Tier 2 (Component): {component}/CONTEXT.md
+- Tier 3 (Feature): {feature}/CONTEXT.md
 
 ## TDD Artifacts Archived
 - test-scenarios.md, coverage-report.txt, ralph-loop-log.md
 
 ## Verification
-- [ ] CLAUDE.md valid, [ ] docs/ai-context/ valid, [ ] CONTEXT.md valid
+- CLAUDE.md valid, docs/ai-context/ valid, CONTEXT.md valid
 
 Ready for: /03_close
 ```

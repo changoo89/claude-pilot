@@ -37,6 +37,8 @@ STATE_BACKUP=".pilot/scripts/state_backup.sh"
 [ -f "$STATE_BACKUP" ] && . "$STATE_BACKUP" || { echo "Error: state_backup.sh not found" >&2; exit 1; }
 ```
 
+**See**: @.claude/commands/99_continue-details.md for script details
+
 ---
 
 ## Step 1: Check Continuation State Exists
@@ -75,7 +77,7 @@ if ! echo "$STATE" | jq empty 2>/dev/null; then
     echo "❌ Invalid continuation state (corrupted JSON)"
     echo ""
     echo "Attempting recovery from backup..."
-    
+
     BACKUP_FILE="${STATE_FILE}.backup"
     if [ -f "$BACKUP_FILE" ]; then
         STATE=$(cat "$BACKUP_FILE")
@@ -98,7 +100,7 @@ BRANCH=$(echo "$STATE" | jq -r '.branch // empty')
 PLAN_FILE=$(echo "$STATE" | jq -r '.plan_file // empty')
 ITERATION_COUNT=$(echo "$STATE" | jq -r '.iteration_count // 0')
 MAX_ITERATIONS=$(echo "$STATE" | jq -r '.max_iterations // 7')
-CONTINUATION_LEVEL=$(echo "$STATE" | jq -r '.continuation_level // "normal"')
+CONTINUATION_LEVEL=$(echo "$STATE" | jq -r '.continuation_level // "normal')
 
 echo ""
 echo "📋 Continuation State"
@@ -108,6 +110,8 @@ echo "   Plan: $PLAN_FILE"
 echo "   Iterations: $ITERATION_COUNT/$MAX_ITERATIONS"
 echo "   Level: $CONTINUATION_LEVEL"
 ```
+
+**See**: @.claude/commands/99_continue-details.md for state format and recovery
 
 ---
 
@@ -135,268 +139,115 @@ if [ "$BRANCH" != "$CURRENT_BRANCH" ]; then
 fi
 ```
 
+**See**: @.claude/commands/99_continue-details.md for branch mismatch handling
+
 ---
 
-## Step 4: Extract Todos
+## Step 4: Extract Next Todo
 
 ```bash
-# Get all todos
-ALL_TODOS=$(echo "$STATE" | jq -r '.todos[]')
+# Get next incomplete todo
+IN_PROGRESS_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status == "in_progress") | .id')
 
-# Count incomplete todos
+if [ -n "$IN_PROGRESS_TODO" ]; then
+    NEXT_TODO="$IN_PROGRESS_TODO"
+else
+    NEXT_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status == "pending") | .id' | head -1)
+fi
+
+echo "→ Continuing with todo: $NEXT_TODO"
+```
+
+---
+
+## Step 5: Execute Continuation
+
+> **Purpose**: Execute next todo using Coder agent
+
+**MANDATORY ACTION**: Invoke Coder agent with continuation context
+
+**See**: @.claude/commands/99_continue-details.md for agent invocation details
+
+---
+
+## Step 6: Update State
+
+After Coder agent completes:
+
+```bash
+NEW_ITERATION=$((ITERATION_COUNT + 1))
+
+# Update iteration count
+UPDATED_STATE=$(echo "$STATE" | jq --argjson iteration "$NEW_ITERATION" '
+  .iteration_count = $iteration |
+  .last_checkpoint = (now | todate)
+')
+
+echo "$UPDATED_STATE" > "$STATE_FILE"
+echo "✓ State updated: Iteration $NEW_ITERATION/$MAX_ITERATIONS"
+```
+
+**See**: @.claude/commands/99_continue-details.md for update patterns
+
+---
+
+## Step 7: Verify Completion
+
+After Coder agent completes:
+
+```bash
+# Check if all todos complete
 INCOMPLETE_COUNT=$(echo "$STATE" | jq '[.todos[] | select(.status != "complete")] | length')
 
-echo ""
-echo "📊 Todo Status"
-echo "   Total: $(echo "$STATE" | jq '.todos | length')"
-echo "   Completed: $(echo "$STATE" | jq '[.todos[] | select(.status == "complete")] | length')"
-echo "   In Progress: $(echo "$STATE" | jq '[.todos[] | select(.status == "in_progress")] | length')"
-echo "   Pending: $(echo "$STATE" | jq '[.todos[] | select(.status == "pending")] | length')"
-echo ""
-
 if [ "$INCOMPLETE_COUNT" -eq 0 ]; then
+    echo ""
     echo "✅ All todos complete!"
     echo ""
-    echo "Next steps:"
-    echo "  1. Review implementation: /90_review"
-    echo "  2. Update documentation: /91_document"
-    echo "  3. Close plan: /03_close"
-    echo ""
-    
-    # Ask if user wants to clean up state
-    read -p "Clean up continuation state? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        rm -f "$STATE_FILE"
-        echo "✓ State file removed"
-    fi
-    
+    echo "→ State cleaned up automatically"
+    rm -f "$STATE_FILE"
     exit 0
 fi
+
+echo "→ $INCOMPLETE_COUNT todos remaining"
+echo "→ Use /99_continue to resume"
 ```
 
 ---
 
-## Step 5: Find Next Todo
+## Continuation Levels
 
+**Configuration**:
 ```bash
-# Find next incomplete todo (in_progress first, then pending)
-NEXT_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status == "in_progress" or .status == "pending") | .id' | head -1)
-
-if [ -z "$NEXT_TODO" ]; then
-    echo "❌ No incomplete todos found (this shouldn't happen)"
-    exit 1
-fi
-
-# Get todo details
-NEXT_TODO_STATUS=$(echo "$STATE" | jq -r ".todos[] | select(.id == \"$NEXT_TODO\") | .status")
-NEXT_TODO_OWNER=$(echo "$STATE" | jq -r ".todos[] | select(.id == \"$NEXT_TODO\") | .owner // \"coder\"")
-NEXT_TODO_ITERATION=$(echo "$STATE" | jq -r ".todos[] | select(.id == \"$NEXT_TODO\") | .iteration // 0")
-
-echo "➡️  Next todo: $NEXT_TODO"
-echo "   Status: $NEXT_TODO_STATUS"
-echo "   Owner: $NEXT_TODO_OWNER"
-echo "   Previous attempts: $NEXT_TODO_ITERATION"
-echo ""
+export CONTINUATION_LEVEL="normal"  # aggressive | normal | polite
 ```
+
+| Level | Behavior | Use For |
+|-------|----------|---------|
+| `aggressive` | Maximum continuation, minimal pauses | Automated workflows |
+| `normal` (default) | Balanced continuation with visibility | Standard workflows |
+| `polite` | Frequent checkpoints, user control | Manual review needed |
+
+**See**: @.claude/commands/99_continue-details.md for level details
 
 ---
 
-## Step 6: Check Max Iterations
+## Error Handling
 
-```bash
-if [ "$ITERATION_COUNT" -ge "$MAX_ITERATIONS" ]; then
-    echo "⚠️ MAX ITERATIONS REACHED"
-    echo ""
-    echo "   Current: $ITERATION_COUNT"
-    echo "   Maximum: $MAX_ITERATIONS"
-    echo ""
-    echo "Manual review required before continuation."
-    echo ""
-    echo "Options:"
-    echo "  1. Review work and fix issues manually"
-    echo "  2. Increase max_iterations in state file"
-    echo "  3. Reset iteration count: jq '.iteration_count = 0' .pilot/state/continuation.json"
-    echo ""
-    exit 1
-fi
-```
+| Error | Solution |
+|-------|----------|
+| State not found | Run `/00_plan` then `/02_execute` |
+| Invalid JSON | Automatic recovery from backup |
+| Branch mismatch | Switch branch or clear state |
+| Max iterations | Manual review required, then resume |
 
----
-
-## Step 7: Update State and Continue
-
-```bash
-# Mark next todo as in_progress
-UPDATED_STATE=$(echo "$STATE" | jq \
-    --arg todo_id "$NEXT_TODO" \
-    '
-    if .todos then
-        .todos |= map(
-            if .id == $todo_id then
-                .status = "in_progress"
-            else
-                .
-            end
-        )
-    else
-        .
-    end |
-    .iteration_count += 1 |
-    .last_checkpoint = now | todate
-    ')
-
-# Write updated state
-echo "$UPDATED_STATE" | "$STATE_WRITE"
-
-echo "✓ State updated"
-echo "   Todo marked as in_progress: $NEXT_TODO"
-echo "   Iteration: $((ITERATION_COUNT + 1))"
-echo ""
-```
-
----
-
-## Step 8: Resume Work
-
-```bash
-echo "════════════════════════════════════════════════════════════"
-echo "🚀 RESUMING WORK"
-echo "════════════════════════════════════════════════════════════"
-echo ""
-echo "Loading plan: $PLAN_FILE"
-echo ""
-
-# Read plan file
-if [ ! -f "$PLAN_FILE" ]; then
-    echo "❌ Plan file not found: $PLAN_FILE"
-    echo ""
-    echo "The plan file may have been moved or deleted."
-    echo "Please update the plan_file path in continuation state."
-    exit 1
-fi
-
-# Display plan summary
-echo "📋 Plan Summary"
-echo "   File: $PLAN_FILE"
-grep -E "^# " "$PLAN_FILE" | head -5
-echo ""
-
-echo "➡️  Continuing with todo: $NEXT_TODO"
-echo ""
-echo "Agent invocation will be handled by the orchestrator."
-echo ""
-```
-
----
-
-## Step 9: Agent Continuation
-
-The continuation system will now invoke the appropriate agent based on the todo owner:
-
-```bash
-# Based on NEXT_TODO_OWNER, invoke appropriate agent
-case "$NEXT_TODO_OWNER" in
-    "coder")
-        echo "Invoking Coder agent for: $NEXT_TODO"
-        # Agent invocation handled by orchestrator
-        ;;
-    "tester")
-        echo "Invoking Tester agent for: $NEXT_TODO"
-        # Agent invocation handled by orchestrator
-        ;;
-    "validator")
-        echo "Invoking Validator agent for: $NEXT_TODO"
-        # Agent invocation handled by orchestrator
-        ;;
-    "documenter")
-        echo "Invoking Documenter agent for: $NEXT_TODO"
-        # Agent invocation handled by orchestrator
-        ;;
-    *)
-        echo "Invoking Coder agent (default) for: $NEXT_TODO"
-        # Agent invocation handled by orchestrator
-        ;;
-esac
-```
-
----
-
-## Success Criteria
-
-- [ ] Continuation state file exists and is valid
-- [ ] Branch matches state (or user confirmed mismatch)
-- [ ] Incomplete todos found
-- [ ] Next todo identified
-- [ ] State updated with in_progress status
-- [ ] Agent invoked with next todo
+**See**: @.claude/commands/99_continue-details.md for error recovery procedures
 
 ---
 
 ## Related Commands
 
-- **/02_execute**: Creates continuation state automatically
-- **/03_close**: Verifies all todos complete before cleanup
-- **/00_plan**: Creates plans with granular todos
+- **/02_execute** - Creates continuation state, manages iterations
+- **/03_close** - Verifies completion, cleans up state
+- **/00_plan** - Start new work (creates fresh state)
 
----
-
-## Troubleshooting
-
-### Issue: "No continuation state found"
-
-**Cause**: No previous execution session exists
-
-**Solution**:
-```bash
-# Start fresh with new plan
-/00_plan "task description"
-/02_execute
-```
-
-### Issue: "Invalid continuation state (corrupted JSON)"
-
-**Cause**: State file corrupted
-
-**Solution**:
-```bash
-# Recover from backup
-cp .pilot/state/continuation.json.backup .pilot/state/continuation.json
-
-# Or start fresh
-rm .pilot/state/continuation.json
-```
-
-### Issue: "Branch mismatch detected"
-
-**Cause**: State was created on different branch
-
-**Solution**:
-```bash
-# Switch to state branch
-git checkout <state-branch>
-
-# Or clear state and start fresh
-rm .pilot/state/continuation.json
-```
-
-### Issue: "MAX ITERATIONS REACHED"
-
-**Cause**: Agent has attempted 7 times without completion
-
-**Solution**:
-```bash
-# Review work manually
-# Fix issues
-# Reset iteration count
-jq '.iteration_count = 0' .pilot/state/continuation.json > /tmp/state.json
-mv /tmp/state.json .pilot/state/continuation.json
-
-# Resume
-/99_continue
-```
-
----
-
-**Version**: 1.0.0
-**Last Updated**: 2026-01-18
+**Detailed Reference**: @.claude/commands/99_continue-details.md

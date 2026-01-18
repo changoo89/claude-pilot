@@ -12,7 +12,7 @@ COMMANDS_DIR="$PROJECT_ROOT/.claude/commands"
 echo "=== TS-3: Graceful Fallback Test ==="
 
 # Commands to test
-COMMANDS=("00_plan.md" "01_confirm.md" "91_document.md" "03_close.md" "999_publish.md")
+COMMANDS=("00_plan.md" "01_confirm.md" "91_document.md" "03_close.md" "999_release.md")
 ALL_PASS=true
 
 for cmd in "${COMMANDS[@]}"; do

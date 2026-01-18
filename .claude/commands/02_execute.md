@@ -663,6 +663,35 @@ if [ "$CURRENT_ITERATION" -ge "$MAX_ITERATIONS" ]; then
 fi
 ```
 
+### User Escape Hatch
+
+**CRITICAL**: Users can override continuation at any time using these commands:
+
+| Command | Purpose | Effect |
+|---------|---------|--------|
+| `/cancel` | Cancel current work | Stops continuation, preserves state |
+| `/stop` | Stop execution | Stops continuation, preserves state |
+| `/done` | Mark as complete | Stops continuation, ready for /03_close |
+
+**Agent Behavior**:
+- If user types any escape hatch command → **STOP IMMEDIATELY**
+- Do not continue with next todo
+- Do not update continuation state
+- Preserve state for potential resume with `/00_continue`
+
+**Implementation**:
+```bash
+# Before continuing, check for user escape hatch
+# (This check happens before each continuation prompt)
+USER_INPUT_CHECK="${USER_INPUT:-}"
+
+if echo "$USER_INPUT_CHECK" | grep -qE "^/(cancel|stop|done)"; then
+    echo "→ User invoked escape hatch: $USER_INPUT_CHECK"
+    echo "→ Stopping continuation (state preserved)"
+    return 0
+fi
+```
+
 ---
 
 ## Step 6: Todo Continuation Enforcement

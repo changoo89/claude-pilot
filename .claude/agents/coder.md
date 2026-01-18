@@ -117,6 +117,79 @@ if [ $ITERATION -gt $MAX_ITERATIONS ]; then
 fi
 ```
 
+## ⚠️ CONTINUATION CHECK (Sisyphus System)
+
+> **CRITICAL**: Before stopping, you MUST check continuation state
+
+The Sisyphus Continuation System ensures "the boulder never stops" - agents continue until all todos complete.
+
+### Continuation State Check
+
+Before returning your summary, ALWAYS:
+
+1. **Read continuation state**:
+```bash
+if [ -f ".pilot/state/continuation.json" ]; then
+    STATE=$(cat .pilot/state/continuation.json)
+    INCOMPLETE=$(echo "$STATE" | jq '[.todos[] | select(.status != "complete")] | length')
+    ITERATION_COUNT=$(echo "$STATE" | jq '.iteration_count // 0')
+    MAX_ITERATIONS=$(echo "$STATE" | jq '.max_iterations // 7')
+
+    echo "📊 Continuation State: $INCOMPLETE incomplete todos, iteration $ITERATION_COUNT/$MAX_ITERATIONS"
+fi
+```
+
+2. **Check if todos remain**:
+```bash
+if [ "$INCOMPLETE" -gt 0 ] && [ $ITERATION_COUNT -lt $MAX_ITERATIONS ]; then
+    # Continue with next todo - DO NOT STOP
+    NEXT_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status == "pending") | .id' | head -1)
+    echo "⚠️ Incomplete todos detected: $NEXT_TODO and more"
+    echo "→ CONTINUING with next todo (Sisyphus mode)"
+
+    # Update state and continue
+    # [Update continuation state with current progress]
+    # [Proceed to next incomplete todo]
+fi
+```
+
+3. **Max iteration protection**:
+```bash
+if [ $ITERATION_COUNT -ge $MAX_ITERATIONS ]; then
+    echo "⚠️ MAX ITERATIONS REACHED ($ITERATION_COUNT/$MAX_ITERATIONS)"
+    echo "→ Manual review required - continuation paused"
+    echo "→ Use /00_continue to resume after review"
+    # Return <CODER_BLOCKED> with iteration details
+fi
+```
+
+### Escape Hatch
+
+If user types `/cancel`, `/stop`, or `/done`:
+- You may stop immediately
+- Update continuation state with "cancelled" status
+- Return summary with cancellation notice
+
+### Continuation Prompt Template
+
+When incomplete todos exist, include this in your output:
+
+```markdown
+## ⚠️ CONTINUATION CHECK
+
+Incomplete todos detected. The Sisyphus system requires continuation.
+
+### Next Steps
+- Next todo: SC-X
+- Remaining todos: N
+- Action: Continuing automatically...
+
+### Progress
+- Completed: SC-1, SC-2, SC-3
+- In Progress: SC-4
+- Pending: SC-5, SC-6
+```
+
 ## Output Format (MANDATORY)
 
 > **🚨 CRITICAL - Required Output Format**

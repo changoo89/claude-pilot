@@ -57,6 +57,86 @@ Output `<RALPH_COMPLETE>` marker **ONLY when** ALL conditions are met:
 - [ ] Type check clean
 - [ ] Lint clean
 - [ ] All todos completed
+- [ ] Continuation state verified (if exists)
+
+### Continuation State Integration (Sisyphus System)
+
+**CRITICAL**: Ralph Loop now integrates with the Sisyphus Continuation System for persistent iteration tracking.
+
+#### State File Check
+
+Before entering Ralph Loop, check for continuation state:
+
+```bash
+STATE_FILE=".pilot/state/continuation.json"
+
+if [ -f "$STATE_FILE" ]; then
+    # Load existing iteration count
+    ITERATION=$(jq -r '.iteration_count // 0' "$STATE_FILE")
+    MAX_ITERATIONS=$(jq -r '.max_iterations // 7' "$STATE_FILE")
+
+    # Resume from last checkpoint
+    echo "🔄 Resuming Ralph Loop from iteration $ITERATION"
+else
+    # Start fresh
+    ITERATION=1
+    MAX_ITERATIONS=7
+fi
+```
+
+#### State Update After Each Iteration
+
+After each iteration, update continuation state:
+
+```bash
+# Update state with current iteration
+UPDATED_STATE=$(jq \
+    --argjson iteration "$ITERATION" \
+    '.iteration_count = $iteration | .last_checkpoint = now | todate' \
+    "$STATE_FILE")
+
+echo "$UPDATED_STATE" > "$STATE_FILE"
+```
+
+#### Continuation on Blocked Status
+
+If Ralph Loop reaches max iterations without completion:
+
+```bash
+if [ $ITERATION -gt $MAX_ITERATIONS ]; then
+    echo "<RALPH_BLOCKED>"
+
+    # Update state with blocked status
+    jq '.status = "blocked"' "$STATE_FILE" > "$STATE_FILE.tmp"
+    mv "$STATE_FILE.tmp" "$STATE_FILE"
+
+    # Notify user of continuation options
+    echo ""
+    echo "⚠️ MAX ITERATIONS REACHED"
+    echo "→ Use /00_continue to resume after manual review"
+    echo "→ Or fix issues manually and reset iteration count"
+fi
+```
+
+#### Continuation Check Before Completion
+
+Before outputting `<RALPH_COMPLETE>`, verify no incomplete todos:
+
+```bash
+if [ -f "$STATE_FILE" ]; then
+    INCOMPLETE=$(jq '[.todos[] | select(.status != "complete")] | length' "$STATE_FILE")
+
+    if [ "$INCOMPLETE" -gt 0 ]; then
+        echo "⚠️ Incomplete todos: $INCOMPLETE remaining"
+        echo "→ Continuing with next todo (Sisyphus mode)"
+        # Don't output <RALPH_COMPLETE>, continue loop
+    else
+        echo "<RALPH_COMPLETE>"
+        # Clean up state file
+        rm -f "$STATE_FILE"
+    fi
+fi
+```
 
 ### Loop Structure
 ```

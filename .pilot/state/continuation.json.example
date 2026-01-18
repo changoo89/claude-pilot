@@ -1,13 +1,13 @@
 {
   "version": "1.0",
-  "session_id": "8B8E88A1-1AEF-4993-BF38-A5AAE4A4D502",
+  "session_id": "uuid-v4-example",
   "branch": "main",
-  "plan_file": "/test/plan.md",
+  "plan_file": ".pilot/plan/in_progress/20260118_150431_sisyphus_continuation_system.md",
   "todos": [
     {
       "id": "SC-1",
       "status": "in_progress",
-      "iteration": 2,
+      "iteration": 1,
       "owner": "coder"
     },
     {
@@ -17,8 +17,8 @@
       "owner": "tester"
     }
   ],
-  "iteration_count": 3,
+  "iteration_count": 1,
   "max_iterations": 7,
-  "last_checkpoint": "2026-01-18T08:02:14Z",
+  "last_checkpoint": "2026-01-18T10:30:00Z",
   "continuation_level": "normal"
 }

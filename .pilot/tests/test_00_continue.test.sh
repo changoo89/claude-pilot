@@ -44,23 +44,43 @@ test_continue_command_structure() {
         return 1
     }
 
-    grep -q "## Step 2: Load State" "$command_file" || {
+    grep -q "## Step 2: Load and Validate State" "$command_file" || {
         echo "FAIL: Missing Step 2 section"
         return 1
     }
 
-    grep -q "## Step 3: Validate State" "$command_file" || {
+    grep -q "## Step 3: Check Branch Match" "$command_file" || {
         echo "FAIL: Missing Step 3 section"
         return 1
     }
 
-    grep -q "## Step 4: Resume Work" "$command_file" || {
+    grep -q "## Step 4: Extract Todos" "$command_file" || {
         echo "FAIL: Missing Step 4 section"
         return 1
     }
 
-    grep -q "## Step 5: Continue Execution" "$command_file" || {
+    grep -q "## Step 5: Find Next Todo" "$command_file" || {
         echo "FAIL: Missing Step 5 section"
+        return 1
+    }
+
+    grep -q "## Step 6: Check Max Iterations" "$command_file" || {
+        echo "FAIL: Missing Step 6 section"
+        return 1
+    }
+
+    grep -q "## Step 7: Update State and Continue" "$command_file" || {
+        echo "FAIL: Missing Step 7 section"
+        return 1
+    }
+
+    grep -q "## Step 8: Resume Work" "$command_file" || {
+        echo "FAIL: Missing Step 8 section"
+        return 1
+    }
+
+    grep -q "## Step 9: Agent Continuation" "$command_file" || {
+        echo "FAIL: Missing Step 9 section"
         return 1
     }
 

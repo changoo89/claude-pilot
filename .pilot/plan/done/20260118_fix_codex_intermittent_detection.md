@@ -1,7 +1,7 @@
 # Plan: Fix Intermittent Codex CLI Detection Failure
 
 > **Created**: 2026-01-18 15:04:00
-> **Status**: Pending
+> **Status**: Complete
 > **Branch**: main
 
 ---
@@ -103,17 +103,20 @@ $ env -i bash -c 'source ~/.zshrc; command -v codex'
 
 **Measurable, testable, verifiable outcomes**:
 
-- [ ] **SC-1**: `/opt/homebrew/bin` added to PATH in `~/.zshrc`
+- [x] **SC-1**: `/opt/homebrew/bin` added to PATH in `~/.zshrc`
   - Verify: `grep "opt/homebrew/bin" ~/.zshrc`
   - Expected: Line exists with PATH export
+  - **Result**: ✅ Line added: `export PATH="/opt/homebrew/bin:$PATH"`
 
-- [ ] **SC-2**: Codex detected in non-interactive shell
+- [x] **SC-2**: Codex detected in non-interactive shell
   - Verify: `env -i bash -c 'source ~/.zshrc; command -v codex'`
   - Expected: Returns `/opt/homebrew/bin/codex`
+  - **Result**: ✅ Returns `/opt/homebrew/bin/codex`
 
-- [ ] **SC-3**: `codex-sync.sh` detects codex reliably
+- [x] **SC-3**: `codex-sync.sh` detects codex reliably
   - Verify: Run detection check 5 times in succession
   - Expected: 100% success rate (5/5 detections succeed)
+  - **Result**: ✅ 5/5 tests passed (100% success rate)
 
 ---
 
@@ -205,6 +208,9 @@ $ env -i bash -c 'source ~/.zshrc; command -v codex'
 | Date | Reviewer | Findings | Status |
 |------|----------|----------|--------|
 | 2026-01-18 15:04 | User | Initial report of intermittent Codex detection failure | Pending |
+| 2026-01-18 15:20 | Coder | SC-1: Added `/opt/homebrew/bin` to PATH in ~/.zshrc | Complete |
+| 2026-01-18 15:20 | Coder | SC-2: Verified non-interactive shell detection | Complete |
+| 2026-01-18 15:20 | Coder | SC-3: Verified 100% detection reliability (5/5) | Complete |
 
 ---
 
@@ -212,10 +218,10 @@ $ env -i bash -c 'source ~/.zshrc; command -v codex'
 
 **Before marking plan complete**:
 
-- [ ] All SCs marked complete
-- [ ] All tests pass (TS-1 through TS-4)
-- [ ] Codex detection 100% reliable (5/5 iterations)
-- [ ] No breaking changes to shell configuration
+- [x] All SCs marked complete
+- [x] All tests pass (TS-1 through TS-4)
+- [x] Codex detection 100% reliable (5/5 iterations)
+- [x] No breaking changes to shell configuration
 - [ ] Plan archived to `.pilot/plan/done/`
 
 ---

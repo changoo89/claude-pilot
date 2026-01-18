@@ -42,17 +42,41 @@ fi
 # Check for incomplete todos in the plan
 INCOMPLETE=$(grep -c '^\- \[ \]' "$PLAN_FILE" 2>/dev/null || echo "0")
 
-if [ "$INCOMPLETE" -gt "0" ]; then
+# Also check continuation state file (Sisyphus system)
+STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
+STATE_INCOMPLETE=0
+
+if [ -f "$STATE_FILE" ]; then
+    STATE_INCOMPLETE=$(jq '[.todos[] | select(.status != "complete")] | length' "$STATE_FILE" 2>/dev/null || echo 0)
+fi
+
+if [ "$INCOMPLETE" -gt "0" ] || [ "$STATE_INCOMPLETE" -gt "0" ]; then
     echo -e "${YELLOW}⚠ Ralph Continuation Warning:${NC}"
-    echo -e "  You have $INCOMPLETE incomplete todo(s) in your plan."
-    echo -e "  ${YELLOW}Plan location:${NC} $PLAN_FILE"
+
+    if [ "$INCOMPLETE" -gt "0" ]; then
+        echo -e "  You have $INCOMPLETE incomplete todo(s) in your plan."
+        echo -e "  ${YELLOW}Plan location:${NC} $PLAN_FILE"
+    fi
+
+    if [ "$STATE_INCOMPLETE" -gt "0" ]; then
+        echo -e "  You have $STATE_INCOMPLETE incomplete todo(s) in continuation state."
+        echo -e "  ${YELLOW}State file:${NC} $STATE_FILE"
+        echo -e "  ${YELLOW}Next action:${NC} Run /00_continue to resume work"
+    fi
+
     echo ""
     echo -e "${YELLOW}Options:${NC}"
     echo -e "  1. Complete the todos and run /03_close"
     echo -e "  2. Create sub-tasks for blocked items"
     echo -e "  3. Update plan to reflect actual completion status"
+
+    if [ "$STATE_INCOMPLETE" -gt "0" ]; then
+        echo -e "  4. Run /00_continue to resume from continuation state"
+    fi
+
     echo ""
     echo -e "${RED}Remember: Never quit halfway!${NC}"
+    echo -e "${YELLOW}Escape hatch: Use /cancel or /stop to force stop${NC}"
     exit 0  # Don't block exit, just warn
 else
     echo -e "${GREEN}✓ All todos completed! Ready for /03_close${NC}"

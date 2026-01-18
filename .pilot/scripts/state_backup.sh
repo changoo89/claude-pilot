@@ -25,15 +25,17 @@ done
 CONTINUATION_FILE="$STATE_DIR/continuation.json"
 BACKUP_FILE="$STATE_DIR/continuation.json.backup"
 
-# Create backup if file exists
-if [ -f "$CONTINUATION_FILE" ]; then
-    if ! cp "$CONTINUATION_FILE" "$BACKUP_FILE"; then
-        echo "Error: Failed to create backup: $BACKUP_FILE" >&2
-        exit 1
-    fi
-    echo "Backup created: $BACKUP_FILE"
-else
+# Check if state file exists
+if [ ! -f "$CONTINUATION_FILE" ]; then
     echo "No existing state file to backup"
+    exit 0
 fi
 
+# Create backup
+if ! cp "$CONTINUATION_FILE" "$BACKUP_FILE"; then
+    printf "Error: Failed to create backup: %s\n" "$BACKUP_FILE" >&2
+    exit 1
+fi
+
+printf "Backup created: %s\n" "$BACKUP_FILE"
 exit 0

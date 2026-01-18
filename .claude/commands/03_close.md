@@ -243,7 +243,7 @@ if [ -f "$STATE_FILE" ]; then
         echo "═══════════════════════════════════════"
         echo ""
         echo "Options:"
-        echo "  1) Continue work (run /00_continue)"
+        echo "  1) Continue work (run /99_continue)"
         echo "  2) Close anyway (archive incomplete plan)"
         echo "  3) Cancel closure (keep plan in_progress)"
         echo ""
@@ -328,7 +328,7 @@ If incomplete todos detected:
 
 **Option 1: Continue work**
 ```bash
-/00_continue  # Resume from continuation state
+/99_continue  # Resume from continuation state
 ```
 
 **Option 2: Force close**

@@ -303,13 +303,13 @@ echo "→ /02_execute completed with result: $EXEC_RESULT"
 - Ensures consistent execution behavior across all commands
 - Leverages existing continuation state management (Step 2.6 in `/02_execute`)
 - Maintains Ralph Loop integration with state updates
-- Supports `/00_continue` resumption seamlessly
+- Supports `/99_continue` resumption seamlessly
 
 **Continuation State Management**:
 - State file: `.pilot/state/continuation.json`
 - Updated automatically by `/02_execute` on each Ralph Loop iteration
 - Includes: session_id, branch, plan_file, todos, iteration_count, max_iterations
-- Compatible with `/00_continue` for resumption
+- Compatible with `/99_continue` for resumption
 
 ---
 
@@ -329,7 +329,7 @@ if [ -f "$STATE_FILE" ]; then
         echo ""
         echo "⚠️  Work incomplete: $INCOMPLETE_COUNT todos remaining"
         echo ""
-        echo "→ Use /00_continue to resume work"
+        echo "→ Use /99_continue to resume work"
         echo ""
         exit 0
     fi
@@ -370,7 +370,7 @@ echo "Options:"
 echo "  y) Yes - commit changes and close plan"
 echo "  n) No - keep changes but don't commit"
 echo ""
-echo "→ If 'n': Use /00_continue to resume, or /03_close --no-commit to skip commit"
+echo "→ If 'n': Use /99_continue to resume, or /03_close --no-commit to skip commit"
 echo ""
 
 # Default: Require explicit confirmation (set COMMIT_CONFIRM=true to proceed)
@@ -455,7 +455,7 @@ fi
 
 If work is incomplete:
 - Continuation state preserved in `.pilot/state/continuation.json`
-- Run `/00_continue` to resume work
+- Run `/99_continue` to resume work
 - Max 7 Ralph Loop iterations before manual intervention required
 
 ---
@@ -463,6 +463,6 @@ If work is incomplete:
 ## Related Commands
 
 - **/00_plan** - For complex tasks requiring full planning
-- **/00_continue** - Resume incomplete work
+- **/99_continue** - Resume incomplete work
 - **/02_execute** - Standard execution workflow
 - **/03_close** - Manual plan closure

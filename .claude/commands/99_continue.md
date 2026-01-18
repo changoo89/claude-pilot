@@ -1,19 +1,19 @@
 ---
-name: 00_continue
+name: 99_continue
 description: Resume work from continuation state (Sisyphus system)
 ---
 
-# /00_continue
+# /99_continue
 
 > **Purpose**: Resume work from continuation state when agents need to continue incomplete tasks
-> **Usage**: `/00_continue` - Automatically loads state and continues with next incomplete todo
+> **Usage**: `/99_continue` - Automatically loads state and continues with next incomplete todo
 
 ---
 
 ## Quick Start
 
 ```bash
-/00_continue
+/99_continue
 ```
 
 The command will:
@@ -393,7 +393,7 @@ jq '.iteration_count = 0' .pilot/state/continuation.json > /tmp/state.json
 mv /tmp/state.json .pilot/state/continuation.json
 
 # Resume
-/00_continue
+/99_continue
 ```
 
 ---

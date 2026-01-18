@@ -853,7 +853,7 @@ if [ "$CURRENT_ITERATION" -ge "$MAX_ITERATIONS" ]; then
     echo "Remaining todos:"
     cat "$STATE_FILE" | jq -r '.todos[] | select(.status != "complete") | "  - \(.id)"'
     echo ""
-    echo "Use /00_continue to resume after review"
+    echo "Use /99_continue to resume after review"
     echo ""
 
     # Return success (warning only, not error)
@@ -876,7 +876,7 @@ fi
 - If user types any escape hatch command → **STOP IMMEDIATELY**
 - Do not continue with next todo
 - Do not update continuation state
-- Preserve state for potential resume with `/00_continue`
+- Preserve state for potential resume with `/99_continue`
 
 **Implementation**:
 ```bash

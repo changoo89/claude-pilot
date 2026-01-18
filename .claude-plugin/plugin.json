@@ -20,9 +20,6 @@
   "commands": [
     "./.claude/commands/"
   ],
-  "agents": [
-    "./.claude/agents/"
-  ],
   "skills": [
     "./.claude/skills/"
   ],

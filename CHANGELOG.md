@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.6] - 2026-01-18
+
+### Added
+- **Sisyphus Continuation System (v4.2.0)**: Intelligent agent continuation across sessions
+  - Agents persist work automatically until completion or manual intervention
+  - Continuation state stored in `.pilot/state/continuation.json`
+  - Granular todo breakdown (≤15 minute chunks) for reliable progress tracking
+  - Automatic checkpoint before state writes
+  - Escape hatch: `/cancel`, `/stop`, `/done` commands
+- **Continuation Modes**: aggressive, normal, polite (configurable via `CONTINUATION_LEVEL`)
+- **State Management Scripts**: `.pilot/scripts/continuation-state.sh` for state persistence
+- **Worktree Mode Support**: `/03_close` now handles both normal and worktree modes
+
+### Fixed
+- Ensure git push completion in /03_close for both normal and worktree modes
+- Resolve intermittent Codex CLI detection failure with multi-layered fallback
+  - Sources `~/.zshrc` or `~/.bashrc` to populate PATH
+  - Checks common installation paths (Homebrew, Linux, user local)
+  - Automatic PATH update if Codex found in common path
+- Enforce executable permissions for hook scripts in `/pilot:setup`
+- Optimize hook execution to fix slow setup issue
+
+### Changed
+- Update GitHub star messages with warm, user-friendly Korean messages
+- Improve hook script execution performance
+- Update project structure documentation after permission fix
+- Update Claude Code settings for better compatibility
+
 ## [4.1.5] - 2026-01-18
 
 ### Fixed

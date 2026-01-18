@@ -272,8 +272,8 @@ WORKTREE_PERSIST_FILE="$MAIN_PROJECT_ROOT/.pilot/worktree_active.txt"
 if [ -f "$WORKTREE_PERSIST_FILE" ]; then
     # Worktree mode active - restore paths
     WORKTREE_PATH="$(head -1 "$WORKTREE_PERSIST_FILE")"
-    WORKTREE_BRANCH="$(sed -n '2p' "$WORKTREE_PERSIST_FILE" | cut -d' ' -f2-)"
-    MAIN_BRANCH="$(sed -n '3p' "$WORKTREE_PERSIST_FILE" | cut -d' ' -f2-)"
+    WORKTREE_BRANCH="$(sed -n '2s/.*: //p' "$WORKTREE_PERSIST_FILE")"
+    MAIN_BRANCH="$(sed -n '3s/.*: //p' "$WORKTREE_PERSIST_FILE")"
     WORKTREE_ROOT="$WORKTREE_PATH"
     PROJECT_ROOT="$WORKTREE_PATH"
     WORKTREE_MODE="true"

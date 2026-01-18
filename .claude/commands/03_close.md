@@ -116,10 +116,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
                 if [ "$PUSH_EXIT" -ne 0 ]; then
                     # Push failed - preserve worktree for manual push (SC-4)
-                    ERROR_MSG="$(get_push_error_message $PUSH_EXIT "$PUSH_OUTPUT")"
+                    ERROR_MSG="$(get_push_error_message "$PUSH_EXIT" "$PUSH_OUTPUT")"
                     echo "  ✗ Push failed: $ERROR_MSG" >&2
                     echo "  Worktree preserved for manual push" >&2
-                    echo "  To push manually: cd '$MAIN_PROJECT_DIR' && git push origin $WT_MAIN" >&2
+                    echo "  To push manually: cd '$MAIN_PROJECT_DIR' && git push origin '$WT_MAIN'" >&2
                     rm -rf "$LOCK_FILE" 2>/dev/null
                     trap - EXIT ERR
                     exit 1
@@ -233,7 +233,7 @@ if [ -f "$STATE_FILE" ]; then
         echo ""
         echo "Remaining todos:"
         echo "$INCOMPLETE_TODOS" | while read -r todo_id; do
-            todo_details="$(echo "$CONTINUATION_STATE" | jq -r ".todos[] | select(.id == \"$todo_id\")")"
+            todo_details="$(echo "$CONTINUATION_STATE" | jq -r --arg id "$todo_id" '.todos[] | select(.id == $id)')"
             echo "  - $todo_id"
             echo "    Status: $(echo "$todo_details" | jq -r '.status')"
             echo "    Owner: $(echo "$todo_details" | jq -r '.owner')"
@@ -674,14 +674,14 @@ for REPO in "${REPOS_TO_COMMIT[@]}"; do
             PUSH_RESULTS["$REPO"]="success"
         else
             # Get simplified error message
-            ERROR_MSG="$(get_push_error_message $PUSH_EXIT "$PUSH_OUTPUT")"
+            ERROR_MSG="$(get_push_error_message "$PUSH_EXIT" "$PUSH_OUTPUT")"
             echo "  ✗ $ERROR_MSG"
             PUSH_FAILURES["$REPO"]="push_failed|$ERROR_MSG"
             PUSH_RESULTS["$REPO"]="failed"
         fi
     else
         # Dry-run failed - get simplified error message
-        ERROR_MSG="$(get_push_error_message $DRYRUN_EXIT "$DRYRUN_OUTPUT")"
+        ERROR_MSG="$(get_push_error_message "$DRYRUN_EXIT" "$DRYRUN_OUTPUT")"
         echo "  → Dry-run failed: $ERROR_MSG (commit was created)"
         PUSH_FAILURES["$REPO"]="dryrun_failed|$ERROR_MSG"
         PUSH_RESULTS["$REPO"]="failed"

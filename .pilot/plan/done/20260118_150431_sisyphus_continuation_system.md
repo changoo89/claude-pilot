@@ -675,15 +675,34 @@ Add to `.claude/settings.json`:
 
 **Tier 2 (docs/ai-context/system-integration.md)**:
 - Added "Sisyphus Continuation System (v4.2.0)" section
-- Components table (state files, scripts, commands, guides)
-- State file format, workflow, integration points
-- Configuration (continuation levels, max iterations)
-- Agent continuation logic
+- Components, workflow, integration points
+- State file format, configuration
+
+**Tier 3 (.claude/guides/continuation-system.md)**:
+- Complete system guide created
+- Quick start, components, configuration
+- Usage examples, troubleshooting, advanced topics
+
+**Artifacts Archived**:
+- `.pilot/plan/done/20260118_150431_sisyphus_continuation_system/test-scenarios.md`
+  - 7 test scenarios, all PASS
+  - Integration tests, performance tests, edge cases
+- `.pilot/plan/done/20260118_150431_sisyphus_continuation_system/ralph-loop-log.md`
+  - 1 iteration, all SCs verified PASS
+  - Code review notes, quality metrics
 
 **Tier 3 (Feature-level)**:
-- `.claude/guides/continuation-system.md` - Full system guide
+- `.claude/guides/continuation-system.md` - Full system guide (355 lines)
 - `.claude/guides/todo-granularity.md` - Granular todo breakdown (673 lines)
 - `.claude/commands/00_continue.md` - Resume command
+
+**Artifacts Archived**:
+- `.pilot/plan/done/20260118_150431_sisyphus_continuation_system/test-scenarios.md`
+  - 7 test scenarios, all PASS
+  - Integration tests, performance tests, edge cases
+- `.pilot/plan/done/20260118_150431_sisyphus_continuation_system/ralph-loop-log.md`
+  - 1 iteration, all SCs verified PASS
+  - Code review notes, quality metrics
 
 ### Verification
 

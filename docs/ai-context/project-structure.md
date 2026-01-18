@@ -11,7 +11,7 @@
 Framework: Claude Code Plugin
 Language: Markdown + JSON (no code runtime)
 Package Manager: Claude Code Plugin System
-Version: 4.1.0
+Version: 4.1.1
 Deployment: GitHub Marketplace (plugin distribution)
 ```
 
@@ -35,7 +35,7 @@ claude-pilot/
 │   │   ├── 90_review.md    # Review code
 │   │   ├── 91_document.md  # Update docs
 │   │   ├── 92_init.md      # Initialize 3-Tier docs
-│   │   └── 999_publish.md  # Publish to GitHub (deprecated)
+│   │   └── 999_release.md  # Bump version + git tag + GitHub release (v4.1.1+)
 │   ├── guides/             # Methodology guides (15)
 │   │   ├── CONTEXT.md      # Guide folder context
 │   │   ├── claude-code-standards.md  # Official Claude Code standards
@@ -440,6 +440,19 @@ claude-pilot update --apply-statusline
 
 ## Version History
 
+### v4.1.1 (2026-01-18)
+
+- **Plugin Release Workflow**: New `/999_release` command for plugin versioning
+  - Created: `.claude/commands/999_release.md` (415 lines)
+  - Removed: `.claude/commands/999_publish.md` (obsolete PyPI workflow)
+  - Features: Version bump (3-file sync), git tag, GitHub release
+  - Arguments: `[patch|minor|major|x.y.z] [--skip-gh] [--dry-run] [--pre]`
+  - Pre-flight checks: jq, git, remote, clean working tree
+  - Auto-detection: Git remote and default branch
+  - Graceful fallback: GitHub CLI optional (skip release if gh not installed)
+  - Documentation: Updated MIGRATION.md with "Release Workflow (v4.1.1+)" section
+  - Verification: All success criteria met (SC-1 through SC-6)
+
 ### v4.1.0 (2026-01-17)
 
 - **Pure Plugin Migration**: Breaking change - PyPI distribution removed
@@ -652,5 +665,5 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-17 (Pure Plugin Migration v4.1.0)
-**Version**: 4.1.0
+**Last Updated**: 2026-01-18 (Plugin Release Workflow v4.1.1)
+**Version**: 4.1.1

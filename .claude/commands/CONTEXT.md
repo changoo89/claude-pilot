@@ -15,9 +15,9 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 | `90_review.md` | Multi-angle code review | 268 | Quality | Run comprehensive code review with multiple agent perspectives |
 | `91_document.md` | Sync documentation | 288 | Maintenance | Update CLAUDE.md, sync templates, ensure consistency |
 | `92_init.md` | Initialize new project | 209 | Setup | Initialize new project with claude-pilot template |
-| `999_publish.md` | Sync templates + deploy | 222 | Release | Sync templates from upstream, bump version, deploy |
+| `999_release.md` | Bump version + git tag + GitHub release | 415 | Release | Plugin version bump with git tag and GitHub release |
 
-**Total**: 8 commands, 2776 lines (average: 347 lines per command)
+**Total**: 9 commands, 2969 lines (average: 330 lines per command)
 
 ## Common Tasks
 
@@ -143,14 +143,17 @@ Push failed for 1 repository:
   4. Initialize git repository
 
 ### Publish Release
-- **Task**: Sync templates, bump version, deploy
-- **Command**: `/999_publish`
-- **Output**: Version bumped, templates synced, deployed
+- **Task**: Bump version, create git tag, create GitHub release
+- **Command**: `/999_release [patch|minor|major|x.y.z] [--skip-gh] [--dry-run] [--pre]`
+- **Output**: Version synced, git tag pushed, GitHub release created
 - **Process**:
-  1. Sync templates from upstream
-  2. Bump version in CLAUDE.md and package.json
-  3. Run verification tests
-  4. Deploy to production
+  1. Pre-flight checks (jq, git, remote, clean working tree)
+  2. Parse version arguments (patch/minor/major or specific version)
+  3. Sync version across 3 files: plugin.json, marketplace.json, pilot-version
+  4. Update CHANGELOG.md with release notes
+  5. Create git commit: "chore: bump version to X.Y.Z"
+  6. Create and push annotated git tag: v{version}
+  7. Create GitHub release (if gh CLI installed)
 
 ## Patterns
 
@@ -250,7 +253,7 @@ allowed-tools: [tool list]
 
 ### Maintenance Commands
 - `91_document`: Sync documentation
-- `999_publish`: Release and deploy
+- `999_release`: Bump version, git tag, GitHub release
 
 ### Setup Commands
 - `92_init`: Initialize new project

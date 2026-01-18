@@ -84,7 +84,7 @@ Check that all commands are available:
 
 # Expected: 10 pilot commands
 # /00_plan, /01_confirm, /02_execute, /03_close
-# /90_review, /91_document, /92_init, /999_publish
+# /90_review, /91_document, /92_init, /999_release
 # /pilot:setup (new)
 ```
 
@@ -261,6 +261,56 @@ claude-pilot --version
 - **Documentation**: [README.md](README.md)
 - **Issues**: [GitHub Issues](https://github.com/changoo89/claude-pilot/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/changoo89/claude-pilot/discussions)
+
+---
+
+## Release Workflow (v4.1.1+)
+
+### Plugin Release Command
+
+**v4.1.1** introduced `/999_release` for plugin versioning and GitHub releases:
+
+```bash
+# Patch release (x.y.Z) with GitHub release
+/999_release
+
+# Minor release (x.Y.0)
+/999_release minor
+
+# Major release (X.0.0)
+/999_release major
+
+# Specific version
+/999_release 4.2.0
+
+# Skip GitHub release (tag only)
+/999_release patch --skip-gh
+
+# Dry run (preview changes)
+/999_release patch --dry-run
+
+# Pre-release version
+/999_release patch --pre alpha.1
+```
+
+**What `/999_release` does**:
+1. Syncs version across 3 files: `plugin.json`, `marketplace.json`, `.pilot-version`
+2. Updates `CHANGELOG.md` with release notes
+3. Creates git commit: `chore: bump version to X.Y.Z`
+4. Creates and pushes annotated git tag: `v{version}`
+5. Creates GitHub release (if `gh` CLI installed)
+
+### Distribution Flow
+
+```
+Maintainer: /999_release → git tag → GitHub release
+                ↓
+        Users: /plugin marketplace update
+                ↓
+        Users: /plugin update claude-pilot@changoo89
+```
+
+**Note**: Plugins track commit SHAs, not git tags or releases. Tags/releases are optional ceremony for changelog visibility.
 
 ---
 

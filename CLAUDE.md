@@ -1,7 +1,7 @@
 # claude-pilot - Claude Code Development Guide
 
-> **Last Updated**: 2026-01-17
-> **Version**: 4.1.0
+> **Last Updated**: 2026-01-18
+> **Version**: 4.1.1
 
 ---
 
@@ -31,6 +31,7 @@
 | Document | `/91_document` | Auto-sync documentation |
 | Close | `/03_close` | Archive and commit |
 | Setup | `/pilot:setup` | Configure MCP servers |
+| Release | `/999_release [patch|minor|major]` | Bump version, git tag, GitHub release |
 
 ### Development Workflow
 
@@ -193,5 +194,5 @@ project-root/
 
 ---
 
-**Template Version**: claude-pilot 4.1.0 (Pure Plugin)
-**Last Updated**: 2026-01-17
+**Template Version**: claude-pilot 4.1.1 (Plugin Release Workflow)
+**Last Updated**: 2026-01-18

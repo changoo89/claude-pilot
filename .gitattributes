@@ -1,0 +1,8 @@
+# Enforce line endings for shell scripts (cross-platform compatibility)
+*.sh text eol=lf
+
+# Enforce line endings for hook scripts
+.claude/scripts/hooks/*.sh eol=lf
+
+# Note: Git doesn't support setting executable permissions via .gitattributes alone.
+# Executable bits must be set via 'git update-index --chmod=+x' (see Step 1.4)

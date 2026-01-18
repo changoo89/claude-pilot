@@ -58,7 +58,46 @@ claude-pilot --version
 pip list | grep claude-pilot
 ```
 
-### Step 3: Install Plugin
+### Step 3: Clean Legacy Project Files (CRITICAL)
+
+> **⚠️ IMPORTANT**: If you previously used PyPI installation (v4.0.5 or earlier), your project's `.claude/` directory contains legacy files that conflict with the plugin.
+
+**Remove legacy files BEFORE installing plugin**:
+
+```bash
+# In your project directory
+cd /path/to/your/project
+
+# 1. Remove PyPI marker file
+rm -f .claude/.external-skills-version
+
+# 2. Remove legacy backup directories
+rm -rf .claude-backups/
+
+# 3. Create backup of current settings
+cp .claude/settings.json .claude/settings.json.backup
+
+# 4. Update settings.json: Change enabledPlugins
+#    FROM: "claude-pilot@claude-pilot": true
+#    TO:   "claude-pilot@changoo89": true
+# (See Step 4 for details)
+```
+
+**Why this is critical**: PyPI installation copied files directly to your project's `.claude/` directory. These old files will conflict with the plugin, causing version mismatches and outdated commands.
+
+### Step 3.5: Verify Clean State
+
+```bash
+# Check for PyPI markers
+ls .claude/.external-skills-version 2>/dev/null && echo "⚠️ PyPI marker found" || echo "✓ Clean"
+
+# Check for legacy backups
+ls .claude-backups/ 2>/dev/null && echo "⚠️ Legacy backups found" || echo "✓ Clean"
+
+# Both should be clean before proceeding
+```
+
+### Step 4: Install Plugin
 
 Follow the 3-line installation in your project:
 
@@ -72,6 +111,27 @@ Follow the 3-line installation in your project:
 
 # Step 3: Run setup
 /pilot:setup
+```
+
+### Step 4.5: Update Project settings.json
+
+After running `/pilot:setup`, verify your `settings.json`:
+
+```json
+{
+  "enabledPlugins": {
+    "claude-pilot@changoo89": true  // ✅ Correct format
+  }
+}
+```
+
+**Wrong format** (legacy PyPI):
+```json
+{
+  "enabledPlugins": {
+    "claude-pilot@claude-pilot": true  // ❌ Wrong - PyPI format
+  }
+}
 ```
 
 ### Step 4: Verify Installation
@@ -180,19 +240,53 @@ No more version synchronization across 7 files!
 
 ### Issue: Commands not found after plugin install
 
+**Symptoms**: Plugin shows as installed but commands don't work or are outdated
+
+**Cause**: Legacy PyPI files in `.claude/` directory conflicting with plugin
+
 **Solution**:
 ```bash
-# Verify plugin installation
-/plugin list
+# 1. Remove legacy PyPI files
+rm -f .claude/.external-skills-version
+rm -rf .claude-backups/
 
-# Reinstall if needed
-/plugin install claude-pilot --force
+# 2. Reinstall plugin to refresh cache
+/plugin install claude-pilot@changoo89 --force
+
+# 3. Verify commands
+/list | grep pilot
 ```
+
+**Prevention**: Always clean legacy files BEFORE installing plugin (see Step 3)
 
 ### Issue: Existing `.claude/` directory conflicts
 
+**Symptoms**: Plugin installed but old commands still execute
+
+**Cause**: PyPI installation copied files directly to project, overriding plugin
+
 **Solution**:
-The plugin preserves your existing `.claude/` files. Run `/pilot:setup` to merge new configurations.
+1. Remove `.claude-backups/` directory
+2. Remove `.claude/.external-skills-version`
+3. Reinstall plugin: `/plugin install claude-pilot@changoo89 --force`
+
+### Issue: Version mismatch (4.0.5 vs 4.1.5)
+
+**Symptoms**: `.pilot-version` shows 4.0.5 but latest is 4.1.5
+
+**Cause**: Legacy files not cleaned up before plugin installation
+
+**Solution**:
+```bash
+# Remove legacy markers
+rm -f .claude/.external-skills-version
+
+# Update .pilot-version
+echo "4.1.5" > .claude/.pilot-version
+
+# Refresh plugin cache
+/plugin update claude-pilot@changoo89 --force
+```
 
 ### Issue: MCP servers not configured
 
@@ -213,6 +307,41 @@ All functionality is now available via Claude Code slash commands:
 | `claude-pilot init` | `/92_init` |
 | `claude-pilot update` | `/plugin update` |
 | `claude-pilot version` | Check `.claude-plugin/plugin.json` |
+
+### Issue: Permission denied when running hook scripts
+
+**Symptoms**: Error message `/bin/sh: .claude/scripts/hooks/*.sh: Permission denied` when hooks execute
+
+**Cause**: Hook scripts don't have executable permissions after plugin installation via marketplace. This happens because:
+1. Git tracks executable bits, but marketplace installation may not preserve permissions
+2. Existing installations before v4.1.6 may have incorrect permissions
+
+**Solution** (Automatic - Recommended):
+```bash
+# Run setup command to fix permissions automatically
+/pilot:setup
+```
+
+The setup command will detect non-executable hook scripts and fix permissions automatically.
+
+**Solution** (Manual):
+```bash
+# Make all hook scripts executable
+chmod +x .claude/scripts/hooks/*.sh
+
+# Verify permissions are correct
+ls -la .claude/scripts/hooks/*.sh
+# Expected: -rwxr-xr-x (executable)
+```
+
+**Verify Fix**:
+```bash
+# Check git index tracks executable bits (mode 100755)
+git ls-files -s .claude/scripts/hooks/*.sh
+# Expected: All hooks show mode 100755 (executable)
+```
+
+**Prevention**: After plugin update, always run `/pilot:setup` to ensure permissions are correct.
 
 ---
 

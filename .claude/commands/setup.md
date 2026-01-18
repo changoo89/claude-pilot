@@ -154,16 +154,51 @@ echo "Created .pilot/plan/{pending,in_progress,done,active}/"
 Ensure all hook scripts have execute permissions:
 
 ```bash
-# Set execute permissions on all .sh files in hooks directory
-echo "Setting hooks executable permissions..."
+# Check if hooks are executable before running chmod
+echo "Checking hook script permissions..."
 
-find .claude/scripts/hooks -name "*.sh" -type f -exec chmod +x {} \;
+# Count non-executable hooks (portable method for macOS/Linux)
+NON_EXEC_COUNT=0
+for hook in .claude/scripts/hooks/*.sh; do
+    if [ -f "$hook" ] && [ ! -x "$hook" ]; then
+        NON_EXEC_COUNT=$((NON_EXEC_COUNT + 1))
+    fi
+done
+
+if [ "$NON_EXEC_COUNT" -gt 0 ]; then
+    echo "Found $NON_EXEC_COUNT non-executable hook(s). Fixing permissions..."
+
+    # Set execute permissions on all .sh files in hooks directory
+    find .claude/scripts/hooks -name "*.sh" -type f -exec chmod +x {} \;
+
+    echo "✓ Permissions fixed automatically"
+else
+    echo "✓ All hooks already executable (no fix needed)"
+fi
 
 # Verify permissions
+echo ""
 echo "Hook scripts permissions:"
 ls -la .claude/scripts/hooks/*.sh
 
-echo "All hook scripts now have execute permissions."
+# Final verification (portable method)
+EXEC_COUNT=0
+TOTAL_COUNT=0
+for hook in .claude/scripts/hooks/*.sh; do
+    if [ -f "$hook" ]; then
+        TOTAL_COUNT=$((TOTAL_COUNT + 1))
+        if [ -x "$hook" ]; then
+            EXEC_COUNT=$((EXEC_COUNT + 1))
+        fi
+    fi
+done
+
+echo ""
+if [ "$EXEC_COUNT" -eq "$TOTAL_COUNT" ]; then
+    echo "✓ All $TOTAL_COUNT hook(s) have execute permissions"
+else
+    echo "⚠ Warning: Only $EXEC_COUNT of $TOTAL_COUNT hooks are executable"
+fi
 ```
 
 ---

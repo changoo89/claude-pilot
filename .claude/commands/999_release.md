@@ -12,10 +12,19 @@ _Release plugin version with git tag and GitHub release._
 
 - **Atomic**: All steps succeed or none do
 - **Safe**: Pre-flight checks before any modifications
+- **Comprehensive**: Auto-generate CHANGELOG from git commits
 - **Graceful**: Optional GitHub CLI with clear fallback
 - **Plugin Distribution**: Git tags + releases, no PyPI
 
 **Plugin workflow**: Users update via `/plugin marketplace update` + `/plugin update`
+
+**CHANGELOG Workflow**:
+1. Detect previous tag
+2. Collect all commits since previous tag
+3. Parse conventional commits (feat, fix, docs, etc.)
+4. Categorize into Added, Changed, Fixed, Removed, Performance, Documentation
+5. Generate formatted CHANGELOG entry
+6. Prompt for review/edit before inserting
 
 ---
 
@@ -329,41 +338,222 @@ echo "✓ Updated .claude/.pilot-version"
 
 ---
 
-## Step 4: Update CHANGELOG.md
+## Step 4: Auto-Generate CHANGELOG.md
 
-> **Prompt for release notes and insert at top of changelog**
+> **Automatically analyze git commits and generate comprehensive changelog**
 
-### 4.1 Prepare Release Notes
+### 4.1 Detect Previous Tag
+
+```bash
+# Find the most recent tag before current version
+PREV_TAG=$(git tag -l "v*" --sort=-v:refname | grep -v "^v${VERSION}$" | head -1)
+
+if [ -z "$PREV_TAG" ]; then
+    echo "Warning: No previous tag found - analyzing all commits"
+    GIT_RANGE=""
+else
+    echo "Previous tag: $PREV_TAG"
+    GIT_RANGE="${PREV_TAG}..HEAD"
+fi
+```
+
+### 4.2 Collect and Analyze Commits
 
 ```bash
 RELEASE_DATE=$(date +%Y-%m-%d)
-RELEASE_NOTES_HEADER="## [$VERSION] - $RELEASE_DATE"
 
-echo ""
-echo "Enter release notes for $VERSION (press Ctrl+D when done):"
-echo "Format: ### Added, ### Changed, ### Fixed, ### Removed"
-echo ""
+# Get commit list with proper formatting
+if [ -n "$GIT_RANGE" ]; then
+    COMMITS=$(git log $GIT_RANGE --pretty=format:"%h|||%s|||%an|||%ad" --date=short)
+    COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
+else
+    COMMITS=$(git log --pretty=format:"%h|||%s|||%an|||%ad" --date=short)
+    COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
+fi
 
-# Read release notes from user
-RELEASE_NOTES=$(cat)
+echo "Analyzing $COMMIT_COUNT commits..."
 
-# Build complete changelog entry
-CHANGELOG_ENTRY="$RELEASE_NOTES_HEADER
+# Initialize categories
+declare -A ADDED=()
+declare -A CHANGED=()
+declare -A FIXED=()
+declare -A REMOVED=()
+declare -A PERF=()
+declare -A DOCS=()
+declare -A OTHER=()
 
-$RELEASE_NOTES"
+# Parse commits by conventional commit format
+while IFS='|||' read -r hash subject author date; do
+    # Skip version bump commits
+    if echo "$subject" | grep -qiE "^chore:.*bump version"; then
+        continue
+    fi
+
+    # Extract commit type and scope
+    if echo "$subject" | grep -qE "^[a-z]+(\(.+\))?: "; then
+        TYPE=$(echo "$subject" | sed -E 's/^([a-z]+).*$/\1/')
+        SCOPE=$(echo "$subject" | sed -nE 's/^[a-z]+\(([^)]+)\).*/\1/p')
+        DESCRIPTION=$(echo "$subject" | sed -E 's/^[a-z]+(\(.+\))?:\s*//')
+    else
+        TYPE="other"
+        DESCRIPTION="$subject"
+    fi
+
+    # Normalize type
+    case "$TYPE" in
+        feat)   CATEGORY="added" ;;
+        fix)    CATEGORY="fixed" ;;
+        refactor|chore) CATEGORY="changed" ;;
+        perf)   CATEGORY="perf" ;;
+        docs)   CATEGORY="docs" ;;
+        remove|rm) CATEGORY="removed" ;;
+        *)      CATEGORY="other" ;;
+    esac
+
+    # Add to appropriate category array (deduplicate)
+    if [ -n "$DESCRIPTION" ]; then
+        KEY="$DESCRIPTION"
+        case "$CATEGORY" in
+            added)   [ -z "${ADDED[$KEY]}" ] && ADDED[$KEY]="$hash" ;;
+            changed) [ -z "${CHANGED[$KEY]}" ] && CHANGED[$KEY]="$hash" ;;
+            fixed)   [ -z "${FIXED[$KEY]}" ] && FIXED[$KEY]="$hash" ;;
+            removed) [ -z "${REMOVED[$KEY]}" ] && REMOVED[$KEY]="$hash" ;;
+            perf)    [ -z "${PERF[$KEY]}" ] && PERF[$KEY]="$hash" ;;
+            docs)    [ -z "${DOCS[$KEY]}" ] && DOCS[$KEY]="$hash" ;;
+            other)   [ -z "${OTHER[$KEY]}" ] && OTHER[$KEY]="$hash" ;;
+        esac
+    fi
+done <<< "$COMMITS"
 ```
 
-### 4.2 Insert into CHANGELOG.md
+### 4.3 Generate CHANGELOG Entry
 
 ```bash
-# Create temporary file with new entry + existing content
+# Function to format category items
+format_items() {
+    local -n arr=$1
+    local category_name=$2
+    local output=""
+
+    if [ ${#arr[@]} -gt 0 ]; then
+        output="### ${category_name}"
+        output+=$'\n'
+        for key in "${!arr[@]}"; do
+            # Capitalize first letter
+            formatted=$(echo "$key" | sed -E 's/^([a-z])/\U\1/')
+            # Add period if missing
+            [[ ! "$formatted" =~ \.$ ]] && formatted="${formatted}."
+            output+="  - ${formatted}"
+            output+=$'\n'
+        done
+        output+=$'\n'
+    fi
+
+    echo "$output"
+}
+
+# Build changelog entry
+CHANGELOG_CONTENT="## [$VERSION] - $RELEASE_DATE"
+CHANGELOG_CONTENT+=$'\n'
+CHANGELOG_CONTENT+=$'\n'
+
+# Add each category
+CHANGELOG_CONTENT+="$(format_items ADDED "Added")"
+CHANGELOG_CONTENT+="$(format_items CHANGED "Changed")"
+CHANGELOG_CONTENT+="$(format_items FIXED "Fixed")"
+CHANGELOG_CONTENT+="$(format_items REMOVED "Removed")"
+CHANGELOG_CONTENT+="$(format_items PERF "Performance")"
+CHANGELOG_CONTENT+="$(format_items DOCS "Documentation")"
+
+# Add "other" category if it exists and has meaningful content
+if [ ${#OTHER[@]} -gt 0 ]; then
+    CHANGELOG_CONTENT+="### Other"
+    CHANGELOG_CONTENT+=$'\n'
+    for key in "${!OTHER[@]}"; do
+        formatted=$(echo "$key" | sed -E 's/^([a-z])/\U\1/')
+        [[ ! "$formatted" =~ \.$ ]] && formatted="${formatted}."
+        CHANGELOG_CONTENT+="  - ${formatted}"
+        CHANGELOG_CONTENT+=$'\n'
+    done
+    CHANGELOG_CONTENT+=$'\n'
+fi
+
+# Display summary
+echo ""
+echo "=========================================="
+echo "Auto-Generated CHANGELOG for v$VERSION"
+echo "=========================================="
+echo ""
+echo "$CHANGELOG_CONTENT"
+echo "=========================================="
+echo ""
+```
+
+### 4.4 Review and Edit
+
+```bash
+# Save to temporary file for review
+TEMP_CHANGELOG=$(mktemp)
+echo "$CHANGELOG_CONTENT" > "$TEMP_CHANGELOG"
+
+echo "Changelog saved to: $TEMP_CHANGELOG"
+echo ""
+echo "Options:"
+echo "  1. Accept as-is"
+echo "  2. Edit with default editor"
+echo "  3. Provide custom changelog"
+echo ""
+read -p "Choose option (1/2/3): " CHOICE
+
+case "$CHOICE" in
+    2)
+        # Open in editor
+        ${EDITOR:-vi} "$TEMP_CHANGELOG"
+        CHANGELOG_CONTENT=$(cat "$TEMP_CHANGELOG")
+        ;;
+    3)
+        # Custom changelog
+        echo "Enter custom changelog (press Ctrl+D when done):"
+        CHANGELOG_CONTENT=$(cat)
+        ;;
+    *)
+        # Accept as-is
+        CHANGELOG_CONTENT=$(cat "$TEMP_CHANGELOG")
+        ;;
+esac
+
+# Cleanup
+rm -f "$TEMP_CHANGELOG"
+```
+
+### 4.5 Insert into CHANGELOG.md
+
+```bash
+# Read existing CHANGELOG
+if [ -f CHANGELOG.md ]; then
+    EXISTING_CONTENT=$(tail -n +2 CHANGELOG.md)
+else
+    EXISTING_CONTENT=""
+    echo "# CHANGELOG" > CHANGELOG.md
+    echo "" >> CHANGELOG.md
+    echo "All notable changes to this project will be documented in this file." >> CHANGELOG.md
+    echo "" >> CHANGELOG.md
+    echo "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)," >> CHANGELOG.md
+    echo "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)." >> CHANGELOG.md
+    echo "" >> CHANGELOG.md
+fi
+
+# Insert new entry at the top
 {
     echo "# CHANGELOG"
     echo ""
-    echo "$CHANGELOG_ENTRY"
+    echo "All notable changes to this project will be documented in this file."
     echo ""
-    # Skip header and insert new content
-    tail -n +2 CHANGELOG.md
+    echo "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),"
+    echo "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)."
+    echo ""
+    echo "$CHANGELOG_CONTENT"
+    echo "$EXISTING_CONTENT"
 } > CHANGELOG.md.new && mv CHANGELOG.md.new CHANGELOG.md
 
 echo "✓ Updated CHANGELOG.md"
@@ -441,8 +631,8 @@ fi
 if [ "$SKIP_GH" = true ]; then
     echo "Skipping GitHub release creation (--skip-gh flag)"
 else
-    # Extract release notes from CHANGELOG section
-    RELEASE_BODY=$(sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | head -n -1)
+    # Extract release notes from CHANGELOG section (remove trailing delimiter)
+    RELEASE_BODY=$(sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '$d')
 
     if [ "$DRY_RUN" = true ]; then
         echo "[DRY-RUN] Would create GitHub release v$VERSION"
@@ -464,7 +654,10 @@ fi
   - [ ] marketplace.json has all required fields (homepage, repository, license, keywords)
   - [ ] source field is local path, not URL
 - [ ] Version synced across all 3 files (plugin.json, marketplace.json, pilot-version)
-- [ ] CHANGELOG.md updated with release notes
+- [ ] CHANGELOG.md auto-generated from git commits
+  - [ ] Previous tag detected
+  - [ ] All commits analyzed and categorized
+  - [ ] Changelog reviewed/edited by user
 - [ ] Git commit created: "chore: bump version to X.Y.Z"
 - [ ] Git tag created and pushed: v{version}
 - [ ] GitHub release created (if gh CLI available and not --skip-gh)
@@ -475,7 +668,7 @@ fi
 
 | Command | Description |
 |---------|-------------|
-| `/999_release` | Patch version (x.y.Z) with GitHub release |
+| `/999_release` | Patch version (x.y.Z) with auto-generated CHANGELOG and GitHub release |
 | `/999_release patch` | Patch version (x.y.Z) |
 | `/999_release minor` | Minor version (x.Y.0) |
 | `/999_release major` | Major version (X.0.0) |
@@ -483,6 +676,35 @@ fi
 | `/999_release patch --skip-gh` | Skip GitHub release creation |
 | `/999_release patch --dry-run` | Preview changes without executing |
 | `/999_release patch --pre alpha.1` | Pre-release version (x.y.Z-alpha.1) |
+
+### CHANGELOG Auto-Generation
+
+The command automatically:
+1. Detects the previous git tag
+2. Collects all commits since the previous tag
+3. Parses conventional commit format (feat, fix, docs, etc.)
+4. Categorizes changes into Added, Changed, Fixed, Removed, Performance, Documentation
+5. Generates formatted CHANGELOG entry
+6. Prompts for review/edit before inserting
+
+**Example Output**:
+```
+==========================================
+Auto-Generated CHANGELOG for v4.1.6
+==========================================
+
+## [4.1.6] - 2026-01-18
+
+### Added
+  - Sisyphus Continuation System for agent persistence.
+  - Worktree mode support in /03_close command.
+
+### Fixed
+  - Ensure git push completion in /03_close.
+  - Resolve intermittent Codex CLI detection failure.
+
+==========================================
+```
 
 ---
 

@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-18 (Updated: GitHub Actions CI/CD Integration v4.1.8)
+> **Last Updated**: 2026-01-18 (Updated: Frontend Design Skill v4.2.1)
 
 ---
 
@@ -70,11 +70,15 @@ claude-pilot/
 │   │   ├── feature-list.json         # Feature list template (NEW v4.1.0)
 │   │   ├── init.sh                   # Init script template (NEW v4.1.0)
 │   │   └── progress.md               # Progress tracking template (NEW v4.1.0)
-│   ├── skills/             # Reusable skill modules (5)
+│   ├── skills/             # Reusable skill modules (6)
 │   │   ├── CONTEXT.md      # Skill folder context
 │   │   ├── external/       # External skills (Vercel agent-skills)
 │   │   │   └── vercel-agent-skills/  # Downloaded from GitHub
 │   │   ├── documentation-best-practices/  # Documentation standards
+│   │   ├── frontend-design/  # Frontend UI/UX design skill (NEW 2026-01-18)
+│   │   │   ├── SKILL.md     # Design thinking framework, anti-patterns
+│   │   │   ├── REFERENCE.md # Detailed design guidelines
+│   │   │   └── examples/    # Example components (3 aesthetics)
 │   │   ├── tdd/SKILL.md (+ REFERENCE.md)
 │   │   ├── ralph-loop/SKILL.md (+ REFERENCE.md)
 │   │   ├── vibe-coding/SKILL.md (+ REFERENCE.md)
@@ -325,6 +329,7 @@ Located in `.claude/skills/{skill_name}/`:
 | Skill | Purpose |
 |-------|---------|
 | `documentation-best-practices` | Claude Code documentation standards (NEW) |
+| `frontend-design` | Frontend UI/UX design thinking framework, anti-patterns, aesthetic guidelines (NEW 2026-01-18) |
 | `tdd` | Test-driven development cycle |
 | `ralph-loop` | Autonomous iteration until tests pass |
 | `vibe-coding` | Code quality enforcement |
@@ -485,6 +490,17 @@ claude-pilot update --apply-statusline
 - **Features**: File locking (flock), JSON safety (jq), automatic backup, session UUID tracking
 - Updated files: All agents (4), commands (4), guides (2 new)
 - Verification: All 5 success criteria met (SC-1 through SC-5), 57/58 tests passed (98.3%)
+
+### v4.2.1 (2026-01-18)
+
+**Frontend Design Skill**: Production-grade UI/UX design thinking framework
+- **New skill**: `frontend-design/` with SKILL.md, REFERENCE.md, examples/
+- **Design thinking**: Purpose, Tone, Constraints, Differentiation framework
+- **Aesthetic guidelines**: Typography, Color & Theme, Motion, Spatial Composition
+- **Anti-patterns**: "NEVER use" section to avoid generic AI slop (Inter, purple gradients)
+- **Examples**: 3 example components (minimalist dashboard, warm landing, brutalist portfolio)
+- **Updated files**: CLAUDE.md, README.md, CHANGELOG.md, project-structure.md
+- Verification: All 6 success criteria met (SC-1 through SC-6)
 
 ### v4.1.2 (2026-01-18)
 
@@ -724,5 +740,5 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-18 (Sisyphus Continuation System v4.2.0)
-**Version**: 4.2.0
+**Last Updated**: 2026-01-18 (Frontend Design Skill v4.2.1)
+**Version**: 4.2.1

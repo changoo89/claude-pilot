@@ -369,6 +369,43 @@ on:
 
 ---
 
+## Frontend Design Skill
+
+**Production-grade frontend design for distinctive, non-generic UI**
+
+**Skill**: `frontend-design` | **Reference**: @.claude/skills/frontend-design/SKILL.md
+
+**Purpose**: Avoid generic "AI slop" aesthetics through specific aesthetic direction guidelines
+
+**When to Use**:
+- Building web UI components, pages, or applications
+- Creating dashboard interfaces, landing pages, or marketing sites
+- Styling React components, HTML/CSS layouts, or design systems
+
+**Key Principles**:
+1. **Choose an aesthetic direction**: Minimalist, Warm/Human, Brutalist, Maximalist, Technical/Precise
+2. **Never use Inter as default font**: Choose fonts with intention
+3. **Avoid purple-to-blue gradients**: Use intentional color palettes
+4. **Embrace asymmetry**: Break from rigid, centered layouts
+5. **Add visual interest**: Texture, noise, borders, subtle shadows
+
+**Anti-Patterns to Avoid**:
+- Inter font as default
+- Purple-to-blue gradients
+- Perfectly centered everything
+- Pure white (#FFF) backgrounds
+- Generic shadows
+- Heavy rounded corners everywhere
+
+**Examples**:
+- `examples/minimalist-dashboard.tsx` - SaaS dashboard with monospace font
+- `examples/warm-landing.tsx` - Landing page with coral accent and warm colors
+- `examples/brutalist-portfolio.tsx` - Portfolio with heavy borders and hard shadows
+
+**See**: @.claude/skills/frontend-design/REFERENCE.md for detailed examples and patterns
+
+---
+
 ## Pre-Commit Checklist
 
 - [ ] All tests pass (project-specific)

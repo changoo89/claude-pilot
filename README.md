@@ -119,6 +119,26 @@ Automation at key points:
 - **PostToolUse**: Validation after changes
 - **Stop**: Todo completion verification (Ralph continuation)
 
+### 5. Frontend Design Skill
+
+**Production-grade frontend design for distinctive, non-generic UI**
+
+Avoid generic "AI slop" aesthetics through specific aesthetic direction guidelines:
+
+**Key Features**:
+- **Aesthetic Directions**: Minimalist, Warm/Human, Brutalist, Maximalist, Technical/Precise
+- **Anti-Pattern Prevention**: Never use Inter as default, avoid purple-to-blue gradients
+- **Specific Guidelines**: Typography, color palettes, motion, spatial composition
+- **Example Components**: Dashboard, landing page, portfolio with full code
+
+**Usage**:
+```bash
+# When building frontend components
+"I'll use a **Warm/Human** aesthetic for this landing page with coral accents and cream background."
+```
+
+**Reference**: `.claude/skills/frontend-design/SKILL.md`
+
 ---
 
 ## Installation

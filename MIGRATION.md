@@ -343,6 +343,59 @@ git ls-files -s .claude/scripts/hooks/*.sh
 
 **Prevention**: After plugin update, always run `/pilot:setup` to ensure permissions are correct.
 
+### Issue: Plans created in wrong directory (.cgcode instead of .pilot)
+
+**Symptoms**: `/01_confirm` creates plans in `.cgcode/plan/pending/` instead of `.pilot/plan/pending/`
+
+**Cause**: Old plugin version with legacy directory structure
+
+**Root Cause**: You have an old version of claude-pilot (pre-v4.0.5) that uses `.cgcode/` directory instead of `.pilot/`. The plugin files were copied to your project's `.claude/` directory and never updated.
+
+**Solution** (Automatic - Recommended):
+```bash
+# Update plugin to latest version
+/plugin marketplace update
+/plugin update claude-pilot@changoo89
+
+# Verify update
+/list | grep pilot
+```
+
+**Solution** (Manual Refresh):
+```bash
+# Remove old plugin files
+rm -rf .claude/
+
+# Run setup to install fresh files
+/pilot:setup
+```
+
+**Migrate Existing Plans** (if you have plans in `.cgcode/`):
+```bash
+# Create .pilot directory structure
+mkdir -p .pilot/plan/{pending,in_progress,done,active}
+
+# Move existing plans
+mv .cgcode/plan/* .pilot/plan/ 2>/dev/null || true
+
+# Remove old directory
+rm -rf .cgcode/
+
+# Verify migration
+ls -la .pilot/plan/
+```
+
+**Verify Fix**:
+```bash
+# Run /01_confirm and check plan location
+# Should create plan in .pilot/plan/pending/
+ls -la .pilot/plan/pending/
+```
+
+**Prevention**: Keep plugin updated with `/plugin marketplace update` and `/plugin update claude-pilot@changoo89`
+
+**Note**: Current claude-pilot (v4.2.0) uses `.pilot/plan/` directory structure. The `.cgcode/` directory is from very old versions and should not be used.
+
 ---
 
 ## Emergency Rollback (Not Recommended)

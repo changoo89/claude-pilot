@@ -1,6 +1,6 @@
 ---
 description: Bump version, create git tag, and create GitHub release for plugin distribution
-argument-hint: "[patch|minor|major|x.y.z] --skip-gh --dry-run --pre"
+argument-hint: "[patch|minor|major|x.y.z] --skip-gh --create-gh --dry-run --pre"
 allowed-tools: Read, Write, Glob, Grep, Bash(*), AskUserQuestion
 ---
 
@@ -231,13 +231,14 @@ echo "✓ Plugin manifests validated"
 ARGUMENTS="${ARGUMENTS:-}"
 
 # Parse flags
-SKIP_GH=false
+SKIP_GH=true  # Default: skip local GitHub release (CI handles it)
 DRY_RUN=false
 PRERELEASE=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --skip-gh) SKIP_GH=true; shift ;;
+        --create-gh) SKIP_GH=false; shift ;;  # Force local GitHub release
         --dry-run) DRY_RUN=true; shift ;;
         --pre) PRERELEASE="$2"; shift 2 ;;
         *) VERSION_BUMP="$1"; shift ;;
@@ -609,7 +610,7 @@ fi
 
 ## Step 6: GitHub Release (OPTIONAL)
 
-> **Create GitHub release if gh CLI available**
+> **Create GitHub release if gh CLI available and not skipped**
 
 ### 6.1 Check GitHub CLI
 
@@ -617,8 +618,8 @@ fi
 if ! command -v gh &> /dev/null; then
     echo ""
     echo "Note: GitHub CLI not installed - skipping release creation"
-    echo "Tag pushed to GitHub - create release manually at:"
-    echo "https://github.com/changoo89/claude-pilot/releases/new?tag=v$VERSION"
+    echo "Tag pushed to GitHub - CI will create release automatically"
+    echo "Or create manually at: https://github.com/changoo89/claude-pilot/releases/new?tag=v$VERSION"
     echo ""
     echo "Install gh CLI: brew install gh (macOS) or https://cli.github.com/"
     exit 0
@@ -629,7 +630,8 @@ fi
 
 ```bash
 if [ "$SKIP_GH" = true ]; then
-    echo "Skipping GitHub release creation (--skip-gh flag)"
+    echo "Skipping local GitHub release creation (default - CI will handle it)"
+    echo "Use --create-gh flag to force local release creation"
 else
     # Extract release notes from CHANGELOG section (remove trailing delimiter)
     RELEASE_BODY=$(sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '$d')
@@ -738,14 +740,26 @@ rm -f RELEASE_NOTES.md.tmp
 
 | Command | Description |
 |---------|-------------|
-| `/999_release` | Patch version (x.y.Z) with auto-generated CHANGELOG and GitHub release |
+| `/999_release` | Patch version (x.y.Z) with auto-generated CHANGELOG - **skips local GitHub release (CI handles it)** |
 | `/999_release patch` | Patch version (x.y.Z) |
 | `/999_release minor` | Minor version (x.Y.0) |
 | `/999_release major` | Major version (X.0.0) |
 | `/999_release 4.2.0` | Specific version (4.2.0) |
-| `/999_release patch --skip-gh` | Skip GitHub release creation |
+| `/999_release patch --create-gh` | **Force local GitHub release creation** (useful if CI is not configured) |
 | `/999_release patch --dry-run` | Preview changes without executing |
 | `/999_release patch --pre alpha.1` | Pre-release version (x.y.Z-alpha.1) |
+
+### CI/CD Integration Notes
+
+**Default behavior (skip local GitHub release)**:
+- GitHub Actions workflow automatically creates releases on tag push
+- No local `gh` CLI dependency required
+- Use `/999_release` normally - CI handles the release creation
+
+**Force local GitHub release**:
+- Use `--create-gh` flag to create local GitHub release
+- Useful for testing or if CI workflow is not configured
+- Requires `gh` CLI to be installed
 
 ### CHANGELOG Auto-Generation
 

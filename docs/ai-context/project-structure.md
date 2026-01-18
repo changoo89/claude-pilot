@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-18 (Updated: Plugin Deployment Permissions Fix v4.1.5)
+> **Last Updated**: 2026-01-18 (Updated: GitHub Actions CI/CD Integration v4.1.8)
 
 ---
 
@@ -24,6 +24,11 @@ claude-pilot/
 ├── .claude-plugin/         # Plugin manifests
 │   ├── marketplace.json    # Marketplace configuration
 │   └── plugin.json         # Plugin metadata (version source of truth)
+├── .github/                # GitHub Actions CI/CD (NEW v4.1.8)
+│   ├── workflows/
+│   │   └── release.yml     # Tag-triggered release workflow
+│   └── scripts/
+│       └── validate_versions.sh  # Version consistency validation
 ├── .gitattributes          # Git file attributes (LF line endings, executable bit enforcement for .sh files)
 ├── .claude/
 │   ├── commands/           # Slash commands (11)
@@ -134,7 +139,9 @@ claude-pilot/
 │       ├── test_debug_mode.test.sh         # DEBUG mode tests (v4.1.0)
 │       ├── test_00_continue.test.sh        # Continue command tests (NEW v4.2.0)
 │       ├── test_continuation_state.test.sh # State management tests (NEW v4.2.0)
-│       └── test_sc5_integration.test.sh    # Integration tests (NEW v4.2.0)
+│       ├── test_sc5_integration.test.sh    # Integration tests (NEW v4.2.0)
+│       ├── test_github_workflow.sh         # GitHub Actions workflow tests (NEW v4.1.8)
+│       └── test_999_skip_gh.sh             # 999_release skip-gh tests (NEW v4.1.8)
 ├── docs/                   # Project documentation
 │   ├── ai-context/         # 3-Tier detailed docs
 │   │   ├── system-integration.md

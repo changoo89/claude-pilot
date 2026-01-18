@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate version consistency
+        run: |
+          # Use dedicated validation script for consistency
+          .github/scripts/validate_versions.sh "${GITHUB_REF_NAME}"
+
+      - name: Extract release notes from CHANGELOG
+        id: changelog
+        run: |
+          # Extract CHANGELOG section for this version
+          RELEASE_BODY=$(sed -n "/## \\[$TAG_VERSION\\]/,/## \\[/p" CHANGELOG.md | sed '$d')
+
+          # Fallback: If pattern not found, try alternate pattern (first entry)
+          if [ -z "$RELEASE_BODY" ]; then
+            RELEASE_BODY=$(sed -n "/## \\[$TAG_VERSION\\]/,/## /p" CHANGELOG.md | sed '$d')
+          fi
+
+          # Final fallback: Generic message if still empty
+          if [ -z "$RELEASE_BODY" ]; then
+            RELEASE_BODY="Release $TAG_VERSION"
+          fi
+
+          # Save to file for GitHub Release action
+          echo "$RELEASE_BODY" > release_notes.txt
+
+          # Set output for debugging
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          TAG_VERSION: ${{ github.ref_name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body_path: release_notes.txt
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, data flow, shared patterns, and integration points
-> **Last Updated**: 2026-01-18 (Updated: Sisyphus Continuation System v4.2.0)
+> **Last Updated**: 2026-01-18 (Updated: GitHub Actions CI/CD Integration v4.1.8)
 
 ---
 
@@ -1314,6 +1314,167 @@ Agents with continuation checks:
 4. **Else if** all todos complete:
    - Returns completion marker
    - Stops normally
+
+---
+
+## GitHub Actions CI/CD Integration (v4.1.8)
+
+### Overview
+
+GitHub Actions CI/CD integration provides automated release creation on git tag push, with version consistency validation and automatic CHANGELOG integration. This implements a hybrid model where local `/999_release` prepares and tags, while CI creates the GitHub Release.
+
+### Hybrid Release Model
+
+**Division of Responsibilities**:
+
+| Phase | Location | Responsibility |
+|-------|----------|-----------------|
+| **Local** | `/999_release` command | Version bump (3 files), CHANGELOG generation, git commit, git tag, git push |
+| **CI** | GitHub Actions | Version validation, GitHub Release creation with CHANGELOG |
+
+**Workflow**:
+```
+Developer: /999_release patch
+      ↓
+Local: Bump version (plugin.json, marketplace.json, .pilot-version)
+Local: Generate CHANGELOG from git commits
+Local: git commit + git tag v4.1.8 + git push
+      ↓
+GitHub: Tag push triggers workflow (.github/workflows/release.yml)
+      ↓
+CI: Validate version consistency (plugin.json == marketplace.json == .pilot-version == tag)
+CI: Extract CHANGELOG section for version
+CI: Create GitHub Release with CHANGELOG content
+```
+
+### Components
+
+| File | Purpose |
+|------|---------|
+| `.github/workflows/release.yml` | Tag-triggered release workflow |
+| `.github/scripts/validate_versions.sh` | Version consistency validation |
+| `.claude/commands/999_release.md` | Modified: SKIP_GH defaults to true, --create-gh flag added |
+
+### Workflow Details
+
+**Trigger**: Git tag push matching pattern `v*`
+
+**Steps**:
+1. **Checkout code**: Uses `actions/checkout@v4`
+2. **Validate versions**: Runs `validate_versions.sh` to ensure consistency
+3. **Extract CHANGELOG**: Extracts version section from `CHANGELOG.md`
+4. **Create Release**: Uses `softprops/action-gh-release@v1` with CHANGELOG content
+
+**Permissions**: `contents: write` for release creation
+
+**Environment Variables**: `GITHUB_TOKEN` automatically provided by GitHub Actions
+
+### Version Validation
+
+**Validation Script** (`.github/scripts/validate_versions.sh`):
+- Checks `plugin.json` version
+- Checks `marketplace.json` version
+- Checks `.pilot-version` file
+- Compares all versions against git tag
+- Exits with error if mismatch detected
+
+**Example**:
+```bash
+# Pass: All versions match tag
+./validate_versions.sh "4.1.8"  # Exit 0
+
+# Fail: Version mismatch
+./validate_versions.sh "9.9.9"  # Exit 1, prints error
+```
+
+### CHANGELOG Integration
+
+**Workflow extracts version section from CHANGELOG.md**:
+```markdown
+## [4.1.8] - 2026-01-18
+### Added
+- GitHub Actions CI/CD integration
+
+### Changed
+- /999_release: SKIP_GH defaults to true
+
+### Fixed
+- Version consistency validation in CI
+```
+
+**Fallback**: If CHANGELOG section not found, uses generic release body
+
+### Local Override (Optional)
+
+**Flag**: `--create-gh`
+
+**Purpose**: Force local GitHub Release creation (bypass CI)
+
+**Usage**:
+```bash
+/999_release patch --create-gh  # Creates release locally instead of CI
+```
+
+**Use Case**: Emergency releases when CI is unavailable
+
+### Cost Analysis
+
+**GitHub Actions Free Tier**:
+- Public repositories: Unlimited free usage
+- Private repositories: 2,000 minutes/month
+
+**Tag-triggered workflow cost**:
+- Typical runtime: 30-60 seconds
+- Release frequency: ~10-20 per month
+- **Total**: ~10-20 minutes/month (negligible)
+
+### Integration Points
+
+| Component | Integration | Data Flow |
+|-----------|-------------|-----------|
+| `/999_release` | Creates tag | → GitHub webhook trigger |
+| `release.yml` | Listens for tag | ← Tag push event |
+| `validate_versions.sh` | Validates consistency | → Workflow pass/fail |
+| `softprops/action-gh-release` | Creates release | → GitHub Release API |
+
+### Testing
+
+**Test Files**:
+- `.pilot/tests/test_github_workflow.sh` (11 tests, 100% pass)
+- `.pilot/tests/test_999_skip_gh.sh` (4 tests, 100% pass)
+
+**Test Coverage**:
+- Workflow file structure and syntax
+- Tag trigger configuration
+- Permissions and action dependencies
+- Version validation logic
+- CHANGELOG extraction
+- Default behavior change (SKIP_GH=true)
+
+### Documentation
+
+**CLAUDE.md**:
+- Added CI/CD section with hybrid model explanation
+- Troubleshooting guide for common issues
+- Cost analysis and free tier details
+
+**CHANGELOG.md**:
+- CI/CD integration entry with feature summary
+
+### Migration from Local Release
+
+**Before (v4.1.7)**:
+```bash
+/999_release patch
+# Local: Bump version, tag, create GitHub Release (requires gh CLI)
+```
+
+**After (v4.1.8)**:
+```bash
+/999_release patch
+# Local: Bump version, tag, push
+# CI: Validate versions, create GitHub Release (no gh CLI needed)
+```
 
 ---
 

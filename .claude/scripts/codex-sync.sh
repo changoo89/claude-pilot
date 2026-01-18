@@ -19,15 +19,18 @@
 # Environment Variables:
 #   DEBUG       - Set to 1 to enable diagnostic output
 
-set -euo pipefail
+set -eo pipefail
 
 # =============================================================================
-# PATH Initialization for Non-Interactive Shells
+# Environment Setup for Non-Interactive Shells
 # =============================================================================
 # Non-interactive shells (used by automation tools) don't source ~/.bashrc or
 # ~/.zshrc, which means PATH may not include npm global bin directories where
 # codex is installed. This section ensures PATH is properly initialized.
 # =============================================================================
+
+# Ensure HOME is set (for env -i scenarios)
+: "${HOME:=/tmp}"
 
 if [ -n "${ZSH_VERSION:-}" ] && [ -f ~/.zshrc ]; then
     source ~/.zshrc 2>/dev/null || true

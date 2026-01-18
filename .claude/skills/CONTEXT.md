@@ -13,8 +13,9 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `vibe-coding` | Code quality standards | SOLID principles, refactoring | Enforce size limits, clean code | "refactor", "code quality", "clean code" |
 | `git-master` | Version control workflow | Branch strategies, collaboration | Commits, branches, PRs | "commit", "branch", "PR", "git" |
 | `documentation-best-practices` | Documentation standards | Detailed examples, patterns | CLAUDE.md, commands, skills, agents | "documentation", "docs", "CLAUDE.md" |
+| `frontend-design` | Production-grade frontend design | Detailed examples, patterns | Distinctive, non-generic UI design | "UI design", "frontend styling", "landing page" |
 
-**Total**: 5 skills, each with SKILL.md (100 lines) and REFERENCE.md (300 lines)
+**Total**: 6 skills, each with SKILL.md (~100 lines) and REFERENCE.md (~300 lines)
 
 ## Common Tasks
 
@@ -303,13 +304,31 @@ Create commit with conventional format
 ├── documentation-best-practices/
 │   ├── SKILL.md
 │   └── REFERENCE.md
+├── frontend-design/
+│   ├── SKILL.md
+│   └── REFERENCE.md
 └── CONTEXT.md
 ```
 
 ### Naming Convention
-- **Directory name**: kebab-case (e.g., `vibe-coding`)
+- **Directory name**: kebab-case (e.g., `vibe-coding`, `frontend-design`)
 - **Files**: `SKILL.md` (uppercase), `REFERENCE.md` (uppercase)
 - **Frontmatter name**: kebab-case (e.g., `name: vibe-coding`)
+
+### Size Guidelines
+**SKILL.md**: 80-100 lines
+- Quick start (when to use, quick reference)
+- Core concepts (essential patterns)
+- Further reading (links)
+
+**REFERENCE.md**: 250-300 lines
+- Detailed examples
+- Good/bad patterns
+- External resources
+
+**When to split**:
+- If SKILL.md exceeds 100 lines → Move details to REFERENCE.md
+- If REFERENCE.md exceeds 300 lines → Split into multiple skills
 
 ## Cross-Reference Patterns
 

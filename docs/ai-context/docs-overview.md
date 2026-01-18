@@ -1,7 +1,7 @@
 # Documentation Overview
 
 > **Purpose**: Navigation guide for all CONTEXT.md files and project documentation
-> **Last Updated**: 2026-01-17
+> **Last Updated**: 2026-01-18
 
 ---
 
@@ -76,6 +76,12 @@ Detailed documentation that supplements Tier 1 when it exceeds size limits. Cont
 |------|---------|-------------------|
 | **system-integration.md** | Component interactions, workflows, integration points | Understanding how commands work together |
 | **project-structure.md** | Technology stack, directory layout, key files | Understanding codebase organization |
+| **continuation-system.md** | Sisyphus continuation system for agent persistence | Understanding agent continuation across sessions |
+| **cicd-integration.md** | GitHub Actions CI/CD workflow for automated releases | Understanding release automation |
+| **codex-integration.md** | GPT delegation via Codex CLI for complex tasks | Understanding intelligent delegation |
+| **testing-quality.md** | Testing standards, coverage targets, quality gates | Understanding quality requirements |
+| **agent-ecosystem.md** | Specialized agent configurations (8 agents) | Understanding agent model selection |
+| **mcp-servers.md** | Recommended MCP servers for enhanced capabilities | Understanding context and code ops tools |
 | **docs-overview.md** | This file: Navigation for all documentation | Finding specific documentation |
 
 ### Size Limits
@@ -209,19 +215,55 @@ Start with **Tier 1 (CLAUDE.md)** for:
 
 ### For Workflow Details
 
-See **docs/ai-context/system-integration.md** for:
+See **@docs/ai-context/system-integration.md** for:
 - Command workflows
 - Integration points
 - Ralph Loop logic
 - Interactive Recovery flow
 
+See **@docs/ai-context/continuation-system.md** for:
+- Agent continuation across sessions
+- State persistence and recovery
+- Sisyphus continuation system
+
+See **@docs/ai-context/codex-integration.md** for:
+- GPT delegation triggers and patterns
+- Codex CLI integration
+- Intelligent escalation
+
+See **@docs/ai-context/cicd-integration.md** for:
+- GitHub Actions CI/CD workflow
+- Automated release process
+- Version validation
+
 ### For Codebase Structure
 
-See **docs/ai-context/project-structure.md** for:
+See **@docs/ai-context/project-structure.md** for:
 - Directory layout
 - Key files by purpose
 - Technology stack
 - Version history
+
+### For Quality & Testing
+
+See **@docs/ai-context/testing-quality.md** for:
+- Testing standards and coverage targets
+- Quality gates (TDD, Ralph Loop)
+- Pre-commit checklist
+
+### For Agent Configuration
+
+See **@docs/ai-context/agent-ecosystem.md** for:
+- 8 specialized agent configurations
+- Model selection (Haiku, Sonnet, Opus)
+- Parallel execution patterns
+
+### For MCP Servers
+
+See **@docs/ai-context/mcp-servers.md** for:
+- Recommended MCP servers
+- Context enhancement tools
+- Code operations integrations
 
 ### For Component Details
 
@@ -316,5 +358,5 @@ Automatically compresses documentation that exceeds thresholds:
 
 ---
 
-**Last Updated**: 2026-01-17
-**Version**: 4.0.4 (Repo Structure Improvement)
+**Last Updated**: 2026-01-18
+**Version**: 4.2.0 (Documentation Refactoring - Tier 2 Expansion)

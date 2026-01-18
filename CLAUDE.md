@@ -16,9 +16,11 @@
 # Step 2: Install plugin
 /plugin install claude-pilot
 
-# Step 3: Run setup
+# Step 3: Run setup (MANDATORY - fixes hook permissions)
 /pilot:setup
 ```
+
+> **⚠️ CRITICAL**: `/pilot:setup` is **mandatory** after installation to ensure hook scripts have correct executable permissions. Without this, you may encounter "Permission denied" errors when hooks run.
 
 ### Workflow Commands
 

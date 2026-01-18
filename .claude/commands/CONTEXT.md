@@ -12,12 +12,13 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 | `01_confirm.md` | Confirm plan + gap detection + requirements verification | 315 | Planning | Review plan, verify requirements coverage (Step 2.7), run gap detection, resolve BLOCKING issues, move to in_progress |
 | `02_execute.md` | Execute with TDD + Ralph Loop | 654 | Execution | Plan detection (MANDATORY), atomic lock mechanism (worktree), parallel verification |
 | `03_close.md` | Archive and commit | 465 | Completion | Archive completed plan, worktree cleanup (with error trap), create git commit, safe git push with retry logic and failure tracking |
+| `04_fix.md` | Rapid bug fix workflow | 497 | Rapid | Automated plan → execute → close for simple bug fixes (1-3 SCs) with scope validation |
 | `90_review.md` | Multi-angle code review | 268 | Quality | Run comprehensive code review with multiple agent perspectives |
 | `91_document.md` | Sync documentation | 288 | Maintenance | Update CLAUDE.md, sync templates, ensure consistency |
 | `92_init.md` | Initialize new project | 209 | Setup | Initialize new project with claude-pilot template |
 | `999_release.md` | Bump version + git tag + GitHub release | 415 | Release | Plugin version bump with git tag and GitHub release |
 
-**Total**: 9 commands, 2969 lines (average: 330 lines per command)
+**Total**: 10 commands, 3466 lines (average: 347 lines per command)
 
 ## Common Tasks
 
@@ -59,6 +60,26 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
   6. Review Feedback Loop (Step 3.6): Address critical findings if any
   7. **GPT Expert Escalation (Step 3.7)**: After 2+ Coder failures, delegate to GPT Architect for fresh perspective
   8. Ralph Loop iterates until all quality gates pass
+
+### Rapid Bug Fix
+- **Task**: Fix simple bugs in one command (auto-plan → execute → close)
+- **Command**: `/04_fix "Fix null pointer in auth.ts:45"`
+- **Output**: Bug fixed, tested, and committed with user confirmation
+- **Process**:
+  1. **Scope Validation**: Calculate complexity score (0.0-1.0)
+     - Input length >200 chars → +0.3
+     - Architecture keywords → +0.3
+     - >3 files mentioned → +0.2
+     - Multiple tasks → +0.2
+     - Threshold ≥0.5 → Reject (use `/00_plan` instead)
+  2. **Auto-Generate Plan**: Create minimal plan (1-3 SCs)
+  3. **Create Continuation State**: Initialize `.pilot/state/continuation.json`
+  4. **Execute**: Coder Agent implements with TDD + Ralph Loop
+  5. **Verify Completion**: Check all todos complete
+  6. **User Confirmation**: Show diff, ask for commit approval
+  7. **Auto-Close**: Archive plan, create commit (if confirmed)
+- **When to use**: One-line fixes, simple validation, minor bugs, typos
+- **When to use `/00_plan` instead**: Feature development, architecture decisions, multi-file refactoring, complex debugging (4+ SCs)
 
 ### Close and Archive
 - **Task**: Archive plan, worktree cleanup, create git commit, safe git push
@@ -158,6 +179,7 @@ Push failed for 1 repository:
 ## Patterns
 
 ### Plan Flow Pattern
+**Standard Workflow** (complex tasks, 4+ SCs):
 ```
 User Request
        ↓
@@ -168,6 +190,15 @@ User Request
 /02_execute → Implementation (code + tests)
        ↓
 /03_close → .pilot/plan/done/ + commit
+```
+
+**Rapid Workflow** (simple fixes, 1-3 SCs):
+```
+User Request
+       ↓
+/04_fix → Scope validation → Auto-plan → Execute → Close
+       ↓
+.pilot/plan/done/ + commit (with user confirmation)
 ```
 
 ### Agent Invocation Pattern
@@ -244,6 +275,9 @@ allowed-tools: [tool list]
 
 ### Execution Phase Commands
 - `02_execute`: Implement with TDD + Ralph Loop
+
+### Rapid Workflow Commands
+- `04_fix`: Automated bug fix workflow (plan → execute → close in one command)
 
 ### Completion Phase Commands
 - `03_close`: Archive and commit

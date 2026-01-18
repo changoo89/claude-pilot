@@ -96,9 +96,15 @@ claude-pilot/
 │           ├── orchestration.md
 │           ├── triggers.md
 │           ├── intelligent-triggers.md  # Heuristic-based triggers (NEW v4.1.0)
-│           ├── delegation-format.md
+│           ├── delegation-format.md     # Phase-specific templates (UPDATED v4.1.2)
+│           ├── delegation-checklist.md  # Validation checklist (NEW v4.1.2)
 │           ├── model-selection.md
 │           ├── pattern-standard.md
+│           ├── examples/                # Before/after examples (NEW v4.1.2)
+│           │   ├── before-phase-detection.md
+│           │   ├── after-phase-detection.md
+│           │   ├── before-stateless.md
+│           │   └── after-stateless.md
 │           └── prompts/       # GPT expert prompts (5)
 ├── .pilot/                 # Plan management
 │   ├── plan/
@@ -440,6 +446,19 @@ claude-pilot update --apply-statusline
 
 ## Version History
 
+### v4.1.2 (2026-01-18)
+
+- **GPT Delegation Prompt Improvements**: Phase-specific context and validation
+  - Enhanced 7-section format with Planning vs Implementation phase templates
+  - Updated Plan Reviewer prompt with automatic phase detection logic
+  - Enhanced orchestration guide with context engineering best practices
+  - New validation checklist (48 items) for delegation prompt quality
+  - New example files (4 before/after pairs) demonstrating improvements
+  - Updated files: `delegation-format.md`, `prompts/plan-reviewer.md`, `orchestration.md`
+  - New files: `delegation-checklist.md`, `examples/*.md` (4 files)
+  - Problem solved: GPT Plan Reviewer no longer checks file system during planning phase
+  - Verification: All 5 success criteria met (SC-1 through SC-5)
+
 ### v4.1.1 (2026-01-18)
 
 - **Plugin Release Workflow**: New `/999_release` command for plugin versioning
@@ -665,5 +684,5 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-18 (Plugin Release Workflow v4.1.1)
-**Version**: 4.1.1
+**Last Updated**: 2026-01-18 (GPT Delegation Prompt Improvements v4.1.2)
+**Version**: 4.1.2

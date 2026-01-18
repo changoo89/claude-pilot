@@ -181,6 +181,64 @@ source ~/.zshrc
 
 ---
 
+## Context Engineering for Delegation
+
+### Dynamic Context Components
+
+**Static Components** (always included):
+- **System Instructions**: Expert role, behavior, rules
+- **Expert Definition**: From prompt file (prompts/[expert].md)
+
+**Dynamic Components** (curated per delegation):
+- **Phase Context**: Planning vs Implementation
+- **Iteration History**: Previous attempts and results
+- **Task Specifics**: Current goal, constraints, relevant files
+- **User Context**: Original request verbatim
+
+### Context Selection Strategy
+
+**1. Phase Detection**:
+- Scan input for phase indicator keywords
+- Apply decision rule (Planning vs Implementation)
+- Default to Planning Phase if unclear
+
+**2. History Injection** (for retries):
+- Include all previous attempts
+- What was tried each time
+- Error messages received
+- Current iteration count
+
+**3. Relevance Filtering**:
+- Include only relevant file paths
+- Include only relevant code snippets
+- Prioritize critical context over background
+
+**4. Token Budget Awareness**:
+- Prioritize: Phase > History > Task > Background
+- Estimate: Target 8K-16K tokens total
+- Compact verbose context if needed
+
+### Context Template
+
+```markdown
+## Delegation Context
+
+### Static Context
+[Expert system instructions from prompt file]
+
+### Dynamic Context
+- **Phase**: [PLANNING / IMPLEMENTATION]
+- **Original Request**: [verbatim user input]
+- **Relevant Files**: [paths or snippets]
+- **Iteration History**:
+  - Attempt 1: [what, result]
+  - Attempt 2: [what, result]
+  - Current: [iteration count]
+- **Constraints**: [technical, business, quality]
+```
+
+---
+
 ## ⛔ STOP AND CHECK REMINDERS
 
 These reminders should be inserted at critical decision points in ALL commands:
@@ -267,6 +325,39 @@ For example, for Architect: `Read .claude/rules/delegator/prompts/architect.md`
 | Analysis, review, recommendations | Advisory | `read-only` |
 | Make changes, fix issues, implement | Implementation | `workspace-write` |
 
+### Step 3.5: Determine Phase Context
+
+**CRITICAL**: Always specify phase context when delegating to Plan Reviewer.
+
+**Phase Detection**:
+
+| Phase | Context Indicators | Focus |
+|-------|-------------------|-------|
+| **Planning** | Keywords: "plan", "design", "proposed", "will create" | Plan clarity, completeness, verifiability |
+| **Implementation** | Keywords: "implemented", "created", "added", "done" | File system verification, implementation quality |
+
+**Decision Rule**:
+1. Scan user input for phase indicator keywords
+2. Count Planning vs Implementation indicators
+3. Select phase with higher indicator count
+4. If tie or unclear, default to Planning Phase
+
+**How to Specify**:
+
+CONTEXT:
+- Phase: PLANNING (files don't exist yet - validate PLAN completeness)
+- [other context...]
+
+**Anti-Patterns**:
+- ❌ Don't let Plan Reviewer check file system during planning phase
+- ❌ Don't assume phase - always specify explicitly
+- ❌ Don't use ambiguous phase descriptions
+
+**Correct Patterns**:
+- ✅ Explicitly state: "Phase: PLANNING" or "Phase: IMPLEMENTATION"
+- ✅ Include phase-specific constraints in MUST NOT DO section
+- ✅ Clarify what phase means for file system checks
+
 ### Step 4: Notify User
 Always inform the user before delegating:
 ```
@@ -276,10 +367,25 @@ Delegating to [Expert Name]: [brief task summary]
 ### Step 5: Build Delegation Prompt
 Use the 7-section format from `rules/delegation-format.md`.
 
-**IMPORTANT:** Since each call is stateless, include FULL context:
-- What the user asked for
-- Relevant code/files
-- Any previous attempts and their results (for retries)
+**CRITICAL**: Since each call is stateless, include FULL context:
+
+1. **User's original request** (verbatim)
+2. **Relevant code/files** (full content or paths)
+3. **Previous attempts and results** (if retry)
+4. **Current phase context** (planning vs implementation)
+5. **Iteration count** (if multiple attempts)
+
+**Context Template**:
+CONTEXT:
+- Phase: [PLANNING / IMPLEMENTATION]
+- Original request: [verbatim user input]
+- Relevant files: [paths or snippets]
+- Previous iterations:
+  - Attempt 1: [what was tried, result]
+  - Attempt 2: [what was tried, result]
+  - Current iteration: [N]
+
+**For Retries**: Include full history in CONTEXT section
 
 ### Step 6: Call the Expert
 

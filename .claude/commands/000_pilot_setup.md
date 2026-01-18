@@ -408,59 +408,37 @@ fi
 
 ---
 
-## Step 8: GitHub Star Prompt (Optional)
+## Step 8: Ask About Starring
 
-### Prompt User
-
-Ask the user if they'd like to star the repository:
+Use AskUserQuestion to ask the user if they'd like to ⭐ star the claude-pilot repository on GitHub to support the project.
 
 **User Question**:
 ```
 Would you like to star the claude-pilot repository on GitHub?
-This helps support the project and makes it easier to find.
 
 Options:
-1. Yes, star it automatically! (requires GitHub CLI)
-2. No thanks, maybe later
-3. Open the repository page (I'll star manually)
+1. Yes, star the repo
+2. No thanks
 ```
-
-### Handle Response
 
 **Option 1: Yes (Automatic Star)**
 
 ```bash
-# Check if gh CLI is installed and authenticated
+# Check if gh CLI is available and run
 if command -v gh &> /dev/null; then
-    if gh auth status &> /dev/null; then
-        # Star the repository
-        gh api -X PUT /user/starred/changoo89/claude-pilot
-        echo "✓ Starred changoo89/claude-pilot! Thank you for your support!"
-    else
-        echo "GitHub CLI found but not authenticated."
-        echo "Please run: gh auth login"
-        echo "Then star manually at: https://github.com/changoo89/claude-pilot"
-    fi
+    gh api -X PUT /user/starred/changoo89/claude-pilot
+    echo "✓ Starred changoo89/claude-pilot! Thank you for your support!"
 else
-    echo "GitHub CLI not found."
-    echo "Please star manually at: https://github.com/changoo89/claude-pilot"
+    # If gh is not available or the command fails, provide the manual link
+    echo "GitHub CLI not found. Please star manually at:"
+    echo "https://github.com/changoo89/claude-pilot"
 fi
 ```
 
 **Option 2: No Thanks**
 
 ```bash
-echo "No problem! You can always star later at:"
-echo "https://github.com/changoo89/claude-pilot"
-```
-
-**Option 3: Open Repository Page**
-
-```bash
-echo "Opening repository page..."
-open https://github.com/changoo89/claude-pilot 2>/dev/null || \
-    xdg-open https://github.com/changoo89/claude-pilot 2>/dev/null || \
-    echo "Please visit: https://github.com/changoo89/claude-pilot"
+echo "No problem! Thanks for using claude-pilot."
 ```
 
 ---

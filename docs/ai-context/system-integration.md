@@ -700,17 +700,29 @@ Available experts via Codex CLI:
 | Scope Analyst | Requirements analysis | Catching ambiguities before work starts |
 | Security Analyst | Vulnerabilities, threats | Security audits, hardening |
 
-### Delegation Rules (5 Files)
+### Delegation Rules (6 Files)
 
 Located in `.claude/rules/delegator/`:
 
 | File | Purpose |
 |------|---------|
-| `delegation-format.md` | 7-section format for delegation prompts |
+| `delegation-format.md` | 7-section format with phase-specific templates (UPDATED v4.1.2) |
+| `delegation-checklist.md` | Validation checklist for delegation prompts (NEW v4.1.2) |
 | `model-selection.md` | Expert directory, operating modes, codex parameters |
-| `orchestration.md` | Stateless design, retry flow, cost awareness |
+| `orchestration.md` | Stateless design, retry flow, context engineering (UPDATED v4.1.2) |
 | `triggers.md` | PROACTIVE/REACTIVE delegation triggers |
-| `pattern-standard.md` | Standardized GPT delegation pattern across commands (NEW v4.0.5) |
+| `pattern-standard.md` | Standardized GPT delegation pattern across commands (v4.0.5) |
+
+### Example Files (4 Files)
+
+Located in `.claude/rules/delegator/examples/` (NEW v4.1.2):
+
+| File | Purpose |
+|------|---------|
+| `before-phase-detection.md` | Example: Poor prompt without phase context |
+| `after-phase-detection.md` | Example: Improved prompt with phase detection |
+| `before-stateless.md` | Example: Missing iteration history |
+| `after-stateless.md` | Example: Full stateless context with history |
 
 ### Expert Prompts (5 Files)
 
@@ -730,17 +742,59 @@ Located in `.claude/rules/delegator/prompts/`:
 - Detects Codex CLI if installed
 - Checks authentication status
 - Creates `.mcp.json` with Codex MCP config
-- Copies 4 orchestration rules to `.claude/rules/delegator/`
+- Copies 6 orchestration rules to `.claude/rules/delegator/`
 - Copies 5 expert prompts to `.claude/rules/delegator/prompts/`
+- Copies 4 example files to `.claude/rules/delegator/examples/` (v4.1.2)
 
 **Existing Projects** (`claude-pilot update`):
 - Same detection and setup process
 - Merges Codex config into existing `.mcp.json`
 - Updates orchestration rules and prompts if newer version available
+- Updates example files if newer version available (v4.1.2)
 
 **No Codex Installed**:
 - Silent skip (no errors or warnings)
 - Other init/update operations proceed normally
+
+### Phase-Specific Delegation (v4.1.2)
+
+**Problem Solved**: GPT Plan Reviewer was checking file system during planning phase, rejecting plans for "missing files" that don't exist yet.
+
+**Solution**: Phase-aware context in delegation prompts
+
+| Phase | Context | File System Behavior | Focus |
+|-------|---------|---------------------|-------|
+| **Planning** | Files don't exist yet (design document) | DO NOT check file system | Plan clarity, completeness, verifiability |
+| **Implementation** | Code should exist now | DO check file system | Implementation verification, quality validation |
+
+**Implementation Components**:
+
+1. **Phase-Specific Templates** (`delegation-format.md`):
+   - Planning Phase template: "DO NOT check file system"
+   - Implementation Phase template: "DO check file system"
+   - Explicit MUST NOT DO items per phase
+
+2. **Phase Detection Logic** (`prompts/plan-reviewer.md`):
+   - Automatic detection from context indicators
+   - Planning keywords: "plan", "design", "proposed", "will create"
+   - Implementation keywords: "implemented", "created", "added", "done"
+   - Default to Planning Phase if unclear
+
+3. **Context Engineering** (`orchestration.md`):
+   - Dynamic context components (phase, history, iteration count)
+   - Context selection strategy (phase detection, history injection)
+   - Token budget awareness (8K-16K target)
+
+4. **Validation Checklist** (`delegation-checklist.md`):
+   - 48 validation items across 8 categories
+   - Phase-specific requirements verification
+   - Stateless design compliance checks
+   - Expert-specific requirements
+
+5. **Example Files** (`examples/`):
+   - Before/after comparisons for phase detection
+   - Before/after comparisons for stateless design
+   - Demonstrate improvements with concrete examples
 
 ### Security Considerations
 
@@ -1571,5 +1625,5 @@ Task:
 
 ---
 
-**Last Updated**: 2026-01-17 (Pure Plugin Migration v4.1.0)
-**Version**: 4.1.0
+**Last Updated**: 2026-01-18 (GPT Delegation Prompt Improvements v4.1.2)
+**Version**: 4.1.2

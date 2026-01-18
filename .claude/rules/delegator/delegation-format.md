@@ -102,6 +102,87 @@ Summary: [4-criteria assessment]
 [If REJECT: Top 3-5 improvements needed]
 ```
 
+### Plan Reviewer (Planning Phase)
+
+> Use when reviewing plan documents BEFORE implementation starts
+
+PHASE CONTEXT: Planning Phase
+- Files don't exist yet (this is a design document)
+- Focus: Plan clarity, completeness, verifiability
+- DO NOT check file system
+
+```markdown
+TASK: Review this plan document for implementation completeness.
+
+EXPECTED OUTCOME: APPROVE/REJECT verdict based on plan clarity and completeness.
+
+CONTEXT:
+- Phase: PLANNING (files don't exist yet - validate PLAN completeness)
+- Plan to review: [plan content]
+- Goals: [what the plan is trying to achieve]
+
+CONSTRAINTS:
+- This is a PLAN review - do NOT check file system
+- Focus on clarity, completeness, verifiability
+- Assume implementation hasn't started
+
+MUST DO:
+- Evaluate all 4 criteria (Clarity, Verifiability, Completeness, Big Picture)
+- Simulate implementing from the plan
+- Provide specific improvements if rejecting
+
+MUST NOT DO:
+- Check file system for files that don't exist yet
+- Expect implementation to be complete
+- Rubber-stamp without real analysis
+
+OUTPUT FORMAT:
+[APPROVE / REJECT]
+Justification: [explanation]
+Summary: [4-criteria assessment]
+[If REJECT: Top 3-5 critical improvements needed]
+```
+
+### Plan Reviewer (Implementation Phase)
+
+> Use when reviewing AFTER implementation is complete
+
+PHASE CONTEXT: Implementation Phase
+- Code should exist now
+- Focus: Verify implementation matches plan
+- DO check file system
+
+```markdown
+TASK: Verify implementation matches plan requirements.
+
+EXPECTED OUTCOME: APPROVE/REJECT verdict based on implementation completeness.
+
+CONTEXT:
+- Phase: IMPLEMENTATION (code should exist now)
+- Plan to verify: [plan content]
+- Implementation status: [what was done]
+
+CONSTRAINTS:
+- Check file system for implemented files
+- Verify success criteria are met
+- Validate implementation quality
+
+MUST DO:
+- Check all files mentioned in plan exist
+- Verify success criteria are measurable and met
+- Validate implementation against plan
+
+MUST NOT DO:
+- Reject for missing planned features not yet implemented
+- Expect 100% completion of multi-phase plans
+
+OUTPUT FORMAT:
+[APPROVE / REJECT]
+Justification: [explanation]
+Summary: [implementation vs plan assessment]
+[If REJECT: Top 3-5 gaps to address]
+```
+
 ### Scope Analyst
 
 ```markdown

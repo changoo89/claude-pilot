@@ -2,6 +2,9 @@
 
 > Your Claude Code copilot - Structured workflows, SPEC-First TDD, Ralph Loop automation, and context engineering. Fly with discipline.
 
+[![License](https://img.shields.io/github/license/changoo89/claude-pilot?v=2)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/changoo89/claude-pilot?v=2)](https://github.com/changoo89/claude-pilot/stargazers)
+
 ---
 
 ## Quick Start
@@ -430,3 +433,9 @@ A: No! The plugin is pure markdown/JSON - no Python required.
 ---
 
 **Built with inspiration from the Claude Code community.**
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=changoo89/claude-pilot&type=Date&v=2)](https://star-history.com/#changoo89/claude-pilot&Date)

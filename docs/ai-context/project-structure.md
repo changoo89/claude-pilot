@@ -448,16 +448,16 @@ claude-pilot update --apply-statusline
 
 ### v4.1.2 (2026-01-18)
 
-- **GPT Delegation Prompt Improvements**: Phase-specific context and validation
-  - Enhanced 7-section format with Planning vs Implementation phase templates
-  - Updated Plan Reviewer prompt with automatic phase detection logic
-  - Enhanced orchestration guide with context engineering best practices
-  - New validation checklist (48 items) for delegation prompt quality
-  - New example files (4 before/after pairs) demonstrating improvements
-  - Updated files: `delegation-format.md`, `prompts/plan-reviewer.md`, `orchestration.md`
-  - New files: `delegation-checklist.md`, `examples/*.md` (4 files)
-  - Problem solved: GPT Plan Reviewer no longer checks file system during planning phase
-  - Verification: All 5 success criteria met (SC-1 through SC-5)
+**GPT Delegation Prompt Improvements**: Phase-specific context and validation
+- Enhanced 7-section format with Planning vs Implementation phase templates
+- Updated Plan Reviewer prompt with automatic phase detection logic
+- Enhanced orchestration guide with context engineering best practices
+- New validation checklist (48 items) for delegation prompt quality
+- New example files (4 before/after pairs) demonstrating improvements
+- Updated files: `delegation-format.md`, `prompts/plan-reviewer.md`, `orchestration.md`
+- New files: `delegation-checklist.md`, `examples/*.md` (4 files)
+- Problem solved: GPT Plan Reviewer no longer checks file system during planning phase
+- Verification: All 5 success criteria met (SC-1 through SC-5)
 
 ### v4.1.1 (2026-01-18)
 

@@ -704,25 +704,25 @@ Available experts via Codex CLI:
 
 Located in `.claude/rules/delegator/`:
 
-| File | Purpose |
-|------|---------|
-| `delegation-format.md` | 7-section format with phase-specific templates (UPDATED v4.1.2) |
-| `delegation-checklist.md` | Validation checklist for delegation prompts (NEW v4.1.2) |
-| `model-selection.md` | Expert directory, operating modes, codex parameters |
-| `orchestration.md` | Stateless design, retry flow, context engineering (UPDATED v4.1.2) |
-| `triggers.md` | PROACTIVE/REACTIVE delegation triggers |
-| `pattern-standard.md` | Standardized GPT delegation pattern across commands (v4.0.5) |
+| File | Purpose | Lines | Updated |
+|------|---------|-------|---------|
+| `delegation-format.md` | 7-section format with phase-specific templates | ~180 | v4.1.2 |
+| `delegation-checklist.md` | Validation checklist for delegation prompts | ~90 | v4.1.2 |
+| `model-selection.md` | Expert directory, operating modes, codex parameters | ~120 | v4.1.0 |
+| `orchestration.md` | Stateless design, retry flow, context engineering | ~450 | v4.1.2 |
+| `triggers.md` | PROACTIVE/REACTIVE delegation triggers | ~300 | v4.1.0 |
+| `pattern-standard.md` | Standardized GPT delegation pattern across commands | ~200 | v4.0.5 |
 
 ### Example Files (4 Files)
 
 Located in `.claude/rules/delegator/examples/` (NEW v4.1.2):
 
-| File | Purpose |
-|------|---------|
-| `before-phase-detection.md` | Example: Poor prompt without phase context |
-| `after-phase-detection.md` | Example: Improved prompt with phase detection |
-| `before-stateless.md` | Example: Missing iteration history |
-| `after-stateless.md` | Example: Full stateless context with history |
+| File | Purpose | Lines |
+|------|---------|-------|
+| `before-phase-detection.md` | Example: Poor prompt without phase context | ~20 |
+| `after-phase-detection.md` | Example: Improved prompt with phase detection | ~40 |
+| `before-stateless.md` | Example: Missing iteration history | ~15 |
+| `after-stateless.md` | Example: Full stateless context with history | ~35 |
 
 ### Expert Prompts (5 Files)
 

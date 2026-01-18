@@ -194,5 +194,5 @@ project-root/
 
 ---
 
-**Template Version**: claude-pilot 4.1.1 (Plugin Release Workflow)
+**Template Version**: claude-pilot 4.1.2 (GPT Delegation Prompt Improvements)
 **Last Updated**: 2026-01-18

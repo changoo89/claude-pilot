@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.3] - 2026-01-18
+
+### Fixed
+- Fix marketplace.json source field: "." → "https://github.com/changoo89/claude-pilot"
+- Claude Code plugins require GitHub URL in source field for marketplace installation
+
+## [4.1.2] - 2026-01-18
+
+### Fixed
+- Remove invalid `agents` field from plugin.json to fix installation error
+- The agents directory contains documentation (.md files), not YAML agent configs
+
+## [4.1.1] - 2026-01-18
+
+### Added
+- **Release command** (`/999_release`): Bump version, create git tag, and GitHub release
+- **Intelligent Codex delegation**: Phase-specific templates (Planning vs Implementation)
+- **Enhanced setup verification**: Formatted status report for MCP server configuration
+
+### Changed
+- GPT delegation prompts with phase-specific context engineering
+- Parallel execution improvements for agent coordination
+- Renamed `000_pilot_setup.md` to `setup.md` for consistency
+
+### Fixed
+- Codex CLI detection for non-interactive shells
+- marketplace.json source path for GitHub plugin detection
+- Plugin structure verification and installation documentation
+
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [4.1.2] - 2026-01-18
 
 ### Fixed

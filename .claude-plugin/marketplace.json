@@ -7,10 +7,10 @@
   "plugins": [
     {
       "name": "claude-pilot",
-      "source": ".",
+      "source": "https://github.com/changoo89/claude-pilot",
       "description": "SPEC-First development workflow: Plan -> Confirm -> Execute -> Review -> Document -> Close",
       "category": "development",
-      "version": "4.1.2",
+      "version": "4.1.3",
       "author": {
         "name": "changoo89",
         "url": "https://github.com/changoo89"

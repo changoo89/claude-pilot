@@ -39,14 +39,40 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 
 ### State Check Logic
 
+> **Worktree Mode**: State file location depends on worktree mode
+> - Standard mode: `{PROJECT_ROOT}/.pilot/state/continuation.json`
+> - Worktree mode: `{WORKTREE_ROOT}/.pilot/state/continuation.json`
+
 ```bash
 # Source state management scripts
 STATE_READ=".pilot/scripts/state_read.sh"
 STATE_WRITE=".pilot/scripts/state_write.sh"
 STATE_BACKUP=".pilot/scripts/state_backup.sh"
 
-# Check if state file exists
-STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
+# Parse command arguments for --wt flag (before state check)
+WORKTREE_MODE=false
+for arg in "$@"; do
+    if [ "$arg" = "--wt" ]; then
+        WORKTREE_MODE=true
+        break
+    fi
+done
+
+# Determine state file location based on mode
+if [ "$WORKTREE_MODE" = true ]; then
+    # In worktree mode, check if worktree state exists
+    # First, get worktree path if already created
+    if [ -n "${WORKTREE_ROOT:-}" ]; then
+        STATE_FILE="$WORKTREE_ROOT/.pilot/state/continuation.json"
+    else
+        # Worktree not created yet, will check after creation
+        STATE_FILE=""
+    fi
+else
+    # Standard mode
+    PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+    STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
+fi
 
 if [ -f "$STATE_FILE" ]; then
     # Load existing state
@@ -156,15 +182,81 @@ ls -la .pilot/plan/pending/*.md 2>/dev/null
 ls -la .pilot/plan/in_progress/*.md 2>/dev/null
 ```
 
-### Step 1.1: Plan State Transition (ATOMIC)
+### Step 1.1: Plan State Transition & Worktree Setup (ATOMIC)
 
 > **🚨 CRITICAL - BLOCKING OPERATION**: MUST complete successfully BEFORE any other work.
 
 **Full worktree setup**: See @.claude/guides/worktree-setup.md
 
-**Standard mode** (without --wt):
+**Check for --wt flag**:
 ```bash
-PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+# Parse command arguments for --wt flag
+WORKTREE_MODE=false
+for arg in "$@"; do
+    if [ "$arg" = "--wt" ]; then
+        WORKTREE_MODE=true
+        break
+    fi
+done
+
+echo "Worktree mode: $WORKTREE_MODE"
+```
+
+**Worktree mode** (with --wt flag):
+```bash
+if [ "$WORKTREE_MODE" = true ]; then
+    echo "🌳 Initializing worktree mode..."
+
+    # Get current branch (we're in main repo)
+    PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+    MAIN_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
+
+    # Create new branch name for worktree
+    WT_BRANCH="wt/$(date +%s)"
+    echo "Creating worktree branch: $WT_BRANCH"
+
+    # Create worktree using worktree-create.sh
+    WORKTREE_CREATE_SCRIPT=".claude/scripts/worktree-create.sh"
+
+    if [ ! -f "$WORKTREE_CREATE_SCRIPT" ]; then
+        echo "❌ Error: worktree-create.sh not found" >&2
+        exit 1
+    fi
+
+    # Call worktree creation script
+    WORKTREE_OUTPUT="$(bash "$WORKTREE_CREATE_SCRIPT" "$WT_BRANCH" "$MAIN_BRANCH")"
+    WORKTREE_EXIT_CODE=$?
+
+    if [ $WORKTREE_EXIT_CODE -ne 0 ]; then
+        echo "❌ Failed to create worktree" >&2
+        exit 1
+    fi
+
+    # Extract worktree path from output
+    WORKTREE_PATH="$(echo "$WORKTREE_OUTPUT" | grep "^WORKTREE_PATH=" | cut -d'=' -f2)"
+
+    if [ -z "$WORKTREE_PATH" ] || [ ! -d "$WORKTREE_PATH" ]; then
+        echo "❌ Failed to determine worktree path" >&2
+        exit 1
+    fi
+
+    echo "✓ Worktree created at: $WORKTREE_PATH"
+
+    # CRITICAL: Change to worktree directory
+    cd "$WORKTREE_PATH" || { echo "❌ Failed to cd to worktree" >&2; exit 1; }
+
+    # Update PROJECT_ROOT to worktree
+    export PROJECT_ROOT="$WORKTREE_PATH"
+    export WORKTREE_ROOT="$WORKTREE_PATH"
+    export PILOT_WORKTREE_MODE=1
+    export PILOT_WORKTREE_BRANCH="$WT_BRANCH"
+
+    echo "✓ Changed to worktree directory"
+    echo "  Current directory: $(pwd)"
+    echo "  PROJECT_ROOT: $PROJECT_ROOT"
+fi
+
+# Plan detection (works in both standard and worktree mode)
 PLAN_PATH="${EXPLICIT_PATH}"
 
 # Priority: Explicit path → Oldest pending → Most recent in_progress
@@ -184,14 +276,83 @@ fi
 # Final validation
 [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found. Run /00_plan first" >&2; exit 1; }
 
+# Add worktree metadata to plan file (worktree mode only)
+if [ "$WORKTREE_MODE" = true ]; then
+    # Check if plan already has worktree info
+    if ! grep -q "## Worktree Info" "$PLAN_PATH"; then
+        # Add worktree metadata section (compatible with /03_close read_worktree_metadata)
+        TEMP_PLAN="${PLAN_PATH}.tmp"
+
+        # Get main project path (before cd to worktree)
+        MAIN_PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+        # Create lock file path
+        LOCK_FILE="${PROJECT_ROOT}/.pilot/plan/locks/worktree.lock"
+
+        # Insert worktree info after problem statement
+        awk '
+            /^## Problem Statement/ { in_problem=1 }
+            in_problem && /^$/ && !added {
+                print "## Worktree Info\\n"
+                print "Branch: '"$WT_BRANCH"'"
+                print "Worktree Path: '"$WORKTREE_PATH"'"
+                print "Main Branch: '"$MAIN_BRANCH"'"
+                print "Main Project: '"$MAIN_PROJECT_ROOT"'"
+                print "Lock File: '"$LOCK_FILE"'"
+                print ""
+                added=1
+                next
+            }
+            { print }
+        ' "$PLAN_PATH" > "$TEMP_PLAN"
+
+        mv "$TEMP_PLAN" "$PLAN_PATH"
+        echo "✓ Added worktree metadata to plan"
+    fi
+fi
+
 # Set active pointer
 mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
 printf "%s" "$PLAN_PATH" > "$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
+
+echo "✓ Plan ready: $PLAN_PATH"
+echo "  Branch: $BRANCH"
 ```
 
-**Worktree mode** (with --wt flag): See guide for complete setup script
+**Standard mode** (without --wt):
+```bash
+if [ "$WORKTREE_MODE" = false ]; then
+    PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+    PLAN_PATH="${EXPLICIT_PATH}"
+
+    # Priority: Explicit path → Oldest pending → Most recent in_progress
+    [ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
+
+    # IF pending, MUST move FIRST
+    if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
+        PLAN_FILENAME="$(basename "$PLAN_PATH")"
+        IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
+        mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
+        mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || { echo "❌ FATAL: Failed to move plan" >&2; exit 1; }
+        PLAN_PATH="$IN_PROGRESS_PATH"
+    fi
+
+    [ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
+
+    # Final validation
+    [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found. Run /00_plan first" >&2; exit 1; }
+
+    # Set active pointer
+    mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
+    BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
+    KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
+    printf "%s" "$PLAN_PATH" > "$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
+
+    echo "✓ Plan ready: $PLAN_PATH (standard mode)"
+fi
+```
 
 ---
 

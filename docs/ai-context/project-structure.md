@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-17 (Updated: Pure Plugin Migration v4.1.0)
+> **Last Updated**: 2026-01-18 (Updated: Plugin Deployment Permissions Fix v4.1.5)
 
 ---
 
@@ -11,7 +11,7 @@
 Framework: Claude Code Plugin
 Language: Markdown + JSON (no code runtime)
 Package Manager: Claude Code Plugin System
-Version: 4.1.1
+Version: 4.1.5
 Deployment: GitHub Marketplace (plugin distribution)
 ```
 
@@ -24,6 +24,7 @@ claude-pilot/
 ├── .claude-plugin/         # Plugin manifests
 │   ├── marketplace.json    # Marketplace configuration
 │   └── plugin.json         # Plugin metadata (version source of truth)
+├── .gitattributes          # Git file attributes (LF line endings, executable bit enforcement for .sh files)
 ├── .claude/
 │   ├── commands/           # Slash commands (10)
 │   │   ├── CONTEXT.md      # Command folder context
@@ -169,6 +170,7 @@ claude-pilot/
 | `.claude/settings.json` | Example MCP server configuration |
 | `.claude/hooks.json` | Hook definitions (pre-commit, pre-push) |
 | `.claude/scripts/codex-sync.sh` | GPT expert delegation with PATH initialization, multi-layered detection, reasoning effort configuration |
+| `.gitattributes` | Git file attributes (LF line endings for .sh files, executable bit enforcement) |
 | `mcp.json` | Recommended MCP servers |
 | `.gitignore` | Git exclusions |
 
@@ -684,5 +686,5 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-18 (GPT Delegation Prompt Improvements v4.1.2)
-**Version**: 4.1.2
+**Last Updated**: 2026-01-18 (Plugin Deployment Permissions Fix v4.1.5)
+**Version**: 4.1.5

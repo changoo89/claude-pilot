@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, data flow, shared patterns, and integration points
-> **Last Updated**: 2026-01-17 (Updated: Pure Plugin Migration v4.1.0)
+> **Last Updated**: 2026-01-18 (Updated: Plugin Deployment Permissions Fix v4.1.5)
 
 ---
 
@@ -36,7 +36,7 @@ Plugin: Configures MCP servers (merge strategy), prompts GitHub star
 
 ### Setup Command (`/pilot:setup`)
 
-**Purpose**: Configure MCP servers with merge strategy
+**Purpose**: Configure MCP servers with merge strategy and verify hook script permissions
 
 **Features**:
 - Reads `mcp.json` for recommended servers
@@ -44,6 +44,7 @@ Plugin: Configures MCP servers (merge strategy), prompts GitHub star
 - Atomic write pattern (prevents race conditions)
 - GitHub star prompt (optional, via `gh` CLI)
 - Graceful fallback for missing `gh` CLI
+- **Permission verification** (v4.1.5): Automatically fixes hook script permissions
 
 **Merge Strategy**:
 1. Check if project `.mcp.json` exists
@@ -54,6 +55,8 @@ Plugin: Configures MCP servers (merge strategy), prompts GitHub star
 ### Hooks Configuration
 
 **Location**: `.claude/hooks.json`
+
+**Important**: Hook scripts must have executable permissions (`-rwxr-xr-x`) to run properly. The `.gitattributes` file enforces line endings (LF) for cross-platform compatibility, and executable bits are tracked in git index (mode 100755).
 
 ```json
 {
@@ -66,6 +69,8 @@ Plugin: Configures MCP servers (merge strategy), prompts GitHub star
   ]
 }
 ```
+
+**Permission Fix (v4.1.5)**: If hook scripts don't have executable permissions after installation, run `/pilot:setup` to automatically fix them. See `MIGRATION.md` Troubleshooting section for manual fix.
 
 ### Version Management
 
@@ -1625,5 +1630,5 @@ Task:
 
 ---
 
-**Last Updated**: 2026-01-18 (GPT Delegation Prompt Improvements v4.1.2)
-**Version**: 4.1.2
+**Last Updated**: 2026-01-18 (Plugin Deployment Permissions Fix v4.1.5)
+**Version**: 4.1.5

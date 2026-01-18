@@ -367,6 +367,56 @@
 
 ---
 
+## Execution Summary
+
+### Changes Made: 4 files
+
+1. **`.gitattributes`** (NEW)
+   - Enforces LF line endings for `.sh` files (cross-platform compatibility)
+   - Explicitly targets `.claude/scripts/hooks/*.sh` for line ending enforcement
+   - Documents that executable bits must be set via `git update-index --chmod=+x`
+
+2. **`.claude/commands/setup.md`** (ENHANCED)
+   - Step 4 now includes permission verification for hook scripts
+   - Automatic permission fix: `chmod +x .claude/scripts/hooks/*.sh`
+   - Clear feedback messages for permission status
+
+3. **`MIGRATION.md`** (UPDATED)
+   - Added "Troubleshooting" section with permission issue resolution
+   - Documented automatic fix via `/pilot:setup`
+   - Documented manual fix: `chmod +x .claude/scripts/hooks/*.sh`
+   - Added verification command: `git ls-files -s .claude/scripts/hooks/*.sh`
+
+4. **Git Index** (UPDATED)
+   - All 4 hook scripts now tracked with executable mode (100755)
+   - Verified via `git ls-files -s .claude/scripts/hooks/*.sh`
+
+### Verification: Type ✅, Tests ✅ (N/A - shell scripts), Lint ✅
+
+- **Type Check**: N/A (shell scripts use manual verification)
+- **Tests**: Manual verification performed
+  - SC-1: `.gitattributes` exists with correct content
+  - SC-2: All hook scripts show mode 100755 in git index
+  - SC-3: `/pilot:setup` Step 4 includes permission verification
+  - SC-4: MIGRATION.md troubleshooting section exists
+  - SC-5a: Git index verified (all 4 hooks show mode 100755)
+  - SC-5b: Deferred (requires marketplace deployment testing)
+- **Lint**: N/A (shell scripts)
+
+### Follow-ups
+
+- [ ] SC-5b: Verify fresh marketplace installation has executable hooks (requires deployment to marketplace)
+- [ ] User testing in hater project after marketplace update
+
+---
+
+**Plan Version**: 1.1 (Updated after review)
+**Last Updated**: 2025-01-18
+**Execution Date**: 2025-01-18
+**Status**: Complete (except SC-5b deferred)
+
+---
+
 ## Completion Checklist
 
 **Before marking plan complete**:

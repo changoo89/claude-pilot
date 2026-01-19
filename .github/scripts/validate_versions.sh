@@ -52,20 +52,6 @@ if [ "$TAG_VERSION" != "$MARKETPLACE_VERSION" ]; then
     exit 1
 fi
 
-# Read version from .pilot-version
-if [ ! -f ".claude/.pilot-version" ]; then
-    echo "Error: .claude/.pilot-version not found"
-    exit 1
-fi
-
-PILOT_VERSION=$(cat .claude/.pilot-version)
-echo ".pilot-version: $PILOT_VERSION"
-
-if [ "$TAG_VERSION" != "$PILOT_VERSION" ]; then
-    echo "Error: Tag version ($TAG_VERSION) does not match .pilot-version ($PILOT_VERSION)"
-    exit 1
-fi
-
 echo "=================================="
 echo "All versions are consistent!"
 exit 0

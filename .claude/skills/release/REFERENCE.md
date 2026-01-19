@@ -178,11 +178,10 @@ echo "New version: $VERSION"
 
 ### Version Synchronization
 
-**All 3 version sources**:
+**All 2 version sources**:
 
 1. **plugin.json** (PRIMARY) - Single source of truth for plugin version
 2. **marketplace.json** (DUPLICATE) - Plugin entry version
-3. **.pilot-version** (INTERNAL) - Development template version
 
 **Update commands**:
 ```bash
@@ -192,11 +191,8 @@ jq --arg v "$VERSION" '.version = $v' .claude-plugin/plugin.json > tmp.json && m
 # 3.2 Update marketplace.json (DUPLICATE)
 jq --arg v "$VERSION" '(.plugins[] | select(.name == "claude-pilot").version) = $v' .claude-plugin/marketplace.json > tmp.json && mv tmp.json .claude-plugin/marketplace.json
 
-# 3.3 Update .pilot-version (INTERNAL)
-echo "$VERSION" > .claude/.pilot-version
-
 # Verification
-echo "✓ Updated all 3 version files"
+echo "✓ Updated all 2 version files"
 ```
 
 **Version verification**:
@@ -204,13 +200,11 @@ echo "✓ Updated all 3 version files"
 # Verify all files have same version
 PLUGIN_VER=$(jq -r '.version' .claude-plugin/plugin.json)
 MARKET_VER=$(jq -r '.plugins[] | select(.name == "claude-pilot").version' .claude-plugin/marketplace.json)
-PILOT_VER=$(cat .claude/.pilot-version)
 
 echo "plugin.json: $PLUGIN_VER"
 echo "marketplace.json: $MARKET_VER"
-echo ".pilot-version: $PILOT_VER"
 
-if [ "$PLUGIN_VER" != "$VERSION" ] || [ "$MARKET_VER" != "$VERSION" ] || [ "$PILOT_VER" != "$VERSION" ]; then
+if [ "$PLUGIN_VER" != "$VERSION" ] || [ "$MARKET_VER" != "$VERSION" ]; then
     echo "ERROR: Version mismatch detected"
     exit 1
 fi

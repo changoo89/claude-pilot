@@ -134,7 +134,7 @@ echo "Current: $CURRENT → New: $VERSION"
 
 ## Step 3: Update Version Files
 
-> **All 3 version sources**: @.claude/skills/release/REFERENCE.md
+> **All 2 version sources**: @.claude/skills/release/REFERENCE.md
 
 ```bash
 # 3.1 Update plugin.json (PRIMARY)
@@ -143,10 +143,7 @@ jq --arg v "$VERSION" '.version = $v' .claude-plugin/plugin.json > tmp.json && m
 # 3.2 Update marketplace.json (DUPLICATE)
 jq --arg v "$VERSION" '(.plugins[] | select(.name == "claude-pilot").version) = $v' .claude-plugin/marketplace.json > tmp.json && mv tmp.json .claude-plugin/marketplace.json
 
-# 3.3 Update .pilot-version (INTERNAL)
-echo "$VERSION" > .claude/.pilot-version
-
-echo "✓ Updated all 3 version files"
+echo "✓ Updated all 2 version files"
 ```
 
 ---
@@ -175,7 +172,7 @@ RELEASE_DATE=$(date +%Y-%m-%d)
 
 ```bash
 # Stage and commit
-git add .claude-plugin/plugin.json .claude-plugin/marketplace.json .claude/.pilot-version CHANGELOG.md
+git add .claude-plugin/plugin.json .claude-plugin/marketplace.json CHANGELOG.md
 git add .claude/commands/999_release.md CLAUDE.md MIGRATION.md 2>/dev/null || true
 git commit -m "chore: bump version to $VERSION"
 git tag -a "v$VERSION" -m "Release $VERSION"
@@ -237,7 +234,7 @@ echo "════════════════════════�
 
 - [ ] Pre-flight checks passed (jq, git, remote, clean working tree)
 - [ ] Plugin manifests validated (no invalid agents, metadata present, source is local path)
-- [ ] Version synced across all 3 files (plugin.json, marketplace.json, pilot-version)
+- [ ] Version synced across all 2 files (plugin.json, marketplace.json)
 - [ ] CHANGELOG.md auto-generated from git commits
 - [ ] Git commit created: "chore: bump version to X.Y.Z"
 - [ ] Git tag created and pushed: v{version}

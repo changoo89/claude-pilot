@@ -35,7 +35,7 @@ description: Plugin release workflow skill for version bumping, git tagging, and
 ## What This Skill Covers
 
 ### In Scope
-- Version synchronization (3 files: plugin.json, marketplace.json, .pilot-version)
+- Version synchronization (2 files: plugin.json, marketplace.json)
 - Git tagging and pushing
 - CHANGELOG auto-generation from commits
 - GitHub release creation (optional)
@@ -57,16 +57,15 @@ description: Plugin release workflow skill for version bumping, git tagging, and
 }
 ```
 
-**Auto-synced files** (DO NOT edit manually):
+**Auto-synced file** (DO NOT edit manually):
 - marketplace.json - Plugin entry version
-- .pilot-version - Development template version
 
 ### Release Workflow
 
 **Pre-flight** → Version bump → CHANGELOG → Git tag → GitHub release
 
 1. **Pre-flight Checks**: Validate jq, git, working tree, plugin manifests
-2. **Version Bump**: Update all 3 version files atomically
+2. **Version Bump**: Update all 2 version files atomically
 3. **CHANGELOG**: Auto-generate from git commits (conventional commit format)
 4. **Git Operations**: Commit, tag, push to remote
 5. **GitHub Release**: Optional (local or CI/CD)

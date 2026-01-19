@@ -12,6 +12,7 @@ _Execute plan using Ralph Loop TDD pattern._
 
 - **Single source of truth**: Plan file drives the work
 - **Evidence required**: Never claim completion without verification output
+- **Phase boundary protection**: NEVER move plan to done (only /03_close can move plans)
 
 **Details**: @.claude/skills/execute-plan/REFERENCE.md
 
@@ -29,6 +30,16 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 ## Step 0.5: Continuation State Check (MANDATORY)
 
 > **Details**: @.claude/skills/execute-plan/REFERENCE.md#continuation-state-system
+
+> **⚠️ CRITICAL: PHASE BOUNDARY PROTECTION**
+>
+> **This command MUST NEVER move the plan to done.**
+>
+> - Plan state management is the responsibility of `/03_close` only
+> - After completion, plan MUST remain in `.pilot/plan/in_progress/`
+> - Use `/03_close` to properly archive and move plans to done
+>
+> **This is a hard boundary - do NOT cross it.**
 
 **State file**: `.pilot/state/continuation.json`
 
@@ -351,6 +362,7 @@ Summary → Issues identified → Fresh approach → Files modified → Verifica
 - [ ] Type check clean
 - [ ] Lint clean
 - [ ] Plan file updated
+- [ ] **Plan MUST remain in `.pilot/plan/in_progress/` (NEVER move to done - only /03_close can do this)**
 
 ---
 
@@ -366,4 +378,4 @@ Summary → Issues identified → Fresh approach → Files modified → Verifica
 ## Next Command
 
 - `/91_document` - Update docs (unless `--no-docs`)
-- `/03_close` - Archive plan and cleanup
+- `/03_close` - **REQUIRED**: Move plan to done (ONLY this command moves plans)

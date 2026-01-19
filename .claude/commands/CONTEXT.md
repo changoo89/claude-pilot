@@ -10,7 +10,7 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 |------|---------|-------|----------------|-------------|
 | `00_plan.md` | Create SPEC-First plan | 355 | Planning | Collect user requirements verbatim, explore codebase, gather requirements, design execution plan through dialogue (read-only) |
 | `01_confirm.md` | Confirm plan + gap detection + requirements verification | 315 | Planning | Review plan, verify requirements coverage (Step 2.7), run gap detection, resolve BLOCKING issues, move to in_progress |
-| `02_execute.md` | Execute with TDD + Ralph Loop | 654 | Execution | Plan detection (MANDATORY), atomic lock mechanism (worktree), parallel verification |
+| `02_execute.md` | Execute with TDD + Ralph Loop | 658 | Execution | Plan detection (MANDATORY), phase boundary protection (NEVER move plan to done), atomic lock mechanism (worktree), parallel verification |
 | `03_close.md` | Archive and commit | 465 | Completion | Archive completed plan, worktree cleanup (with error trap), create git commit, safe git push with retry logic and failure tracking |
 | `04_fix.md` | Rapid bug fix workflow | 497 | Rapid | Automated plan → execute → close for simple bug fixes (1-3 SCs) with scope validation |
 | `90_review.md` | Multi-angle code review | 268 | Quality | Run comprehensive code review with multiple agent perspectives |
@@ -18,7 +18,7 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 | `92_init.md` | Initialize new project | 209 | Setup | Initialize new project with claude-pilot template |
 | `999_release.md` | Bump version + git tag + GitHub release | 415 | Release | Plugin version bump with git tag and GitHub release |
 
-**Total**: 10 commands, 3466 lines (average: 347 lines per command)
+**Total**: 10 commands, 3470 lines (average: 347 lines per command)
 
 ## Common Tasks
 
@@ -54,12 +54,14 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 - **Process**:
   1. **Step 1: Plan Detection (MANDATORY FIRST ACTION)**: Execute Bash commands to find plans in pending/ and in_progress/
   2. **Step 1.1: Plan State Transition (ATOMIC)**: Plan auto-moves from pending to in_progress (atomic operation)
-  3. **Worktree mode** (`--wt`): Atomic lock prevents race conditions
-  4. Coder Agent executes TDD cycle for each Success Criterion
-  5. Parallel Verification (Step 3.5): Tester + Validator + Code-Reviewer agents
-  6. Review Feedback Loop (Step 3.6): Address critical findings if any
-  7. **GPT Expert Escalation (Step 3.7)**: After 2+ Coder failures, delegate to GPT Architect for fresh perspective
-  8. Ralph Loop iterates until all quality gates pass
+  3. **Phase Boundary Protection**: Command MUST NEVER move plan to done (only `/03_close` can do this)
+  4. **Worktree mode** (`--wt`): Atomic lock prevents race conditions
+  5. Coder Agent executes TDD cycle for each Success Criterion
+  6. Parallel Verification (Step 3.5): Tester + Validator + Code-Reviewer agents
+  7. Review Feedback Loop (Step 3.6): Address critical findings if any
+  8. **GPT Expert Escalation (Step 3.7)**: After 2+ Coder failures, delegate to GPT Architect for fresh perspective
+  9. Ralph Loop iterates until all quality gates pass
+  10. **Plan Status**: Plan MUST remain in `.pilot/plan/in_progress/` after completion
 
 ### Rapid Bug Fix
 - **Task**: Fix simple bugs in one command (auto-plan → execute → close)
@@ -212,17 +214,35 @@ All commands use MANDATORY ACTION sections for reliable agent delegation:
 
 **Purpose**: Ensures agents are invoked with correct parameters every time.
 
+### Test Coverage
+Phase boundary protection validated by test suite:
+- `test_execute_status.sh`: Verifies plan remains in in_progress after /02_execute
+- `test_prompt_warnings.sh`: Validates phase boundary warnings exist in prompt
+- `test_success_criteria.sh`: Confirms success criteria includes plan status requirement
+- `test_execute_no_move.sh`: Ensures plan NOT moved to done directory
+
 ### Phase Boundary Protection
-Commands enforce strict phase boundaries:
+Commands enforce strict phase boundaries to prevent unauthorized state transitions:
 - `/00_plan`: Read-only (planning phase)
-- `/02_execute`: Implementation phase only
-- `/03_close`: Completion phase only
+- `/02_execute`: Implementation phase only - **NEVER moves plan to done**
+- `/03_close`: Completion phase only - **ONLY command that moves plans to done**
 
 **Example from `/00_plan`**:
 ```markdown
 > **⚠️ CRITICAL**: DO NOT start implementation during /00_plan.
 > - ❌ NO code editing, test writing, or file creation
 > - ✅ OK: Exploration (Glob, Grep, Read), Analysis, Planning, Dialogue
+```
+
+**Example from `/02_execute`**:
+```markdown
+> **⚠️ CRITICAL: PHASE BOUNDARY PROTECTION**
+>
+> **This command MUST NEVER move the plan to done.**
+>
+> - Plan state management is the responsibility of `/03_close` only
+> - After completion, plan MUST remain in `.pilot/plan/in_progress/`
+> - Use `/03_close` to properly archive and move plans to done
 ```
 
 ### Parallel Execution Pattern

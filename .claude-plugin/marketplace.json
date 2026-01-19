@@ -16,7 +16,7 @@
     {
       "name": "claude-pilot",
       "description": "SPEC-First development workflow: Plan -> Confirm -> Execute -> Review -> Document -> Close",
-      "version": "4.2.0",
+      "version": "4.3.0",
       "author": {
         "name": "changoo89",
         "email": "changoo89@users.noreply.github.com"

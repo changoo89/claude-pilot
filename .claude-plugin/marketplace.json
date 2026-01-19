@@ -16,7 +16,7 @@
     {
       "name": "claude-pilot",
       "description": "SPEC-First development workflow: Plan -> Confirm -> Execute -> Review -> Document -> Close. Features TDD, Ralph Loop, autonomous agents, and intelligent GPT Codex delegation.",
-      "version": "4.3.1",
+      "version": "4.3.2",
       "author": {
         "name": "changoo89",
         "email": "changoo89@users.noreply.github.com"

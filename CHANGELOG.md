@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.2] - 2026-01-20
+
+### Added
+  - Add /05_cleanup command for dead code cleanup.
+
+### Changed
+  - Remove language selection feature from setup.
+  - Improve /05_cleanup Command - Auto-Apply Workflow.
+
+### Documentation
+  - Update Documentation: Remove PyPI Migration, Add GPT Codex Integration.
+
 ## [4.3.1] - 2026-01-19
 
 ### Performance

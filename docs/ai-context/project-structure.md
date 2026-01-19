@@ -31,7 +31,7 @@ claude-pilot/
 │       └── validate_versions.sh  # Version consistency validation
 ├── .gitattributes          # Git file attributes (LF line endings, executable bit enforcement for .sh files)
 ├── .claude/
-│   ├── commands/           # Slash commands (11)
+│   ├── commands/           # Slash commands (12)
 │   │   ├── CONTEXT.md      # Command folder context
 │   │   ├── 00_continue.md  # Resume from continuation state (NEW v4.2.0)
 │   │   ├── 000_pilot_setup.md  # Setup command (NEW v4.1.0)
@@ -39,6 +39,8 @@ claude-pilot/
 │   │   ├── 01_confirm.md   # Confirm plan (with Step 1.5 extraction)
 │   │   ├── 02_execute.md   # Execute with TDD
 │   │   ├── 03_close.md     # Close & archive
+│   │   ├── 04_fix.md       # Rapid bug fix workflow (NEW v4.2.0)
+│   │   ├── 05_cleanup.md   # Dead code cleanup (NEW v4.3.1)
 │   │   ├── 90_review.md    # Review code
 │   │   ├── 91_document.md  # Update docs
 │   │   ├── 92_init.md      # Initialize 3-Tier docs

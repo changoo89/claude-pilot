@@ -153,7 +153,7 @@
 
 ## Version & Distribution
 
-**Plugin Version**: 4.3.0 (Hooks Performance Optimization)
+**Plugin Version**: 4.3.1 (Dead Code Cleanup Command)
 **Distribution**: GitHub Marketplace (pure plugin)
 
 **Release Process**: `@.claude/commands/999_release.md`

@@ -13,12 +13,13 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 | `02_execute.md` | Execute with TDD + Ralph Loop | 658 | Execution | Plan detection (MANDATORY), phase boundary protection (NEVER move plan to done), atomic lock mechanism (worktree), parallel verification |
 | `03_close.md` | Archive and commit | 465 | Completion | Archive completed plan, worktree cleanup (with error trap), create git commit, safe git push with retry logic and failure tracking |
 | `04_fix.md` | Rapid bug fix workflow | 497 | Rapid | Automated plan → execute → close for simple bug fixes (1-3 SCs) with scope validation |
+| `05_cleanup.md` | Safe dead code cleanup | 186 | Maintenance | Detect and remove unused imports and dead files with dry-run verification, two-step workflow |
 | `90_review.md` | Multi-angle code review | 268 | Quality | Run comprehensive code review with multiple agent perspectives |
 | `91_document.md` | Sync documentation | 288 | Maintenance | Update CLAUDE.md, sync templates, ensure consistency |
 | `92_init.md` | Initialize new project | 209 | Setup | Initialize new project with claude-pilot template |
 | `999_release.md` | Bump version + git tag + GitHub release | 415 | Release | Plugin version bump with git tag and GitHub release |
 
-**Total**: 10 commands, 3470 lines (average: 347 lines per command)
+**Total**: 12 commands, 3842 lines (average: 320 lines per command)
 
 ## Common Tasks
 
@@ -306,6 +307,8 @@ allowed-tools: [tool list]
 - `90_review`: Multi-angle code review
 
 ### Maintenance Commands
+- `04_fix`: Rapid bug fix workflow (auto-plan → execute → close)
+- `05_cleanup`: Safe dead code cleanup (unused imports, dead files)
 - `91_document`: Sync documentation
 - `999_release`: Bump version, git tag, GitHub release
 
@@ -315,7 +318,7 @@ allowed-tools: [tool list]
 ## File Organization
 
 ### Naming Convention
-- **Workflow commands**: `00` through `03` (sequential execution)
+- **Workflow commands**: `00` through `05` (sequential execution, maintenance)
 - **Quality commands**: `90` through `99` (utilities)
 - **Setup commands**: `92_init` (initialization only)
 

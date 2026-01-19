@@ -71,13 +71,29 @@
 **Full Guide**: `@docs/ai-context/continuation-system.md`
 
 ### Codex Integration (v4.2.0)
-**Intelligent GPT Delegation**: Context-aware, autonomous delegation
+**Intelligent GPT Delegation**: Context-aware, autonomous delegation to GPT experts
 
-**Triggers**: Architecture decisions, 2+ failures, security issues, large plans
+**Key Features**:
+- **Delegation Triggers**: Architecture decisions, 2+ failures, security issues, large plans
+- **Expert Mapping**: Architect (system design), Security Analyst (vulnerabilities), Plan Reviewer (validation), Code Reviewer (quality), Scope Analyst (requirements)
+- **Progressive Escalation**: After 2nd failure (not first) → GPT Architect
+- **Auto-Delegation**: Coder blocked → Immediate GPT Architect call
+- **Graceful Fallback**: Falls back to Claude if Codex CLI not installed
 
 **Configuration**: `export CODEX_REASONING_EFFORT="medium"` (default)
 
 **Full Guide**: `@docs/ai-context/codex-integration.md`
+
+**Delegation Flow**:
+```
+Trigger Detection (explicit, semantic, description-based)
+      ↓
+Expert Selection (Architect, Security Analyst, Code Reviewer, Plan Reviewer, Scope Analyst)
+      ↓
+Delegation (codex-sync.sh with 7-section prompt)
+      ↓
+Response Handling (synthesize, apply, verify)
+```
 
 ### CI/CD Integration
 **GitHub Actions**: Automated release on git tag push
@@ -147,7 +163,6 @@
 - `@docs/ai-context/project-structure.md` - Plugin layout, **Local Configuration**
 - `@.claude/agents/CONTEXT.md` - Agent ecosystem
 - `@.claude/commands/CONTEXT.md` - Command workflows
-- `@MIGRATION.md` - PyPI to plugin migration
 
 ---
 

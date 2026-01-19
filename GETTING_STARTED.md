@@ -4,51 +4,41 @@ Welcome to **claude-pilot**! This guide will help you get up and running quickly
 
 ## Quick Install
 
-### Option 1: One-line Install (Recommended)
+### Plugin Marketplace Installation (Recommended)
 
 ```bash
-# Install to current directory
-curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash
+# Step 1: Add marketplace
+/plugin marketplace add changoo89/claude-pilot
 
-# Update existing installation
-curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash -s -- update
+# Step 2: Install plugin
+/plugin install claude-pilot
 
-# Check version
-curl -fsSL https://raw.githubusercontent.com/changoo89/claude-pilot/main/install.sh | bash -s -- version
+# Step 3: Run setup
+/pilot:setup
 ```
 
 The installer will:
-1. Download claude-pilot core files from GitHub
-2. Create `.claude/` directory with commands, templates, and hooks
-3. Create `.pilot/` directory for plan management
-4. Initialize version tracking
+1. Copy plugin files to `.claude/` directory
+2. Create `.pilot/` directory for plan management
+3. Configure recommended MCP servers
+4. Set up hooks and templates
+5. Prompt for language selection (English/Korean/Japanese)
 
-### Option 2: Clone and Install
+### Verification
 
-```bash
-# Clone and run installer
-git clone https://github.com/changoo89/claude-pilot.git
-cd claude-pilot
-./install.sh
-```
-
-## Manual Install
+After installation, verify the plugin is working:
 
 ```bash
-# Clone or download this repository
-git clone https://github.com/changoo89/claude-pilot.git
-cd claude-pilot
+# Check version (should show 4.3.1)
+/pilot:setup --version
 
-# Copy the template to your project
-cp -r .claude/ ~/your-project/
-cp -r .pilot/ ~/your-project/
+# List available commands
+ls .claude/commands/
 
-# Copy the main configuration
-cp CLAUDE.md ~/your-project/
-
-# (Optional) Copy example configuration
-cp -r examples/minimal-typescript/.claude/settings.json ~/your-project/.claude/
+# Should show: 00_plan.md, 01_confirm.md, 02_execute.md, etc.
 ```
+
+---
 
 ## First Steps
 
@@ -73,15 +63,20 @@ This command will:
 2. **Ask for confirmation** - Show detected info and let you customize
 3. **Generate documentation**:
    - Create/update `CLAUDE.md` (merging if exists)
+   - Create `CLAUDE.local.md` (gitignored, project-specific)
    - Create `docs/ai-context/` folder with 3 supporting files
    - Create Tier 2 `CONTEXT.md` for selected components
 
-### 1. Customize CLAUDE.md
+---
 
-Edit `CLAUDE.md` to add your project's specifics:
+## Configuration
+
+### 1. Customize CLAUDE.local.md
+
+Edit `CLAUDE.local.md` to add your project's specifics:
 
 ```markdown
-# [Your Project Name] - Claude Code Configuration
+# [Your Project Name] - Project Configuration
 
 ## Quick Start
 \`\`\`bash
@@ -111,6 +106,8 @@ Edit `.claude/settings.json` to match your project:
 ```json
 {
   "language": "en",
+  "continuation_level": "normal",
+  "coverage_threshold": 80,
   "lsp": {
     "typescript-language-server": {
       "command": "typescript-language-server",
@@ -123,7 +120,7 @@ Edit `.claude/settings.json` to match your project:
 
 ### 3. Set Up Hooks
 
-The template includes quality enforcement hooks:
+The plugin includes quality enforcement hooks:
 
 - **typecheck.sh** - Runs `tsc --noEmit` on file edits
 - **lint.sh** - Runs ESLint/Pylint/gofmt on file edits
@@ -135,18 +132,20 @@ Make sure hooks are executable:
 chmod +x .claude/scripts/hooks/*.sh
 ```
 
+---
+
 ## Using the Commands
 
 ### Planning Workflow
 
 ```
-0. /92_init   → Initialize 3-Tier Documentation (for existing projects)
-1. /00_plan   → Create SPEC-First execution plan (read-only exploration)
-2. /01_confirm → Save plan to pending/ (optional, /02_execute can auto-detect)
-3. /02_execute → Implement with Ralph Loop + TDD
-4. /90_review  → Multi-angle code review
+0. /92_init     → Initialize 3-Tier Documentation (for existing projects)
+1. /00_plan     → Create SPEC-First execution plan (read-only exploration)
+2. /01_confirm  → Save plan to pending/ (optional, /02_execute can auto-detect)
+3. /02_execute  → Implement with Ralph Loop + TDD
+4. /90_review   → Multi-angle code review
 5. /91_document → Sync 3-Tier documentation
-6. /03_close   → Finalize and create git commit
+6. /03_close    → Finalize and create git commit
 ```
 
 ### Quick Examples
@@ -157,7 +156,7 @@ chmod +x .claude/scripts/hooks/*.sh
 > [Analyzes project structure and tech stack]
 > [Shows detected info: Node.js, React, etc.]
 > [Asks for project description and Tier 2 folders]
-> [Creates CLAUDE.md, docs/ai-context/, CONTEXT.md files]
+> [Creates CLAUDE.local.md, docs/ai-context/, CONTEXT.md files]
 ```
 
 **Plan a new feature:**
@@ -177,7 +176,7 @@ chmod +x .claude/scripts/hooks/*.sh
 **Review the code:**
 ```
 /90_review
-> [Runs 8 mandatory reviews + type-specific reviews]
+> [Runs parallel verification: tester, validator, code-reviewer]
 ```
 
 ### Parallel Work with Worktrees
@@ -218,6 +217,8 @@ cd ../project-wt-feature-20260113-auth
 - Automatic cleanup after merge
 - Each worktree has its own branch
 
+---
+
 ## Plan Management
 
 Plans are stored in `.pilot/plan/`:
@@ -231,9 +232,11 @@ Plans are stored in `.pilot/plan/`:
     └── active/        # Branch pointers
 ```
 
+---
+
 ## Templates
 
-The template includes document templates for the 3-Tier Documentation System:
+The plugin includes document templates for the 3-Tier Documentation System:
 
 ### Tier 2 Template (Component)
 For component-level architecture and integration:
@@ -264,25 +267,65 @@ For domain-specific skill documentation:
 cp .claude/templates/SKILL.md.template .claude/skills/frontend/SKILL.md
 ```
 
+---
+
 ## MCP Servers
 
-The template recommends 4 MCP servers (configured in `mcp.json`):
+The plugin recommends 5 MCP servers (configured via `/pilot:setup`):
 
 1. **context7** - Up-to-date library documentation
 2. **serena** - Semantic code search and editing
 3. **grep-app** - Fast code search
 4. **sequential-thinking** - Complex reasoning support
+5. **codex** - GPT integration for intelligent delegation
 
-Install MCP servers:
+Configure MCP servers:
 ```bash
-npx @modelcontextprotocol/inspector install mcp.json
+/pilot:setup
 ```
+
+Or manually edit `.mcp.json`:
+```json
+{
+  "mcpServers": {
+    "context7": {...},
+    "serena": {...}
+  }
+}
+```
+
+---
+
+## GPT Codex Integration (Optional)
+
+claude-pilot supports intelligent GPT delegation via Codex CLI:
+
+### Expert Mapping
+
+| Situation | GPT Expert |
+|-----------|------------|
+| Architecture decisions | **Architect** |
+| Security-related code | **Security Analyst** |
+| Large plans (5+ SCs) | **Plan Reviewer** |
+| 2+ failed fix attempts | **Architect** |
+
+### Configuration
+
+```bash
+export CODEX_REASONING_EFFORT="medium"  # low | medium | high | xhigh
+```
+
+**Full Guide**: [docs/ai-context/codex-integration.md](docs/ai-context/codex-integration.md)
+
+---
 
 ## Examples
 
 See the `examples/` folder for configuration examples:
 
 - **minimal-typescript** - Basic TypeScript project setup
+
+---
 
 ## Troubleshooting
 
@@ -321,19 +364,25 @@ ls -la .pilot/plan/
 # Run /00_plan first to create a plan
 ```
 
+---
+
 ## Next Steps
 
-1. Install the template
-2. Customize CLAUDE.md
-3. Configure settings.json
-4. Try your first `/00_plan` command
-5. Explore [examples/](examples/) for more configurations
+1. Install the plugin via marketplace
+2. Run `/pilot:setup` to configure MCP servers
+3. Try your first `/00_plan` command
+4. Explore [examples/](examples/) for more configurations
+
+---
 
 ## Resources
 
 - [README.md](README.md) - Project overview and features
+- [CLAUDE.md](CLAUDE.md) - Plugin documentation
 - [examples/](examples/) - Configuration examples
-- [install.sh](install.sh) - Installation script source
+- [docs/ai-context/codex-integration.md](docs/ai-context/codex-integration.md) - GPT delegation guide
+
+---
 
 ## Support
 

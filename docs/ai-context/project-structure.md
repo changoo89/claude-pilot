@@ -161,7 +161,6 @@ claude-pilot/
 ├── CLAUDE.md               # Tier 1: Project documentation
 ├── README.md               # Project README
 ├── CHANGELOG.md            # Version history
-└── MIGRATION.md            # PyPI to plugin migration guide (NEW v4.1.0)
 ```
 
 ---
@@ -188,7 +187,6 @@ claude-pilot/
 | `docs/ai-context/system-integration.md` | Component interactions, workflows |
 | `docs/ai-context/project-structure.md` | This file: tech stack, layout |
 | `.claude/guides/3tier-documentation.md` | 3-Tier system guide |
-| `MIGRATION.md` | PyPI to plugin migration guide (v4.0.5 → v4.1.0) |
 
 ### Configuration
 
@@ -564,7 +562,6 @@ claude-pilot update --apply-statusline
   - Pre-flight checks: jq, git, remote, clean working tree
   - Auto-detection: Git remote and default branch
   - Graceful fallback: GitHub CLI optional (skip release if gh not installed)
-  - Documentation: Updated MIGRATION.md with "Release Workflow (v4.1.1+)" section
   - Verification: All success criteria met (SC-1 through SC-6)
 
 ### v4.1.0 (2026-01-17)
@@ -573,7 +570,6 @@ claude-pilot update --apply-statusline
   - Plugin manifests: `.claude-plugin/marketplace.json`, `.claude-plugin/plugin.json`
   - Setup command: `.claude/commands/000_pilot_setup.md` (MCP merge + GitHub star)
   - Hooks configuration: `.claude/hooks.json`
-  - Migration guide: `MIGRATION.md` for PyPI users
   - Updated README: Plugin-only installation (3-line)
   - Updated CLAUDE.md: Plugin distribution references
   - Removed: `src/`, `pyproject.toml`, `install.sh`, `tests/`
@@ -775,7 +771,6 @@ claude-pilot update --apply-statusline
 - `.claude/skills/tdd/REFERENCE.md` - TDD detailed guide
 - `.claude/skills/ralph-loop/SKILL.md` - Autonomous iteration (Quick Reference)
 - `.claude/skills/ralph-loop/REFERENCE.md` - Ralph Loop detailed guide
-- `MIGRATION.md` - PyPI to plugin migration guide (v4.0.5 → v4.1.0)
 
 ---
 

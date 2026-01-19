@@ -598,7 +598,7 @@ claude-pilot update --apply-statusline
 - **Updated files**: worktree-utils.sh, 02_execute.md, 03_close.md, test_worktree_utils.py
 - **Verification**: All 8 success criteria met (SC-1 through SC-8)
 
-### v3.4.0 (2026-01-16)
+### v4.2.0 (2026-01-18)
 
 - **Plan Detection Fix**: Fixed intermittent "No plan found" errors in /02_execute
 - **MANDATORY ACTION pattern**: Added explicit plan detection step with strong guard language

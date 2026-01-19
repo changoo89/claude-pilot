@@ -9,9 +9,9 @@ Utility scripts for Codex integration, state management, worktree operations, an
 | File | Purpose | Lines | Usage |
 |------|---------|-------|-------|
 | `codex-sync.sh` | Codex CLI integration for GPT delegation | 193 | Delegate to GPT experts with stateless prompts |
-| `worktree-utils.sh` | Git worktree atomic lock management | 371 | Prevent race conditions in `/02_execute --wt` |
+| `worktree-utils.sh` | Git worktree atomic lock management, glob-safe plan detection | 371 | Prevent race conditions in `/02_execute --wt`, select oldest pending plan |
 | `worktree-create.sh` | Create worktree with atomic lock | 120 | Initialize isolated worktree for parallel execution |
-| `statusline.sh` | Git status line formatting | 65 | Display repository status in prompts |
+| `statusline.sh` | Plan state count display (Draft/Pending/In-Progress) | 65 | Display plan counts in Claude Code statusline (v4.3.2: added draft count) |
 | `hooks/check-todos.sh` | Pre-commit todo validation | 84 | Verify todos complete before commit |
 | `hooks/branch-guard.sh` | Pre-commit branch validation | 51 | Prevent commits to protected branches |
 | `hooks/lint.sh` | Pre-commit lint validation | 87 | Run project linter |

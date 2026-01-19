@@ -124,8 +124,8 @@ fi
 ```bash
 PLAN_PATH="${EXPLICIT_PATH}"
 PLAN_SEARCH_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
-# Select oldest pending plan (ls -1t sorts newest first, tail -1 gets oldest)
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
+# Select oldest pending plan (use find to avoid glob errors, ls -1tr for oldest first)
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(find "$PLAN_SEARCH_ROOT/.pilot/plan/pending" -maxdepth 1 -type f -name "*.md" 2>/dev/null | xargs ls -1tr 2>/dev/null | head -1)"
 
 if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
     PLAN_FILENAME="$(basename "$PLAN_PATH")"
@@ -135,7 +135,7 @@ if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
     PLAN_PATH="$IN_PROGRESS_PATH"
 fi
 
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(find "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress" -maxdepth 1 -type f -name "*.md" 2>/dev/null | xargs ls -1t 2>/dev/null | head -1)"
 [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found" >&2; exit 1; }
 
 ACTIVE_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"

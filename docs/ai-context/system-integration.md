@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, workflows, and integration points
-> **Last Updated**: 2026-01-19 (Hooks Performance Optimization v4.3.0)
+> **Last Updated**: 2026-01-20 (Plan Detection Fix and Statusline Enhancement v4.3.2)
 > **Note**: This is a router/overview file. See topic-specific files for detailed information.
 
 ---
@@ -132,11 +132,16 @@ User Request
 **Purpose**: Implement features using TDD + Ralph Loop
 
 **Process**:
-1. Plan detection (MANDATORY)
+1. Plan detection (MANDATORY, glob-safe with `find`)
 2. Atomic plan state transition
 3. Coder Agent execution
 4. Parallel verification (Tester + Validator + Code-Reviewer)
 5. Ralph Loop iteration
+
+**Plan Detection Fix (v4.3.2)**:
+- Fixed zsh glob failure when plan directories empty
+- Uses `find` with `xargs` for portable empty-directory handling
+- Cross-shell compatible (bash/zsh)
 
 **Full details**: @.claude/commands/02_execute.md
 

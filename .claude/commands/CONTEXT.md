@@ -53,7 +53,7 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 - **Command**: `/02_execute [--wt]`
 - **Output**: Feature code with tests, coverage 80%+, verified quality
 - **Process**:
-  1. **Step 1: Plan Detection (MANDATORY FIRST ACTION)**: Execute Bash commands to find plans in pending/ and in_progress/
+  1. **Step 1: Plan Detection (MANDATORY FIRST ACTION)**: Execute Bash commands to find plans in pending/ and in_progress/ (glob-safe with `find`)
   2. **Step 1.1: Plan State Transition (ATOMIC)**: Plan auto-moves from pending to in_progress (atomic operation)
   3. **Phase Boundary Protection**: Command MUST NEVER move plan to done (only `/03_close` can do this)
   4. **Worktree mode** (`--wt`): Atomic lock prevents race conditions

@@ -16,7 +16,7 @@ is_worktree_mode() {
 # Usage: oldest_plan=$(select_oldest_pending)
 # Returns: Path to oldest pending plan, or empty if none
 select_oldest_pending() {
-    ls -1tr .pilot/plan/pending/*.md 2>/dev/null | head -1
+    find .pilot/plan/pending -maxdepth 1 -type f -name "*.md" 2>/dev/null | xargs ls -1tr 2>/dev/null | head -1
 }
 
 # Select and lock the oldest pending plan (atomic operation)
@@ -27,7 +27,7 @@ select_and_lock_pending() {
     local lock_dir=".pilot/plan/.locks"
     mkdir -p "$lock_dir"
 
-    for plan in $(ls -1tr .pilot/plan/pending/*.md 2>/dev/null); do
+    for plan in $(find .pilot/plan/pending -maxdepth 1 -type f -name "*.md" 2>/dev/null | xargs ls -1tr 2>/dev/null); do
         local plan_name="$(basename "$plan")"
         local lock_file="${lock_dir}/${plan_name}.lock"
 

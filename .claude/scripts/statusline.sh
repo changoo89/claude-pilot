@@ -52,6 +52,14 @@ else
     pending=0
 fi
 
+# Count draft plans (always show count, even when 0)
+draft_dir="${pilot_dir}/plan/draft/"
+if [ -d "$draft_dir" ]; then
+    draft=$(find "$draft_dir" -type f ! -name '.gitkeep' 2>/dev/null | wc -l | tr -d ' ') || draft=0
+else
+    draft=0
+fi
+
 # Count in-progress plans (always show count, even when 0)
 in_progress_dir="${pilot_dir}/plan/in_progress/"
 if [ -d "$in_progress_dir" ]; then
@@ -61,5 +69,5 @@ else
 fi
 
 # Combine global output with plan counts
-# Format: "global_output | 📋 P:{pending} I:{in_progress}"
-echo "$global_output | 📋 P:$pending I:$in_progress"
+# Format: "global_output | 📋 D:{draft} P:{pending} I:{in_progress}"
+echo "$global_output | 📋 D:$draft P:$pending I:$in_progress"

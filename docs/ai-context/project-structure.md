@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-19 (Updated: Hooks Performance Optimization v4.3.0)
+> **Last Updated**: 2026-01-20 (Updated: Plan Detection Fix and Statusline Enhancement v4.3.2)
 
 ---
 
@@ -434,21 +434,21 @@ See `@docs/migration-guide.md` for detailed migration instructions.
 
 ---
 
-## Statusline Feature (v3.3.4)
+## Statusline Feature (v3.3.4, v4.3.2)
 
 ### Overview
 
-The statusline feature displays pending plan count in Claude Code's statusline using the format `📋 P:{n}`.
+The statusline feature displays plan state counts in Claude Code's statusline using the format `📋 D:{n} P:{n} I:{n}` (Draft, Pending, In-Progress).
 
 ### Components
 
-| File | Purpose |
-|------|---------|
-| `.claude/scripts/statusline.sh` | Script that counts pending plans and formats output |
-| `.claude/settings.json` | StatusLine configuration (command type) |
-| `cli.py` | `--apply-statusline` flag for opt-in updates |
-| `updater.py` | `apply_statusline()` function for safe settings merge |
-| `config.py` | MANAGED_FILES entry for statusline.sh |
+| File | Purpose | Updated |
+|------|---------|---------|
+| `.claude/scripts/statusline.sh` | Script that counts plans and formats output | v4.3.2 (added draft count) |
+| `.claude/settings.json` | StatusLine configuration (command type) | - |
+| `cli.py` | `--apply-statusline` flag for opt-in updates | - |
+| `updater.py` | `apply_statusline()` function for safe settings merge | - |
+| `config.py` | MANAGED_FILES entry for statusline.sh | - |
 
 ### Usage
 
@@ -459,14 +459,19 @@ The statusline feature displays pending plan count in Claude Code's statusline u
 ### Statusline Script Behavior
 
 1. **Input**: JSON via stdin with `workspace.current_dir`
-2. **Count**: Files in `.pilot/plan/pending/` (excludes `.gitkeep`)
+2. **Count**: Files in `.pilot/plan/draft/`, `.pilot/plan/pending/`, `.pilot/plan/in_progress/` (excludes `.gitkeep`)
 3. **Output**:
-   - `📁 {dirname} | 📋 P:{n}` when pending > 0
-   - `📁 {dirname}` when pending = 0
+   - `📁 {dirname} | 📋 D:{n} P:{n} I:{n}` (always show all three states)
+   - Example: `📁 claude-pilot | 📋 D:1 P:2 I:0`
 4. **Fallbacks**:
    - Missing `jq`: Show directory only
    - Invalid JSON: Show directory only
    - Missing directory: Show directory only
+
+### Version History
+
+- **v4.3.2** (2026-01-20): Added draft count display (D:{n})
+- **v3.3.4** (2026-01-15): Initial statusline with pending count (P:{n})
 
 ### Integration Points
 
@@ -503,6 +508,20 @@ claude-pilot update --apply-statusline
 ---
 
 ## Version History
+
+### v4.3.2 (2026-01-20)
+
+**Plan Detection Fix and Statusline Enhancement**: Glob-safe plan detection and draft count display
+- **Plan detection fix**: Fixed zsh glob failure in `/02_execute` when plan directories empty
+  - Root cause: `ls -1t .../*.md` fails with "no matches found" in zsh when no files exist
+  - Solution: Use `find` with `xargs` for portable empty-directory handling
+  - Fixed locations: `/02_execute.md` (Line 128, 138), `worktree-utils.sh` (Line 19, 30)
+  - Cross-shell compatibility: Works in both bash and zsh
+- **Statusline enhancement**: Added draft plan count to statusline display
+  - New format: `📋 D:{n} P:{n} I:{n}` (Draft, Pending, In-Progress)
+  - Always show all three states for consistency
+- **Test results**: 7 tests passing (100% pass rate)
+- **Verification**: All 4 success criteria met (SC-1 through SC-4)
 
 ### v4.3.1 (2026-01-20)
 

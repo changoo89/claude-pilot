@@ -46,7 +46,6 @@ Stop planning in your head. Start with SPECs, iterate with agents, review with c
 - **3-Tier Documentation**: Foundation/Component/Feature hierarchy for efficient context
 - **PRP Pattern**: Structured prompts for unambiguous requirements
 - **Integrated Hooks**: Type checking, linting, and todo validation
-- **Multilingual**: Runtime language selection (English/Korean/Japanese)
 - **Pure Plugin**: No Python dependency, native Claude Code integration
 
 ---
@@ -168,7 +167,6 @@ claude-pilot/
    - Configures recommended MCP servers
    - Creates `.pilot/` directories for plan management
    - Sets hooks executable permissions
-   - Prompts for language selection (English/Korean/Japanese)
    - Detects project type and configures LSP
 
 ### What Gets Installed
@@ -182,16 +180,6 @@ claude-pilot/
 ---
 
 ## Configuration
-
-### Language Settings
-
-Edit `.claude/settings.json`:
-
-```json
-{
-  "language": "en"  // Options: en, ko, ja
-}
-```
 
 ### MCP Servers
 

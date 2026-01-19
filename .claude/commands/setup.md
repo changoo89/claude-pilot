@@ -11,10 +11,9 @@ This command sets up claude-pilot by:
 1. Merging `.claude/settings.json` (hooks, LSP, permissions)
 2. Creating `.pilot/` directories for plan management
 3. Setting hooks executable permissions
-4. Prompting for language selection (en/ko/ja)
-5. Detecting project type and configuring LSP
-6. Configuring recommended MCP servers (with merge strategy)
-7. Optionally prompting user to star the GitHub repository
+4. Detecting project type and configuring LSP
+5. Configuring recommended MCP servers (with merge strategy)
+6. Optionally prompting user to star the GitHub repository
 
 ---
 
@@ -91,7 +90,7 @@ if [ -f "$USER_SETTINGS" ]; then
                 ($user.$schema // $plugin.$schema) as $schema |
                 # Merge env (user takes precedence)
                 env: ($plugin.env // {}) + ($user.env // {}),
-                # Use language from selection (will be set in Step 5)
+                # Use language from user settings or default
                 language: ($user.language // $plugin.language),
                 # Merge other boolean settings
                 alwaysThinkingEnabled: ($user.alwaysThinkingEnabled // $plugin.alwaysThinkingEnabled),
@@ -203,60 +202,7 @@ fi
 
 ---
 
-## Step 5: Language Selection
-
-Prompt user to select their preferred language:
-
-**User Question**:
-```
-Select language / 언어 선택 / 语言选择:
-
-1. English (en)
-2. 한국어 (ko)
-3. 日本語 (ja)
-```
-
-### Handle Language Selection
-
-**Option 1: English (en)**
-```bash
-echo "Language set to English"
-
-# Update settings.json with selected language
-if [ -f ".claude/settings.json" ] && command -v jq &> /dev/null; then
-    TMPFILE=$(mktemp)
-    jq '.language = "en"' .claude/settings.json > "$TMPFILE"
-    jq empty "$TMPFILE" 2>/dev/null && mv "$TMPFILE" .claude/settings.json || rm -f "$TMPFILE"
-fi
-```
-
-**Option 2: 한국어 (ko)**
-```bash
-echo "언어가 한국어로 설정되었습니다"
-
-# Update settings.json with selected language
-if [ -f ".claude/settings.json" ] && command -v jq &> /dev/null; then
-    TMPFILE=$(mktemp)
-    jq '.language = "ko"' .claude/settings.json > "$TMPFILE"
-    jq empty "$TMPFILE" 2>/dev/null && mv "$TMPFILE" .claude/settings.json || rm -f "$TMPFILE"
-fi
-```
-
-**Option 3: 日本語 (ja)**
-```bash
-echo "言語が日本語に設定されました"
-
-# Update settings.json with selected language
-if [ -f ".claude/settings.json" ] && command -v jq &> /dev/null; then
-    TMPFILE=$(mktemp)
-    jq '.language = "ja"' .claude/settings.json > "$TMPFILE"
-    jq empty "$TMPFILE" 2>/dev/null && mv "$TMPFILE" .claude/settings.json || rm -f "$TMPFILE"
-fi
-```
-
----
-
-## Step 6: Project Type Detection and LSP Configuration
+## Step 5: Project Type Detection and LSP Configuration
 
 Detect project type and configure appropriate LSP servers:
 
@@ -312,7 +258,7 @@ fi
 
 ---
 
-## Step 7: Configure MCP Servers
+## Step 6: Configure MCP Servers
 
 ### MCP Merge Strategy
 
@@ -453,7 +399,7 @@ fi
 
 ---
 
-## Step 8: Create CLAUDE.local.md (Optional)
+## Step 7: Create CLAUDE.local.md (Optional)
 
 Offer to create project-specific documentation template:
 
@@ -510,7 +456,7 @@ echo "See docs/ai-context/project-structure.md for details."
 
 ---
 
-## Step 9: Ask About Starring
+## Step 8: Ask About Starring
 
 Use AskUserQuestion to ask the user if they'd like to ⭐ star the claude-pilot repository on GitHub to support the project.
 
@@ -558,7 +504,7 @@ echo ""
 
 ---
 
-## Step 10: Update .gitignore for CLAUDE.local.md
+## Step 9: Update .gitignore for CLAUDE.local.md
 
 Add gitignore entries to keep project-specific documentation private:
 
@@ -604,7 +550,7 @@ fi
 
 ---
 
-## Step 11: Verify Setup
+## Step 10: Verify Setup
 
 Run verification commands to confirm setup complete:
 
@@ -614,7 +560,6 @@ echo "claude-pilot Status"
 echo "───────────────────────────────────────────────────"
 MCP_COUNT=$(jq '.mcpServers | keys | length' .mcp.json 2>/dev/null || echo '0')
 HOOKS_COUNT=$(find .claude/scripts/hooks -name '*.sh' -executable 2>/dev/null | wc -l | tr -d ' ')
-LANGUAGE=$(jq -r '.language // "en"' .claude/settings.json 2>/dev/null || echo 'en')
 PROJECT_TYPE="generic"
 [ -f "package.json" ] && PROJECT_TYPE="node"
 [ -f "pyproject.toml" ] || [ -f "requirements.txt" ] && PROJECT_TYPE="python"
@@ -623,7 +568,6 @@ PROJECT_TYPE="generic"
 echo "MCP Servers:    ✓ ${MCP_COUNT} configured"
 echo "Hooks:          ✓ ${HOOKS_COUNT} executable"
 echo "Plans:          ✓ .pilot/plan/ created"
-echo "Language:       ✓ ${LANGUAGE}"
 echo "Project Type:   ✓ ${PROJECT_TYPE}"
 echo "───────────────────────────────────────────────────"
 echo ""
@@ -635,10 +579,6 @@ ls -la .pilot/plan/ 2>/dev/null || echo "  (No .pilot/plan/ found)"
 echo ""
 echo "Hook scripts (should have execute permissions):"
 ls -la .claude/scripts/hooks/*.sh
-
-echo ""
-echo "Settings configured:"
-jq '.language' .claude/settings.json 2>/dev/null || echo "  (No settings.json found)"
 
 echo ""
 echo "MCP Servers configured:"

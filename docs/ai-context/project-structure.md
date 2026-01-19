@@ -740,5 +740,44 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-18 (Frontend Design Skill v4.2.1)
-**Version**: 4.2.1
+**Last Updated**: 2026-01-19 (Two-Layer Documentation v4.2.0)
+**Version**: 4.2.0
+
+---
+
+## Local Configuration (NEW v4.2.0)
+
+### Two-Layer Documentation Strategy
+
+claude-pilot uses a two-layer approach to separate plugin documentation from project-specific configuration:
+
+**Plugin Layer (CLAUDE.md)**:
+- Plugin architecture and features
+- Distribution and installation
+- Core feature documentation
+- Plugin-specific components
+
+**Project Layer (CLAUDE.local.md)**:
+- Your project structure
+- Your testing strategy
+- Your quality standards
+- Your MCP server configuration
+- Your documentation conventions
+
+### Creating CLAUDE.local.md
+
+After plugin installation, run `/pilot:setup` to create `CLAUDE.local.md`:
+
+**Template Location**: `.claude/templates/CLAUDE.local.template.md`
+
+**What to Include**:
+- Project structure and organization
+- Testing framework and coverage targets
+- Quality standards and pre-commit hooks
+- MCP server configuration
+- Documentation conventions
+- Common use case examples
+
+**Gitignore Behavior**: `CLAUDE.local.md` and `.claude/*.local.md` are automatically gitignored
+
+**Full Guide**: See `@CLAUDE.md` → "Project Template" section

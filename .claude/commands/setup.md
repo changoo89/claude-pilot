@@ -453,7 +453,64 @@ fi
 
 ---
 
-## Step 8: Ask About Starring
+## Step 8: Create CLAUDE.local.md (Optional)
+
+Offer to create project-specific documentation template:
+
+**User Question**:
+```
+Would you like to create CLAUDE.local.md for your project?
+
+CLAUDE.local.md contains your project-specific:
+- Structure and organization
+- Testing strategy and coverage targets
+- Quality standards and pre-commit hooks
+- MCP server configuration
+- Documentation conventions
+
+Options:
+1. Yes, create CLAUDE.local.md from template
+2. No thanks (I'll create it manually later)
+```
+
+**Option 1: Yes (Create Template)**
+
+```bash
+# Check if template exists
+TEMPLATE_FILE=".claude/templates/CLAUDE.local.template.md"
+if [ -f "$TEMPLATE_FILE" ]; then
+    # Copy template to project root
+    cp "$TEMPLATE_FILE" ./CLAUDE.local.md
+    echo "✓ CLAUDE.local.md created from template"
+    echo ""
+    echo "Next steps:"
+    echo "  1. Edit CLAUDE.local.md with your project details"
+    echo "  2. Customize YAML configuration (coverage, testing, etc.)"
+    echo "  3. Update project structure section"
+    echo "  4. Add your quality standards and conventions"
+    echo ""
+    echo "Template location: $TEMPLATE_FILE"
+    echo "Your file: ./CLAUDE.local.md"
+else
+    echo "⚠ Template not found at: $TEMPLATE_FILE"
+    echo "You can create CLAUDE.local.md manually later."
+fi
+```
+
+**Option 2: No Thanks**
+
+```bash
+echo "✓ Skipping CLAUDE.local.md creation"
+echo ""
+echo "You can create it later with:"
+echo "  cp .claude/templates/CLAUDE.local.template.md ./CLAUDE.local.md"
+echo ""
+echo "See docs/ai-context/project-structure.md for details."
+```
+
+---
+
+## Step 9: Ask About Starring
 
 Use AskUserQuestion to ask the user if they'd like to ⭐ star the claude-pilot repository on GitHub to support the project.
 
@@ -501,7 +558,53 @@ echo ""
 
 ---
 
-## Step 9: Verify Setup
+## Step 10: Update .gitignore for CLAUDE.local.md
+
+Add gitignore entries to keep project-specific documentation private:
+
+```bash
+# Get project root
+GITIGNORE_PATH="$(git rev-parse --show-toplevel)/.gitignore"
+
+# Check if .gitignore exists
+if [ ! -f "$GITIGNORE_PATH" ]; then
+    echo "ERROR: .gitignore not found at $GITIGNORE_PATH" >&2
+    exit 1
+fi
+
+# Backup .gitignore
+cp "$GITIGNORE_PATH" "${GITIGNORE_PATH}.backup"
+
+# Add CLAUDE.local.md entry (idempotent)
+if ! grep -q "^CLAUDE\.local\.md$" "$GITIGNORE_PATH"; then
+    echo "CLAUDE.local.md" >> "$GITIGNORE_PATH"
+    echo "✓ Added CLAUDE.local.md to .gitignore"
+else
+    echo "✓ CLAUDE.local.md already in .gitignore"
+fi
+
+# Add .claude/*.local.md pattern (idempotent)
+if ! grep -q "\.claude/\*\.local\.md$" "$GITIGNORE_PATH"; then
+    echo ".claude/*.local.md" >> "$GITIGNORE_PATH"
+    echo "✓ Added .claude/*.local.md pattern to .gitignore"
+else
+    echo "✓ .claude/*.local.md pattern already in .gitignore"
+fi
+
+# Remove backup on success
+rm "${GITIGNORE_PATH}.backup"
+
+# Verify gitignore behavior
+if git check-ignore -v CLAUDE.local.md >/dev/null 2>&1; then
+    echo "✓ CLAUDE.local.md will be gitignored"
+else
+    echo "⚠ Warning: CLAUDE.local.md may not be gitignored correctly"
+fi
+```
+
+---
+
+## Step 11: Verify Setup
 
 Run verification commands to confirm setup complete:
 

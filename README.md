@@ -39,6 +39,67 @@ After installation, `/pilot:setup` will be prompted automatically to configure M
 
 ---
 
+## CLAUDE.local.md (Project-Specific Configuration)
+
+**When to use**: Add `CLAUDE.local.md` to your project root for project-specific documentation that stays private (gitignored).
+
+### Two-Layer Documentation Strategy
+
+claude-pilot uses a two-layer documentation approach:
+
+1. **Plugin Layer (CLAUDE.md)**: Plugin architecture, features, distribution
+   - Located in the plugin directory
+   - Updated via `/plugin update`
+   - Contains plugin-level documentation only
+
+2. **Project Layer (CLAUDE.local.md)**: Your project-specific configuration, structure, and standards
+   - Located in your project root
+   - Gitignored (stays private)
+   - Survives plugin updates
+
+### How to Create CLAUDE.local.md
+
+Run `/pilot:setup` and choose "Yes" when prompted:
+
+```
+Would you like to create a CLAUDE.local.md file? [Y/n]
+```
+
+This copies `.claude/templates/CLAUDE.local.template.md` to your project root as `CLAUDE.local.md`.
+
+### What to Include
+
+`CLAUDE.local.md` contains your project-specific settings:
+
+```yaml
+---
+# Project Configuration
+continuation_level: normal  # aggressive | normal | polite
+coverage_threshold: 80      # Overall coverage target
+core_coverage_threshold: 90 # Core modules coverage target
+max_iterations: 7            # Max Ralph Loop iterations
+testing_framework: {pytest|jest|go test|cargo test}
+type_check_command: {tsc --noEmit|mypy|typecheck}
+lint_command: {eslint|ruff|gofmt|lint}
+---
+```
+
+Plus project-specific sections:
+- Project structure
+- Testing strategy
+- Quality standards
+- MCP servers
+- Custom workflows
+
+### Benefits
+
+- **Clean Plugin Docs**: Plugin CLAUDE.md stays focused on plugin features
+- **Private Customization**: Your project settings stay local (gitignored)
+- **Update-Safe**: Plugin updates won't affect your local documentation
+- **Clear Separation**: Plugin vs project concerns are explicitly separated
+
+---
+
 ## Core Workflow
 
 ```

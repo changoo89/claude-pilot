@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.2.0 | **Last Updated**: 2026-01-19
+> **Version**: 4.3.1 | **Last Updated**: 2026-01-20
 
 ---
 
@@ -168,11 +168,29 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.3.1 (Dead Code Cleanup Command)
+**Plugin Version**: 4.3.1 (Dead Code Cleanup Command - Auto-Apply Workflow)
 **Distribution**: GitHub Marketplace (pure plugin)
 
 **Release Process**: `@.claude/commands/999_release.md`
 
 ---
 
-**Line Count**: 156 lines (Target: ≤150 lines) ✅
+**Line Count**: 178 lines (Target: ≤200 lines) ✅
+
+---
+
+## Version History
+
+### v4.3.1 (2026-01-20)
+
+**Dead Code Cleanup Command**: Auto-apply workflow with risk-based confirmation
+- Auto-apply Low/Medium risk items without confirmation (interactive TTY)
+- High-risk items require user confirmation with 3 choices
+- Safe flags: `--dry-run` for preview, `--apply` for force-apply
+- Risk classification: Low (tests), Medium (utils), High (components/routes)
+- Pre-flight safety: Auto-block modified/staged files
+- Verification after each batch (max 10 deletions) and at end
+- Automatic rollback on verification failure
+- Non-interactive mode: CI/non-TTY defaults to --dry-run behavior (exit 2 if changes needed)
+- 10 new test files (52 assertions, 100% pass rate)
+

@@ -149,7 +149,17 @@ claude-pilot/
 │       ├── test_continuation_state.test.sh # State management tests (NEW v4.2.0)
 │       ├── test_sc5_integration.test.sh    # Integration tests (NEW v4.2.0)
 │       ├── test_github_workflow.sh         # GitHub Actions workflow tests (NEW v4.1.8)
-│       └── test_999_skip_gh.sh             # 999_release skip-gh tests (NEW v4.1.8)
+│       ├── test_999_skip_gh.sh             # 999_release skip-gh tests (NEW v4.1.8)
+│       ├── cleanup-auto.test.sh            # Auto-apply low-risk items (NEW v4.3.1)
+│       ├── cleanup-confirm.test.sh         # Interactive confirmation for high-risk (NEW v4.3.1)
+│       ├── cleanup-dryrun.test.sh          # Explicit dry-run mode (NEW v4.3.1)
+│       ├── cleanup-apply.test.sh           # Force apply mode (NEW v4.3.1)
+│       ├── cleanup-conflict.test.sh        # Both flags conflict (NEW v4.3.1)
+│       ├── cleanup-verify.test.sh          # Verification after batch (NEW v4.3.1)
+│       ├── cleanup-rollback.test.sh        # Rollback on failure (NEW v4.3.1)
+│       ├── cleanup-preflight.test.sh       # Pre-flight safety check (NEW v4.3.1)
+│       ├── cleanup-ci.test.sh              # Non-interactive default (NEW v4.3.1)
+│       └── cleanup-ci-apply.test.sh        # Non-interactive with apply (NEW v4.3.1)
 ├── docs/                   # Project documentation
 │   ├── ai-context/         # 3-Tier detailed docs
 │   │   ├── system-integration.md
@@ -493,6 +503,21 @@ claude-pilot update --apply-statusline
 ---
 
 ## Version History
+
+### v4.3.1 (2026-01-20)
+
+**Dead Code Cleanup Command**: Auto-apply workflow with risk-based confirmation
+- **Auto-apply default**: Low/Medium risk items deleted without confirmation (interactive TTY)
+- **Risk-based confirmation**: High-risk items require user confirmation with 3 choices (Apply all, Skip, Review one-by-one)
+- **Safe flags**: `--dry-run` for preview, `--apply` for force-apply (mutually exclusive)
+- **Risk classification**: Low (tests), Medium (utils), High (components/routes)
+- **Pre-flight safety**: Auto-block modified/staged files from deletion
+- **Verification**: Project-specific commands after each batch (max 10 deletions) and at end
+- **Rollback**: Automatic restore via git restore (tracked) and trash restore (untracked)
+- **Non-interactive mode**: CI/non-TTY defaults to --dry-run behavior (exit 2 if changes needed)
+- **Updated file**: `.claude/commands/05_cleanup.md` (complete rewrite, 465 lines)
+- **New tests**: 10 test files covering all flag combinations and edge cases (52 assertions, 100% pass rate)
+- **Verification**: All 13 success criteria met (SC-1 through SC-13)
 
 ### v4.3.0 (2026-01-19)
 

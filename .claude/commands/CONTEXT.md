@@ -13,13 +13,13 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 | `02_execute.md` | Execute with TDD + Ralph Loop | 658 | Execution | Plan detection (MANDATORY), phase boundary protection (NEVER move plan to done), atomic lock mechanism (worktree), parallel verification |
 | `03_close.md` | Archive and commit | 465 | Completion | Archive completed plan, worktree cleanup (with error trap), create git commit, safe git push with retry logic and failure tracking |
 | `04_fix.md` | Rapid bug fix workflow | 497 | Rapid | Automated plan → execute → close for simple bug fixes (1-3 SCs) with scope validation |
-| `05_cleanup.md` | Safe dead code cleanup | 186 | Maintenance | Detect and remove unused imports and dead files with dry-run verification, two-step workflow |
+| `05_cleanup.md` | Safe dead code cleanup | 465 | Maintenance | Auto-apply dead code cleanup with risk-based confirmation, verification, rollback |
 | `90_review.md` | Multi-angle code review | 268 | Quality | Run comprehensive code review with multiple agent perspectives |
 | `91_document.md` | Sync documentation | 288 | Maintenance | Update CLAUDE.md, sync templates, ensure consistency |
 | `92_init.md` | Initialize new project | 209 | Setup | Initialize new project with claude-pilot template |
 | `999_release.md` | Bump version + git tag + GitHub release | 415 | Release | Plugin version bump with git tag and GitHub release |
 
-**Total**: 12 commands, 3842 lines (average: 320 lines per command)
+**Total**: 12 commands, 4121 lines (average: 343 lines per command)
 
 ## Common Tasks
 
@@ -165,6 +165,45 @@ Push failed for 1 repository:
   2. Copy template files
   3. Customize CLAUDE.md
   4. Initialize git repository
+
+### Dead Code Cleanup
+- **Task**: Auto-apply dead code cleanup with risk-based confirmation
+- **Command**: `/05_cleanup [mode=imports|files|all] [scope=repo|path=...] [--dry-run] [--apply]`
+- **Output**: Cleaned codebase with verification and rollback safety
+- **Process**:
+  1. **Parse Arguments**: Mode (imports/files/all), scope (repo/path), flags (--dry-run/--apply)
+  2. **Risk Classification**: Calculate risk level (Low/Medium/High) for each candidate
+  3. **Pre-Flight Safety**: Check for uncommitted modifications (auto-block modified files)
+  4. **Detection Phase**: Find unused imports (Tier 1) and dead files (Tier 2)
+  5. **Dry-Run Mode** (if --dry-run): Show candidates only, no deletions, exit 0 (or exit 2 in CI)
+  6. **Risk-Based Application**:
+     - **Low/Medium risk**: Auto-apply without confirmation
+     - **High risk**: Interactive AskUserQuestion with 3 choices (Apply all, Skip, Review one-by-one)
+     - **Blocked files**: Skip and report (uncommitted modifications)
+  7. **Verification**: Run project-specific command after each batch (max 10 deletions) and at end
+  8. **Rollback on Failure**: Automatic restore via git restore (tracked) and trash restore (untracked)
+  9. **Non-Interactive Mode** (CI/non-TTY): Defaults to --dry-run behavior (exit 2 if changes needed)
+
+**Risk Levels**:
+- **Low**: Test files (*.test.ts, *.spec.ts, *.mock.ts, *_test.go)
+- **Medium**: Utility/helper files (src/utils/*, lib/helpers/*)
+- **High**: Core components/routes (src/components/*, src/routes/*, src/pages/*)
+
+**Safety Features**:
+- Flag conflict detection (--dry-run + --apply → error)
+- Pre-flight safety: Never delete modified/staged files
+- Batch verification (every 10 deletions)
+- Stop-on-failure with automatic rollback
+- Safe-file-ops integration (git rm for tracked, .trash/ for untracked)
+
+**Examples**:
+```bash
+/05_cleanup mode=imports                    # Auto-apply Low/Medium (interactive TTY)
+/05_cleanup mode=files                      # Auto-apply Low/Medium, confirm High
+/05_cleanup mode=imports --dry-run          # Preview only
+/05_cleanup mode=files --apply              # Apply everything (no confirm)
+/05_cleanup mode=files path=src/components  # Specific scope
+```
 
 ### Publish Release
 - **Task**: Bump version, create git tag, create GitHub release

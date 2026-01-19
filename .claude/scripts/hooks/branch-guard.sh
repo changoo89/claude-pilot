@@ -4,6 +4,20 @@
 
 set -e
 
+# Cleanup handler for temporary files
+cleanup_branchguard_temp_files() {
+    # Clean up any temporary files created during execution
+    if [ -n "${CACHE_FILE:-}" ] && [ -f "$CACHE_FILE.tmp" ]; then
+        rm -f "$CACHE_FILE.tmp" 2>/dev/null || true
+    fi
+    if [ -n "${CACHE_FILE:-}" ] && [ -f "$CACHE_FILE.lock" ]; then
+        rm -f "$CACHE_FILE.lock" 2>/dev/null || true
+    fi
+}
+
+# Register cleanup trap
+trap cleanup_branchguard_temp_files EXIT INT TERM
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

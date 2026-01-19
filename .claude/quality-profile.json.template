@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "mode": "stop",
+  "cache_ttl": 30,
+  "debounce_seconds": 10,
+  "language_overrides": {
+    "typescript": {
+      "typecheck": true,
+      "lint": true
+    },
+    "python": {
+      "typecheck": false,
+      "lint": false
+    },
+    "go": {
+      "typecheck": false,
+      "lint": true
+    },
+    "rust": {
+      "typecheck": false,
+      "lint": true
+    }
+  }
+}

@@ -1,7 +1,7 @@
 # System Integration Guide
 
 > **Purpose**: Component interactions, workflows, and integration points
-> **Last Updated**: 2026-01-19
+> **Last Updated**: 2026-01-19 (Hooks Performance Optimization v4.3.0)
 > **Note**: This is a router/overview file. See topic-specific files for detailed information.
 
 ---
@@ -255,5 +255,5 @@ Before marking work complete:
 
 ---
 
-**Version**: claude-pilot 4.2.0 (System Integration Router)
+**Version**: claude-pilot 4.3.0 (System Integration Router)
 **Last Updated**: 2026-01-19

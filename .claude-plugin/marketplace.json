@@ -1,23 +1,38 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "claude-pilot",
-  "version": "4.1.7",
+  "version": "4.2.0",
   "description": "SPEC-First development workflow with TDD, Ralph Loop, and autonomous agent coordination for Claude Code",
   "owner": {
     "name": "changoo89",
     "email": "changoo89@users.noreply.github.com"
   },
+  "metadata": {
+    "description": "SPEC-First development workflow with TDD, Ralph Loop, and autonomous agent coordination for Claude Code",
+    "version": "4.2.0",
+    "pluginRoot": "./"
+  },
   "plugins": [
     {
       "name": "claude-pilot",
       "description": "SPEC-First development workflow: Plan -> Confirm -> Execute -> Review -> Document -> Close",
-      "version": "4.1.7",
+      "version": "4.2.0",
       "author": {
         "name": "changoo89",
         "email": "changoo89@users.noreply.github.com"
       },
       "source": "./",
-      "category": "development"
+      "category": "development",
+      "homepage": "https://github.com/changoo89/claude-pilot",
+      "repository": "https://github.com/changoo89/claude-pilot",
+      "license": "MIT",
+      "keywords": [
+        "development",
+        "tdd",
+        "workflow",
+        "testing",
+        "documentation"
+      ]
     }
   ]
 }

@@ -25,7 +25,7 @@ COMPLEXITY_SCORE=$(calculate_score "$INPUT")
 [ $COMPLEXITY_SCORE -ge 0.5 ] && echo "Use /00_plan instead"
 
 # Auto-generate minimal plan (1-3 SCs)
-PLAN_PATH=".pilot/plan/pending/fix_${TIMESTAMP}.md"
+PLAN_PATH=".claude-pilot/.pilot/plan/pending/fix_${TIMESTAMP}.md"
 generate_plan "$BUG_DESCRIPTION" > "$PLAN_PATH"
 
 # Execute via /02_execute with TDD + Ralph Loop

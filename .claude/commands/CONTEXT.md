@@ -25,7 +25,7 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 ### Create a Plan
 - **Task**: Generate SPEC-First plan from user request with User Requirements Collection
 - **Command**: `/00_plan "implement user authentication"`
-- **Output**: Plan file saved to `.pilot/plan/pending/{timestamp}_{work}_{topic}.md`
+- **Output**: Plan file saved to `.claude-pilot/.pilot/plan/pending/{timestamp}_{work}_{topic}.md`
 - **Process**:
   1. Step 0: Collect user requirements verbatim (UR-1, UR-2, ...)
   2. Step 1: Explorer and Researcher agents explore codebase and external docs (parallel)
@@ -36,7 +36,7 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 ### Confirm a Plan
 - **Task**: Review plan, verify requirements coverage, detect gaps, resolve BLOCKING issues
 - **Command**: `/01_confirm`
-- **Output**: Plan moved to `.pilot/plan/in_progress/`
+- **Output**: Plan moved to `.claude-pilot/.pilot/plan/in_progress/`
 - **Process**:
   1. Extract plan from conversation
   2. Step 2.7: Verify 100% requirements coverage (UR → SC mapping)
@@ -84,7 +84,7 @@ Slash commands for SPEC-First development workflow. Each command manages a speci
 ### Close and Archive
 - **Task**: Archive plan, worktree cleanup, create git commit, safe git push
 - **Command**: `/03_close`
-- **Output**: Plan in `.pilot/plan/done/`, worktree removed, git commit created, changes pushed to remote
+- **Output**: Plan in `.claude-pilot/.pilot/plan/done/`, worktree removed, git commit created, changes pushed to remote
 - **Process**:
   1. Move plan from in_progress to done
   2. **Worktree mode**: Complete cleanup (worktree, branch, directory, lock)
@@ -189,7 +189,7 @@ User Request
        ↓
 /02_execute → Implementation (code + tests)
        ↓
-/03_close → .pilot/plan/done/ + commit
+/03_close → .claude-pilot/.pilot/plan/done/ + commit
 ```
 
 **Rapid Workflow** (simple fixes, 1-3 SCs):
@@ -198,7 +198,7 @@ User Request
        ↓
 /04_fix → Scope validation → Auto-plan → Execute → Close
        ↓
-.pilot/plan/done/ + commit (with user confirmation)
+.claude-pilot/.pilot/plan/done/ + commit (with user confirmation)
 ```
 
 ### Agent Invocation Pattern

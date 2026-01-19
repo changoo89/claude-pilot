@@ -63,7 +63,7 @@ fi
 **Archive state to done/ folder**:
 ```bash
 if [ -f "$STATE_FILE" ]; then
-    STATE_ARCHIVE="$PROJECT_ROOT/.pilot/plan/done/${RUN_ID}_continuation_state.json"
+    STATE_ARCHIVE="$PROJECT_ROOT/.claude-pilot/.pilot/plan/done/${RUN_ID}_continuation_state.json"
     cp "$STATE_FILE" "$STATE_ARCHIVE"
     echo "✓ Archived continuation state: $STATE_ARCHIVE"
     # Note: Original state file is NOT deleted yet

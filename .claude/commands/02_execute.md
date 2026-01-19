@@ -30,7 +30,7 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 
 > **Details**: @.claude/skills/execute-plan/REFERENCE.md#continuation-state-system
 
-**State file**: `.pilot/state/continuation.json`
+**State file**: `.claude-pilot/.pilot/state/continuation.json`
 
 **Check & resume logic**:
 ```bash
@@ -39,10 +39,10 @@ WORKTREE_MODE=false
 for arg in "$@"; do [ "$arg" = "--wt" ] && WORKTREE_MODE=true && break; done
 
 if [ "$WORKTREE_MODE" = true ] && [ -n "${WORKTREE_ROOT:-}" ]; then
-    STATE_FILE="$WORKTREE_ROOT/.pilot/state/continuation.json"
+    STATE_FILE="$WORKTREE_ROOT/.claude-pilot/.pilot/state/continuation.json"
 elif [ "$WORKTREE_MODE" = false ]; then
     PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-    STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
+    STATE_FILE="$PROJECT_ROOT/.claude-pilot/.pilot/state/continuation.json"
 fi
 
 # Load and resume if exists
@@ -77,7 +77,7 @@ update_continuation_state() {
 > **🚨 YOU MUST DO THIS FIRST**
 
 ```bash
-ls -la .pilot/plan/pending/*.md .pilot/plan/in_progress/*.md 2>/dev/null
+ls -la .claude-pilot/.claude-pilot/.pilot/plan/pending/*.md .claude-pilot/.claude-pilot/.pilot/plan/in_progress/*.md 2>/dev/null
 ```
 
 **Worktree mode** (--wt flag):
@@ -109,41 +109,66 @@ if [ -f "$WORKTREE_PERSIST_FILE" ]; then
 fi
 ```
 
-**Plan detection**:
+**Plan detection** (oldest-first selection):
 ```bash
 PLAN_PATH="${EXPLICIT_PATH}"
 PLAN_SEARCH_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
+# Select oldest pending plan (ls -1t sorts newest first, tail -1 gets oldest)
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
 
 if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
     PLAN_FILENAME="$(basename "$PLAN_PATH")"
-    IN_PROGRESS_PATH="$PLAN_SEARCH_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
-    mkdir -p "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress"
+    IN_PROGRESS_PATH="$PLAN_SEARCH_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/in_progress/${PLAN_FILENAME}"
+    mkdir -p "$PLAN_SEARCH_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/in_progress"
     mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || { echo "❌ FATAL" >&2; exit 1; }
     PLAN_PATH="$IN_PROGRESS_PATH"
 fi
 
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
 [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found" >&2; exit 1; }
 
 ACTIVE_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
-mkdir -p "$ACTIVE_ROOT/.pilot/plan/active"
+mkdir -p "$ACTIVE_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/active"
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
-printf "%s" "$PLAN_PATH" > "$ACTIVE_ROOT/.pilot/plan/active/$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g').txt"
+printf "%s" "$PLAN_PATH" > "$ACTIVE_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/active/$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g').txt"
 echo "✓ Plan ready: $PLAN_PATH"
 ```
 
 ---
 
-## Step 1.5: GPT Delegation Triggers
+## Step 1.5: GPT Delegation Triggers (CRITICAL)
 
+> **⚠️ CRITICAL: PRIORITIZE GPT CONSULTATION OVER USER QUERIES**
+>
+> **When stuck or blocked, ALWAYS delegate to GPT BEFORE asking the user**
+>
 > **Full guide**: @.claude/rules/delegator/triggers.md
 
-| Trigger | Action |
-|---------|--------|
-| 2+ failed attempts | Delegate to Architect |
-| Architecture decision | Delegate to Architect |
-| Security concern | Delegate to Security Analyst |
+### Escalation Triggers (GPT-FIRST)
+
+| Trigger | Action | Priority |
+|---------|--------|----------|
+| 2+ failed attempts | Delegate to Architect | **BEFORE** user query |
+| Stuck on task | Delegate to Architect | **BEFORE** user query |
+| Architecture decision | Delegate to Architect | **BEFORE** user query |
+| Security concern | Delegate to Security Analyst | **BEFORE** user query |
+| Ambiguity in plan | Delegate to Scope Analyst | **BEFORE** user query |
+
+### GPT Consultation Flow
+
+**Step 1**: Check for escalation triggers
+**Step 2**: If trigger matches → Delegate to GPT expert
+**Step 3**: Wait for GPT response
+**Step 4**: Apply GPT recommendations autonomously
+**Step 5**: **ONLY if GPT cannot resolve** → Ask user via AskUserQuestion
+
+### Auto-Delegation on Blocked Status
+
+**When Coder returns `<CODER_BLOCKED>`**:
+1. **IMMEDIATELY** delegate to GPT Architect (no user prompt)
+2. Include full context: attempts, errors, iteration count
+3. Apply GPT recommendations
+4. Re-invoke Coder with fresh perspective
 
 ---
 
@@ -195,11 +220,23 @@ Task:
 - [ ] Coverage ≥80% (overall), ≥90% (core)
 - [ ] Ralph Loop iterations count
 
-**Auto-delegation** (when `<CODER_BLOCKED>`):
-1. Read `.claude/rules/delegator/prompts/architect.md`
-2. Build delegation prompt with context
-3. Call: `.claude/scripts/codex-sync.sh "workspace-write" "<prompt>"`
-4. Process response, re-invoke Coder
+**Auto-delegation** (when `<CODER_BLOCKED>` - IMMEDIATE GPT ESCALATION):
+
+> **⚠️ CRITICAL: When Coder is blocked, delegate to GPT IMMEDIATELY**
+> **DO NOT ask user - GPT consultation happens FIRST**
+
+1. **IMMEDIATELY** delegate to GPT Architect (no user prompt)
+2. Read `.claude/rules/delegator/prompts/architect.md`
+3. Build delegation prompt with full context:
+   - Previous attempts (what was tried)
+   - Error messages (what failed)
+   - Current iteration count
+   - Plan path and SC being implemented
+4. Call: `.claude/scripts/codex-sync.sh "workspace-write" "<prompt>"`
+5. Wait for GPT response
+6. Apply GPT recommendations autonomously
+7. Re-invoke Coder with fresh perspective
+8. **ONLY if GPT cannot resolve** → Ask user via AskUserQuestion
 
 ---
 
@@ -231,12 +268,63 @@ Task:
 3. Update todos (all parallel together)
 4. Verify no conflicts, merge results
 
-**Step 5: GPT Escalation** (Optional)
-| Situation | Expert |
-|-----------|--------|
-| 2+ failed attempts | Architect |
-| Architecture | Architect |
-| Security | Security Analyst |
+**Step 5: GPT Escalation** (GPT-FIRST - BEFORE User Query)
+
+> **⚠️ CRITICAL: GPT escalation happens BEFORE any AskUserQuestion call**
+
+| Situation | Expert | When to Delegate |
+|-----------|--------|------------------|
+| Coder blocked (`<CODER_BLOCKED>`) | Architect | **IMMEDIATELY** (no user prompt) |
+| 2+ failed attempts | Architect | **BEFORE** asking user |
+| Stuck on task | Architect | **BEFORE** asking user |
+| Architecture decision needed | Architect | **BEFORE** asking user |
+| Security concern | Security Analyst | **BEFORE** asking user |
+| Plan ambiguity | Scope Analyst | **BEFORE** asking user |
+
+**Delegation Flow**:
+1. Detect trigger situation
+2. **IMMEDIATELY** delegate to GPT expert (skip user query)
+3. Wait for GPT response with recommendations
+4. Apply GPT recommendations autonomously
+5. **ONLY if GPT cannot resolve** → Ask user via AskUserQuestion
+
+**Auto-Delegation Example** (when `<CODER_BLOCKED>`):
+```bash
+# Read GPT Architect prompt
+EXPERT_PROMPT="$(cat .claude/rules/delegator/prompts/architect.md)"
+
+# Build delegation prompt with full context
+DELEGATION_PROMPT="${EXPERT_PROMPT}
+
+TASK: Unblock implementation that failed after ${ITERATION_COUNT} attempts.
+
+EXPECTED OUTCOME: Fresh perspective and working solution.
+
+CONTEXT:
+- Plan: ${PLAN_PATH}
+- Current SC: ${SC_ID}
+- Previous attempts: ${ATTEMPT_HISTORY}
+- Current errors: ${ERROR_MESSAGES}
+- Iteration count: ${ITERATION_COUNT}
+
+CONSTRAINTS:
+- Must work with existing codebase
+- Cannot break existing functionality
+
+MUST DO:
+- Analyze why previous attempts failed
+- Provide fresh approach
+- Report all files modified
+
+MUST NOT DO:
+- Repeat same approaches that failed
+
+OUTPUT FORMAT:
+Summary → Issues identified → Fresh approach → Files modified → Verification"
+
+# Delegate IMMEDIATELY (no user prompt)
+.claude/scripts/codex-sync.sh "workspace-write" "$DELEGATION_PROMPT"
+```
 
 **Step 6: Todo Continuation**
 1. Edit/Write code

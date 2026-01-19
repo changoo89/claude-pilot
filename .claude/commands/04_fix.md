@@ -79,16 +79,16 @@ _Rapid bug fix workflow - automated planning, execution, and closure for simple 
 
 ```bash
 PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/$(basename "$PLAN_PATH")"
-mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
+IN_PROGRESS_PATH="$PROJECT_ROOT/.claude-pilot/.pilot/plan/in_progress/$(basename "$PLAN_PATH")"
+mkdir -p "$PROJECT_ROOT/.claude-pilot/.pilot/plan/in_progress"
 mv "$PLAN_PATH" "$IN_PROGRESS_PATH"
 PLAN_PATH="$IN_PROGRESS_PATH"
 
 # Set active pointer
-mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
+mkdir -p "$PROJECT_ROOT/.claude-pilot/.pilot/plan/active"
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-printf "%s" "$PLAN_PATH" > "$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
+printf "%s" "$PLAN_PATH" > "$PROJECT_ROOT/.claude-pilot/.pilot/plan/active/${KEY}.txt"
 
 echo "✓ Plan ready: $PLAN_PATH"
 ```
@@ -223,12 +223,12 @@ if [ "$COMMIT_CONFIRM" = "true" ]; then
     echo "→ Closing plan..."
 
     # Move plan to done
-    mkdir -p "$PROJECT_ROOT/.pilot/plan/done"
-    DONE_PATH="$PROJECT_ROOT/.pilot/plan/done/$(basename "$PLAN_PATH")"
+    mkdir -p "$PROJECT_ROOT/.claude-pilot/.pilot/plan/done"
+    DONE_PATH="$PROJECT_ROOT/.claude-pilot/.pilot/plan/done/$(basename "$PLAN_PATH")"
     mv "$PLAN_PATH" "$DONE_PATH"
 
     # Clear active pointer
-    rm -f "$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
+    rm -f "$PROJECT_ROOT/.claude-pilot/.pilot/plan/active/${KEY}.txt"
 
     echo "✓ Plan archived: $DONE_PATH"
 

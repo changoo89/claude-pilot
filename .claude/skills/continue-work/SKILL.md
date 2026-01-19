@@ -69,7 +69,7 @@ NEXT_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status != "complete") | .i
   "version": "1.0",
   "session_id": "uuid-v4",
   "branch": "main",
-  "plan_file": ".pilot/plan/in_progress/plan.md",
+  "plan_file": ".claude-pilot/.pilot/plan/in_progress/plan.md",
   "todos": [
     {"id": "SC-1", "status": "complete", "iteration": 1, "owner": "coder"},
     {"id": "SC-2", "status": "in_progress", "iteration": 0, "owner": "coder"}

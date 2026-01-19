@@ -18,31 +18,31 @@
     },
     {
       "id": "SC-3",
-      "status": "pending",
-      "iteration": 0,
+      "status": "complete",
+      "iteration": 1,
       "owner": "coder"
     },
     {
       "id": "SC-4",
-      "status": "pending",
-      "iteration": 0,
+      "status": "complete",
+      "iteration": 1,
       "owner": "coder"
     },
     {
       "id": "SC-5",
-      "status": "pending",
-      "iteration": 0,
+      "status": "complete",
+      "iteration": 1,
       "owner": "coder"
     },
     {
       "id": "SC-6",
-      "status": "pending",
-      "iteration": 0,
+      "status": "complete",
+      "iteration": 1,
       "owner": "coder"
     }
   ],
-  "iteration_count": 2,
+  "iteration_count": 8,
   "max_iterations": 7,
-  "last_checkpoint": "2026-01-19T16:10:00Z",
+  "last_checkpoint": "2026-01-19T16:25:00Z",
   "continuation_level": "normal"
 }

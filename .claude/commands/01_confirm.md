@@ -1,15 +1,15 @@
 ---
-description: Extract plan from conversation, create file in pending/, auto-review with Interactive Recovery
+description: Extract plan from conversation, create file in draft/, auto-apply non-BLOCKING improvements, move to pending
 argument-hint: "[work_name] [--lenient] [--no-review] - work name optional; --lenient bypasses BLOCKING; --no-review skips all review"
 allowed-tools: Read, Glob, Grep, Write, Bash(*), AskUserQuestion, Skill
 ---
 
 # /01_confirm
 
-_Extract plan from conversation, create plan file in pending/, run auto-review with Interactive Recovery for BLOCKING findings._
+_Extract plan from conversation, create plan file in draft/, auto-apply review improvements (non-BLOCKING), move to pending after review._
 
 > **MANDATORY STOP - CONFIRMATION ONLY**
-> This command only: 1) Extracts plan, 2) Creates file in pending/, 3) Runs auto-review, 4) Interactive Recovery if BLOCKING, 5) STOPS
+> This command: 1) Extracts plan, 2) Creates file in draft/, 3) Runs auto-review, 4) Auto-applies non-BLOCKING improvements, 5) Moves to pending, 6) STOPS
 > To execute, run `/02_execute` after this completes.
 
 ---
@@ -115,11 +115,11 @@ Use AskUserQuestion to resolve ALL BLOCKING issues before plan file creation.
 # Project root detection (always use project root, not current directory)
 PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 
-mkdir -p "$PROJECT_ROOT/.pilot/plan/pending"
+mkdir -p "$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/draft"
 WORK_NAME="$(echo "$ARGUMENTS" | sed 's/--no-review//g' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g' | head -c 50 | xargs)"
 [ -z "$WORK_NAME" ] && WORK_NAME="plan"
 TS="$(date +%Y%m%d_%H%M%S)"
-PLAN_FILE="$PROJECT_ROOT/.pilot/plan/pending/${TS}_${WORK_NAME}.md"
+PLAN_FILE="$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/draft/${TS}_${WORK_NAME}.md"
 ```
 
 ---
@@ -142,24 +142,27 @@ echo "Plan created: $PLAN_FILE"
 
 ---
 
-## Step 4: Auto-Review (Strict Mode)
+## Step 4: Auto-Review with Auto-Apply (Strict Mode)
 
-> **Principle**: Plan validation with Interactive Recovery for BLOCKING findings
+> **Principle**: Plan validation with auto-apply for non-BLOCKING findings, Interactive Recovery only for BLOCKING
 > **Skill**: @.claude/skills/confirm-plan/SKILL.md
 
 ### Default Behavior
 
-Always run auto-review with strict mode (BLOCKING findings trigger Interactive Recovery).
+Always run auto-review with strict mode:
+- **Auto-apply**: Critical, Warning, Suggestion findings (non-BLOCKING)
+- **Interactive Recovery**: BLOCKING findings only (require user resolution)
 
 ### Exception: --no-review and --lenient flags
 
-- `--no-review`: Skip auto-review entirely, proceed to STOP
-- `--lenient`: Convert BLOCKING findings to WARNING, proceed to STOP
+- `--no-review`: Skip auto-review entirely, proceed to Step 5
+- `--lenient`: Convert BLOCKING findings to WARNING, auto-apply all, proceed to Step 5
 
 ### 4.2 Onboarding Message
 
 ```
 🛑 BLOCKING findings prevent execution until resolved.
+Non-BLOCKING findings (Critical, Warning, Suggestion) are auto-applied.
 This ensures plan quality for independent executors.
 Use --lenient to bypass (converts BLOCKING → WARNING).
 ```
@@ -179,15 +182,40 @@ Task:
 
 **VERIFICATION**: Wait for plan-reviewer agent results before proceeding to Step 4.4
 
-### 4.4 Check BLOCKING Findings
+### 4.4 Auto-Apply Non-BLOCKING Findings
+
+> **⚠️ CRITICAL**: Auto-apply ALL non-BLOCKING findings without user prompt
+
+**Auto-Apply Flow**:
+1. Parse review results for Critical, Warning, Suggestion findings
+2. Apply improvements to plan file automatically
+3. Log changes made
+4. Re-invoke plan-reviewer to verify improvements
+
+**Implementation**:
+```bash
+# Extract non-BLOCKING findings
+CRITICAL_COUNT=$(grep -c "Critical:" "$PLAN_FILE" 2>/dev/null || echo 0)
+WARNING_COUNT=$(grep -c "Warning:" "$PLAN_FILE" 2>/dev/null || echo 0)
+SUGGESTION_COUNT=$(grep -c "Suggestion:" "$PLAN_FILE" 2>/dev/null || echo 0)
+
+# Auto-apply improvements
+if [ $((CRITICAL_COUNT + WARNING_COUNT + SUGGESTION_COUNT)) -gt 0 ]; then
+    echo "Auto-applying $((CRITICAL_COUNT + WARNING_COUNT + SUGGESTION_COUNT)) improvements..."
+    # Apply improvements to plan file
+    # Log changes made
+fi
+```
+
+### 4.5 Check BLOCKING Findings
 
 | Condition | Action |
 |-----------|--------|
 | BLOCKING > 0 AND no --lenient | Enter Interactive Recovery |
-| BLOCKING > 0 AND --lenient | Log warning, proceed to STOP |
-| BLOCKING = 0 | Proceed to STOP |
+| BLOCKING > 0 AND --lenient | Log warning, proceed to Step 5 |
+| BLOCKING = 0 | Proceed to Step 5 |
 
-### 4.5 Interactive Recovery Loop
+### 4.6 Interactive Recovery Loop (BLOCKING Only)
 
 **Gap Detection**: See @.claude/guides/gap-detection.md
 
@@ -201,35 +229,71 @@ WHILE BLOCKING > 0 AND ITERATION <= MAX_ITERATIONS:
 
 **See**: @.claude/skills/confirm-plan/REFERENCE.md for detailed implementation
 
-### 4.6 Verify Results
+### 4.7 Verify Results
 
 | Result | Action |
 |--------|--------|
-| BLOCKING = 0 | Proceed to STOP |
-| BLOCKING > 0 + Recovery complete | Proceed to STOP |
-| BLOCKING > 0 + --lenient | Proceed to STOP |
+| BLOCKING = 0 | Proceed to Step 5 (Move to pending) |
+| BLOCKING > 0 + Recovery complete | Proceed to Step 5 (Move to pending) |
+| BLOCKING > 0 + --lenient | Proceed to Step 5 (Move to pending) |
+
+---
+
+## Step 5: Move Plan to Pending
+
+> **⚠️ CRITICAL**: After auto-review and auto-apply, move plan from draft/ to pending/
+
+### 5.1 Verify Review Complete
+
+Ensure all non-BLOCKING findings have been auto-applied and BLOCKING findings resolved.
+
+### 5.2 Move Plan File
+
+```bash
+# Project root detection
+PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+
+# Move from draft/ to pending/
+PENDING_FILE="$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/pending/$(basename "$PLAN_FILE")"
+mv "$PLAN_FILE" "$PENDING_FILE"
+
+echo "Plan moved to pending: $PENDING_FILE"
+```
+
+### 5.3 Verify Move Success
+
+```bash
+if [ -f "$PENDING_FILE" ] && [ ! -f "$PLAN_FILE" ]; then
+    echo "✓ Plan successfully moved from draft/ to pending/"
+else
+    echo "✗ Error: Plan move failed"
+    exit 1
+fi
+```
 
 ---
 
 ## Success Criteria
 
-- [ ] Plan file created in `.pilot/plan/pending/`
+- [ ] Plan file created in `.claude-pilot/.claude-pilot/.pilot/plan/draft/`
 - [ ] User Requirements (Verbatim) included
 - [ ] Requirements Coverage Check completed (Step 1.7)
 - [ ] All user requirements mapped to SCs (100% coverage)
-- [ ] BLOCKING findings resolved (or `--lenient` used)
+- [ ] Non-BLOCKING findings auto-applied (Critical, Warning, Suggestion)
+- [ ] BLOCKING findings resolved via Interactive Recovery (or `--lenient` used)
 - [ ] Plan extracted from conversation
 - [ ] External Service Integration added (if applicable)
-- [ ] Auto-review completed (or `--no-review` used)
+- [ ] Auto-review completed with auto-apply (or `--no-review` used)
 - [ ] Zero BLOCKING (or `--lenient` used)
+- [ ] Plan moved from draft/ to pending/
 - [ ] Execution NOT started
 
 ---
 
 ## STOP
 
-> **MANDATORY STOP** - Plan created in `.pilot/plan/pending/`
-> To execute: `/02_execute`
+> **MANDATORY STOP** - Plan moved to `.claude-pilot/.claude-pilot/.pilot/plan/pending/`
+> Next step: `/02_execute`
 > This will: Move to `in_progress/`, create active pointer, begin TDD + Ralph Loop
 
 ---

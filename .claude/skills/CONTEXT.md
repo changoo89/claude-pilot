@@ -102,7 +102,7 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 
 **Plan confirmation workflow**:
 - Extract plan from `/00_plan` conversation
-- Create plan file in `.pilot/plan/pending/`
+- Create plan file in `.claude-pilot/.pilot/plan/pending/`
 - Verify 100% requirements coverage (BLOCKING if incomplete)
 - Run auto-review with Interactive Recovery
 - Resolve BLOCKING findings before proceeding

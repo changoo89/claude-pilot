@@ -344,7 +344,7 @@ Choose option (A/B/C):
 PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 
 # Create pending directory if not exists
-mkdir -p "$PROJECT_ROOT/.pilot/plan/pending"
+mkdir -p "$PROJECT_ROOT/.claude-pilot/.pilot/plan/pending"
 
 # Extract work name from arguments (or default to "plan")
 WORK_NAME="$(echo "$ARGUMENTS" | sed 's/--no-review//g' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g' | head -c 50 | xargs)"
@@ -354,7 +354,7 @@ WORK_NAME="$(echo "$ARGUMENTS" | sed 's/--no-review//g' | tr '[:upper:]' '[:lowe
 TS="$(date +%Y%m%d_%H%M%S)"
 
 # Create plan file path
-PLAN_FILE="$PROJECT_ROOT/.pilot/plan/pending/${TS}_${WORK_NAME}.md"
+PLAN_FILE="$PROJECT_ROOT/.claude-pilot/.pilot/plan/pending/${TS}_${WORK_NAME}.md"
 
 echo "Plan file: $PLAN_FILE"
 ```
@@ -790,7 +790,7 @@ Expected: Plan created, BLOCKING converted to WARNING
 ### Verification Checklist
 
 After running `/01_confirm`:
-- [ ] Plan file created in `.pilot/plan/pending/`
+- [ ] Plan file created in `.claude-pilot/.pilot/plan/pending/`
 - [ ] User Requirements (Verbatim) section included
 - [ ] Requirements Coverage Check completed
 - [ ] All user requirements mapped to Success Criteria

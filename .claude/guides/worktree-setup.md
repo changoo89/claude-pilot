@@ -113,21 +113,21 @@ git worktree remove ../feature-branch
 
 ### Lock File Stuck
 ```bash
-rm -f .pilot/plan/locks/worktree.lock
+rm -f .claude-pilot/.pilot/plan/locks/worktree.lock
 ```
 
 ### Missing Active Pointer
 ```bash
-PLAN_PATH="$(ls -1t .pilot/plan/in_progress/*.md | head -1)"
-printf "%s" "$PLAN_PATH" > .pilot/plan/active/$(git rev-parse --abbrev-ref HEAD).txt
+PLAN_PATH="$(ls -1t .claude-pilot/.pilot/plan/in_progress/*.md | head -1)"
+printf "%s" "$PLAN_PATH" > .claude-pilot/.pilot/plan/active/$(git rev-parse --abbrev-ref HEAD).txt
 ```
 
 ### State Conflicts
 ```bash
-ls -la .pilot/plan/active/
-cat .pilot/plan/active/*.txt
-rm -rf .pilot/plan/active/
-mkdir -p .pilot/plan/active/
+ls -la .claude-pilot/.pilot/plan/active/
+cat .claude-pilot/.pilot/plan/active/*.txt
+rm -rf .claude-pilot/.pilot/plan/active/
+mkdir -p .claude-pilot/.pilot/plan/active/
 ```
 
 ---

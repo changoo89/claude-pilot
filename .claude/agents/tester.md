@@ -255,7 +255,7 @@ UPDATED_TODOS='[
 ]'
 
 .pilot/scripts/state_write.sh \
-  --plan-file ".pilot/plan/in_progress/plan.md" \
+  --plan-file ".claude-pilot/.pilot/plan/in_progress/plan.md" \
   --todos "$UPDATED_TODOS" \
   --iteration 2
 ```
@@ -274,7 +274,7 @@ UPDATED_TODOS='[
   "version": "1.0",
   "session_id": "uuid",
   "branch": "main",
-  "plan_file": ".pilot/plan/in_progress/plan.md",
+  "plan_file": ".claude-pilot/.pilot/plan/in_progress/plan.md",
   "todos": [
     {"id": "TS-1", "status": "complete", "iteration": 1, "owner": "tester"},
     {"id": "TS-2", "status": "in_progress", "iteration": 0, "owner": "tester"}

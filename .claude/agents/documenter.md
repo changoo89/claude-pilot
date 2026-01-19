@@ -90,9 +90,9 @@ Update component interactions.
 ### 4. Archive Implementation Artifacts
 
 Move to appropriate location:
-- `.pilot/plan/done/{RUN_ID}/test-scenarios.md`
-- `.pilot/plan/done/{RUN_ID}/coverage-report.txt`
-- `.pilot/plan/done/{RUN_ID}/ralph-loop-log.md`
+- `.claude-pilot/.pilot/plan/done/{RUN_ID}/test-scenarios.md`
+- `.claude-pilot/.pilot/plan/done/{RUN_ID}/coverage-report.txt`
+- `.claude-pilot/.pilot/plan/done/{RUN_ID}/ralph-loop-log.md`
 
 ### 5. Update Plan File
 
@@ -174,9 +174,9 @@ If user types `/cancel`, `/stop`, or `/done`:
 - `src/components/CONTEXT.md`: Added newfile.ts
 
 ### Artifacts Archived
-- `.pilot/plan/done/{RUN_ID}/test-scenarios.md`
-- `.pilot/plan/done/{RUN_ID}/coverage-report.txt`
-- `.pilot/plan/done/{RUN_ID}/ralph-loop-log.md`
+- `.claude-pilot/.pilot/plan/done/{RUN_ID}/test-scenarios.md`
+- `.claude-pilot/.pilot/plan/done/{RUN_ID}/coverage-report.txt`
+- `.claude-pilot/.pilot/plan/done/{RUN_ID}/ralph-loop-log.md`
 
 ### Next Steps
 - None (documentation up to date)
@@ -304,7 +304,7 @@ UPDATED_TODOS='[
 ]'
 
 .pilot/scripts/state_write.sh \
-  --plan-file ".pilot/plan/in_progress/plan.md" \
+  --plan-file ".claude-pilot/.pilot/plan/in_progress/plan.md" \
   --todos "$UPDATED_TODOS" \
   --iteration 2
 ```
@@ -323,7 +323,7 @@ UPDATED_TODOS='[
   "version": "1.0",
   "session_id": "uuid",
   "branch": "main",
-  "plan_file": ".pilot/plan/in_progress/plan.md",
+  "plan_file": ".claude-pilot/.pilot/plan/in_progress/plan.md",
   "todos": [
     {"id": "D-1", "status": "complete", "iteration": 1, "owner": "documenter"},
     {"id": "D-2", "status": "in_progress", "iteration": 0, "owner": "documenter"}

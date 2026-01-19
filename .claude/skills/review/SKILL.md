@@ -16,7 +16,7 @@
 ### Quick Reference
 ```bash
 # Load plan → Detect type → Run reviews → Apply findings
-/90_review .pilot/plan/pending/plan.md
+/90_review .claude-pilot/.pilot/plan/pending/plan.md
 ```
 
 ## What This Skill Covers

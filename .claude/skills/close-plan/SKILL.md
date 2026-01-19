@@ -26,7 +26,7 @@ INCOMPLETE_COUNT=$(jq -r '[.todos[] | select(.status != "complete")] | length' "
 
 # Archive plan to done/
 RUN_ID=$(basename "$ACTIVE_PLAN_PATH" .md)
-DONE_PATH=".pilot/plan/done/${RUN_ID}.md"
+DONE_PATH=".claude-pilot/.pilot/plan/done/${RUN_ID}.md"
 mv "$ACTIVE_PLAN_PATH" "$DONE_PATH"
 
 # Git commit with Co-Authored-By

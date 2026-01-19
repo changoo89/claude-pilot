@@ -131,15 +131,6 @@ fi
 
 ---
 
-## Step 4: Generate Plan Document
-
-> **Template**: @.claude/templates/prp-template.md
-
-**Structure**: Requirements, PRP, Scope, Test Plan, Test Environment, Execution Plan, Constraints/Risks
-**Write to**: `.pilot/plan/pending/{timestamp}_{work_title}.md`
-
----
-
 ## Step 2.5: Generate Granular Todos (MANDATORY)
 
 > **🚨 CRITICAL**: Break down Success Criteria into granular todos before plan finalization
@@ -242,16 +233,28 @@ Add to plan document under "Execution Plan" section:
 
 ---
 
-## Step 6: MANDATORY Ambiguous Confirmation
+## Step 3: Present Plan and Guide to Next Step
 
 > **🚨 CRITICAL**: After presenting plan, you MUST call `AskUserQuestion`
 
+**Present Plan Summary**: Show the user a concise summary of the plan including:
+- User Requirements (UR-1, UR-2, ...)
+- Success Criteria (SC-1, SC-2, ...)
+- High-level execution approach
+
+**Guide to Next Step**:
 ```markdown
+Your plan is ready! To proceed with execution, run:
+
+  /01_confirm
+
+This will save your plan to `.claude-pilot/.claude-pilot/.pilot/plan/draft/`, run automated reviews, and prepare it for execution.
+
 AskUserQuestion:
   What would you like to do next?
   A) Continue refining the plan
   B) Explore alternative approaches
-  C) Run /01_confirm (save plan for execution)
+  C) Run /01_confirm (save plan and prepare for execution)
   D) Run /02_execute (start implementation immediately)
 ```
 
@@ -267,8 +270,10 @@ AskUserQuestion:
 - [ ] Test scenarios defined with test file paths
 - [ ] Test environment detected and documented
 - [ ] Constraints and risks identified
-- [ ] Plan document written to `.pilot/plan/pending/`
+- [ ] Granular todos generated (≤15 min each, single owner)
+- [ ] User guided to run `/01_confirm` for plan save and review
 - [ ] `AskUserQuestion` called for ambiguous confirmation
+- [ ] **NO plan file created** (plan saved only by `/01_confirm`)
 
 ---
 
@@ -285,5 +290,5 @@ AskUserQuestion:
 
 ## Next Command
 
-- `/01_confirm` - Review plan, apply feedback, save for execution
-- `/02_execute` - Start implementation immediately (if user confirms)
+- `/01_confirm` - **REQUIRED**: Save plan to draft, run automated reviews, prepare for execution
+- `/02_execute` - Start implementation immediately (skip review only if user confirms)

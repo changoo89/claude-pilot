@@ -118,7 +118,7 @@ done
 ### Create a Plan
 - **Task**: Generate SPEC-First plan from user request
 - **Command**: `/00_plan "implement user authentication"`
-- **Output**: Plan file saved to `.pilot/plan/pending/{timestamp}_{work}_{topic}.md`
+- **Output**: Plan file saved to `.claude-pilot/.pilot/plan/pending/{timestamp}_{work}_{topic}.md`
 - **Process**:
   1. Step 0: Collect user requirements verbatim
   2. Step 1: Explorer and Researcher agents explore codebase (parallel)

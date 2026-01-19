@@ -15,7 +15,7 @@
   "version": "1.0",
   "session_id": "uuid",
   "branch": "main",
-  "plan_file": ".claude-pilot/.pilot/plan/in_progress/plan.md",
+  "plan_file": ".pilot/plan/in_progress/plan.md",
   "todos": [
     {"id": "SC-1", "status": "complete", "iteration": 1, "owner": "coder"},
     {"id": "SC-2", "status": "in_progress", "iteration": 0, "owner": "coder"}
@@ -332,7 +332,7 @@ if [ "${WORKTREE_MODE:-false}" = true ]; then
         local main_project="${MAIN_PROJECT_ROOT:-}"
 
         # Create lock file path in worktree
-        LOCK_FILE="${WORKTREE_ROOT}/.claude-pilot/.pilot/plan/locks/worktree.lock"
+        LOCK_FILE="${WORKTREE_ROOT}/.pilot/plan/locks/worktree.lock"
 
         # Insert worktree info after problem statement
         awk '

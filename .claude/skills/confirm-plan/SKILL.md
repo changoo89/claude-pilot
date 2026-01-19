@@ -14,7 +14,7 @@ description: Plan confirmation workflow - extract plan from conversation, create
 
 ### When to Use This Skill
 - Confirm plan after `/00_plan` completes
-- Create plan file in `.claude-pilot/.pilot/plan/pending/`
+- Create plan file in `.pilot/plan/pending/`
 - Run auto-review with Interactive Recovery for BLOCKING findings
 - Verify 100% requirements coverage
 
@@ -25,7 +25,7 @@ PLAN_CONTENT=$(extract_from_conversation "$CONVERSATION")
 
 # Generate plan file name
 TS="$(date +%Y%m%d_%H%M%S)"
-PLAN_FILE="$PROJECT_ROOT/.claude-pilot/.pilot/plan/pending/${TS}_{work_name}.md"
+PLAN_FILE="$PROJECT_ROOT/.pilot/plan/pending/${TS}_{work_name}.md"
 
 # Requirements verification (BLOCKING if incomplete)
 verify_requirements_coverage "$PLAN_CONTENT"

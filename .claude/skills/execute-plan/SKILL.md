@@ -21,7 +21,7 @@ description: Plan execution workflow - continuation system, parallel SC implemen
 ### Quick Reference
 ```bash
 # Plan detection (MANDATORY FIRST ACTION)
-ls -la .claude-pilot/.pilot/plan/pending/*.md .claude-pilot/.pilot/plan/in_progress/*.md 2>/dev/null
+ls -la .pilot/plan/pending/*.md .pilot/plan/in_progress/*.md 2>/dev/null
 
 # Continuation state check
 STATE_FILE=".pilot/state/continuation.json"

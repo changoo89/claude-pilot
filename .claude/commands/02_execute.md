@@ -30,7 +30,7 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 
 > **Details**: @.claude/skills/execute-plan/REFERENCE.md#continuation-state-system
 
-**State file**: `.claude-pilot/.pilot/state/continuation.json`
+**State file**: `.pilot/state/continuation.json`
 
 **Check & resume logic**:
 ```bash
@@ -39,10 +39,10 @@ WORKTREE_MODE=false
 for arg in "$@"; do [ "$arg" = "--wt" ] && WORKTREE_MODE=true && break; done
 
 if [ "$WORKTREE_MODE" = true ] && [ -n "${WORKTREE_ROOT:-}" ]; then
-    STATE_FILE="$WORKTREE_ROOT/.claude-pilot/.pilot/state/continuation.json"
+    STATE_FILE="$WORKTREE_ROOT/.pilot/state/continuation.json"
 elif [ "$WORKTREE_MODE" = false ]; then
     PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-    STATE_FILE="$PROJECT_ROOT/.claude-pilot/.pilot/state/continuation.json"
+    STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
 fi
 
 # Load and resume if exists
@@ -77,7 +77,7 @@ update_continuation_state() {
 > **🚨 YOU MUST DO THIS FIRST**
 
 ```bash
-ls -la .claude-pilot/.claude-pilot/.pilot/plan/pending/*.md .claude-pilot/.claude-pilot/.pilot/plan/in_progress/*.md 2>/dev/null
+ls -la .pilot/plan/pending/*.md .pilot/plan/in_progress/*.md 2>/dev/null
 ```
 
 **Worktree mode** (--wt flag):
@@ -114,23 +114,23 @@ fi
 PLAN_PATH="${EXPLICIT_PATH}"
 PLAN_SEARCH_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
 # Select oldest pending plan (ls -1t sorts newest first, tail -1 gets oldest)
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
 
 if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
     PLAN_FILENAME="$(basename "$PLAN_PATH")"
-    IN_PROGRESS_PATH="$PLAN_SEARCH_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/in_progress/${PLAN_FILENAME}"
-    mkdir -p "$PLAN_SEARCH_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/in_progress"
+    IN_PROGRESS_PATH="$PLAN_SEARCH_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
+    mkdir -p "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress"
     mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || { echo "❌ FATAL" >&2; exit 1; }
     PLAN_PATH="$IN_PROGRESS_PATH"
 fi
 
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head -1)"
 [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found" >&2; exit 1; }
 
 ACTIVE_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
-mkdir -p "$ACTIVE_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/active"
+mkdir -p "$ACTIVE_ROOT/.pilot/plan/active"
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
-printf "%s" "$PLAN_PATH" > "$ACTIVE_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/active/$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g').txt"
+printf "%s" "$PLAN_PATH" > "$ACTIVE_ROOT/.pilot/plan/active/$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g').txt"
 echo "✓ Plan ready: $PLAN_PATH"
 ```
 

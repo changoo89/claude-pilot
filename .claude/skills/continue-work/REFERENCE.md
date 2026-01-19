@@ -122,7 +122,7 @@ CONTINUATION_LEVEL=$(echo "$STATE" | jq -r '.continuation_level // "normal"')
 📋 Continuation State
    Session: abc123-def456-ghi789
    Branch: main
-   Plan: .claude-pilot/.pilot/plan/in_progress/fix_20260118_235333.md
+   Plan: .pilot/plan/in_progress/fix_20260118_235333.md
    Iterations: 3/7
    Level: normal
 ```
@@ -138,7 +138,7 @@ CONTINUATION_LEVEL=$(echo "$STATE" | jq -r '.continuation_level // "normal"')
   "version": "1.0",
   "session_id": "uuid-v4",
   "branch": "main",
-  "plan_file": ".claude-pilot/.pilot/plan/in_progress/plan.md",
+  "plan_file": ".pilot/plan/in_progress/plan.md",
   "todos": [
     {
       "id": "SC-1",

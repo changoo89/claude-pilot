@@ -139,12 +139,12 @@ Create the plan management directory structure:
 # Create .pilot/plan directory structure
 echo "Creating .pilot/ directories..."
 
-mkdir -p .claude-pilot/.pilot/plan/pending
-mkdir -p .claude-pilot/.pilot/plan/in_progress
-mkdir -p .claude-pilot/.pilot/plan/done
-mkdir -p .claude-pilot/.pilot/plan/active
+mkdir -p .pilot/plan/pending
+mkdir -p .pilot/plan/in_progress
+mkdir -p .pilot/plan/done
+mkdir -p .pilot/plan/active
 
-echo "Created .claude-pilot/.pilot/plan/{pending,in_progress,done,active}/"
+echo "Created .pilot/plan/{pending,in_progress,done,active}/"
 ```
 
 ---
@@ -519,7 +519,7 @@ PROJECT_TYPE="generic"
 [ -f "Cargo.toml" ] && PROJECT_TYPE="rust"
 echo "MCP Servers:    ✓ ${MCP_COUNT} configured"
 echo "Hooks:          ✓ ${HOOKS_COUNT} executable"
-echo "Plans:          ✓ .claude-pilot/.pilot/plan/ created"
+echo "Plans:          ✓ .pilot/plan/ created"
 echo "Language:       ✓ ${LANGUAGE}"
 echo "Project Type:   ✓ ${PROJECT_TYPE}"
 echo "───────────────────────────────────────────────────"
@@ -527,7 +527,7 @@ echo ""
 
 # Detailed verification
 echo "Plan directories:"
-ls -la .claude-pilot/.pilot/plan/ 2>/dev/null || echo "  (No .claude-pilot/.pilot/plan/ found)"
+ls -la .pilot/plan/ 2>/dev/null || echo "  (No .pilot/plan/ found)"
 
 echo ""
 echo "Hook scripts (should have execute permissions):"

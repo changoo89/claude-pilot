@@ -237,7 +237,7 @@ The `/02_execute` command runs Ralph Loop:
   "version": "1.0",
   "session_id": "uuid",
   "branch": "main",
-  "plan_file": ".claude-pilot/.pilot/plan/in_progress/fix_20260118_235333.md",
+  "plan_file": ".pilot/plan/in_progress/fix_20260118_235333.md",
   "todos": [
     {"id": "SC-1", "status": "complete", "iteration": 1},
     {"id": "SC-2", "status": "in_progress", "iteration": 0}
@@ -353,7 +353,7 @@ COMMIT_CONFIRM=true /04_fix "Fix null pointer in auth.ts"
    COMMIT_CONFIRM=true /03_close
 ```
 
-**State**: Plan remains in `.claude-pilot/.pilot/plan/in_progress/`, continuation state preserved
+**State**: Plan remains in `.pilot/plan/in_progress/`, continuation state preserved
 
 ---
 
@@ -365,14 +365,14 @@ COMMIT_CONFIRM=true /04_fix "Fix null pointer in auth.ts"
 
 **1. Move Plan to Done**:
 ```bash
-mkdir -p "$PROJECT_ROOT/.claude-pilot/.pilot/plan/done"
-DONE_PATH="$PROJECT_ROOT/.claude-pilot/.pilot/plan/done/$(basename "$PLAN_PATH")"
+mkdir -p "$PROJECT_ROOT/.pilot/plan/done"
+DONE_PATH="$PROJECT_ROOT/.pilot/plan/done/$(basename "$PLAN_PATH")"
 mv "$PLAN_PATH" "$DONE_PATH"
 ```
 
 **2. Clear Active Pointer**:
 ```bash
-rm -f "$PROJECT_ROOT/.claude-pilot/.pilot/plan/active/${KEY}.txt"
+rm -f "$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
 ```
 
 **3. Generate Commit Message**:
@@ -405,7 +405,7 @@ Deletes continuation state file since work is complete.
 **6. Success Output**:
 ```
 → Closing plan...
-✓ Plan archived: .claude-pilot/.pilot/plan/done/fix_20260118_235333.md
+✓ Plan archived: .pilot/plan/done/fix_20260118_235333.md
 ✓ Git commit created
 ✓ Continuation state cleaned up
 
@@ -418,7 +418,7 @@ Deletes continuation state file since work is complete.
 → Plan not closed (awaiting confirmation)
 ```
 
-**State**: Plan remains in `.claude-pilot/.pilot/plan/in_progress/`, continuation state preserved
+**State**: Plan remains in `.pilot/plan/in_progress/`, continuation state preserved
 
 ---
 
@@ -550,8 +550,8 @@ Expected: Rejects with suggestion to use `/00_plan`
 ### Verification Checklist
 
 After running `/04_fix`:
-- [ ] Plan created in `.claude-pilot/.pilot/plan/pending/`
-- [ ] Plan moved to `.claude-pilot/.pilot/plan/in_progress/`
+- [ ] Plan created in `.pilot/plan/pending/`
+- [ ] Plan moved to `.pilot/plan/in_progress/`
 - [ ] `/02_execute` invoked with correct plan
 - [ ] Continuation state created/updated
 - [ ] User confirmation prompt shown

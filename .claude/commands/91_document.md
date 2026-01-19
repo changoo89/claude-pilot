@@ -77,7 +77,7 @@ Task:
 # Project root detection (always use project root, not current directory)
 PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 
-RUN_DIR="$PROJECT_ROOT/.claude-pilot/.pilot/plan/in_progress/${RUN_ID}"
+RUN_DIR="$PROJECT_ROOT/.pilot/plan/in_progress/${RUN_ID}"
 ```
 Load: Plan requirements, Success criteria, Ralph Loop results
 

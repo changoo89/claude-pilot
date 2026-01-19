@@ -16,7 +16,7 @@ is_worktree_mode() {
 # Usage: oldest_plan=$(select_oldest_pending)
 # Returns: Path to oldest pending plan, or empty if none
 select_oldest_pending() {
-    ls -1tr .claude-pilot/.pilot/plan/pending/*.md 2>/dev/null | head -1
+    ls -1tr .pilot/plan/pending/*.md 2>/dev/null | head -1
 }
 
 # Select and lock the oldest pending plan (atomic operation)
@@ -24,10 +24,10 @@ select_oldest_pending() {
 # Returns: Path to locked plan, or empty if none available
 # This function prevents race conditions when multiple executors select plans
 select_and_lock_pending() {
-    local lock_dir=".claude-pilot/.pilot/plan/.locks"
+    local lock_dir=".pilot/plan/.locks"
     mkdir -p "$lock_dir"
 
-    for plan in $(ls -1tr .claude-pilot/.pilot/plan/pending/*.md 2>/dev/null); do
+    for plan in $(ls -1tr .pilot/plan/pending/*.md 2>/dev/null); do
         local plan_name="$(basename "$plan")"
         local lock_file="${lock_dir}/${plan_name}.lock"
 
@@ -325,7 +325,7 @@ check_worktree_support() {
 # This function searches for plans in in_progress/ that match current worktree
 get_active_plan_from_metadata() {
     local project_root="${1:-$(pwd)}"
-    local in_progress_dir="${project_root}/.claude-pilot/.pilot/plan/in_progress"
+    local in_progress_dir="${project_root}/.pilot/plan/in_progress"
     local current_worktree_path
     current_worktree_path="$(pwd)"
 

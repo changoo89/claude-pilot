@@ -643,7 +643,7 @@ Action: Break into smaller todos
 
 ## Related Documentation
 
-- **Sisyphus Continuation System**: `.claude-pilot/.pilot/plan/in_progress/...sisyphus_continuation_system.md`
+- **Sisyphus Continuation System**: `.pilot/plan/in_progress/...sisyphus_continuation_system.md`
 - **PRP Framework**: `.claude/guides/prp-framework.md`
 - **Ralph Loop**: `.claude/skills/ralph-loop/SKILL.md`
 - **Parallel Execution**: `.claude/guides/parallel-execution.md`

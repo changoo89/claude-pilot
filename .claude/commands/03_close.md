@@ -99,14 +99,14 @@ fi
 # Standard detection
 if [ -z "$ACTIVE_PLAN_PATH" ]; then
     PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-    mkdir -p "$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/active"
+    mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
     BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
     KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-    ACTIVE_PTR="$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/active/${KEY}.txt"
+    ACTIVE_PTR="$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
 
     [ -f "$ACTIVE_PTR" ] && ACTIVE_PLAN_PATH="$(cat "$ACTIVE_PTR")"
-    [ -z "$ACTIVE_PLAN_PATH" ] && [ -n "$RUN_ID" ] && ACTIVE_PLAN_PATH="$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/in_progress/${RUN_ID}.md"
-    [ -z "$ACTIVE_PLAN_PATH" ] && ACTIVE_PLAN_PATH="$(ls -t "$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/in_progress/"*.md 2>/dev/null | head -1)"
+    [ -z "$ACTIVE_PLAN_PATH" ] && [ -n "$RUN_ID" ] && ACTIVE_PLAN_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${RUN_ID}.md"
+    [ -z "$ACTIVE_PLAN_PATH" ] && ACTIVE_PLAN_PATH="$(ls -t "$PROJECT_ROOT/.pilot/plan/in_progress/"*.md 2>/dev/null | head -1)"
 fi
 
 [ -z "$ACTIVE_PLAN_PATH" ] || [ ! -f "$ACTIVE_PLAN_PATH" ] && { echo "ERROR: No active plan found" >&2; exit 1; }
@@ -149,7 +149,7 @@ fi
 ## Step 4: Move to Done
 
 ```bash
-mkdir -p "$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/done"
+mkdir -p "$PROJECT_ROOT/.pilot/plan/done"
 
 # Extract RUN_ID and determine format
 if printf "%s" "$ACTIVE_PLAN_PATH" | grep -q '/plan.md$'; then
@@ -158,13 +158,13 @@ else
     RUN_ID="$(basename "$ACTIVE_PLAN_PATH" .md)"; IS_FOLDER_FORMAT=false
 fi
 
-DONE_PATH="$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/done/${RUN_ID}.md"
-[ -e "$DONE_PATH" ] && DONE_PATH="$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/done/${RUN_ID}_closed_$(date +%Y%m%d_%H%M%S).md"
+DONE_PATH="$PROJECT_ROOT/.pilot/plan/done/${RUN_ID}.md"
+[ -e "$DONE_PATH" ] && DONE_PATH="$PROJECT_ROOT/.pilot/plan/done/${RUN_ID}_closed_$(date +%Y%m%d_%H%M%S).md"
 
 # Move plan or folder
 if [ "$IS_FOLDER_FORMAT" = true ]; then
-    DONE_DIR="$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/done/${RUN_ID}"
-    [ -e "$DONE_DIR" ] && DONE_DIR="$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/done/${RUN_ID}_closed_$(date +%Y%m%d_%H%M%S)"
+    DONE_DIR="$PROJECT_ROOT/.pilot/plan/done/${RUN_ID}"
+    [ -e "$DONE_DIR" ] && DONE_DIR="$PROJECT_ROOT/.pilot/plan/done/${RUN_ID}_closed_$(date +%Y%m%d_%H%M%S)"
     mv "$(dirname "$ACTIVE_PLAN_PATH")" "$DONE_DIR"
 else
     mv "$ACTIVE_PLAN_PATH" "$DONE_PATH"
@@ -176,7 +176,7 @@ if grep -q "## Worktree Info" "$DONE_PATH" 2>/dev/null; then
     WT_META="$(read_worktree_metadata "$DONE_PATH" 2>/dev/null)"
     [ -n "$WT_META" ] && IFS='|' read -r WT_BRANCH WT_PATH WT_MAIN MAIN_PROJECT LOCK_FILE <<< "$WT_META"
     WT_KEY="$(printf "%s" "$WT_BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-    WT_PTR="$PROJECT_ROOT/.claude-pilot/.claude-pilot/.pilot/plan/active/${WT_KEY}.txt"
+    WT_PTR="$PROJECT_ROOT/.pilot/plan/active/${WT_KEY}.txt"
     [ -f "$WT_PTR" ] && rm -f "$WT_PTR"
 fi
 ```
@@ -276,7 +276,7 @@ Verify push by comparing local and remote SHA for successful pushes.
 
 ## Success Criteria
 
-- [ ] Plan moved from `.claude-pilot/.claude-pilot/.pilot/plan/in_progress/` to `.claude-pilot/.claude-pilot/.pilot/plan/done/`
+- [ ] Plan moved from `.pilot/plan/in_progress/` to `.pilot/plan/done/`
 - [ ] Archived plan includes acceptance criteria and evidence
 - [ ] Git commit created (if git repo and not no-commit)
 - [ ] Git push verified or skipped (no remote)

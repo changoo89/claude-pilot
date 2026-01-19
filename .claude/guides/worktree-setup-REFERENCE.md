@@ -32,22 +32,22 @@ PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd
 PLAN_PATH="${EXPLICIT_PATH}"
 
 # Priority: Explicit path → Oldest pending → Most recent in_progress
-[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.claude-pilot/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(ls -1t "$PROJECT_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | tail -1)"
 
 # IF pending, MUST move FIRST
 if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
     PLAN_FILENAME="$(basename "$PLAN_PATH")"
-    IN_PROGRESS_PATH="$PROJECT_ROOT/.claude-pilot/.pilot/plan/in_progress/${PLAN_FILENAME}"
-    mkdir -p "$PROJECT_ROOT/.claude-pilot/.pilot/plan/in_progress"
+    IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
+    mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
     mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || { echo "ERROR: Failed to move plan" >&2; exit 1; }
     PLAN_PATH="$IN_PROGRESS_PATH"
 fi
 
 # Set active pointer
-mkdir -p "$PROJECT_ROOT/.claude-pilot/.pilot/plan/active"
+mkdir -p "$PROJECT_ROOT/.pilot/plan/active"
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-printf "%s" "$PLAN_PATH" > "$PROJECT_ROOT/.claude-pilot/.pilot/plan/active/${KEY}.txt"
+printf "%s" "$PLAN_PATH" > "$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
 ```
 
 ### Worktree Mode (--wt flag)
@@ -62,7 +62,7 @@ set -o nounset
 set -o pipefail
 
 # Lock file management
-LOCK_DIR="${PROJECT_ROOT}/.claude-pilot/.pilot/plan/locks"
+LOCK_DIR="${PROJECT_ROOT}/.pilot/plan/locks"
 LOCK_FILE="${LOCK_DIR}/worktree.lock"
 WORKTREE_DIR="${PROJECT_ROOT}/.pilot/worktrees"
 WORKTREE_ROOT="${WORKTREE_DIR}/${BRANCH}"
@@ -73,7 +73,7 @@ cleanup_on_error() {
     if [ $exit_code -ne 0 ]; then
         echo "ERROR: Worktree setup failed with exit code $exit_code" >&2
         # Remove any partial worktree state
-        [ -d "${WORKTREE_ROOT}/.claude-pilot/.pilot/plan/active" ] && rm -rf "${WORKTREE_ROOT}/.claude-pilot/.pilot/plan/active"
+        [ -d "${WORKTREE_ROOT}/.pilot/plan/active" ] && rm -rf "${WORKTREE_ROOT}/.pilot/plan/active"
         exit $exit_code
     fi
 }
@@ -93,19 +93,19 @@ BRANCH_SAFE="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
 
 # Create worktree directory structure
 mkdir -p "$WORKTREE_DIR"
-mkdir -p "${WORKTREE_ROOT}/.claude-pilot/.pilot/plan/pending"
-mkdir -p "${WORKTREE_ROOT}/.claude-pilot/.pilot/plan/in_progress"
-mkdir -p "${WORKTREE_ROOT}/.claude-pilot/.pilot/plan/active"
-mkdir -p "${WORKTREE_ROOT}/.claude-pilot/.pilot/plan/done"
+mkdir -p "${WORKTREE_ROOT}/.pilot/plan/pending"
+mkdir -p "${WORKTREE_ROOT}/.pilot/plan/in_progress"
+mkdir -p "${WORKTREE_ROOT}/.pilot/plan/active"
+mkdir -p "${WORKTREE_ROOT}/.pilot/plan/done"
 
 # Dual active pointer setup:
 # 1. Main repo active pointer (for cross-worktree reference)
-printf "%s" "${WORKTREE_ROOT}/.claude-pilot/.pilot/plan/active/${BRANCH_SAFE}.txt" > \
-    "${PROJECT_ROOT}/.claude-pilot/.pilot/plan/active/${BRANCH_SAFE}.txt"
+printf "%s" "${WORKTREE_ROOT}/.pilot/plan/active/${BRANCH_SAFE}.txt" > \
+    "${PROJECT_ROOT}/.pilot/plan/active/${BRANCH_SAFE}.txt"
 
 # 2. Worktree-local active pointer (for worktree isolation)
 printf "%s" "$PLAN_PATH" > \
-    "${WORKTREE_ROOT}/.claude-pilot/.pilot/plan/active/${BRANCH_SAFE}.txt"
+    "${WORKTREE_ROOT}/.pilot/plan/active/${BRANCH_SAFE}.txt"
 
 # Set environment variables for worktree mode
 export PILOT_WORKTREE_MODE=1
@@ -114,7 +114,7 @@ export PILOT_WORKTREE_BRANCH="$BRANCH"
 
 echo "Worktree mode initialized: $WORKTREE_ROOT"
 echo "Branch: $BRANCH"
-echo "Active plan pointer: ${WORKTREE_ROOT}/.claude-pilot/.pilot/plan/active/${BRANCH_SAFE}.txt"
+echo "Active plan pointer: ${WORKTREE_ROOT}/.pilot/plan/active/${BRANCH_SAFE}.txt"
 ```
 
 ## Component Functions
@@ -145,8 +145,8 @@ Main repo + worktree-local pointers:
 setup_dual_pointers() {
     local project_root="$1" worktree_root="$2" branch="$3" plan_path="$4"
     local branch_safe="$(printf "%s" "$branch" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-    local main_pointer="${project_root}/.claude-pilot/.pilot/plan/active/${branch_safe}.txt"
-    local local_pointer="${worktree_root}/.claude-pilot/.pilot/plan/active/${branch_safe}.txt"
+    local main_pointer="${project_root}/.pilot/plan/active/${branch_safe}.txt"
+    local local_pointer="${worktree_root}/.pilot/plan/active/${branch_safe}.txt"
     printf "%s" "$local_pointer" > "$main_pointer"
     printf "%s" "$plan_path" > "$local_pointer"
 }
@@ -206,25 +206,25 @@ git worktree remove ../feature-branch
 ### Lock File Stuck
 ```bash
 # Remove stale lock file
-rm -f .claude-pilot/.pilot/plan/locks/worktree.lock
+rm -f .pilot/plan/locks/worktree.lock
 ```
 
 ### Missing Active Pointer
 ```bash
 # Re-create active pointer
-PLAN_PATH="$(ls -1t .claude-pilot/.pilot/plan/in_progress/*.md | head -1)"
-printf "%s" "$PLAN_PATH" > .claude-pilot/.pilot/plan/active/$(git rev-parse --abbrev-ref HEAD).txt
+PLAN_PATH="$(ls -1t .pilot/plan/in_progress/*.md | head -1)"
+printf "%s" "$PLAN_PATH" > .pilot/plan/active/$(git rev-parse --abbrev-ref HEAD).txt
 ```
 
 ### Worktree State Conflicts
 ```bash
 # Check active pointers
-ls -la .claude-pilot/.pilot/plan/active/
-cat .claude-pilot/.pilot/plan/active/*.txt
+ls -la .pilot/plan/active/
+cat .pilot/plan/active/*.txt
 
 # Reset worktree state
-rm -rf .claude-pilot/.pilot/plan/active/
-mkdir -p .claude-pilot/.pilot/plan/active/
+rm -rf .pilot/plan/active/
+mkdir -p .pilot/plan/active/
 ```
 
 ## Related Guides

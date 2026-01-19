@@ -60,37 +60,62 @@ _Rapid bug fix workflow - automated planning, execution, and closure for simple 
 
 ---
 
-## Step 2: Auto-Generate Minimal Plan
+## Step 2: Auto-Generate Minimal Plan (Internal Only)
 
-> **Purpose**: Create focused plan with 1-3 SCs for simple fixes
+> **Purpose**: Generate minimal plan internally WITHOUT creating plan file
+> **Critical**: /04_fix should NOT create plan documents - this is a rapid workflow
 
-**Plan Structure**:
+**Plan Structure** (internal, in-memory):
 - User Requirements (Verbatim)
 - PRP Analysis (What/Why/How)
-- Success Criteria (3 SCs)
+- Success Criteria (1-3 SCs)
 - Test Plan
-- Execution Plan (20 min total)
+- Execution Plan
+
+**Key Point**:
+- Auto-generate plan structure internally
+- DO NOT write plan to `.pilot/plan/pending/` or `.pilot/plan/in_progress/`
+- Store plan metadata in environment variables for `/02_execute`
 
 **See**: @.claude/skills/rapid-fix/REFERENCE.md for plan template and time estimation
 
 ---
 
-## Step 3: Move Plan to In Progress
+## Step 3: Prepare Plan for /02_execute (Internal)
+
+> **Purpose**: Prepare plan context WITHOUT creating plan file
+> **Critical**: Skip file creation - use environment variables instead
 
 ```bash
 PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-IN_PROGRESS_PATH="$PROJECT_ROOT/.claude-pilot/.pilot/plan/in_progress/$(basename "$PLAN_PATH")"
-mkdir -p "$PROJECT_ROOT/.claude-pilot/.pilot/plan/in_progress"
-mv "$PLAN_PATH" "$IN_PROGRESS_PATH"
-PLAN_PATH="$IN_PROGRESS_PATH"
 
-# Set active pointer
-mkdir -p "$PROJECT_ROOT/.claude-pilot/.pilot/plan/active"
-BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
-KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-printf "%s" "$PLAN_PATH" > "$PROJECT_ROOT/.claude-pilot/.pilot/plan/active/${KEY}.txt"
+# DO NOT create plan file - use internal representation
+# Plan metadata passed to /02_execute via environment variables
+PLAN_METADATA="$PROJECT_ROOT/.pilot/.fix_plan_internal_$$"
 
-echo "✓ Plan ready: $PLAN_PATH"
+# Store plan content in temporary file (deleted after execution)
+cat > "$PLAN_METADATA" << 'EOF'
+# Auto-Generated Fix Plan (Internal)
+## User Requirements
+[Requirements from user input]
+
+## Success Criteria
+[1-3 SCs for simple fix]
+
+## Test Plan
+[Test scenarios]
+EOF
+
+# Set environment variable to pass plan to /02_execute
+export PILOT_FIX_MODE=1
+export PILOT_FIX_PLAN="$PLAN_METADATA"
+
+echo "✓ Internal plan generated (not persisted to filesystem)"
+```
+
+**Important**: After `/02_execute` completes, clean up temporary file:
+```bash
+rm -f "$PLAN_METADATA"
 ```
 
 ---
@@ -147,7 +172,7 @@ echo "→ /02_execute completed with result: $EXEC_RESULT"
 
 ---
 
-## Step 6: Verify Completion
+## Step 6: Verify Completion and Cleanup Internal Plan
 
 After Coder agent completes:
 
@@ -165,11 +190,19 @@ if [ -f "$STATE_FILE" ]; then
         echo ""
         echo "→ Use /99_continue to resume work"
         echo ""
+
+        # Clean up internal plan file
+        rm -f "$PLAN_METADATA"
+
         exit 0
     fi
 fi
 
 echo "✅ All todos complete"
+
+# Clean up internal plan file
+rm -f "$PLAN_METADATA"
+echo "✓ Internal plan cleaned up"
 ```
 
 ---
@@ -217,20 +250,14 @@ fi
 ## Step 8: Auto-Close on Success
 
 > **Purpose**: Archive plan and create commit (if user confirmed)
+> **Critical**: /04_fix does NOT create plan files, so skip plan archival
 
 ```bash
 if [ "$COMMIT_CONFIRM" = "true" ]; then
-    echo "→ Closing plan..."
+    echo "→ Creating commit..."
 
-    # Move plan to done
-    mkdir -p "$PROJECT_ROOT/.claude-pilot/.pilot/plan/done"
-    DONE_PATH="$PROJECT_ROOT/.claude-pilot/.pilot/plan/done/$(basename "$PLAN_PATH")"
-    mv "$PLAN_PATH" "$DONE_PATH"
-
-    # Clear active pointer
-    rm -f "$PROJECT_ROOT/.claude-pilot/.pilot/plan/active/${KEY}.txt"
-
-    echo "✓ Plan archived: $DONE_PATH"
+    # Note: No plan to archive (internal plan was already cleaned up)
+    # /04_fix does not create plan files in .pilot/plan/
 
     # Create git commit
     cd "$PROJECT_ROOT" || exit 1
@@ -254,7 +281,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
     echo "✅ Fix complete!"
     echo ""
 else
-    echo "→ Plan not closed (awaiting confirmation)"
+    echo "→ Commit not created (awaiting confirmation)"
 fi
 ```
 

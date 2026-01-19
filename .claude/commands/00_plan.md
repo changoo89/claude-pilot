@@ -248,7 +248,7 @@ Your plan is ready! To proceed with execution, run:
 
   /01_confirm
 
-This will save your plan to `.claude-pilot/.claude-pilot/.pilot/plan/draft/`, run automated reviews, and prepare it for execution.
+This will save your plan to `.pilot/plan/draft/`, run automated reviews, and prepare it for execution.
 
 AskUserQuestion:
   What would you like to do next?

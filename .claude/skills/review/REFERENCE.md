@@ -815,13 +815,13 @@ Findings by severity:
 
 **Test Standard Review**:
 ```bash
-/90_review .claude-pilot/.pilot/plan/pending/test_plan.md
+/90_review .pilot/plan/pending/test_plan.md
 ```
 Expected: Comprehensive review with findings applied to plan
 
 **Test Complex Plan (Parallel Review)**:
 ```bash
-/90_review .claude-pilot/.pilot/plan/pending/complex_plan.md
+/90_review .pilot/plan/pending/complex_plan.md
 ```
 Expected: Triggers parallel multi-angle review (3 agents)
 

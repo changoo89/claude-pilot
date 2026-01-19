@@ -36,7 +36,7 @@ _Review plan for completeness, gaps, and quality issues before execution._
 # Project root detection (always use project root, not current directory)
 PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 
-PLAN_PATH="$(ls -1tr "$PROJECT_ROOT/.claude-pilot/.pilot/plan/in_progress"/*/*.md "$PROJECT_ROOT/.claude-pilot/.pilot/plan/pending"/*.md 2>/dev/null | head -1)"
+PLAN_PATH="$(ls -1tr "$PROJECT_ROOT/.pilot/plan/in_progress"/*/*.md "$PROJECT_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | head -1)"
 [ -z "$PLAN_PATH" ] && { echo "No plan found" >&2; exit 1; }
 echo "Reviewing: $PLAN_PATH"
 ```

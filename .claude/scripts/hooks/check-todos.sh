@@ -14,7 +14,7 @@ NC='\033[0m'
 echo -e "${BLUE}📋 Checking todo completion status...${NC}"
 
 # Look for in-progress plans
-IN_PROGRESS_DIR=".claude-pilot/.pilot/plan/in_progress"
+IN_PROGRESS_DIR=".pilot/plan/in_progress"
 
 if [ ! -d "$IN_PROGRESS_DIR" ]; then
     # No in-progress directory, nothing to check
@@ -24,7 +24,7 @@ fi
 # Find active plan for current branch
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
 KEY="$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g')"
-ACTIVE_PTR=".claude-pilot/.pilot/plan/active/${KEY}.txt"
+ACTIVE_PTR=".pilot/plan/active/${KEY}.txt"
 
 if [ ! -f "$ACTIVE_PTR" ]; then
     # No active plan for this branch

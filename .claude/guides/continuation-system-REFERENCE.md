@@ -45,7 +45,7 @@ Stop continuation anytime:
   "version": "1.0",
   "session_id": "uuid",
   "branch": "main",
-  "plan_file": ".claude-pilot/.pilot/plan/in_progress/plan.md",
+  "plan_file": ".pilot/plan/in_progress/plan.md",
   "todos": [
     {
       "id": "SC-1",

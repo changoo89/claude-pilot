@@ -148,7 +148,7 @@ description: Execute implementation with TDD + Ralph Loop. Use after plan confir
 Implement planned features using Test-Driven Development and autonomous iteration.
 
 ## Prerequisites
-- Plan confirmed in `.claude-pilot/.pilot/plan/in_progress/`
+- Plan confirmed in `.pilot/plan/in_progress/`
 - All BLOCKING findings resolved
 - Tests auto-detected (pytest, npm test, go test, cargo test)
 
@@ -479,12 +479,12 @@ Slash commands for SPEC-First development workflow.
 ### Create a Plan
 - **Task**: Generate SPEC-First plan from user request
 - **Command**: `/00_plan "implement user authentication"`
-- **Output**: Plan file in `.claude-pilot/.pilot/plan/pending/`
+- **Output**: Plan file in `.pilot/plan/pending/`
 
 ### Confirm a Plan
 - **Task**: Review plan, detect gaps, resolve BLOCKING issues
 - **Command**: `/01_confirm`
-- **Output**: Plan moved to `.claude-pilot/.pilot/plan/in_progress/`
+- **Output**: Plan moved to `.pilot/plan/in_progress/`
 
 ### Execute Implementation
 - **Task**: Implement features using TDD + Ralph Loop
@@ -494,7 +494,7 @@ Slash commands for SPEC-First development workflow.
 ### Close and Archive
 - **Task**: Archive plan, create commit
 - **Command**: `/03_close`
-- **Output**: Plan in `.claude-pilot/.pilot/plan/done/`, git commit created
+- **Output**: Plan in `.pilot/plan/done/`, git commit created
 
 ## Patterns
 

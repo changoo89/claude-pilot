@@ -171,7 +171,7 @@
 - [ ] Type check clean, lint clean
 - [ ] Code review passed
 - [ ] Documentation updated
-- [ ] Plan archived to `.claude-pilot/.pilot/plan/done/`
+- [ ] Plan archived to `.pilot/plan/done/`
 
 ---
 

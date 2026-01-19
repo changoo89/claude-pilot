@@ -200,7 +200,7 @@ trap 'release_lock "$PLAN_FILE"' EXIT INT TERM
 #!/bin/bash
 # Example: check-todos.sh
 
-PLAN_FILE=".claude-pilot/.pilot/plan/in_progress/plan.md"
+PLAN_FILE=".pilot/plan/in_progress/plan.md"
 
 if [ ! -f "$PLAN_FILE" ]; then
     echo "No active plan - skipping todo check"

@@ -1,8 +1,8 @@
-# /03_close - Detailed Reference
+# Close Plan Skill - Full Reference
 
-> **Purpose**: Extended details for /03_close command workflow
-> **Main Command**: @.claude/commands/03_close.md
-> **Last Updated**: 2026-01-18
+> **Purpose**: Extended details for plan completion workflow
+> **Main Skill**: @.claude/skills/close-plan/SKILL.md
+> **Last Updated**: 2026-01-19
 
 ---
 
@@ -485,3 +485,38 @@ Task:
 ```
 
 **Expected Output**: `<DOCS_COMPLETE>` marker with files updated and artifacts archived
+
+---
+
+## Integration Points
+
+| Component | Integration | Data Flow |
+|-----------|-------------|-----------|
+| `/03_close` | Invokes skill | → Archive plan, commit changes |
+| Continuation state | Verification | → Check todos before closing |
+| Git operations | Commit + push | → Create commit, verify push |
+| Worktree cleanup | Remove worktree | → Cleanup if --wt flag used |
+| Documenter Agent | Update docs | → Sync documentation |
+
+---
+
+## See Also
+
+**Skill Documentation**:
+- @.claude/skills/close-plan/SKILL.md - Quick reference
+- @.claude/skills/git-master/SKILL.md - Git operations
+- @.claude/skills/execute-plan/SKILL.md - Plan execution workflow
+
+**System Integration**:
+- @.claude/guides/continuation-system.md - Sisyphus continuation system
+- @.claude/guides/3tier-documentation.md - Documentation synchronization
+- @.claude/scripts/worktree-utils.sh - Worktree utilities
+
+**Command Reference**:
+- @.claude/commands/03_close.md - Close command
+- @.claude/commands/03_close-details.md - Detailed reference
+
+---
+
+**Last Updated**: 2026-01-19
+**Version**: 1.0.0 (Close Plan Skill)

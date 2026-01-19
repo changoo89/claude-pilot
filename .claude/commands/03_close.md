@@ -14,6 +14,7 @@ _Finalize plan by moving to done and creating git commit._
 - **Traceability**: Preserve plan with evidence (commands, results)
 - **Default commit**: Commits created automatically (skip with no-commit flag)
 
+**Methodology**: @.claude/skills/close-plan/SKILL.md
 **Details**: @.claude/commands/03_close-details.md
 
 ---

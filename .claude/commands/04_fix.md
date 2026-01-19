@@ -39,7 +39,7 @@ _Rapid bug fix workflow - automated planning, execution, and closure for simple 
 | Architecture decision | Keywords: "tradeoffs", "design", "structure", "architecture" | Delegate to GPT Architect |
 | Security concern | Keywords: "auth", "vulnerability", "credential", "security" | Delegate to GPT Security Analyst |
 
-**See**: @.claude/commands/04_fix-details.md for delegation flow implementation
+**See**: @.claude/skills/rapid-fix/REFERENCE.md for delegation flow implementation
 
 ---
 
@@ -56,7 +56,7 @@ _Rapid bug fix workflow - automated planning, execution, and closure for simple 
 - >3 files mentioned: +0.2
 - Multiple tasks detected: +0.2
 
-**See**: @.claude/commands/04_fix-details.md for detailed algorithm and rejection criteria
+**See**: @.claude/skills/rapid-fix/REFERENCE.md for detailed algorithm and rejection criteria
 
 ---
 
@@ -71,7 +71,7 @@ _Rapid bug fix workflow - automated planning, execution, and closure for simple 
 - Test Plan
 - Execution Plan (20 min total)
 
-**See**: @.claude/commands/04_fix-details.md for plan template and time estimation
+**See**: @.claude/skills/rapid-fix/REFERENCE.md for plan template and time estimation
 
 ---
 
@@ -143,7 +143,7 @@ echo ""
 echo "→ /02_execute completed with result: $EXEC_RESULT"
 ```
 
-**See**: @.claude/commands/04_fix-details.md for integration notes and state management
+**See**: @.claude/skills/rapid-fix/REFERENCE.md for integration notes and state management
 
 ---
 
@@ -210,7 +210,7 @@ if [ "$COMMIT_CONFIRM" != "true" ]; then
 fi
 ```
 
-**See**: @.claude/commands/04_fix-details.md for confirmation flow details
+**See**: @.claude/skills/rapid-fix/REFERENCE.md for confirmation flow details
 
 ---
 
@@ -258,7 +258,7 @@ else
 fi
 ```
 
-**See**: @.claude/commands/04_fix-details.md for close process details
+**See**: @.claude/skills/rapid-fix/REFERENCE.md for close process details
 
 ---
 
@@ -284,7 +284,7 @@ If work is incomplete:
 - Run `/99_continue` to resume work
 - Max 7 Ralph Loop iterations before manual intervention required
 
-**See**: @.claude/commands/04_fix-details.md for continuation workflow
+**See**: @.claude/skills/rapid-fix/REFERENCE.md for continuation workflow
 
 ---
 
@@ -295,4 +295,4 @@ If work is incomplete:
 - **/02_execute** - Standard execution workflow
 - **/03_close** - Manual plan closure
 
-**Detailed Reference**: @.claude/commands/04_fix-details.md
+**Detailed Reference**: @.claude/skills/rapid-fix/REFERENCE.md

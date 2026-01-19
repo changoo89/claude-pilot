@@ -15,6 +15,7 @@ _Review plan for completeness, gaps, and quality issues before execution._
 - **Severity-based**: BLOCKING → Interactive Recovery
 - **Agent Support**: Can be invoked via plan-reviewer agent for context isolation
 
+**Review Skill**: See @.claude/skills/review/SKILL.md
 **Review Checklist**: See @.claude/guides/review-checklist.md
 **Gap Detection**: See @.claude/guides/gap-detection.md
 **Vibe Coding**: See @.claude/skills/vibe-coding/SKILL.md
@@ -70,7 +71,7 @@ if command -v codex &> /dev/null && ([ "$PLAN_SC_COUNT" -ge 5 ] || [ "$HAS_ARCHI
 fi
 ```
 
-**See**: @.claude/commands/90_review-details.md for detailed trigger detection and delegation flow
+**See**: @.claude/skills/review/REFERENCE.md for detailed trigger detection and delegation flow
 
 ---
 
@@ -88,7 +89,7 @@ fi
 
 **Test File Logic**: Code/Scenario/Infra/DB/AI require test file paths (BLOCKING if missing). Config/Documentation allow N/A.
 
-**See**: @.claude/commands/90_review-details.md for auto-detection implementation
+**See**: @.claude/skills/review/REFERENCE.md for auto-detection implementation
 
 ---
 
@@ -107,7 +108,7 @@ Execute all 8 reviews for every plan:
 | 7 | Project Alignment | Type check, API docs, affected areas |
 | 8 | Long-term Impact | Consequences, debt, scalability, rollback |
 
-**See**: @.claude/commands/90_review-details.md for detailed review criteria
+**See**: @.claude/skills/review/REFERENCE.md for detailed review criteria
 
 ---
 
@@ -134,7 +135,7 @@ Execute all 8 reviews for every plan:
 | DB Schema | E (Migration) |
 | AI/Prompts | G (Prompts) |
 
-**See**: @.claude/commands/90_review-details.md for extended review details
+**See**: @.claude/skills/review/REFERENCE.md for extended review details
 
 ---
 
@@ -190,7 +191,7 @@ Execute all 8 reviews for every plan:
 
 **Process**: Read plan → Apply modifications → Write plan → Append to Review History
 
-**See**: @.claude/commands/90_review-details.md for detailed application process
+**See**: @.claude/skills/review/REFERENCE.md for detailed application process
 
 ---
 
@@ -211,7 +212,7 @@ Task: subagent_type=plan-reviewer, prompt="Review from ARCHITECTURE angle..."
 # Wait for all, merge findings, apply to plan
 ```
 
-**See**: @.claude/commands/90_review-details.md for parallel review implementation
+**See**: @.claude/skills/review/REFERENCE.md for parallel review implementation
 
 ---
 

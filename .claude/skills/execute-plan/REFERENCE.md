@@ -1,8 +1,8 @@
-# /02_execute - Detailed Reference
+# Execute Plan - Detailed Reference
 
-> **Purpose**: Extended details for /02_execute command workflow
-> **Main Command**: @.claude/commands/02_execute.md
-> **Last Updated**: 2026-01-18
+> **Purpose**: Extended details for plan execution workflow
+> **Main Skill**: @.claude/skills/execute-plan/SKILL.md
+> **Last Updated**: 2026-01-19
 
 ---
 

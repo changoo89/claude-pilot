@@ -18,7 +18,8 @@ _Release plugin version with git tag and GitHub release._
 
 **CHANGELOG Workflow**: Detect previous tag → Collect commits → Parse conventional commits → Categorize → Generate entry → Prompt for review
 
-**Details**: @.claude/commands/999_release-details.md
+**Methodology**: @.claude/skills/release/SKILL.md
+**Details**: @.claude/skills/release/REFERENCE.md
 
 ---
 
@@ -40,7 +41,7 @@ command -v codex &> /dev/null || { echo "Warning: Codex CLI not installed - fall
 
 ## Step 1: Pre-flight Checks
 
-> **Full validation**: @.claude/commands/999_release-details.md
+> **Full validation**: @.claude/skills/release/REFERENCE.md
 
 ### 1.1 Check Required Tools
 ```bash
@@ -88,7 +89,7 @@ echo "$SOURCE" | grep -qE '^https?://' && { echo "Error: marketplace.json source
 
 ## Step 2: Parse Version Arguments
 
-> **Full version calculation**: @.claude/commands/999_release-details.md
+> **Full version calculation**: @.claude/skills/release/REFERENCE.md
 
 ```bash
 # Parse flags
@@ -133,7 +134,7 @@ echo "Current: $CURRENT → New: $VERSION"
 
 ## Step 3: Update Version Files
 
-> **All 3 version sources**: @.claude/commands/999_release-details.md
+> **All 3 version sources**: @.claude/skills/release/REFERENCE.md
 
 ```bash
 # 3.1 Update plugin.json (PRIMARY)
@@ -152,7 +153,7 @@ echo "✓ Updated all 3 version files"
 
 ## Step 4: Auto-Generate CHANGELOG.md
 
-> **Full CHANGELOG generation**: @.claude/commands/999_release-details.md
+> **Full CHANGELOG generation**: @.claude/skills/release/REFERENCE.md
 
 ```bash
 # Detect previous tag, collect commits, categorize
@@ -187,7 +188,7 @@ git tag -a "v$VERSION" -m "Release $VERSION"
 
 ## Step 6: GitHub Release (OPTIONAL)
 
-> **CI/CD Integration**: @.claude/commands/999_release-details.md
+> **CI/CD Integration**: @.claude/skills/release/REFERENCE.md
 
 ```bash
 if [ "$SKIP_GH" = true ]; then
@@ -262,7 +263,7 @@ echo "════════════════════════�
 
 ## Troubleshooting
 
-> **Full troubleshooting guide**: @.claude/commands/999_release-details.md
+> **Full troubleshooting guide**: @.claude/skills/release/REFERENCE.md
 
 | Issue | Solution |
 |-------|----------|
@@ -274,7 +275,7 @@ echo "════════════════════════�
 
 ## Best Practices
 
-> **Full guidelines**: @.claude/commands/999_release-details.md
+> **Full guidelines**: @.claude/skills/release/REFERENCE.md
 
 **For Plugin Maintainers**:
 1. Always use `/999_release` for version consistency

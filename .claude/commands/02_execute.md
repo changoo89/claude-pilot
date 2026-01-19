@@ -13,7 +13,7 @@ _Execute plan using Ralph Loop TDD pattern._
 - **Single source of truth**: Plan file drives the work
 - **Evidence required**: Never claim completion without verification output
 
-**Details**: @.claude/commands/02_execute-details.md
+**Details**: @.claude/skills/execute-plan/REFERENCE.md
 
 ---
 
@@ -28,7 +28,7 @@ WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
 
 ## Step 0.5: Continuation State Check (MANDATORY)
 
-> **Details**: @.claude/commands/02_execute-details.md#continuation-state-system
+> **Details**: @.claude/skills/execute-plan/REFERENCE.md#continuation-state-system
 
 **State file**: `.pilot/state/continuation.json`
 
@@ -149,7 +149,7 @@ echo "✓ Plan ready: $PLAN_PATH"
 
 ## Step 2: Todo List & Dependency Analysis
 
-> **Details**: @.claude/commands/02_execute-details.md#parallel-execution-patterns
+> **Details**: @.claude/skills/execute-plan/REFERENCE.md#parallel-execution-patterns
 
 **Extract**: Deliverables, Phases, Tasks, Acceptance Criteria, Test Plan
 
@@ -169,7 +169,7 @@ echo "✓ Plan ready: $PLAN_PATH"
 
 ## Step 2.2: Parallel Coder Invocation
 
-> **Details**: @.claude/commands/02_execute-details.md
+> **Details**: @.claude/skills/execute-plan/REFERENCE.md
 
 **Group 1 (Independent SCs)**: Invoke multiple Coder agents concurrently
 

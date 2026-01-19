@@ -37,7 +37,7 @@ STATE_BACKUP=".pilot/scripts/state_backup.sh"
 [ -f "$STATE_BACKUP" ] && . "$STATE_BACKUP" || { echo "Error: state_backup.sh not found" >&2; exit 1; }
 ```
 
-**See**: @.claude/commands/99_continue-details.md for script details
+**See**: @.claude/skills/continue-work/REFERENCE.md for script details
 
 ---
 
@@ -111,7 +111,7 @@ echo "   Iterations: $ITERATION_COUNT/$MAX_ITERATIONS"
 echo "   Level: $CONTINUATION_LEVEL"
 ```
 
-**See**: @.claude/commands/99_continue-details.md for state format and recovery
+**See**: @.claude/skills/continue-work/REFERENCE.md for state format and recovery
 
 ---
 
@@ -139,7 +139,7 @@ if [ "$BRANCH" != "$CURRENT_BRANCH" ]; then
 fi
 ```
 
-**See**: @.claude/commands/99_continue-details.md for branch mismatch handling
+**See**: @.claude/skills/continue-work/REFERENCE.md for branch mismatch handling
 
 ---
 
@@ -166,7 +166,7 @@ echo "→ Continuing with todo: $NEXT_TODO"
 
 **MANDATORY ACTION**: Invoke Coder agent with continuation context
 
-**See**: @.claude/commands/99_continue-details.md for agent invocation details
+**See**: @.claude/skills/continue-work/REFERENCE.md for agent invocation details
 
 ---
 
@@ -187,7 +187,7 @@ echo "$UPDATED_STATE" > "$STATE_FILE"
 echo "✓ State updated: Iteration $NEW_ITERATION/$MAX_ITERATIONS"
 ```
 
-**See**: @.claude/commands/99_continue-details.md for update patterns
+**See**: @.claude/skills/continue-work/REFERENCE.md for update patterns
 
 ---
 
@@ -227,7 +227,7 @@ export CONTINUATION_LEVEL="normal"  # aggressive | normal | polite
 | `normal` (default) | Balanced continuation with visibility | Standard workflows |
 | `polite` | Frequent checkpoints, user control | Manual review needed |
 
-**See**: @.claude/commands/99_continue-details.md for level details
+**See**: @.claude/skills/continue-work/REFERENCE.md for level details
 
 ---
 
@@ -240,7 +240,7 @@ export CONTINUATION_LEVEL="normal"  # aggressive | normal | polite
 | Branch mismatch | Switch branch or clear state |
 | Max iterations | Manual review required, then resume |
 
-**See**: @.claude/commands/99_continue-details.md for error recovery procedures
+**See**: @.claude/skills/continue-work/REFERENCE.md for error recovery procedures
 
 ---
 
@@ -250,4 +250,4 @@ export CONTINUATION_LEVEL="normal"  # aggressive | normal | polite
 - **/03_close** - Verifies completion, cleans up state
 - **/00_plan** - Start new work (creates fresh state)
 
-**Detailed Reference**: @.claude/commands/99_continue-details.md
+**Detailed Reference**: @.claude/skills/continue-work/REFERENCE.md

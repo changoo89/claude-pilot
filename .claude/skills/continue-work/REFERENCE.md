@@ -1,40 +1,46 @@
-# /99_continue - Detailed Reference
+# Continue Work - Detailed Reference
 
-> **Companion**: `99_continue.md` | **Purpose**: Detailed implementation reference for continuation system
+> **Purpose**: Comprehensive continuation system implementation guide
+> **Target**: Agents implementing continuation behavior and state management
 
 ---
 
-## Detailed Step Implementation
+## Overview
 
-### Step 0: Source State Management Scripts (Detailed)
+The Sisyphus Continuation System ensures agents continue working until completion or manual intervention. Tasks are completed automatically without manual restart, with state persistence across sessions.
 
-> **Purpose**: Load state management utilities for continuation system
+**Key Features**:
+- **State Persistence**: Continuation state in `.pilot/state/continuation.json`
+- **Agent Continuation**: Agents check state before stopping
+- **Granular Todos**: Broken into ≤15 minute chunks
+- **Automatic Recovery**: Backup recovery for corrupted state
+- **Branch Safety**: Mismatch detection and user prompts
 
-#### Script Overview
+---
+
+## State Management Scripts
+
+### Script Overview
+
+**Location**: `.pilot/scripts/`
 
 **state_read.sh**: Read continuation state from JSON file with validation
-- **Location**: `.pilot/scripts/state_read.sh`
-- **Functions**:
-  - `read_state()`: Read and validate continuation.json
-  - Returns: State content or error message
-  - Validates JSON structure with `jq`
+- `read_state()`: Read and validate continuation.json
+- Returns: State content or error message
+- Validates JSON structure with `jq`
 
 **state_write.sh**: Write continuation state atomically
-- **Location**: `.pilot/scripts/state_write.sh`
-- **Functions**:
-  - `write_state()`: Write state atomically with backup
-  - Creates `.backup` file before writing
-  - Validates JSON before write
-  - Returns: Success/failure status
+- `write_state()`: Write state atomically with backup
+- Creates `.backup` file before writing
+- Validates JSON before write
+- Returns: Success/failure status
 
 **state_backup.sh**: Backup continuation state before modifications
-- **Location**: `.pilot/scripts/state_backup.sh`
-- **Functions**:
-  - `backup_state()`: Copy state to `.backup` file
-  - Preserves original state for recovery
-  - Returns: Backup file path or error
+- `backup_state()`: Copy state to `.backup` file
+- Preserves original state for recovery
+- Returns: Backup file path or error
 
-#### Script Sourcing Pattern
+### Script Sourcing Pattern
 
 ```bash
 STATE_READ=".pilot/scripts/state_read.sh"
@@ -53,28 +59,24 @@ STATE_BACKUP=".pilot/scripts/state_backup.sh"
 - Error messages written to stderr
 - Prevents execution with incomplete tooling
 
-**See**: @.claude/guides/continuation-system.md for state management architecture
-
 ---
 
-### Step 2: Load and Validate State (Detailed)
+## State Validation Algorithm
 
-> **Purpose**: Read and validate continuation state from JSON file
+### 1. Read State
 
-#### State Validation Algorithm
-
-**1. Read State**:
 ```bash
 STATE=$(cat "$STATE_FILE")
 ```
 
-**2. Validate JSON**:
+### 2. Validate JSON
+
 ```bash
 if ! echo "$STATE" | jq empty 2>/dev/null; then
     echo "❌ Invalid continuation state (corrupted JSON)"
     echo ""
     echo "Attempting recovery from backup..."
-    
+
     BACKUP_FILE="${STATE_FILE}.backup"
     if [ -f "$BACKUP_FILE" ]; then
         STATE=$(cat "$BACKUP_FILE")
@@ -92,7 +94,8 @@ if ! echo "$STATE" | jq empty 2>/dev/null; then
 fi
 ```
 
-**3. Extract State Variables**:
+### 3. Extract State Variables
+
 ```bash
 SESSION_ID=$(echo "$STATE" | jq -r '.session_id // empty')
 BRANCH=$(echo "$STATE" | jq -r '.branch // empty')
@@ -113,7 +116,8 @@ CONTINUATION_LEVEL=$(echo "$STATE" | jq -r '.continuation_level // "normal"')
 | `MAX_ITERATIONS` | number | Maximum iterations allowed | 7 |
 | `CONTINUATION_LEVEL` | string | Aggressiveness level | "normal" |
 
-**4. Display State**:
+### 4. Display State
+
 ```
 📋 Continuation State
    Session: abc123-def456-ghi789
@@ -123,9 +127,12 @@ CONTINUATION_LEVEL=$(echo "$STATE" | jq -r '.continuation_level // "normal"')
    Level: normal
 ```
 
-#### JSON Schema
+---
+
+## JSON Schema
 
 **State File Format** (`continuation.json`):
+
 ```json
 {
   "version": "1.0",
@@ -164,39 +171,18 @@ CONTINUATION_LEVEL=$(echo "$STATE" | jq -r '.continuation_level // "normal"')
 - `last_checkpoint`: ISO 8601 timestamp
 - `continuation_level`: One of: "aggressive", "normal", "polite"
 
-#### Recovery Scenarios
-
-**Scenario 1: Corrupted JSON, Valid Backup**
-- Action: Restore from backup
-- Output: "✓ Recovered from backup"
-- Result: Continue with restored state
-
-**Scenario 2: Corrupted JSON, Corrupted Backup**
-- Action: Exit with error
-- Output: "❌ Backup also corrupted"
-- Result: Manual intervention required
-
-**Scenario 3: Corrupted JSON, No Backup**
-- Action: Exit with error
-- Output: "❌ No backup available"
-- Result: Manual state recreation required
-
-**See**: @.claude/guides/continuation-system.md for error recovery procedures
-
 ---
 
-### Step 3: Check Branch Match (Detailed)
+## Branch Mismatch Detection
 
-> **Purpose**: Ensure continuation state matches current git branch
+### Current Branch Detection
 
-#### Branch Mismatch Detection
-
-**Current Branch Detection**:
 ```bash
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "detached")
 ```
 
-**Comparison Logic**:
+### Comparison Logic
+
 ```bash
 if [ "$BRANCH" != "$CURRENT_BRANCH" ]; then
     echo ""
@@ -217,25 +203,25 @@ if [ "$BRANCH" != "$CURRENT_BRANCH" ]; then
 fi
 ```
 
-#### Branch Mismatch Scenarios
+### Branch Mismatch Scenarios
 
 **Scenario 1: Different Branch, User Continues**
-- **State branch**: `feature/auth`
-- **Current branch**: `main`
-- **User choice**: `y`
-- **Result**: Continues on main branch (state detached from context)
+- State branch: `feature/auth`
+- Current branch: `main`
+- User choice: `y`
+- Result: Continues on main branch (state detached from context)
 
 **Scenario 2: Different Branch, User Switches**
-- **State branch**: `feature/auth`
-- **Current branch**: `main`
-- **User action**: `git checkout feature/auth`
-- **Result**: Continues on feature/auth branch
+- State branch: `feature/auth`
+- Current branch: `main`
+- User action: `git checkout feature/auth`
+- Result: Continues on feature/auth branch
 
 **Scenario 3: Different Branch, User Clears State**
-- **State branch**: `feature/auth`
-- **Current branch**: `main`
-- **User action**: `rm .pilot/state/continuation.json`
-- **Result**: Fresh start on main branch
+- State branch: `feature/auth`
+- Current branch: `main`
+- User action: `rm .pilot/state/continuation.json`
+- Result: Fresh start on main branch
 
 **When to Allow Mismatch**:
 - State is from completed worktree (now deleted)
@@ -247,15 +233,11 @@ fi
 - Risk of data loss
 - Conflicting concurrent work
 
-**See**: @.claude/guides/worktree-setup.md for worktree branch management
-
 ---
 
-### Step 4: Extract Todos (Detailed)
+## Todo Extraction
 
-> **Purpose**: Extract todo information from continuation state
-
-#### Todo Extraction Commands
+### jq Query Patterns
 
 **Get All Todos**:
 ```bash
@@ -284,35 +266,35 @@ TOTAL=$(echo "$STATE" | jq '.todos | length')
    Pending: 2
 ```
 
-#### jq Query Patterns
+### Extract Specific Todo
 
-**Extract Specific Todo**:
 ```bash
 # Get first incomplete todo
 NEXT_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status != "complete") | .id' | head -1)
 
 # Get all incomplete todo IDs
-INCOMPLETE_IDS=$(echo "$STATE" -r '.todos[] | select(.status != "complete") | .id')
+INCOMPLETE_IDS=$(echo "$STATE" | jq -r '.todos[] | select(.status != "complete") | .id')
 
 # Get todo by ID
-TODO_1=$(echo "$STATE" -r '.todos[] | select(.id == "SC-1")')
+TODO_1=$(echo "$STATE" | jq -r '.todos[] | select(.id == "SC-1")')
 
 # Get todos by owner
-CODER_TODOS=$(echo "$STATE" -r '.todos[] | select(.owner == "coder")')
+CODER_TODOS=$(echo "$STATE" | jq -r '.todos[] | select(.owner == "coder")')
 ```
 
-**Find Next In Progress Todo**:
+### Find Next In Progress Todo
+
 ```bash
-IN_PROGRESS_TODO=$(echo "$STATE" -r '.todos[] | select(.status == "in_progress") | .id')
+IN_PROGRESS_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status == "in_progress") | .id')
 
 if [ -n "$IN_PROGRESS_TODO" ]; then
     NEXT_TODO="$IN_PROGRESS_TODO"
 else
-    NEXT_TODO=$(echo "$STATE" -r '.todos[] | select(.status == "pending") | .id' | head -1)
+    NEXT_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status == "pending") | .id' | head -1)
 fi
 ```
 
-#### Todo Status Values
+### Todo Status Values
 
 | Status | Meaning | Next Action |
 |--------|---------|-------------|
@@ -320,7 +302,7 @@ fi
 | `in_progress` | Currently active | Continue execution |
 | `complete` | Finished | Skip |
 
-#### Edge Cases
+### Edge Cases
 
 **No Incomplete Todos**:
 ```bash
@@ -336,25 +318,23 @@ fi
 **All Todos Pending**:
 ```bash
 if [ "$IN_PROGRESS" -eq 0 ]; then
-    NEXT_TODO=$(echo "$STATE" -r '.todos[] | select(.status == "pending") | .id' | head -1)
+    NEXT_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status == "pending") | .id' | head -1)
     echo "→ Starting with $NEXT_TODO"
 fi
 ```
 
 ---
 
-### Step 5: Update State (Detailed)
+## State Update Patterns
 
-> **Purpose**: Update continuation state with current progress
+### 1. Increment Iteration Count
 
-#### Update Pattern
-
-**1. Increment Iteration Count**:
 ```bash
 NEW_ITERATION=$((ITERATION_COUNT + 1))
 ```
 
-**2. Update Todo Status**:
+### 2. Update Todo Status
+
 ```bash
 # Mark SC-1 as complete
 UPDATED_STATE=$(echo "$STATE" | jq --argjson iteration "$NEW_ITERATION" '
@@ -365,7 +345,8 @@ UPDATED_STATE=$(echo "$STATE" | jq --argjson iteration "$NEW_ITERATION" '
 echo "$UPDATED_STATE" > "$STATE_FILE"
 ```
 
-**3. Update Last Checkpoint**:
+### 3. Update Last Checkpoint
+
 ```bash
 UPDATED_STATE=$(echo "$STATE" | jq '
   .last_checkpoint = (now | todate)
@@ -374,7 +355,8 @@ UPDATED_STATE=$(echo "$STATE" | jq '
 echo "$UPDATED_STATE" > "$STATE_FILE"
 ```
 
-**4. Atomic Update Pattern**:
+### 4. Atomic Update Pattern
+
 ```bash
 # Create backup first
 backup_state
@@ -393,7 +375,7 @@ fi
 rm -f "${STATE_FILE}.backup"
 ```
 
-#### Update Scenarios
+### Update Scenarios
 
 **Scenario 1: Complete SC-2, Start SC-3**
 ```bash
@@ -420,147 +402,11 @@ UPDATED_STATE=$(echo "$STATE" | jq '
 ')
 ```
 
-**Helper Functions**:
-
-`backup_state()`:
-```bash
-cp "$STATE_FILE" "${STATE_FILE}.backup"
-```
-
-`restore_state()`:
-```bash
-mv "${STATE_FILE}.backup" "$STATE_FILE"
-```
-
 ---
 
-### Step 6: Delegate to Coder Agent (Detailed)
+## Continuation Levels
 
-> **Purpose**: Execute next incomplete todo using Coder agent
-
-#### Coder Agent Invocation
-
-**Mandatory Action**:
-```markdown
-### 🚀 MANDATORY ACTION: Coder Agent Invocation
-
-> **YOU MUST invoke the coder agent NOW using the Task tool.**
-> This is not optional. Execute this Task tool call immediately.
-
-**EXECUTE IMMEDIATELY - DO NOT SKIP**:
-
-**VERIFICATION**: After sending Task call, wait for agent to return result before proceeding.
-```
-
-**Task Invocation**:
-```bash
-Task:
-  subagent_type: coder
-  description: Continue work from continuation state
-  prompt: |
-    You are resuming work from continuation state.
-    
-    **State Context**:
-    - Session: $SESSION_ID
-    - Branch: $BRANCH
-    - Plan: $PLAN_FILE
-    - Iteration: $ITERATION_COUNT/$MAX_ITERATIONS
-    - Next todo: $NEXT_TODO
-    - Continuation level: $CONTINUATION_LEVEL
-    
-    **Instructions**:
-    1. Read the plan file: $PLAN_FILE
-    2. Find the next incomplete todo ($NEXT_TODO)
-    3. Implement using TDD + Ralph Loop
-    4. Update continuation state after each iteration
-    5. Return when complete or max iterations reached
-    
-    **Expected Output**: <CODER_COMPLETE> or <CODER_BLOCKED>
-```
-
-#### Agent Response Handling
-
-**On <CODER_COMPLETE>**:
-- All todos complete or max iterations reached
-- Update state to mark todos as complete
-- Proceed to Step 7
-
-**On <CODER_BLOCKED>**:
-- Max iterations (7) reached without completion
-- Keep state as-is for manual resumption
-- Suggest `/99_continue` to resume
-- Exit gracefully
-
-**Error Handling**:
-- If agent crashes: Preserve state, suggest resumption
-- If agent timeout: Preserve state, log warning
-- If plan file missing: Error and exit
-
-**See**: @.claude/agents/coder.md for Coder agent behavior
-
----
-
-### Step 7: Update State (Detailed)
-
-> **Purpose**: Update continuation state after agent completion
-
-#### Update Process
-
-**1. Extract Agent Output**:
-```bash
-# Agent outputs completion marker
-if grep -q "<CODER_COMPLETE>" agent_output.txt; then
-    COMPLETION_STATUS="complete"
-elif grep -q "<CODER_BLOCKED>" agent_output.txt; then
-    COMPLETION_STATUS="blocked"
-else
-    COMPLETION_STATUS="unknown"
-fi
-```
-
-**2. Update State Based on Status**:
-
-**If Complete**:
-```bash
-UPDATED_STATE=$(echo "$STATE" | jq '
-  .todos[] |= map(.status = "complete") |
-  .last_checkpoint = (now | todate)
-')
-
-echo "$UPDATED_STATE" > "$STATE_FILE"
-echo "✓ State updated: All todos complete"
-```
-
-**If Blocked**:
-```bash
-UPDATED_STATE=$(echo "$STATE" | jq '
-  .iteration_count += 1 |
-  .last_checkpoint = (now | todate)
-')
-
-echo "$UPDATED_STATE" > "$STATE_FILE"
-echo "✓ State updated: Iteration $ITERATION_COUNT/$MAX_ITERATIONS"
-```
-
-**3. Verification**:
-```bash
-# Validate state file
-if ! jq empty "$STATE_FILE" 2>/dev/null; then
-    echo "❌ State file corrupted after update"
-    # Attempt backup recovery
-    if [ -f "${STATE_FILE}.backup" ]; then
-        cp "${STATE_FILE}.backup" "$STATE_FILE"
-    else
-        exit 1
-    fi
-fi
-```
-
----
-
-### Continuation Levels
-
-#### Level: Aggressive
+### Level: Aggressive
 
 **Behavior**:
 - Maximum continuation, minimal pauses
@@ -578,7 +424,7 @@ export CONTINUATION_LEVEL="aggressive"
 - ❌ Less user control
 - ❌ Higher risk of cascading errors
 
-#### Level: Normal (Default)
+### Level: Normal (Default)
 
 **Behavior**:
 - Balanced continuation
@@ -596,7 +442,7 @@ export CONTINUATION_LEVEL="normal"
 - ✅ Good visibility into progress
 - ✅ Standard for most workflows
 
-#### Level: Polite
+### Level: Polite
 
 **Behavior**:
 - More frequent checkpoints
@@ -614,8 +460,6 @@ export CONTINUATION_LEVEL="polite"
 - ✅ Clear progress tracking
 - ❌ Slower completion
 - ❌ More manual intervention
-
-**See**: @.claude/guides/continuation-system.md for continuation level configuration
 
 ---
 
@@ -830,6 +674,20 @@ fi
 - `/00_plan` ensures no stale state
 - Warns if continuation state exists
 - Offers to clear before starting
+
+---
+
+## Related Documentation
+
+**Internal**:
+- @.claude/guides/continuation-system.md - Sisyphus system architecture
+- @.claude/guides/todo-granularity.md - Granular todo breakdown
+- @.claude/skills/execute-plan/SKILL.md - Plan execution workflow
+- @.claude/commands/99_continue.md - Continue command reference
+
+**External**:
+- [Working Effectively with Legacy Code by Michael Feathers](https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052)
+- [Test-Driven Development by Kent Beck](https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530)
 
 ---
 

@@ -1,6 +1,6 @@
-# /04_fix - Detailed Reference
+# REFERENCE: Rapid Fix (Detailed Implementation)
 
-> **Companion**: `04_fix.md` | **Purpose**: Detailed implementation reference for rapid bug fix workflow
+> **Companion**: SKILL.md | **Purpose**: Detailed implementation reference for rapid bug fix workflow
 
 ---
 

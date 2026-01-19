@@ -1,6 +1,6 @@
-# /01_confirm - Detailed Reference
+# Confirm Plan - Detailed Reference
 
-> **Companion**: `01_confirm.md` | **Purpose**: Detailed implementation reference for plan confirmation workflow
+> **Companion**: `SKILL.md` | **Purpose**: Detailed implementation reference for plan confirmation workflow
 
 ---
 

@@ -26,7 +26,7 @@ _Extract plan from conversation, create plan file in pending/, run auto-review w
 ## Step 0.5: GPT Delegation Trigger Check (MANDATORY)
 
 > **⚠️ CRITICAL**: Check for GPT delegation triggers before plan confirmation
-> See: @.claude/rules/delegator/triggers.md
+> **Skill**: @.claude/skills/confirm-plan/SKILL.md
 
 | Trigger | Signal | Action |
 |---------|--------|--------|
@@ -45,11 +45,13 @@ if command -v codex &> /dev/null && [ "$PLAN_SC_COUNT" -ge 5 ]; then
 fi
 ```
 
-**See**: @.claude/commands/01_confirm-details.md for detailed trigger detection and delegation flow
+**See**: @.claude/skills/confirm-plan/REFERENCE.md for detailed trigger detection and delegation flow
 
 ---
 
 ## Step 1: Extract Plan from Conversation
+
+> **Skill**: @.claude/skills/confirm-plan/SKILL.md
 
 ### 1.1 Review Context
 
@@ -63,13 +65,14 @@ Verify: [ ] User Requirements, [ ] Execution Plan, [ ] Acceptance Criteria, [ ] 
 
 If missing: Inform user, ask if proceed
 
-**See**: @.claude/commands/01_confirm-details.md for detailed extraction methodology
+**See**: @.claude/skills/confirm-plan/REFERENCE.md for detailed extraction methodology
 
 ---
 
 ## Step 1.5: Conversation Highlights Extraction
 
 > **⚠️ CRITICAL**: Capture implementation details from `/00_plan` conversation
+> **Skill**: @.claude/skills/confirm-plan/SKILL.md
 
 **Scan For**: Code blocks (```), CLI commands, API patterns, diagrams (ASCII/Mermaid)
 
@@ -80,7 +83,7 @@ If missing: Inform user, ask if proceed
 
 **If none found**: Add note `> No implementation highlights found in conversation` and continue
 
-**See**: @.claude/commands/01_confirm-details.md for detailed extraction methodology
+**See**: @.claude/skills/confirm-plan/REFERENCE.md for detailed extraction methodology
 
 ---
 
@@ -88,6 +91,7 @@ If missing: Inform user, ask if proceed
 
 > **Full methodology**: See @.claude/guides/requirements-verification.md
 > **Purpose**: Verify ALL user requirements are captured in the plan
+> **Skill**: @.claude/skills/confirm-plan/SKILL.md
 
 ### 🎯 MANDATORY ACTION: Verify Requirements Coverage
 
@@ -101,7 +105,7 @@ If missing: Inform user, ask if proceed
 **⚠️ CRITICAL**: Do NOT proceed to Step 2 if BLOCKING findings exist.
 Use AskUserQuestion to resolve ALL BLOCKING issues before plan file creation.
 
-**See**: @.claude/commands/01_confirm-details.md for detailed verification methodology
+**See**: @.claude/skills/confirm-plan/REFERENCE.md for detailed verification methodology
 
 ---
 
@@ -123,10 +127,11 @@ PLAN_FILE="$PROJECT_ROOT/.pilot/plan/pending/${TS}_${WORK_NAME}.md"
 ## Step 3: Create Plan File
 
 > **⚠️ ENGLISH OUTPUT REQUIRED**: All content MUST be in English
+> **Skill**: @.claude/skills/confirm-plan/SKILL.md
 
 **Structure**: User Requirements (Verbatim) → Requirements Coverage Check → PRP Analysis → Scope → Test Environment → Execution Context (Explored Files, Key Decisions, Implementation Patterns) → External Service Integration [if applicable] → Architecture → Vibe Coding Compliance → Execution Plan → Acceptance Criteria → Test Plan → Risks & Mitigations → Open Questions
 
-**See**: @.claude/commands/01_confirm-details.md for detailed plan template structure
+**See**: @.claude/skills/confirm-plan/REFERENCE.md for detailed plan template structure
 
 ```bash
 cat > "$PLAN_FILE" << 'PLAN_EOF'
@@ -140,6 +145,7 @@ echo "Plan created: $PLAN_FILE"
 ## Step 4: Auto-Review (Strict Mode)
 
 > **Principle**: Plan validation with Interactive Recovery for BLOCKING findings
+> **Skill**: @.claude/skills/confirm-plan/SKILL.md
 
 ### Default Behavior
 
@@ -193,7 +199,7 @@ WHILE BLOCKING > 0 AND ITERATION <= MAX_ITERATIONS:
 
 **Plan Update Format**: External Service Integration table (API Calls Required) OR `> ⚠️ SKIPPED: Deferred to implementation phase`
 
-**See**: @.claude/commands/01_confirm-details.md for detailed implementation
+**See**: @.claude/skills/confirm-plan/REFERENCE.md for detailed implementation
 
 ### 4.6 Verify Results
 

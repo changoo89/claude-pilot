@@ -1,7 +1,7 @@
-# /999_release - Detailed Reference
+# Plugin Release Workflow - Full Reference
 
-> **Purpose**: Extended details for /999_release command workflow
-> **Main Command**: @.claude/commands/999_release.md
+> **Purpose**: Extended details for plugin release workflow
+> **Skill**: @.claude/skills/release/SKILL.md
 > **Last Updated**: 2026-01-19
 
 ---

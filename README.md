@@ -102,8 +102,8 @@ export CODEX_REASONING_EFFORT="medium"  # low | medium | high | xhigh
 /01_confirm  → Review and approve plan
 /02_execute  → Execute with Ralph Loop + TDD
 /03_close    → Complete and commit
-/90_review   → Auto-review code (multi-angle)
-/91_document → Auto-document changes
+/review   → Auto-review code (multi-angle)
+/document → Auto-document changes
 /pilot:setup → Configure MCP servers
 ```
 
@@ -205,7 +205,7 @@ The setup command uses a merge strategy:
 
 ```bash
 # In Claude Code
-/92_init
+/setup
 
 # Automatically generates 3-Tier documentation structure
 ```
@@ -228,7 +228,7 @@ The setup command uses a merge strategy:
 
 ```bash
 # After completing work
-/91_document
+/document
 
 # Automatically updates:
 # - CLAUDE.md (Tier 1)
@@ -240,7 +240,7 @@ The setup command uses a merge strategy:
 
 ```bash
 # Before committing
-/90_review security performance accessibility
+/review security performance accessibility
 
 # Reviews code from multiple perspectives
 ```
@@ -261,7 +261,7 @@ Contributions welcome! Please:
 1. Fork the repository
 2. Create a feature branch (`/00_plan "your feature"`)
 3. Follow TDD workflow (`/02_execute`)
-4. Submit PR with `/90_review` output
+4. Submit PR with `/review` output
 
 ---
 

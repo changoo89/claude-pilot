@@ -144,7 +144,7 @@ Add this section to plan templates when external APIs are involved:
 
 1. **Update plan templates** to include "External Service Integration" section
 2. **Add verification step** in `/01_confirm` to check for vague external API references
-3. **Update `/90_review`** to flag plans with unspecified API call mechanisms
+3. **Update `/review`** to flag plans with unspecified API call mechanisms
 
 ---
 

@@ -55,7 +55,7 @@ After installation, start planning your first feature:
 If you already have a codebase, initialize the 3-Tier Documentation System:
 
 ```bash
-/92_init
+/setup
 ```
 
 This command will:
@@ -139,12 +139,12 @@ chmod +x .claude/scripts/hooks/*.sh
 ### Planning Workflow
 
 ```
-0. /92_init     → Initialize 3-Tier Documentation (for existing projects)
+0. /setup     → Initialize 3-Tier Documentation (for existing projects)
 1. /00_plan     → Create SPEC-First execution plan (read-only exploration)
 2. /01_confirm  → Save plan to pending/ (optional, /02_execute can auto-detect)
 3. /02_execute  → Implement with Ralph Loop + TDD
-4. /90_review   → Multi-angle code review
-5. /91_document → Sync 3-Tier documentation
+4. /review   → Multi-angle code review
+5. /document → Sync 3-Tier documentation
 6. /03_close    → Finalize and create git commit
 ```
 
@@ -152,7 +152,7 @@ chmod +x .claude/scripts/hooks/*.sh
 
 **Initialize existing project:**
 ```
-/92_init
+/setup
 > [Analyzes project structure and tech stack]
 > [Shows detected info: Node.js, React, etc.]
 > [Asks for project description and Tier 2 folders]
@@ -175,7 +175,7 @@ chmod +x .claude/scripts/hooks/*.sh
 
 **Review the code:**
 ```
-/90_review
+/review
 > [Runs parallel verification: tester, validator, code-reviewer]
 ```
 
@@ -243,7 +243,7 @@ For component-level architecture and integration:
 ```bash
 # CONTEXT-tier2.md.template
 # Used for major components, utilities, API routes
-# Auto-applied by /91_document for component folders
+# Auto-applied by /document for component folders
 ```
 
 ### Tier 3 Template (Feature)
@@ -251,7 +251,7 @@ For feature-level implementation details:
 ```bash
 # CONTEXT-tier3.md.template
 # Used for specific features, deep nested folders
-# Auto-applied by /91_document for feature folders
+# Auto-applied by /document for feature folders
 ```
 
 ### General Template

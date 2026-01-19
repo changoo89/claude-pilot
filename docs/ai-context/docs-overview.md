@@ -193,13 +193,13 @@ Feature-level implementation details for specific features or deeply nested impl
 
 ### To Create
 
-Use `/91_document {folder_name}` to create CONTEXT.md for any folder:
+Use `/document {folder_name}` to create CONTEXT.md for any folder:
 
 ```bash
-/91_document .claude/commands
-/91_document .claude/guides
-/91_document .claude/skills
-/91_document .claude/agents
+/document .claude/commands
+/document .claude/guides
+/document .claude/skills
+/document .claude/agents
 ```
 
 ---
@@ -286,7 +286,7 @@ See **Tier 3 CONTEXT.md** files for:
 ### Initialize 3-Tier System
 
 ```bash
-/92_init
+/setup
 ```
 
 Creates full 3-Tier from scratch:
@@ -297,7 +297,7 @@ Creates full 3-Tier from scratch:
 ### Auto-Sync After Implementation
 
 ```bash
-/91_document auto-sync from {RUN_ID}
+/document auto-sync from {RUN_ID}
 ```
 
 Updates:
@@ -309,7 +309,7 @@ Updates:
 ### Update Specific Folder
 
 ```bash
-/91_document {folder_name}
+/document {folder_name}
 ```
 
 Creates or updates CONTEXT.md for specific folder.
@@ -317,7 +317,7 @@ Creates or updates CONTEXT.md for specific folder.
 ### Full Project Sync
 
 ```bash
-/91_document
+/document
 ```
 
 Updates all tiers for entire project.
@@ -339,7 +339,7 @@ find . -name "CONTEXT.md" -exec wc -l {} \;
 ### Auto-Compress
 
 ```bash
-/91_document auto-compress
+/document auto-compress
 ```
 
 Automatically compresses documentation that exceeds thresholds:

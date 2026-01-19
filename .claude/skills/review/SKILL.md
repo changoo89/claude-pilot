@@ -8,7 +8,7 @@
 ## Quick Start
 
 ### When to Use This Skill
-- Review plan before execution (/01_confirm, /90_review)
+- Review plan before execution (/01_confirm, /review)
 - Detect gaps in external service integration
 - Validate test plan completeness
 - Apply findings to improve plan quality
@@ -16,7 +16,7 @@
 ### Quick Reference
 ```bash
 # Load plan → Detect type → Run reviews → Apply findings
-/90_review .pilot/plan/pending/plan.md
+/review .pilot/plan/pending/plan.md
 ```
 
 ## What This Skill Covers

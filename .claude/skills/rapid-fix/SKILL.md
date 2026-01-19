@@ -84,7 +84,7 @@ git diff HEAD
 - Leverages existing continuation state system
 - Automatic Ralph Loop iteration
 - Quality gates enforced (tests, type-check, lint, coverage)
-- State preserved for `/99_continue` resumption
+- State preserved for `/continue` resumption
 
 ### User Confirmation Flow
 

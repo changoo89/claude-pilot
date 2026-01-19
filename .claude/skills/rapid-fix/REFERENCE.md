@@ -176,13 +176,13 @@ Total estimated time: 20 minutes
 1. **Unified execution behavior**: All plans execute through `/02_execute`
 2. **State management**: Leverages existing continuation state system
 3. **Ralph Loop integration**: Automatic iteration until quality gates pass
-4. **Resumption support**: Compatible with `/99_continue` for incomplete work
+4. **Resumption support**: Compatible with `/continue` for incomplete work
 
 **State Management Details**:
 - **State file**: `.pilot/state/continuation.json`
 - **Updated**: Automatically on each Ralph Loop iteration
 - **Includes**: session_id, branch, plan_file, todos, iteration_count, max_iterations
-- **Resumption**: `/99_continue` reads state and continues from last checkpoint
+- **Resumption**: `/continue` reads state and continues from last checkpoint
 
 #### Execution Flow
 
@@ -274,7 +274,7 @@ INCOMPLETE_COUNT="$(echo "$INCOMPLETE_TODOS" | grep -c '^' || echo 0)"
 ```
 
 **3. Branch Logic**:
-- **If INCOMPLETE_COUNT > 0**: Show warning, suggest `/99_continue`, exit 0
+- **If INCOMPLETE_COUNT > 0**: Show warning, suggest `/continue`, exit 0
 - **If INCOMPLETE_COUNT = 0**: Show success message, proceed to Step 7
 
 #### Incomplete State Output
@@ -282,7 +282,7 @@ INCOMPLETE_COUNT="$(echo "$INCOMPLETE_TODOS" | grep -c '^' || echo 0)"
 ```
 ⚠️  Work incomplete: 2 todos remaining
 
-→ Use /99_continue to resume work
+→ Use /continue to resume work
 ```
 
 #### Complete State Output
@@ -326,7 +326,7 @@ Options:
   y) Yes - commit changes and close plan
   n) No - keep changes but don't commit
 
-→ If 'n': Use /99_continue to resume, or /03_close --no-commit to skip commit
+→ If 'n': Use /continue to resume, or /03_close --no-commit to skip commit
 ```
 
 **3. Default Behavior**:
@@ -434,13 +434,13 @@ Deletes continuation state file since work is complete.
 **Continuation State**:
 - **Preserved in**: `.pilot/state/continuation.json`
 - **Contains**: session_id, branch, plan_file, todos, iteration_count, max_iterations
-- **Resumable**: Via `/99_continue` command
+- **Resumable**: Via `/continue` command
 
 ### Resume Workflow
 
 **User Command**:
 ```bash
-/99_continue
+/continue
 ```
 
 **What Happens**:
@@ -476,7 +476,7 @@ Deletes continuation state file since work is complete.
 
 **Error**: `/02_execute` returns non-zero
 **Causes**: Coder blocked, max iterations, system error
-**Action**: Preserve state, suggest `/99_continue`
+**Action**: Preserve state, suggest `/continue`
 **Exit code**: 0 (state preserved for resumption)
 
 ### Commit Failures

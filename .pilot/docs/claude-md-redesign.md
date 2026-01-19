@@ -461,8 +461,8 @@
 2. **Confirm**: /01_confirm - Review plan + requirements verification
 3. **Execute**: /02_execute - Implement with TDD (parallel SC execution)
 4. **Continue**: /00_continue - Resume work from continuation state
-5. **Review**: /90_review - Multi-angle code review (parallel optional)
-6. **Document**: /91_document - Auto-sync documentation
+5. **Review**: /review - Multi-angle code review (parallel optional)
+6. **Document**: /document - Auto-sync documentation
 7. **Close**: /03_close - Archive and commit
 
 ## CI/CD Integration

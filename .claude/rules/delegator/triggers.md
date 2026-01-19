@@ -10,7 +10,7 @@ This file defines when to delegate to GPT experts via Codex.
 
 **Commands MUST include trigger detection checkpoints at key decision points:**
 - `/02_execute`: After Step 1 (Plan Detection), before Step 2
-- `/90_review`: After Step 0 (Load Plan), before Step 1
+- `/review`: After Step 0 (Load Plan), before Step 1
 - Any command handling failures, architecture decisions, or security concerns
 
 ### When to Check (MANDATORY)

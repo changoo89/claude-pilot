@@ -107,7 +107,7 @@ Methodology guides providing detailed explanations of development workflows, pat
 - **Task**: Comprehensive code review from multiple perspectives
 - **Guide**: @.claude/guides/review-checklist.md
 - **Output**: Review report with findings
-- **Usage**: Used by `/90_review` command
+- **Usage**: Used by `/review` command
 
 **Review angles**:
 1. **Tester Agent**: Test coverage, test quality, edge cases
@@ -119,7 +119,7 @@ Methodology guides providing detailed explanations of development workflows, pat
 - **Task**: Structure documentation using 3-Tier system
 - **Guide**: @.claude/guides/3tier-documentation.md
 - **Output**: Organized docs with clear hierarchy
-- **Usage**: Used by `/91_document` command
+- **Usage**: Used by `/document` command
 
 **Hierarchy**:
 - **L0** (Immediate): Quick reference, 30-second context
@@ -131,7 +131,7 @@ Methodology guides providing detailed explanations of development workflows, pat
 - **Task**: Coordinate multiple agents working in parallel
 - **Guide**: @.claude/guides/parallel-execution.md
 - **Output**: Efficient parallel workflow
-- **Usage**: Used by `/00_plan`, `/02_execute`, `/90_review` commands
+- **Usage**: Used by `/00_plan`, `/02_execute`, `/review` commands
 
 **Parallel patterns**:
 - **Planning**: Explorer + Researcher (parallel exploration)
@@ -258,11 +258,11 @@ Most guides start with a quick reference table for fast lookup:
 - `test-environment.md`: Auto-detect test command
 - `parallel-execution.md`: Orchestrate multiple Coders
 
-### `/90_review` (Review)
+### `/review` (Review)
 - `review-checklist.md`: Multi-angle review criteria
 - `parallel-execution.md`: Orchestrate Tester + Validator + Code-Reviewer
 
-### `/91_document` (Documentation)
+### `/document` (Documentation)
 - `3tier-documentation.md`: Structure documentation
 - `claude-code-standards.md`: Apply official standards
 

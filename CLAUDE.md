@@ -38,8 +38,8 @@
 - **SPEC-First Planning**: `/00_plan "task"`
 - **TDD + Ralph Loop**: `/02_execute` - Autonomous iteration until quality gates pass
 - **Sisyphus Continuation**: `/00_continue` - Resume across sessions
-- **Multi-Angle Review**: `/90_review` - Parallel verification
-- **Auto-Documentation**: `/91_document` - 3-Tier sync
+- **Multi-Angle Review**: `/review` - Parallel verification
+- **Auto-Documentation**: `/document` - 3-Tier sync
 
 **Workflow**: Plan → Confirm → Execute → Review → Document → Close
 

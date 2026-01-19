@@ -51,7 +51,7 @@
 | Tier 2 | 200 lines | Archive to `HISTORY.md` |
 | Tier 3 | 150 lines | Split by feature |
 
-**Auto-detection**: `/03_close` checks sizes, `/91_document` compresses
+**Auto-detection**: `/03_close` checks sizes, `/document` compresses
 
 ---
 
@@ -59,10 +59,10 @@
 
 | Action | Command |
 |--------|---------|
-| Initialize | `/92_init` |
-| Auto-sync | `/91_document auto-sync from {RUN_ID}` |
-| Update folder | `/91_document {folder_name}` |
-| Full sync | `/91_document` |
+| Initialize | `/setup` |
+| Auto-sync | `/document auto-sync from {RUN_ID}` |
+| Update folder | `/document {folder_name}` |
+| Full sync | `/document` |
 
 ---
 

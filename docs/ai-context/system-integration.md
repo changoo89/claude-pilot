@@ -32,9 +32,9 @@
 | `/01_confirm` | Planning | Review plan, verify requirements |
 | `/02_execute` | Execution | Implement with TDD |
 | `/03_close` | Completion | Archive plan, create commit |
-| `/90_review` | Quality | Multi-angle code review |
-| `/91_document` | Maintenance | Sync documentation |
-| `/92_init` | Setup | Initialize new project |
+| `/review` | Quality | Multi-angle code review |
+| `/document` | Maintenance | Sync documentation |
+| `/setup` | Setup | Initialize new project |
 | `/999_release` | Release | Bump version, git tag |
 
 ### Workflow Sequence
@@ -50,7 +50,7 @@ User Request
        ↓
 /03_close (archive + commit)
        ↓
-/90_review (anytime - optional)
+/review (anytime - optional)
 ```
 
 **Full details**: @.claude/commands/CONTEXT.md

@@ -595,8 +595,8 @@ echo "  /00_plan    - Create SPEC-First plan"
 echo "  /01_confirm - Review plan before execution"
 echo "  /02_execute - Implement with TDD"
 echo "  /03_close   - Archive and commit"
-echo "  /90_review  - Multi-angle code review"
-echo "  /91_document - Auto-sync documentation"
+echo "  /review  - Multi-angle code review"
+echo "  /document - Auto-sync documentation"
 echo "  /999_publish - Publishing checklist"
 echo ""
 echo "Get started: /00_plan \"your task here\""
@@ -637,8 +637,276 @@ echo "✓ Hooks re-enabled for normal development"
 
 ---
 
+---
+
+## Step 11: Initialize 3-Tier Documentation System (Optional)
+
+After basic setup, offer to initialize the 3-Tier Documentation System for existing projects.
+
+**User Question**:
+```
+Would you like to initialize the 3-Tier Documentation System for this project?
+
+The 3-Tier Documentation System creates:
+- Tier 1: CLAUDE.md (Project standards)
+- Tier 2: Component-level CONTEXT.md files
+- Tier 3: Feature-level CONTEXT.md files
+
+Options:
+1. Yes, initialize 3-Tier Documentation
+2. No thanks (I'll do it later with /document)
+```
+
+**Option 1: Yes (Initialize Documentation)**
+
+```bash
+# Detect existing CLAUDE.md
+if [ -f "CLAUDE.md" ]; then
+    MODE="migration"
+    echo "Migration mode: Merging into existing CLAUDE.md"
+else
+    MODE="fresh"
+    echo "Fresh mode: Creating new CLAUDE.md"
+fi
+
+# Detect tech stack
+TECH_STACK="unknown"
+[ -f "package.json" ] && TECH_STACK="node"
+[ -f "requirements.txt" ] || [ -f "pyproject.toml" ] && TECH_STACK="python"
+[ -f "go.mod" ] && TECH_STACK="go"
+[ -f "Cargo.toml" ] && TECH_STACK="rust"
+
+echo "Detected tech stack: $TECH_STACK"
+
+# Scan source directories
+SOURCE_DIRS=()
+for DIR in src lib app components pages server; do
+    [ -d "$DIR" ] && SOURCE_DIRS+=("$DIR")
+done
+
+# Scan test directory
+TEST_DIR=""
+for DIR in test tests spec __tests__; do
+    [ -d "$DIR" ] && TEST_DIR="$DIR" && break
+done
+
+# Identify Tier 2 candidates (folders with 3+ files)
+TIER2_CANDIDATES=()
+for DIR in src lib app components; do
+    if [ -d "$DIR" ]; then
+        FILE_COUNT=$(find "$DIR" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
+        if [ "$FILE_COUNT" -ge 3 ]; then
+            TIER2_CANDIDATES+=("$DIR")
+        fi
+    fi
+done
+
+echo "Source directories: ${SOURCE_DIRS[*]}"
+echo "Test directory: $TEST_DIR"
+echo "Tier 2 candidates: ${TIER2_CANDIDATES[*]}"
+
+# Ask for Tier 2 folders if candidates exist
+if [ ${#TIER2_CANDIDATES[@]} -gt 0 ]; then
+    echo ""
+    echo "Available folders for Tier 2 (Component) CONTEXT.md:"
+    for i in "${!TIER2_CANDIDATES[@]}"; do
+        echo "  $((i+1)). ${TIER2_CANDIDATES[$i]}"
+    done
+    echo ""
+    echo "Enter folder numbers to create (comma-separated, or 'all' for all):"
+    read -r SELECTION
+
+    # Process selection
+    SELECTED_FOLDERS=()
+    if [ "$SELECTION" = "all" ]; then
+        SELECTED_FOLDERS=("${TIER2_CANDIDATES[@]}")
+    else
+        IFS=',' read -ra NUMBERS <<< "$SELECTION"
+        for num in "${NUMBERS[@]}"; do
+            idx=$((num - 1))
+            if [ $idx -ge 0 ] && [ $idx -lt ${#TIER2_CANDIDATES[@]} ]; then
+                SELECTED_FOLDERS+=("${TIER2_CANDIDATES[$idx]}")
+            fi
+        done
+    fi
+fi
+
+# Create/Update CLAUDE.md (Tier 1)
+echo ""
+echo "Creating Tier 1: CLAUDE.md..."
+
+# Get project description
+echo "Provide a brief project description (1-2 sentences):"
+read -r PROJECT_DESC
+
+# Create or update CLAUDE.md
+if [ "$MODE" = "fresh" ]; then
+    cat > CLAUDE.md << EOF
+# ${PROJECT_DESC:-Project Name}
+
+> **Tech Stack**: $TECH_STACK
+> **Status**: Active
+
+## Quick Start
+
+\`\`\`bash
+# Installation
+[Add installation commands here]
+
+# Common commands
+[Add common commands here]
+\`\`\`
+
+## Project Structure
+
+| Directory | Purpose |
+|-----------|---------|
+${SOURCE_DIRS:+$(printf '%s\n' "${SOURCE_DIRS[@]}" | sed 's/\(.*\)|  \1 | Source code |/')}
+${TEST_DIR:+$TEST_DIR | Tests |}
+
+## 3-Tier Documentation
+
+- **Tier 1**: This file (CLAUDE.md) - Project standards
+- **Tier 2**: Component CONTEXT.md files - Component architecture
+- **Tier 3**: Feature CONTEXT.md files - Implementation details
+
+## Related Documentation
+
+- docs/ai-context/ - System integration and project structure
+EOF
+    echo "✓ Created CLAUDE.md"
+else
+    echo "✓ Merging into existing CLAUDE.md (preserving existing content)"
+fi
+
+# Create docs/ai-context/
+echo ""
+echo "Creating Tier 3: docs/ai-context/..."
+mkdir -p docs/ai-context
+
+# Create docs-overview.md
+cat > docs/ai-context/docs-overview.md << 'EOF'
+# Documentation Overview
+
+## 3-Tier System
+
+| Tier | Location | Purpose | Frequency |
+|------|----------|---------|-----------|
+| Tier 1 | CLAUDE.md | Project standards | Rarely |
+| Tier 2 | {component}/CONTEXT.md | Component architecture | Occasionally |
+| Tier 3 | {feature}/CONTEXT.md | Implementation details | Frequently |
+
+## Updating Documentation
+
+Use `/document` command to keep docs in sync with code changes.
+EOF
+
+# Create project-structure.md
+cat > docs/ai-context/project-structure.md << EOF
+# Project Structure
+
+## Technology Stack
+
+| Category | Technology |
+|-----------|------------|
+| Language | $TECH_STACK |
+${SOURCE_DIRS:+$(printf '%s\n' "${SOURCE_DIRS[@]}" | sed 's/\(.*\)| Source | \1 |/')}
+${TEST_DIR:+$TEST_DIR | Tests |}
+
+## Directory Layout
+
+${SOURCE_DIRS:+$(printf '%s\n' "${SOURCE_DIRS[@]}" | sed 's/\(.*\)|- **\1/**: Source code |/')}
+${TEST_DIR:+- **$TEST_DIR/**: Test files}
+EOF
+
+# Create system-integration.md
+cat > docs/ai-context/system-integration.md << 'EOF'
+# System Integration
+
+## Component Interactions
+
+[Document how components interact with each other]
+
+## Data Flow
+
+[Document data flow through the system]
+
+## Shared Patterns
+
+[Document common patterns and conventions used across the codebase]
+EOF
+
+echo "✓ Created docs/ai-context/ (3 files)"
+
+# Create Tier 2 CONTEXT.md files
+if [ ${#SELECTED_FOLDERS[@]} -gt 0 ]; then
+    echo ""
+    echo "Creating Tier 2: Component CONTEXT.md files..."
+    for FOLDER in "${SELECTED_FOLDERS[@]}"; do
+        CONTEXT_FILE="$FOLDER/CONTEXT.md"
+        mkdir -p "$(dirname "$CONTEXT_FILE")"
+
+        cat > "$CONTEXT_FILE" << EOF
+# ${FOLDER^} Component
+
+> **Purpose**: [Add component purpose]
+> **Owner**: [Add owner/team]
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+$(find "$FOLDER" -maxdepth 1 -type f 2>/dev/null | head -5 | sed 's|.*/||' | sed 's/\(.*\)|  \1 | [Add purpose] |/')
+
+## Dependencies
+
+[What this component depends on]
+
+## Integration
+
+[How this component integrates with other parts of the system]
+
+## Related Documentation
+
+- CLAUDE.md - Project standards
+- docs/ai-context/ - System documentation
+EOF
+        echo "✓ Created $CONTEXT_FILE"
+    done
+fi
+
+# Summary
+echo ""
+echo "✅ 3-Tier Documentation System Initialized"
+echo ""
+echo "## Created Files"
+echo "### Tier 1: CLAUDE.md"
+echo "### Tier 3: docs/ai-context/ (docs-overview.md, project-structure.md, system-integration.md)"
+${SELECTED_FOLDERS:+### Tier 2: $(printf '%s/CONTEXT.md ' "${SELECTED_FOLDERS[@]}")}
+echo ""
+echo "## Next Steps"
+echo "1. Review generated documentation"
+echo "2. Customize CLAUDE.md for your project"
+echo "3. Use /document to keep docs in sync"
+echo "4. Run /document {folder} for Tier 3 docs"
+```
+
+**Option 2: No Thanks**
+
+```bash
+echo "✓ Skipping 3-Tier Documentation initialization"
+echo ""
+echo "You can initialize it later with:"
+echo "  /document init"
+echo ""
+echo "See .claude/guides/3tier-documentation.md for details."
+```
+
+---
+
 ## Related Documentation
 
 - **Plugin Installation**: README.md
 - **MCP Servers**: https://modelcontextprotocol.io
 - **GitHub CLI**: https://cli.github.com
+- **3-Tier Documentation**: @.claude/guides/3tier-documentation.md

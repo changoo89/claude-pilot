@@ -48,8 +48,8 @@ cp .claude/templates/CLAUDE.local.template.md ./CLAUDE.local.md
 | Plan feature | `/00_plan "implement user auth"` |
 | Execute plan | `/02_execute` |
 | Continue work | `/00_continue` |
-| Review code | `/90_review` |
-| Update docs | `/91_document` |
+| Review code | `/review` |
+| Update docs | `/document` |
 | Close plan | `/03_close` |
 
 ---
@@ -120,9 +120,9 @@ cp .claude/templates/CLAUDE.local.template.md ./CLAUDE.local.md
 - **Tier 3**: `{component}/CONTEXT.md` - Component details
 
 **When to Update**:
-- After feature implementation: `/91_document`
+- After feature implementation: `/document`
 - After architecture changes: Manual update
-- After adding new components: `/92_init {component}`
+- After adding new components: `/setup {component}`
 
 ---
 

@@ -350,7 +350,7 @@ Summary → Issues identified → Fresh approach → Files modified → Verifica
 
 **Update plan**: Mark SC complete, add findings to history
 
-**Auto-chain**: `/91_document` (unless `--no-docs`)
+**Auto-chain**: `/document` (unless `--no-docs`)
 
 ---
 
@@ -377,5 +377,5 @@ Summary → Issues identified → Fresh approach → Files modified → Verifica
 
 ## Next Command
 
-- `/91_document` - Update docs (unless `--no-docs`)
+- `/document` - Update docs (unless `--no-docs`)
 - `/03_close` - **REQUIRED**: Move plan to done (ONLY this command moves plans)

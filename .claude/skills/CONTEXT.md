@@ -124,7 +124,7 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 - **Task**: Continue incomplete work using continuation state
 - **Skill**: @.claude/skills/continue-work/SKILL.md
 - **Agent**: All agents (coder, tester, validator, documenter)
-- **Usage**: `/99_continue` command
+- **Usage**: `/continue` command
 
 **Continuation workflow**:
 - Check `.pilot/state/continuation.json` exists

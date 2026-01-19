@@ -416,7 +416,7 @@ UPDATED_STATE=$(echo "$STATE" | jq '
 **Use Case**:
 ```bash
 export CONTINUATION_LEVEL="aggressive"
-/99_continue
+/continue
 ```
 
 **Tradeoffs**:
@@ -434,7 +434,7 @@ export CONTINUATION_LEVEL="aggressive"
 **Use Case**:
 ```bash
 export CONTINUATION_LEVEL="normal"
-/99_continue
+/continue
 ```
 
 **Tradeoffs**:
@@ -452,7 +452,7 @@ export CONTINUATION_LEVEL="normal"
 **Use Case**:
 ```bash
 export CONTINUATION_LEVEL="polite"
-/99_continue
+/continue
 ```
 
 **Tradeoffs**:
@@ -539,7 +539,7 @@ Attempting recovery from backup...
 **Solutions**:
 ```bash
 # Resume with manual review
-/99_continue
+/continue
 
 # Or close manually
 /03_close
@@ -559,7 +559,7 @@ Attempting recovery from backup...
 # 2. Interrupt manually (Ctrl+C)
 
 # 3. Resume
-/99_continue  # Should continue from checkpoint
+/continue  # Should continue from checkpoint
 ```
 
 **Test Branch Recovery**:
@@ -574,7 +574,7 @@ git worktree add feature/test
 git checkout main
 
 # 4. Resume (should detect branch mismatch)
-/99_continue  # Will prompt for action
+/continue  # Will prompt for action
 ```
 
 **Test State Recovery**:
@@ -583,12 +583,12 @@ git checkout main
 echo '{invalid json}' > .pilot/state/continuation.json
 
 # 2. Run continuation (should recover from backup)
-/99_continue  # Should use backup
+/continue  # Should use backup
 ```
 
 ### Verification Checklist
 
-After running `/99_continue`:
+After running `/continue`:
 - [ ] State file loaded successfully
 - [ ] Branch matched or user confirmed mismatch
 - [ ] Next incomplete todo identified
@@ -601,7 +601,7 @@ After running `/99_continue`:
 
 ## Best Practices
 
-### When to Use /99_continue
+### When to Use /continue
 
 **Good Scenarios**:
 - After interrupting long-running `/02_execute`
@@ -612,7 +612,7 @@ After running `/99_continue`:
 **Poor Scenarios** (use other commands):
 - Starting new work → Use `/00_plan`
 - Manual plan closure → Use `/03_close`
-- Code review → Use `/90_review`
+- Code review → Use `/review`
 
 ### State Management Tips
 
@@ -683,7 +683,7 @@ fi
 - @.claude/guides/continuation-system.md - Sisyphus system architecture
 - @.claude/guides/todo-granularity.md - Granular todo breakdown
 - @.claude/skills/execute-plan/SKILL.md - Plan execution workflow
-- @.claude/commands/99_continue.md - Continue command reference
+- @.claude/commands/continue.md - Continue command reference
 
 **External**:
 - [Working Effectively with Legacy Code by Michael Feathers](https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052)

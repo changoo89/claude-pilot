@@ -49,7 +49,7 @@
 
 **Full details**: @.claude/guides/parallel-execution-REFERENCE.md#pattern-2
 
-### Pattern 3: Parallel Review (`/90_review`)
+### Pattern 3: Parallel Review (`/review`)
 
 **Use**: Multi-angle plan review
 

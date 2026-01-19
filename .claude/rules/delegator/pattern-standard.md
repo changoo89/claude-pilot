@@ -21,8 +21,8 @@ This document defines the standard pattern for GPT delegation across all claude-
 | `/00_plan` | Regex: `(tradeoff|design|structure|architecture)` | `grep -qiE` on user input | Architect | Advisory |
 | `/01_confirm` | Count: `$(grep -c "^SC-" plan.md) -ge 5` | Count SC items | Plan Reviewer | Advisory |
 | `/02_execute` | Marker: `<CODER_BLOCKED>` | Coder agent output | Architect | Implementation |
-| `/90_review` | Count: `$(grep -c "^SC-" plan.md) -ge 5` | Count SC items | Plan Reviewer | Advisory |
-| `/91_document` | Files: `$(find . -name "CONTEXT.md" | wc -l) -ge 3` | Count affected components | Architect | Advisory |
+| `/review` | Count: `$(grep -c "^SC-" plan.md) -ge 5` | Count SC items | Plan Reviewer | Advisory |
+| `/document` | Files: `$(find . -name "CONTEXT.md" | wc -l) -ge 3` | Count affected components | Architect | Advisory |
 | `/03_close` | Explicit: `grep -qi "review\|validate\|audit"` | User input keywords | Plan Reviewer | Advisory |
 | `/999_publish` | Keywords: `grep -qiE "security|auth|credential"` | User input keywords | Security Analyst | Advisory |
 
@@ -179,7 +179,7 @@ fi
 
 ## Implementation Checklist
 
-For each command (`/00_plan`, `/01_confirm`, `/91_document`, `/03_close`, `/999_publish`):
+For each command (`/00_plan`, `/01_confirm`, `/document`, `/03_close`, `/999_publish`):
 
 - [ ] Add "GPT Delegation Trigger Check (MANDATORY)" section
 - [ ] Define trigger patterns in table

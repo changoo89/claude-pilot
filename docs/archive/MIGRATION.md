@@ -22,7 +22,7 @@ claude-pilot **v4.1.0** is a breaking change that migrates from PyPI distributio
 | Feature | v4.0.5 (PyPI) | v4.1.0 (Plugin) |
 |---------|---------------|-----------------|
 | **Installation** | `pip install claude-pilot` | `/plugin install claude-pilot` |
-| **CLI Command** | `claude-pilot init` | `/92_init` |
+| **CLI Command** | `claude-pilot init` | `/setup` |
 | **Updates** | `pip install --upgrade` | `/plugin update` |
 | **Python Required** | Yes (3.9+) | No |
 | **Distribution** | PyPI | GitHub Marketplace |
@@ -144,7 +144,7 @@ Check that all commands are available:
 
 # Expected: 10 pilot commands
 # /00_plan, /01_confirm, /02_execute, /03_close
-# /90_review, /91_document, /92_init, /999_release
+# /review, /document, /setup, /999_release
 # /pilot:setup (new)
 ```
 
@@ -304,7 +304,7 @@ All functionality is now available via Claude Code slash commands:
 
 | Old CLI Command | New Slash Command |
 |----------------|-------------------|
-| `claude-pilot init` | `/92_init` |
+| `claude-pilot init` | `/setup` |
 | `claude-pilot update` | `/plugin update` |
 | `claude-pilot version` | Check `.claude-plugin/plugin.json` |
 

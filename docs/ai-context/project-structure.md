@@ -186,8 +186,8 @@ claude-pilot/
 | `.claude/commands/01_confirm.md` | Extract plan, create file, auto-review with Interactive Recovery | 318 | **MANDATORY**: Plan-Reviewer (Step 4) |
 | `.claude/commands/02_execute.md` | Atomic plan move (Step 1), SC dependency analysis (Step 2.1), parallel Coder invocation (Step 2.2), implement with TDD + Ralph Loop | 456 | **MANDATORY**: SC Dependency Analysis (Step 2.1), Parallel Coders (Step 2.2), Auto-Delegation (Step 3.2), Parallel Verification (Step 3.5) |
 | `.claude/commands/03_close.md` | Archive plan, commit changes | 247 | **MANDATORY**: Documenter (Step 5) |
-| `.claude/commands/90_review.md` | Review code or plans with optional parallel multi-angle review | 376 | **MANDATORY**: Plan-Reviewer (single or parallel multi-angle for complex plans) |
-| `.claude/commands/91_document.md` | Update documentation | 266 | **OPTIONAL**: Documenter |
+| `.claude/commands/review.md` | Review code or plans with optional parallel multi-angle review | 376 | **MANDATORY**: Plan-Reviewer (single or parallel multi-angle for complex plans) |
+| `.claude/commands/document.md` | Update documentation | 266 | **OPTIONAL**: Documenter |
 
 ### Documentation
 

@@ -52,8 +52,8 @@ All commands follow the same GPT delegation pattern:
 | `/00_plan` | Regex: `(tradeoff|design|structure|architecture)` | `grep -qiE` on user input | Architect | Advisory |
 | `/01_confirm` | Count: `$(grep -c "^SC-" plan.md) -ge 5` | Count SC items | Plan Reviewer | Advisory |
 | `/02_execute` | Marker: `<CODER_BLOCKED>` | Coder agent output | Architect | Implementation |
-| `/90_review` | Count: `$(grep -c "^SC-" plan.md) -ge 5` | Count SC items | Plan Reviewer | Advisory |
-| `/91_document` | Files: `$(find . -name "CONTEXT.md" | wc -l) -ge 3` | Count affected components | Architect | Advisory |
+| `/review` | Count: `$(grep -c "^SC-" plan.md) -ge 5` | Count SC items | Plan Reviewer | Advisory |
+| `/document` | Files: `$(find . -name "CONTEXT.md" | wc -l) -ge 3` | Count affected components | Architect | Advisory |
 | `/03_close` | Explicit: `grep -qi "review\|validate\|audit"` | User input keywords | Plan Reviewer | Advisory |
 | `/999_publish` | Keywords: `grep -qiE "security|auth|credential"` | User input keywords | Security Analyst | Advisory |
 

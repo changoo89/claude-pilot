@@ -4,7 +4,7 @@ argument-hint: "[plan_path] - path to plan file in pending/ or in_progress/"
 allowed-tools: Read, Glob, Grep, Bash(*), Bash(git:*)
 ---
 
-# /90_review
+# /review
 
 _Review plan for completeness, gaps, and quality issues before execution._
 
@@ -22,7 +22,7 @@ _Review plan for completeness, gaps, and quality issues before execution._
 
 ## Agent Invocation Pattern
 
-**Direct**: `/90_review {plan_path}`
+**Direct**: `/review {plan_path}`
 
 **Via Plan-Reviewer Agent**: See @.claude/guides/parallel-execution.md - Pattern 4: Parallel Review
 

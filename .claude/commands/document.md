@@ -4,7 +4,7 @@ argument-hint: "[auto-sync from RUN_ID] | [folder_name] - auto-sync from action_
 allowed-tools: Read, Glob, Grep, Edit, Write, Bash(git:*)
 ---
 
-# /91_document
+# /document
 
 _Update documentation with full auto-sync and hierarchical CONTEXT.md management._
 
@@ -139,7 +139,7 @@ done
 
 **Actions**: Compress, Split, Archive, or Reorganize
 
-**Manual triggers**: `/91_document auto-compress` or `/91_document auto-split {file}`
+**Manual triggers**: `/document auto-compress` or `/document auto-split {file}`
 
 ---
 
@@ -226,7 +226,7 @@ Ready for: /03_close
 
 ## Workflow
 ```
-/02_execute ──auto──▶ /91_document ──▶ /03_close
+/02_execute ──auto──▶ /document ──▶ /03_close
                [Full Auto-Sync + Context Engineering + TDD Archive]
 ```
 

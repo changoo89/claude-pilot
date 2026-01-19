@@ -192,17 +192,17 @@ TOKENS=$((LINES * 10))
 
 When closing a plan (`/03_close`), document sizes are automatically checked:
 - If threshold exceeded: Warning displayed
-- User prompted to run `/91_document` for compression
+- User prompted to run `/document` for compression
 - Auto-management can be applied with user confirmation
 
-### Integration with /91_document
+### Integration with /document
 
-The `/91_document` command includes size management capabilities:
+The `/document` command includes size management capabilities:
 
 ```bash
 # Auto-manage document sizes
-/91_document auto-compress
-/91_document auto-split {file_path}
+/document auto-compress
+/document auto-split {file_path}
 ```
 
 ---
@@ -212,7 +212,7 @@ The `/91_document` command includes size management capabilities:
 ### New Projects
 
 ```bash
-/92_init
+/setup
 ```
 Creates full 3-Tier from scratch:
 - Tier 1: CLAUDE.md with detected tech stack
@@ -222,7 +222,7 @@ Creates full 3-Tier from scratch:
 ### Existing Projects
 
 ```bash
-/92_init
+/setup
 ```
 Merges existing documentation:
 - Preserves existing CLAUDE.md content
@@ -237,7 +237,7 @@ Merges existing documentation:
 ### Auto-Sync After Implementation
 
 ```bash
-/91_document auto-sync from {RUN_ID}
+/document auto-sync from {RUN_ID}
 ```
 
 Updates:
@@ -249,7 +249,7 @@ Updates:
 ### Manual Update for Folder
 
 ```bash
-/91_document {folder_name}
+/document {folder_name}
 ```
 
 Creates or updates CONTEXT.md for specific folder.
@@ -257,7 +257,7 @@ Creates or updates CONTEXT.md for specific folder.
 ### Full Project Sync
 
 ```bash
-/91_document
+/document
 ```
 
 Updates all tiers for entire project.
@@ -284,10 +284,10 @@ Component interactions, data flow, shared patterns, integration points.
 
 | Action | Command |
 |--------|---------|
-| Initialize system | `/92_init` |
-| Auto-sync after work | `/91_document auto-sync from {RUN_ID}` |
-| Update specific folder | `/91_document {folder_name}` |
-| Full project sync | `/91_document` |
+| Initialize system | `/setup` |
+| Auto-sync after work | `/document auto-sync from {RUN_ID}` |
+| Update specific folder | `/document {folder_name}` |
+| Full project sync | `/document` |
 
 ---
 

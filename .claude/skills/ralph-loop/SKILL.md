@@ -113,7 +113,7 @@ if [ $ITERATION -gt $MAX_ITERATIONS ]; then
     # Notify user of continuation options
     echo ""
     echo "⚠️ MAX ITERATIONS REACHED"
-    echo "→ Use /99_continue to resume after manual review"
+    echo "→ Use /continue to resume after manual review"
     echo "→ Or fix issues manually and reset iteration count"
 fi
 ```

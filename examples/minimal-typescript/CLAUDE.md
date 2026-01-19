@@ -46,8 +46,8 @@ npm run lint
 1. **Plan**: Use `/00_plan` to create SPEC-First execution plans
 2. **Confirm**: Use `/01_confirm` to save plan to pending/ (optional)
 3. **Execute**: Use `/02_execute` to implement with TDD
-4. **Review**: Use `/90_review` for multi-angle code analysis
-5. **Document**: Use `/91_document` to sync documentation
+4. **Review**: Use `/review` for multi-angle code analysis
+5. **Document**: Use `/document` to sync documentation
 6. **Close**: Use `/03_close` to finalize and commit
 
 ## Important Notes

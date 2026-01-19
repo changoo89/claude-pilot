@@ -188,7 +188,7 @@ if [ -f "$STATE_FILE" ]; then
         echo ""
         echo "⚠️  Work incomplete: $INCOMPLETE_COUNT todos remaining"
         echo ""
-        echo "→ Use /99_continue to resume work"
+        echo "→ Use /continue to resume work"
         echo ""
 
         # Clean up internal plan file
@@ -308,7 +308,7 @@ fi
 
 If work is incomplete:
 - Continuation state preserved in `.pilot/state/continuation.json`
-- Run `/99_continue` to resume work
+- Run `/continue` to resume work
 - Max 7 Ralph Loop iterations before manual intervention required
 
 **See**: @.claude/skills/rapid-fix/REFERENCE.md for continuation workflow
@@ -318,7 +318,7 @@ If work is incomplete:
 ## Related Commands
 
 - **/00_plan** - For complex tasks requiring full planning
-- **/99_continue** - Resume incomplete work
+- **/continue** - Resume incomplete work
 - **/02_execute** - Standard execution workflow
 - **/03_close** - Manual plan closure
 

@@ -72,14 +72,14 @@ if [ -f "$STATE_FILE" ]; then
     INCOMPLETE_COUNT=$(jq -r '[.todos[] | select(.status != "complete")] | length' "$STATE_FILE")
     if [ "$INCOMPLETE_COUNT" -gt 0 ]; then
         echo "⚠️  WARNING: $INCOMPLETE_COUNT incomplete todos"
-        echo "Options: 1) /99_continue  2) CLOSE_INCOMPLETE=true /03_close  3) Cancel"
+        echo "Options: 1) /continue  2) CLOSE_INCOMPLETE=true /03_close  3) Cancel"
         exit 1
     fi
 fi
 ```
 
 **Escalation options**:
-- Continue work: `/99_continue`
+- Continue work: `/continue`
 - Force close: `CLOSE_INCOMPLETE=true /03_close`
 - Cancel closure: Keep plan in in_progress/
 

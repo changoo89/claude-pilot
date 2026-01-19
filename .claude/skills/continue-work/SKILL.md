@@ -25,7 +25,7 @@ ITERATION_COUNT=$(echo "$STATE" | jq -r '.iteration_count // 0')
 NEXT_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status != "complete") | .id' | head -1)
 
 # Continue work
-/99_continue  # Automatically loads state and continues
+/continue  # Automatically loads state and continues
 ```
 
 ---

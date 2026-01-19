@@ -137,7 +137,7 @@ if [ -f "$STATE_FILE" ]; then
     INCOMPLETE_COUNT="$(jq -r '[.todos[] | select(.status != "complete")] | length' "$STATE_FILE")"
     if [ "$INCOMPLETE_COUNT" -gt 0 ]; then
         echo "⚠️  WARNING: $INCOMPLETE_COUNT incomplete todos detected"
-        echo "Options: 1) /99_continue  2) CLOSE_INCOMPLETE=true /03_close  3) Cancel"
+        echo "Options: 1) /continue  2) CLOSE_INCOMPLETE=true /03_close  3) Cancel"
         CLOSE_INCOMPLETE="${CLOSE_INCOMPLETE:-false}"
         [ "$CLOSE_INCOMPLETE" != "true" ] && { echo "❌ Refusing to close incomplete plan" >&2; exit 1; }
     fi
@@ -225,7 +225,7 @@ Task:
 | **Tier 2** | Component CONTEXT.md | 200 | src/, lib/, components/ changes |
 | **Tier 3** | Feature CONTEXT.md | 150 | features/ changes |
 
-**Auto-sync**: Run `/91_document`
+**Auto-sync**: Run `/document`
 
 ---
 

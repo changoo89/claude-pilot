@@ -11,11 +11,11 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 | **explorer** | haiku | 60 | Glob, Grep, Read | Fast codebase exploration | `/00_plan` - Find files, search patterns |
 | **researcher** | haiku | 67 | WebSearch, WebFetch, query-docs | External docs research | `/00_plan` - Find external docs |
 | **coder** | sonnet | 315 | Read, Write, Edit, Bash | TDD implementation | `/02_execute` - Red-Green-Refactor, Ralph Loop |
-| **tester** | sonnet | 148 | Read, Write, Bash | Test writing and execution | `/90_review` - Test coverage, debug |
-| **validator** | haiku | 181 | Bash, Read | Type check, lint, coverage | `/90_review` - Quality verification |
+| **tester** | sonnet | 148 | Read, Write, Bash | Test writing and execution | `/review` - Test coverage, debug |
+| **validator** | haiku | 181 | Bash, Read | Type check, lint, coverage | `/review` - Quality verification |
 | **plan-reviewer** | sonnet | 236 | Read, Glob, Grep | Plan analysis and gaps | `/01_confirm` - Gap detection |
-| **code-reviewer** | opus | 199 | Read, Glob, Grep, Bash | Deep code review | `/90_review` - Async bugs, memory leaks |
-| **documenter** | haiku | 197 | Read, Write | Documentation generation | `/91_document` - Sync docs |
+| **code-reviewer** | opus | 199 | Read, Glob, Grep, Bash | Deep code review | `/review` - Async bugs, memory leaks |
+| **documenter** | haiku | 197 | Read, Write | Documentation generation | `/document` - Sync docs |
 
 **Total**: 8 agents, 1403 lines (average: 175 lines per agent)
 
@@ -68,7 +68,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **Task**: Generate tests and run coverage
 - **Agent**: @.claude/agents/tester.md (sonnet)
 - **Tools**: Read, Write, Bash
-- **Usage**: `/90_review` command (parallel verification)
+- **Usage**: `/review` command (parallel verification)
 
 **Capabilities**:
 - Generate test cases
@@ -82,7 +82,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **Task**: Type check, lint, extract coverage
 - **Agent**: @.claude/agents/validator.md (haiku)
 - **Tools**: Bash, Read
-- **Usage**: `/90_review` command (parallel verification)
+- **Usage**: `/review` command (parallel verification)
 
 **Capabilities**:
 - Run type checks (npx tsc --noEmit, mypy)
@@ -121,7 +121,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **Task**: Deep analysis for critical issues with GPT Security Analyst option
 - **Agent**: @.claude/agents/code-reviewer.md (opus)
 - **Tools**: Read, Glob, Grep, Bash
-- **Usage**: `/90_review` command (parallel verification)
+- **Usage**: `/review` command (parallel verification)
 
 **Capabilities**:
 - Async bug detection
@@ -146,7 +146,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **Task**: Generate and sync documentation
 - **Agent**: @.claude/agents/documenter.md (haiku)
 - **Tools**: Read, Write
-- **Usage**: `/91_document` command
+- **Usage**: `/document` command
 
 **Capabilities**:
 - Scan codebase structure
@@ -260,7 +260,7 @@ Agents work in parallel for efficiency:
 **Execution** (`/02_execute`):
 - Multiple Coders (parallel SC implementation when independent)
 
-**Verification** (`/90_review`):
+**Verification** (`/review`):
 - Tester + Validator + Code-Reviewer (parallel verification)
 
 **Key principles**:
@@ -323,13 +323,13 @@ Agents reference skills for methodology:
 ### `/02_execute` (Execution)
 - **coder** (sonnet): TDD + Ralph Loop implementation
 
-### `/90_review` (Review)
+### `/review` (Review)
 - **tester** (sonnet): Test coverage and quality
 - **validator** (haiku): Type check, lint, coverage
 - **code-reviewer** (opus): Deep analysis
 - **plan-reviewer** (sonnet): Requirements verification
 
-### `/91_document` (Documentation)
+### `/document` (Documentation)
 - **documenter** (haiku): Sync documentation
 
 ## Size Guidelines

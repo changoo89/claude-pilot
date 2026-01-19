@@ -1,4 +1,4 @@
-# /90_review - Detailed Reference
+# /review - Detailed Reference
 
 > **Companion**: `90_review.md` | **Purpose**: Detailed implementation reference for plan review workflow
 
@@ -815,13 +815,13 @@ Findings by severity:
 
 **Test Standard Review**:
 ```bash
-/90_review .pilot/plan/pending/test_plan.md
+/review .pilot/plan/pending/test_plan.md
 ```
 Expected: Comprehensive review with findings applied to plan
 
 **Test Complex Plan (Parallel Review)**:
 ```bash
-/90_review .pilot/plan/pending/complex_plan.md
+/review .pilot/plan/pending/complex_plan.md
 ```
 Expected: Triggers parallel multi-angle review (3 agents)
 
@@ -836,7 +836,7 @@ Expected: GPT expert review triggered
 
 ### Verification Checklist
 
-After running `/90_review`:
+After running `/review`:
 - [ ] Plan file loaded successfully
 - [ ] Plan type detected correctly
 - [ ] All 8 mandatory reviews completed

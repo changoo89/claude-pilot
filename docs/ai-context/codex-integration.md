@@ -229,8 +229,8 @@ echo 'export CODEX_REASONING_EFFORT="medium"' >> ~/.zshrc
 | `/01_confirm` | Intelligent Delegation | Heuristic-based Plan Reviewer delegation |
 | `/02_execute` | Auto-Delegation | CODER_BLOCKED → GPT Architect (automatic) |
 | `/02_execute` | Progressive Escalation | 2+ failures → GPT Architect (not first) |
-| `/90_review` | Intelligent Delegation | Heuristic-based Code Reviewer delegation |
-| `/91_document` | Intelligent Delegation | Heuristic-based Architect delegation |
+| `/review` | Intelligent Delegation | Heuristic-based Code Reviewer delegation |
+| `/document` | Intelligent Delegation | Heuristic-based Architect delegation |
 | `/03_close` | Intelligent Delegation | Heuristic-based Plan Reviewer delegation |
 | `/999_publish` | Intelligent Delegation | Heuristic-based Security Analyst delegation |
 | `coder` | Self-Assessment | Confidence scoring → delegation recommendation |

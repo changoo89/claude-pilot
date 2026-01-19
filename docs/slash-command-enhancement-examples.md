@@ -1,7 +1,7 @@
 # Slash Command Enhancement - Examples
 
 > **Purpose**: Demonstrate the difference between vague specifications and complete External Service Integration details
-> **Context**: These examples show how the enhanced `/00_plan`, `/90_review`, and `/01_confirm` workflow prevents assumption-based implementation
+> **Context**: These examples show how the enhanced `/00_plan`, `/review`, and `/01_confirm` workflow prevents assumption-based implementation
 
 ---
 

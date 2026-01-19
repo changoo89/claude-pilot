@@ -136,7 +136,7 @@ Push failed for 1 repository:
 
 ### Review Code
 - **Task**: Multi-angle code review with GPT expert option
-- **Command**: `/90_review`
+- **Command**: `/review`
 - **Output**: Comprehensive review report
 - **Process**:
   1. Tester Agent: Test coverage and quality
@@ -149,7 +149,7 @@ Push failed for 1 repository:
 
 ### Document Project
 - **Task**: Sync documentation
-- **Command**: `/91_document`
+- **Command**: `/document`
 - **Output**: Updated CLAUDE.md, synced docs
 - **Process**:
   1. Documenter Agent scans codebase
@@ -158,7 +158,7 @@ Push failed for 1 repository:
 
 ### Initialize New Project
 - **Task**: Initialize new project with template
-- **Command**: `/92_init`
+- **Command**: `/setup`
 - **Output**: New project with claude-pilot structure
 - **Process**:
   1. Interactive project setup
@@ -289,7 +289,7 @@ Commands enforce strict phase boundaries to prevent unauthorized state transitio
 Commands orchestrate multiple agents in parallel for efficiency:
 - `/00_plan`: Explorer + Researcher (parallel exploration)
 - `/02_execute Step 3.5`: Tester + Validator + Code-Reviewer (parallel verification)
-- `/90_review`: Tester + Validator + Code-Reviewer (parallel verification)
+- `/review`: Tester + Validator + Code-Reviewer (parallel verification)
 
 **See**: @.claude/guides/parallel-execution.md for detailed patterns
 

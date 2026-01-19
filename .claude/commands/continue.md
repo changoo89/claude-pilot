@@ -3,17 +3,17 @@ name: 99_continue
 description: Resume work from continuation state (Sisyphus system)
 ---
 
-# /99_continue
+# /continue
 
 > **Purpose**: Resume work from continuation state when agents need to continue incomplete tasks
-> **Usage**: `/99_continue` - Automatically loads state and continues with next incomplete todo
+> **Usage**: `/continue` - Automatically loads state and continues with next incomplete todo
 
 ---
 
 ## Quick Start
 
 ```bash
-/99_continue
+/continue
 ```
 
 The command will:
@@ -209,7 +209,7 @@ if [ "$INCOMPLETE_COUNT" -eq 0 ]; then
 fi
 
 echo "→ $INCOMPLETE_COUNT todos remaining"
-echo "→ Use /99_continue to resume"
+echo "→ Use /continue to resume"
 ```
 
 ---

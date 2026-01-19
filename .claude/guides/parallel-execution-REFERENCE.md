@@ -94,7 +94,7 @@ Task:
 
 ---
 
-## Pattern 3: Parallel Multi-Angle Review (/90_review)
+## Pattern 3: Parallel Multi-Angle Review (/review)
 
 **Use Case**: Comprehensive plan review from multiple perspectives
 

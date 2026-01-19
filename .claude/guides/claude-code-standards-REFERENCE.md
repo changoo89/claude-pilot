@@ -151,7 +151,7 @@ User: "I need to plan a new feature"
 # Suggested: /00_plan (because description contains "plan", "new features")
 
 User: "I need to review my code"
-# Suggested: /90_review (because description contains "review")
+# Suggested: /review (because description contains "review")
 ```
 
 ---

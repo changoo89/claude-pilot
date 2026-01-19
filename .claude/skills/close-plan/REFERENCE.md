@@ -36,7 +36,7 @@ if [ -f "$STATE_FILE" ]; then
         done
 
         echo "Options:"
-        echo "  1) Continue work (run /99_continue)"
+        echo "  1) Continue work (run /continue)"
         echo "  2) Close anyway (archive incomplete plan)"
         echo "  3) Cancel closure (keep plan in_progress)"
 
@@ -89,7 +89,7 @@ fi
 
 **Option 1: Continue work**
 ```bash
-/99_continue  # Resume from continuation state
+/continue  # Resume from continuation state
 ```
 
 **Option 2: Force close**

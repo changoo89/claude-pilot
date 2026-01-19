@@ -5,6 +5,92 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-01-20
+
+### ⚠️ BREAKING CHANGES
+
+**Command Structure Reorganization**: The command structure has been reorganized for better clarity and consistency. User workflow commands (00-05) remain unchanged, but utility commands have been renamed.
+
+#### Command Changes
+
+| Old Command | New Command | Notes |
+|-------------|-------------|-------|
+| `/90_review` | `/review` | Removed numbering |
+| `/91_document` | `/document` | Removed numbering |
+| `/92_init` | → merged into `/setup` | Use `/setup` for initialization |
+| `/99_continue` | `/continue` | Removed numbering |
+| `/00_plan` | `/00_plan` | ✅ Unchanged |
+| `/01_confirm` | `/01_confirm` | ✅ Unchanged |
+| `/02_execute` | `/02_execute` | ✅ Unchanged |
+| `/03_close` | `/03_close` | ✅ Unchanged |
+| `/04_fix` | `/04_fix` | ✅ Unchanged |
+| `/05_cleanup` | `/05_cleanup` | ✅ Unchanged |
+| `/999_release` | `/999_release` | ✅ Unchanged (hidden) |
+
+#### Migration Guide
+
+**For Existing Users**:
+
+1. **Update your documentation references**:
+   - Search for `/90_review` → replace with `/review`
+   - Search for `/91_document` → replace with `/document`
+   - Search for `/92_init` → replace with `/setup` or remove
+   - Search for `/99_continue` → replace with `/continue`
+
+2. **Update any scripts or aliases**:
+   ```bash
+   # Old
+   /90_review
+
+   # New
+   /review
+   ```
+
+3. **3-Tier Documentation Initialization**:
+   - Old: `/92_init` to initialize 3-Tier Documentation System
+   - New: Run `/setup` and choose "Yes" when prompted to initialize 3-Tier Documentation
+
+#### What Changed
+
+**Rationale**:
+- User workflow commands (00-05) keep their numbered naming for clear ordering
+- Utility commands use verb-first naming for better GitHub discoverability
+- 92_init functionality merged into `/setup` to eliminate redundancy
+- 999_release remains 3-digit to stay hidden (admin-only command)
+
+**File Changes**:
+- `90_review.md` → `review.md`
+- `91_document.md` → `document.md`
+- `99_continue.md` → `continue.md`
+- `92_init.md` → deleted (merged into `setup.md`)
+
+**Documentation Updates**:
+- All references to old commands have been updated throughout the codebase
+- 55+ files updated with new command names
+
+#### Verification
+
+After updating, verify your setup:
+
+```bash
+# Check that new commands exist
+ls .claude/commands/{review.md,document.md,continue.md}
+
+# Verify no broken references (should return 0)
+grep -r "/90_review" --include="*.md" . --exclude-dir=".pilot/plan/done"
+grep -r "/91_document" --include="*.md" . --exclude-dir=".pilot/plan/done"
+grep -r "/92_init" --include="*.md" . --exclude-dir=".pilot/plan/done"
+grep -r "/99_continue" --include="*.md" . --exclude-dir=".pilot/plan/done"
+```
+
+### Changed
+- Renamed utility commands to verb-first naming (review, document, continue)
+- Merged 92_init functionality into `/setup` command
+- Updated all documentation references (55+ files)
+
+### Removed
+- `/92_init` command (functionality merged into `/setup`)
+
 ## [4.3.2] - 2026-01-20
 
 ### Added

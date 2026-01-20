@@ -254,6 +254,7 @@ if [ "$MODE" = "docs" ] || [ "$MODE" = "all" ]; then
     --glob '!.claude/commands/**' \
     --glob '!.claude/guides/**' \
     --glob '!.claude/hooks/**' \
+    --glob '!.claude/rules/**' \
     --glob '!.claude/skills/**' \
     --glob '!.claude/templates/**' \
     --glob '!.claude/tests/**' \
@@ -281,7 +282,7 @@ if [ "$MODE" = "docs" ] || [ "$MODE" = "all" ]; then
 fi
 ```
 
-**Exclusions**: `docs/**`, `README.md`, `CLAUDE.md`, `*.md.bak`, `.trash/**`, `.claude/agents/**`, `.claude/commands/**`, `.claude/guides/**`, `.claude/hooks/**`, `.claude/skills/**`, `.claude/templates/**`, `.claude/tests/**`, `.claude/**/CONTEXT.md`, `**/CONTEXT.md`, `.pilot/plan/**`
+**Exclusions**: `docs/**`, `README.md`, `CLAUDE.md`, `*.md.bak`, `.trash/**`, `.claude/agents/**`, `.claude/commands/**`, `.claude/guides/**`, `.claude/hooks/**`, `.claude/rules/**`, `.claude/skills/**`, `.claude/templates/**`, `.claude/tests/**`, `.claude/**/CONTEXT.md`, `**/CONTEXT.md`, `.pilot/plan/**`
 
 ---
 

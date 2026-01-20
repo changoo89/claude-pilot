@@ -2,25 +2,45 @@
 
 ## Purpose
 
-Utility scripts for Codex integration, state management, worktree operations, and Git hooks. Scripts provide automation for delegation, continuation tracking, atomic locks, and quality verification.
+**Skill-Only Architecture**: Scripts are minimal automation adapters. Procedures documented in skills/ directory.
+Following obra/superpowers philosophy: skills as the product, scripts as optional adapters.
+
+**Script Categories**:
+- **Adapters**: Thin wrappers for external tools (codex-sync.sh)
+- **Safety-Critical**: Atomic operations requiring filesystem guarantees (lib/worktree-lock.sh)
+- **Status Display**: User-facing information (statusline.sh)
+- **Hooks**: Opt-in pre-commit quality gates (hooks/)
 
 ## Key Files
 
+### Scripts Directory
+
 | File | Purpose | Lines | Usage |
 |------|---------|-------|-------|
-| `codex-sync.sh` | Codex CLI integration for GPT delegation | 193 | Delegate to GPT experts with stateless prompts |
-| `worktree-utils.sh` | Git worktree atomic lock management, glob-safe plan detection | 371 | Prevent race conditions in `/02_execute --wt`, select oldest pending plan |
-| `worktree-create.sh` | Create worktree with atomic lock | 120 | Initialize isolated worktree for parallel execution |
-| `statusline.sh` | Plan state count display (Draft/Pending/In-Progress) | 65 | Display plan counts in Claude Code statusline (v4.3.2: added draft count) |
-| `hooks/check-todos.sh` | Pre-commit todo validation | 84 | Verify todos complete before commit |
-| `hooks/branch-guard.sh` | Pre-commit branch validation | 51 | Prevent commits to protected branches |
-| `hooks/lint.sh` | Pre-commit lint validation | 87 | Run project linter |
-| `hooks/typecheck.sh` | Pre-commit type check validation | 42 | Run project type checker |
-| `test-agent-names.sh` | Agent name verification | 16 | Validate agent frontmatter names |
-| `simple_test.sh` | Simple test script | 2 | Test command execution |
-| `simple_post_hook.sh` | Simple post-commit hook | 2 | Post-commit test |
+| `codex-sync.sh` | Codex CLI thin wrapper (delegation in skill) | 103 | GPT expert consultation adapter |
+| `statusline.sh` | Plan state count display | 76 | Show draft/pending/in-progress counts |
+| `cleanup.sh` | Dead code cleanup (procedures in skill) | 452 | ESLint/TypeScript-based cleanup |
+| `worktree-utils.sh` | Worktree utilities (lock in lib/) | 372 | Plan detection, metadata parsing |
 
-**Total**: 11 files, 1,133 lines (average: 103 lines per script)
+### lib/ Directory (Safety-Critical Adapters)
+
+| File | Purpose | Lines | Usage |
+|------|---------|-------|-------|
+| `worktree-lock.sh` | Atomic lock management | 74 | Prevent race conditions in parallel execution |
+| `worktree-create.sh` | Worktree creation | 120 | Initialize isolated worktree |
+
+### hooks/ Directory (Opt-In Quality Gates)
+
+| File | Purpose | Lines | Usage |
+|------|---------|-------|-------|
+| `check-todos.sh` | Pre-commit todo validation | 84 | Verify todos complete before commit |
+| `branch-guard.sh` | Pre-commit branch validation | 51 | Prevent commits to protected branches |
+| `lint.sh` | Pre-commit lint validation | 87 | Run project linter |
+| `typecheck.sh` | Pre-commit type check validation | 42 | Run project type checker |
+
+**Skills Directory**: See @.claude/skills/CONTEXT.md for complete skill documentation
+
+**Total**: 10 script files, 1 streamlining to skill-only procedures
 
 ## Common Tasks
 
@@ -262,8 +282,6 @@ export CODEX_REASONING_EFFORT="medium"  # low|medium|high|xhigh
 
 ### Test Scripts
 - `test-agent-names.sh`: Agent name verification
-- `simple_test.sh`: Simple test execution
-- `simple_post_hook.sh`: Post-commit test
 
 ## File Organization
 

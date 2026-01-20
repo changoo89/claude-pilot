@@ -182,6 +182,97 @@ git checkout -b local-branch-name
 
 ---
 
+## Lock Management (Parallel Execution Safety)
+
+### Purpose
+
+Prevent race conditions when multiple agents execute plans concurrently.
+
+**Problem**: Two agents selecting the same plan simultaneously
+**Solution**: Atomic lock files using POSIX mkdir
+
+### Lock Procedures
+
+**Acquire Lock**:
+```bash
+source .claude/lib/worktree-lock.sh
+
+# Acquire lock on oldest pending plan (atomic operation)
+locked_plan=$(acquire_lock)
+
+if [ -n "$locked_plan" ]; then
+  echo "Locked: $locked_plan"
+  # ... execute plan ...
+  release_lock "$locked_plan"
+else
+  echo "No plans available or all locked"
+fi
+```
+
+**Release Lock**:
+```bash
+release_lock "$plan_file"
+```
+
+**Check Lock Status**:
+```bash
+if is_locked "$plan_file"; then
+  echo "Plan is locked by another process"
+fi
+```
+
+**List Active Locks**:
+```bash
+# List all locked plan names
+list_locks
+
+# Or inspect lock directory directly
+ls .pilot/plan/.locks/
+# Output: 20260120_220837_skill-only-architecture-refactoring.md.lock/
+```
+
+### Manual Recovery
+
+**Lock files are manually recoverable** (design principle):
+
+```bash
+# If a process crashes and leaves stale lock
+ls .pilot/plan/.locks/
+# Output: stale_plan.md.lock/
+
+# Remove stale lock manually
+rmdir .pilot/plan/.locks/stale_plan.md.lock/
+
+# Verify plan can now be locked
+locked_plan=$(acquire_lock)
+echo "$locked_plan"  # Should show the previously locked plan
+```
+
+**Why directories instead of files?**
+- Atomic mkdir is POSIX-compliant (works on Linux, macOS, BSD)
+- No race condition between "check if exists" and "create"
+- Directories are visible with `ls` for manual inspection
+
+### Lock Implementation
+
+**Location**: `.claude/lib/worktree-lock.sh`
+
+**Key Functions**:
+- `acquire_lock`: Atomic lock acquisition on oldest pending plan
+- `release_lock`: Release lock for specific plan
+- `is_locked`: Check if plan is locked
+- `list_locks`: List all active locks
+
+**Lock Storage**: `.pilot/plan/.locks/{plan_name}.lock/`
+
+**Algorithm**:
+1. Find oldest pending plan by modification time
+2. Attempt atomic mkdir for lock directory
+3. If mkdir succeeds, verify plan still exists (race condition fix)
+4. Return locked plan path or empty if none available
+
+---
+
 ## Related Skills
 
 - **git-operations**: Push/pull/merge operations across worktrees
@@ -190,4 +281,4 @@ git checkout -b local-branch-name
 
 ---
 
-**Version**: claude-pilot 4.2.0
+**Version**: claude-pilot 4.3.0

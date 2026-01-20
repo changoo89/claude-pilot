@@ -19,8 +19,11 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `continue-work` | Continuation system (Sisyphus) | State management, error recovery | Resume work from continuation state | "continue work", "resume state", "continue execution" |
 | `release` | Plugin release workflow | Version sync, git tagging, CI/CD | Bump version, tag, GitHub release | "release version", "bump version", "git tag", "GitHub release" |
 | `rapid-fix` | Rapid bug fix workflow | Scope validation, auto-plan execution | Auto-plan, execute, test, close simple fixes | "fix bug", "quick fix", "one-line fix" |
+| `code-cleanup` | Dead code detection and removal | ESLint/TypeScript procedures, safe deletion | Remove unused imports, delete dead files | "cleanup", "remove unused code", "dead code" |
+| `gpt-delegation` | Intelligent Codex/GPT consultation | Capability detection, fallback order | Consult GPT experts when blocked | "GPT delegation", "Codex CLI", "escalate" |
+| `quality-gates` | Pre-commit quality validation | Type-check, lint, todos, branch guard | Enforce code quality before commit | "pre-commit", "quality check", "validate" |
 
-**Total**: 10 skills, each with SKILL.md (~100 lines) and REFERENCE.md (~300 lines)
+**Total**: 14 skills, each with SKILL.md (~100 lines) and REFERENCE.md (~300 lines)
 
 ## Common Tasks
 

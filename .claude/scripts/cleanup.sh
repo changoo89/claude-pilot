@@ -219,31 +219,48 @@ check_file_references() {
   echo "${ref_count:-0}"
 }
 
-# Detect unused imports (Tier 1)
+# Detect unused imports (Tier 1) - Using ESLint and TypeScript
 detect_unused_imports() {
-  log_info "Detecting unused imports (Tier 1)..."
+  log_info "Detecting unused imports (Tier 1) with ESLint/TypeScript..."
 
-  local smart_import="${SCRIPT_DIR}/smart-import-generator.mjs"
-  if [ ! -f "$smart_import" ]; then
-    log_warning "smart-import-generator.mjs not found, skipping Tier 1"
+  # Check for ESLint
+  if ! command -v eslint >/dev/null 2>&1; then
+    log_warning "ESLint not found, skipping Tier 1. Install: npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin"
     return
   fi
 
-  # Check Node.js dependencies
-  if ! command -v node >/dev/null 2>&1; then
-    log_warning "Node.js not found, skipping Tier 1"
-    return
+  # Run ESLint for unused imports
+  local eslint_output
+  eslint_output=$(eslint . --ext .ts,.tsx --rule '@typescript-eslint/no-unused-vars: error' --format json 2>/dev/null) || true
+
+  # Check for TypeScript compiler
+  local tsc_available=false
+  if command -v tsc >/dev/null 2>&1; then
+    tsc_available=true
   fi
 
-  # Run smart-import-generator
-  local output
-  output=$(node "$smart_import" --dir "$DETECTION_PATH" 2>&1) || true
-
-  # Parse JSON output and extract unused imports
-  if echo "$output" | jq -e '.unused_imports' >/dev/null 2>&1; then
-    echo "$output" | jq -r '.unused_imports[]? | select(.imports[].can_remove == true) |
-      "| \(.file) | Unused import | Tier 1 | Low | npm test | git checkout HEAD -- \(.file) |"' 2>/dev/null || true
+  # Parse ESLint output and format as table
+  if echo "$eslint_output" | jq -e '.results' >/dev/null 2>&1; then
+    echo "$eslint_output" | jq -r '.results[] | select(.messages | length > 0) |
+      .messages[] | select(.ruleId == "@typescript-eslint/no-unused-vars") |
+      "| \(.filePath) | \(.message | gsub("''"; "") | gsub("\\n"; " ")) | Tier 1 | Low | eslint . --fix | git checkout HEAD -- \(.filePath) |"' 2>/dev/null || true
   fi
+
+  # Run TypeScript compiler for unused locals/parameters
+  if [ "$tsc_available" = true ]; then
+    local tsc_output
+    tsc_output=$(tsc --noUnusedLocals --noUnusedParameters --noEmit 2>&1) || true
+
+    if [ -n "$tsc_output" ]; then
+      echo "$tsc_output" | grep "error TS6133" | while IFS= read -r line; do
+        local file=$(echo "$line" | sed 's/^\(.*\)[0-9]*:[0-9]*.*$/\1/' | xargs)
+        local msg=$(echo "$line" | sed 's/.*error TS6133: \(.*\)$/\1/')
+        echo "| $file | $msg | Tier 1 | Low | Manual removal | git checkout HEAD -- $file |"
+      done
+    fi
+  fi
+
+  log_info "Tier 1 detection complete. See @.claude/skills/code-cleanup/SKILL.md for manual removal procedures."
 }
 
 # Detect dead files (Tier 2)

@@ -19,9 +19,10 @@ input=$(cat)
 cwd=$(echo "$input" | jq -r '.workspace.current_dir')
 
 # Source worktree utilities for worktree detection
-# Use relative path from scripts directory
+# Use lib directory for worktree utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKTREE_UTILS="${SCRIPT_DIR}/worktree-utils.sh"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+WORKTREE_UTILS="${PROJECT_ROOT}/.claude/scripts/worktree-utils.sh"
 if [ -f "$WORKTREE_UTILS" ]; then
     . "$WORKTREE_UTILS"
 fi

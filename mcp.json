@@ -4,44 +4,34 @@
     "context7": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-context7"],
-      "description": "Retrieve up-to-date documentation and code examples for any library"
+      "description": "최신 라이브러리 문서 및 코드 예제 검색"
     },
-    "serena": {
+    "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-serena"],
-      "description": "Semantic code operations with LSP-powered tools"
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "--allow", "."],
+      "description": "로컬 파일시스템 읽기/쓰기 및 grep 검색"
     },
     "grep-app": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-grep-app"],
-      "description": "Advanced search and grep operations"
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "description": "Complex reasoning and step-by-step thinking"
+      "description": "GitHub 공개 저장소 코드 검색"
     }
   },
   "recommendedServers": [
     {
       "name": "context7",
-      "purpose": "Latest library documentation",
+      "purpose": "최신 라이브러리 문서 검색",
       "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/context7"
     },
     {
-      "name": "serena",
-      "purpose": "Semantic code operations",
-      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/serena"
+      "name": "filesystem",
+      "purpose": "로컬 파일 작업 및 grep 검색",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem"
     },
     {
       "name": "grep-app",
-      "purpose": "Advanced search",
+      "purpose": "GitHub 공개 저장소 검색",
       "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/grep-app"
-    },
-    {
-      "name": "sequential-thinking",
-      "purpose": "Complex reasoning",
-      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequential-thinking"
     }
   ]
 }

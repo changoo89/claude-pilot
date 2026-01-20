@@ -1,6 +1,6 @@
 # MCP Servers
 
-> **Last Updated**: 2026-01-20
+> **Last Updated**: 2026-01-21
 > **Purpose**: Recommended MCP servers for Claude Code
 
 ---
@@ -9,15 +9,9 @@
 
 | Server | Purpose | Package |
 |--------|---------|---------|
-| **context7** | Documentation navigation and context | `@upstash/context7-mcp` |
-| **sequential-thinking** | Complex reasoning and planning | `@modelcontextprotocol/server-sequential-thinking` |
-
-### Optional Servers (Require Additional Setup)
-
-| Server | Purpose | Setup |
-|--------|---------|-------|
-| **serena** | Code operations and refactoring | Python-based, requires `uvx` (see below) |
-| **grep-app** | Fast GitHub code search | Requires build from source |
+| **context7** | Documentation navigation and context | `@modelcontextprotocol/server-context7` |
+| **filesystem** | Local file operations and grep search | `@modelcontextprotocol/server-filesystem` |
+| **grep-app** | GitHub public repository search | `@modelcontextprotocol/server-grep-app` |
 
 ---
 
@@ -25,7 +19,7 @@
 
 **Location**: Project-level MCP servers are configured in `~/.claude.json` under `projects.<project-path>.mcpServers`
 
-**Quick Setup** (context7 + sequential-thinking):
+**Quick Setup** (context7 + filesystem + grep-app):
 ```bash
 # Add to ~/.claude.json manually:
 {
@@ -33,14 +27,16 @@
     "/Users/chanho/claude-pilot": {
       "mcpServers": {
         "context7": {
-          "type": "stdio",
           "command": "npx",
-          "args": ["-y", "@upstash/context7-mcp"]
+          "args": ["-y", "@modelcontextprotocol/server-context7"]
         },
-        "sequential-thinking": {
-          "type": "stdio",
+        "filesystem": {
           "command": "npx",
-          "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+          "args": ["-y", "@modelcontextprotocol/server-filesystem", "--allow", "."]
+        },
+        "grep-app": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-grep-app"]
         }
       }
     }
@@ -48,10 +44,9 @@
 }
 ```
 
-**Alternative: CLI Wizard**:
+**Or use /pilot:setup** to automatically configure:
 ```bash
-claude mcp add context7
-claude mcp add sequential-thinking
+/pilot:setup
 ```
 
 ---
@@ -60,72 +55,39 @@ claude mcp add sequential-thinking
 
 ### context7
 
-**Package**: `@upstash/context7-mcp`
-**Purpose**: Documentation navigation and context retrieval
+**Package**: `@modelcontextprotocol/server-context7`
+**Purpose**: Latest library documentation and code examples
 
 **Use When**:
-- Navigating large codebases
-- Finding relevant documentation
-- Context-aware code assistance
+- Looking up latest library APIs
+- Finding up-to-date code examples
+- Version-specific documentation queries
 
-**Source**: [github.com/upstash/context7](https://github.com/upstash/context7)
+**Source**: [github.com/modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers/tree/main/src/context7)
 
-### sequential-thinking
+### filesystem
 
-**Package**: `@modelcontextprotocol/server-sequential-thinking`
-**Purpose**: Complex reasoning and planning
-
-**Use When**:
-- Breaking down complex tasks
-- Multi-step reasoning
-- Strategic planning
-
-### serena (Optional)
-
-**Purpose**: Code operations and refactoring (Python-based)
-
-**Setup**:
-```bash
-# Install uv first
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Add to ~/.claude.json:
-{
-  "mcpServers": {
-    "serena": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server"]
-    }
-  }
-}
-```
-
-**Source**: [github.com/oraios/serena](https://github.com/oraios/serena)
+**Package**: `@modelcontextprotocol/server-filesystem`
+**Purpose**: Local file read/write operations and grep search
 
 **Use When**:
-- Performing code refactoring
-- Applying code transformations
-- Bulk code operations
+- Reading/writing project files
+- Searching code within local project
+- File system operations
 
-### grep-app (Optional)
+**Source**: [github.com/modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)
 
-**Purpose**: Fast GitHub code search
+### grep-app
 
-**Setup**: Requires build from source
-```bash
-git clone https://github.com/ai-tools-all/grep_app_mcp.git
-cd grep_app_mcp
-npm install
-npm run build
-```
-
-**Source**: [github.com/ai-tools-all/grep_app_mcp](https://github.com/ai-tools-all/grep_app_mcp)
+**Package**: `@modelcontextprotocol/server-grep-app`
+**Purpose**: GitHub public repository code search
 
 **Use When**:
-- Searching GitHub code repositories
+- Searching open-source code
 - Finding implementation examples
-- Learning from open source projects
+- Learning from GitHub projects
+
+**Source**: [github.com/modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers/tree/main/src/grep-app)
 
 ---
 
@@ -142,8 +104,20 @@ Expected output:
 ⎿  MCP Server Status
 ⎿
 ⎿  • context7: connected
-⎿  • sequential-thinking: connected
+⎿  • filesystem: connected
+⎿  • grep-app: connected
 ```
+
+---
+
+## Migration Notes
+
+### Removed Servers (2026-01-21)
+
+| Server | Reason | Replacement |
+|--------|--------|-------------|
+| **serena** | Inefficient, complex setup | `filesystem` for local operations |
+| **sequential-thinking** | Redundant with core capabilities | Built-in reasoning sufficient |
 
 ---
 
@@ -151,5 +125,5 @@ Expected output:
 
 - **@docs/ai-context/system-integration.md** - System integration overview
 - **@docs/ai-context/codex-integration.md** - Codex delegation details
-- **[Configuring MCP Tools in Claude Code - The Better Way](https://scottspence.com/posts/configuring-mcp-tools-in-claude-code)** - External guide
+- **[Configuring MCP Tools in Claude Code](https://code.claude.com/docs/en/mcp)** - Official documentation
 - **@CLAUDE.md** - Project standards (Tier 1)

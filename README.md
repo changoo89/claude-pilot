@@ -183,7 +183,7 @@ claude-pilot/
 - **11 Slash Commands**: Plan, Confirm, Execute, Close, Review, Document, Init, Setup, Release, Cleanup, Continue
 - **8 Agents**: Coder, Tester, Validator, Documenter, Explorer, Researcher, Plan Reviewer, Code Reviewer
 - **4 Skills**: TDD, Ralph Loop, Vibe Coding, Git Master
-- **MCP Servers**: context7, serena, grep-app, sequential-thinking (configured via `/pilot:setup`)
+- **MCP Servers**: context7, filesystem, grep-app (configured via `/pilot:setup`)
 - **Hooks**: Type checking, linting, todo validation, branch guard
 
 ---
@@ -196,10 +196,9 @@ Run `/pilot:setup` to configure recommended MCPs:
 
 | MCP | Purpose |
 |-----|---------|
-| context7 | Latest library docs |
-| serena | Semantic code operations |
-| grep-app | Advanced search |
-| sequential-thinking | Complex reasoning |
+| context7 | Latest library documentation |
+| filesystem | Local file operations + grep search |
+| grep-app | GitHub public repository search |
 
 The setup command uses a merge strategy:
 - Preserves existing `.mcp.json` configurations

@@ -330,6 +330,11 @@ claude-pilot synthesizes best practices from these projects:
   - GitHub star prompting
   - MCP server configuration
 
+- **[everything-claude-code](https://github.com/affaan-m/everything-claude-code)**
+  - Claude Code hooks system (PreToolUse, PostToolUse, Stop)
+  - Coding standards skill (TypeScript, React, API, testing)
+  - Battle-tested configurations from hackathon winner
+
 ### Official Resources
 
 - **[Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)**

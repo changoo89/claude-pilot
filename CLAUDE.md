@@ -127,6 +127,7 @@ Response Handling (synthesize, apply, verify)
 **TDD**: `@.claude/skills/tdd/SKILL.md` - Red-Green-Refactor cycle
 **Ralph Loop**: `@.claude/skills/ralph-loop/SKILL.md` - Autonomous iteration
 **Vibe Coding**: `@.claude/skills/vibe-coding/SKILL.md` - Code quality standards
+**Coding Standards**: `@.claude/skills/coding-standards/SKILL.md` - TypeScript, React, API, testing standards
 **Git Master**: `@.claude/skills/git-master/SKILL.md` - Git operations
 **Frontend Design**: `@.claude/skills/frontend-design/SKILL.md` - UI/UX design thinking
 

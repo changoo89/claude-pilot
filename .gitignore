@@ -34,6 +34,12 @@ Thumbs.db
 # Plan tracking (optional - uncomment if you don't want to track plans)
 # .cgcode/
 
+# Runtime state and plans (generated during execution)
+.pilot/
+
+# Legacy duplicate prefix (historical artifact)
+.claude-pilot/
+
 # Logs
 *.log
 npm-debug.log*

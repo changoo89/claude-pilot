@@ -250,6 +250,17 @@ if [ "$MODE" = "docs" ] || [ "$MODE" = "all" ]; then
     --glob '!README.md' \
     --glob '!CLAUDE.md' \
     --glob '!**/.trash/**' \
+    --glob '!.claude/agents/**' \
+    --glob '!.claude/commands/**' \
+    --glob '!.claude/guides/**' \
+    --glob '!.claude/hooks/**' \
+    --glob '!.claude/skills/**' \
+    --glob '!.claude/templates/**' \
+    --glob '!.claude/tests/**' \
+    --glob '!.claude/**/CONTEXT.md' \
+    --glob '!**/CONTEXT.md' \
+    --glob '!.pilot/plan/**' \
+    --hidden \
     "$DETECTION_PATH" 2>/dev/null)
 
   for file in $DOC_FILES; do
@@ -270,7 +281,7 @@ if [ "$MODE" = "docs" ] || [ "$MODE" = "all" ]; then
 fi
 ```
 
-**Exclusions**: `docs/**`, `README.md`, `CLAUDE.md`, `*.md.bak`, `.trash/**`
+**Exclusions**: `docs/**`, `README.md`, `CLAUDE.md`, `*.md.bak`, `.trash/**`, `.claude/agents/**`, `.claude/commands/**`, `.claude/guides/**`, `.claude/hooks/**`, `.claude/skills/**`, `.claude/templates/**`, `.claude/tests/**`, `.claude/**/CONTEXT.md`, `**/CONTEXT.md`, `.pilot/plan/**`
 
 ---
 
@@ -515,7 +526,7 @@ detect_verification_command() {
 3. Verification commands after each batch (max 10 deletions)
 4. Stop-on-failure with automatic rollback
 5. Safe-file-ops integration (git rm, .trash/)
-6. Documentation exclusions: `docs/**`, `README.md`, `CLAUDE.md`, `*.md.bak`, `.trash/**`
+6. Documentation exclusions: `docs/**`, `README.md`, `CLAUDE.md`, `*.md.bak`, `.trash/**`, `.claude/agents/**`, `.claude/commands/**`, `.claude/guides/**`, `.claude/hooks/**`, `.claude/skills/**`, `.claude/templates/**`, `.claude/tests/**`, `.claude/**/CONTEXT.md`, `**/CONTEXT.md`, `.pilot/plan/**`
 
 **Non-Interactive Mode** (CI/non-TTY):
 - Default: behaves like `--dry-run` (no modifications)

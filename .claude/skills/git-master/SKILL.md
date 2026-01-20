@@ -67,8 +67,15 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ---
 
+## Integrated Skills
+
+This skill integrates the following specialized git skills:
+
+- **git-operations**: Push/pull/merge with retry logic and error handling
+- **using-git-worktrees**: Parallel development in isolated workspaces
+
 ## Further Reading
 
-**Internal**: @.claude/skills/git-master/REFERENCE.md - Advanced Git patterns, branch strategies, collaboration | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle | @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop | @.claude/skills/vibe-coding/SKILL.md - Code quality standards
+**Internal**: @.claude/skills/git-master/REFERENCE.md - Advanced Git patterns, branch strategies, collaboration | @.claude/skills/git-operations/SKILL.md - Safe push/pull/merge operations | @.claude/skills/using-git-worktrees/SKILL.md - Parallel development with worktrees | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle | @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop | @.claude/skills/vibe-coding/SKILL.md - Code quality standards
 
 **External**: [Conventional Commits](https://www.conventionalcommits.org/) | [GitHub CLI](https://cli.github.com/manual/gh_pr_create)

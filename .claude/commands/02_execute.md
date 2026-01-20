@@ -6,430 +6,95 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash(*), AskUserQuestion, Task
 
 # /02_execute
 
-_Execute plan using Ralph Loop TDD pattern._
-
-## Core Philosophy
-
-- **Single source of truth**: Plan file drives the work
-- **Evidence required**: Never claim completion without verification output
-- **Phase boundary protection**: NEVER move plan to done (only /03_close can move plans)
-
-**Details**: @.claude/skills/execute-plan/REFERENCE.md
+_Execute plan using Ralph Loop TDD pattern. Single source of truth: plan file drives work._
 
 ---
 
-## Step 0: Source Utilities
+## Step 1: Plan Detection
 
 ```bash
-WORKTREE_UTILS=".claude/scripts/worktree-utils.sh"
-[ -f "$WORKTREE_UTILS" ] && . "$WORKTREE_UTILS"
-```
+# Find plan in pending/ or in_progress/
+PLAN_PATH="$(find .pilot/plan/pending .pilot/plan/in_progress -name "*.md" -type f 2>/dev/null | sort | head -1)"
 
----
-
-## Step 0.5: Continuation State Check (MANDATORY)
-
-> **Details**: @.claude/skills/execute-plan/REFERENCE.md#continuation-state-system
-
-> **⚠️ CRITICAL: PHASE BOUNDARY PROTECTION**
->
-> **This command MUST NEVER move the plan to done.**
->
-> - Plan state management is the responsibility of `/03_close` only
-> - After completion, plan MUST remain in `.pilot/plan/in_progress/`
-> - Use `/03_close` to properly archive and move plans to done
->
-> **This is a hard boundary - do NOT cross it.**
-
-**State file**: `.pilot/state/continuation.json`
-
-**Check & resume logic**:
-```bash
-# Parse --wt flag, determine state location
-WORKTREE_MODE=false
-for arg in "$@"; do [ "$arg" = "--wt" ] && WORKTREE_MODE=true && break; done
-
-if [ "$WORKTREE_MODE" = true ] && [ -n "${WORKTREE_ROOT:-}" ]; then
-    STATE_FILE="$WORKTREE_ROOT/.pilot/state/continuation.json"
-elif [ "$WORKTREE_MODE" = false ]; then
-    PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-    STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
-fi
-
-# Load and resume if exists
-if [ -f "$STATE_FILE" ]; then
-    CONTINUATION_STATE="$(cat "$STATE_FILE")"
-    PLAN_PATH_FROM_STATE="$(echo "$CONTINUATION_STATE" | jq -r '.plan_file // empty')"
-    NEXT_TODO="$(echo "$CONTINUATION_STATE" | jq -r '.todos[] | select(.status == "in_progress" or .status == "pending") | .id' | head -1)"
-    echo "📋 Resuming: $NEXT_TODO"
-    PLAN_PATH="$PLAN_PATH_FROM_STATE"
-fi
-```
-
-**Update state after todos**:
-```bash
-update_continuation_state() {
-    local todo_id="$1" todo_status="$2" iteration="$3"
-    (
-        flock -x 9 || exit 1
-        UPDATED_STATE="$(cat "$STATE_FILE" | jq \
-            --arg todo_id "$todo_id" --arg todo_status "$todo_status" \
-            --argjson iteration "$iteration" \
-            '.todos |= map(if .id == $todo_id then .status = $todo_status | .iteration = $iteration else . end) | .iteration_count += 1')"
-        echo "$UPDATED_STATE" > "$STATE_FILE"
-    ) 9>"$STATE_FILE.lock"
-}
-```
-
----
-
-## Step 1: Plan Detection (MANDATORY)
-
-> **🚨 YOU MUST DO THIS FIRST**
-
-```bash
-ls -la .pilot/plan/pending/*.md .pilot/plan/in_progress/*.md 2>/dev/null
-```
-
-**Worktree mode** (--wt flag):
-```bash
-WORKTREE_MODE=false
-for arg in "$@"; do [ "$arg" = "--wt" ] && WORKTREE_MODE=true && break; done
-
-if [ "$WORKTREE_MODE" = true ]; then
-    PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-    MAIN_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
-    WT_BRANCH="wt/$(date +%s)"
-    WORKTREE_OUTPUT="$(bash ".claude/scripts/worktree-create.sh" "$WT_BRANCH" "$MAIN_BRANCH")"
-    WORKTREE_PATH="$(echo "$WORKTREE_OUTPUT" | grep "^WORKTREE_PATH=" | cut -d'=' -f2)"
-    echo "✓ Worktree created: $WORKTREE_PATH"
-    WORKTREE_PERSIST_FILE="$PROJECT_ROOT/.pilot/worktree_active.txt"
-    echo "$WORKTREE_PATH" > "$WORKTREE_PERSIST_FILE"
-    echo "  Branch: $WT_BRANCH" >> "$WORKTREE_PERSIST_FILE"
-    echo "  Main Branch: $MAIN_BRANCH" >> "$WORKTREE_PERSIST_FILE"
-    export PROJECT_ROOT="$WORKTREE_PATH" WORKTREE_ROOT="$WORKTREE_PATH"
-fi
-
-# Restore worktree context
-MAIN_PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-WORKTREE_PERSIST_FILE="$MAIN_PROJECT_ROOT/.pilot/worktree_active.txt"
-if [ -f "$WORKTREE_PERSIST_FILE" ]; then
-    WORKTREE_PATH="$(head -1 "$WORKTREE_PERSIST_FILE")"
-    WORKTREE_ROOT="$WORKTREE_PATH" PROJECT_ROOT="$WORKTREE_PATH" WORKTREE_MODE="true"
-    echo "🔄 Worktree context restored"
-fi
-```
-
-**Plan detection** (oldest-first selection with 3-tier fallback):
-```bash
-PLAN_PATH="${EXPLICIT_PATH}"
-PLAN_SEARCH_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
-
-# Step 0: File system cache flush (sync safety)
-ls "$PLAN_SEARCH_ROOT/.pilot/plan/pending" >/dev/null 2>&1 || true
-
-# Step 1: Method 1 - Direct globbing (most reliable)
 if [ -z "$PLAN_PATH" ]; then
-    PLAN_PATH="$(printf "%s\n" "$PLAN_SEARCH_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | while read -r f; do [ -f "$f" ] && printf "%s\n" "$f"; done | sort | head -1)"
-fi
-
-# Step 2: Method 2 - find only (no xargs)
-if [ -z "$PLAN_PATH" ]; then
-    PLAN_PATH="$(find "$PLAN_SEARCH_ROOT/.pilot/plan/pending" -maxdepth 1 -type f -name "*.md" 2>/dev/null | sort | head -1)"
-fi
-
-# Step 3: Method 3 - ls direct (last resort)
-if [ -z "$PLAN_PATH" ]; then
-    PLAN_PATH="$(ls -1tr "$PLAN_SEARCH_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | head -1)"
-fi
-
-if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
-    PLAN_FILENAME="$(basename "$PLAN_PATH")"
-    IN_PROGRESS_PATH="$PLAN_SEARCH_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
-    mkdir -p "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress"
-    mv "$PLAN_PATH" "$IN_PROGRESS_PATH" || { echo "❌ FATAL" >&2; exit 1; }
-    PLAN_PATH="$IN_PROGRESS_PATH"
-fi
-
-# Fallback to in_progress if no pending plans
-if [ -z "$PLAN_PATH" ]; then
-    PLAN_PATH="$(find "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress" -maxdepth 1 -type f -name "*.md" 2>/dev/null | sort | head -1)"
-fi
-
-# Enhanced debugging information
-if [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ]; then
-    COUNT_PENDING=$(find "$PLAN_SEARCH_ROOT/.pilot/plan/pending" -maxdepth 1 -type f -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-    COUNT_IN_PROGRESS=$(find "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress" -maxdepth 1 -type f -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-
-    # Check continuation state (reuse STATE_FILE from Step 0.5)
-    CONTINUATION_STATUS="not found"
-    if [ -f "${STATE_FILE:-}" ]; then
-        CONTINUATION_STATUS="exists"
-    fi
-
-    # Enhanced error message with clear guidance
-    echo "" >&2
-    echo "## No Execution Plan Found" >&2
-    echo "" >&2
-    echo "**Diagnostic Information**:" >&2
-    echo "- Pending plans: $COUNT_PENDING" >&2
-    echo "- In-progress plans: $COUNT_IN_PROGRESS" >&2
-    echo "- Continuation state: $CONTINUATION_STATUS" >&2
-    echo "" >&2
-    echo "**Required Action**:" >&2
-    echo "You need to create an execution plan before running /02_execute." >&2
-    echo "" >&2
-    echo "**Next Steps** (choose one):" >&2
-    echo "1. Create a new plan: /00_plan \"describe your task\"" >&2
-    echo "2. If you have a draft plan: /01_confirm" >&2
-    if [ "$CONTINUATION_STATUS" = "exists" ]; then
-        echo "3. Resume previous work: /00_continue (continuation state exists)" >&2
-    fi
-    echo "" >&2
-    echo "**Workflow Reference**:" >&2
-    echo "/00_plan → /01_confirm → /02_execute → /03_close" >&2
-    echo "" >&2
+    echo "❌ No plan found"
+    echo "   Create plan first: /00_plan \"describe your task\""
     exit 1
 fi
 
-ACTIVE_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
-mkdir -p "$ACTIVE_ROOT/.pilot/plan/active"
-BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo detached)"
-printf "%s" "$PLAN_PATH" > "$ACTIVE_ROOT/.pilot/plan/active/$(printf "%s" "$BRANCH" | sed -E 's/[^a-zA-Z0-9._-]+/_/g').txt"
-echo "✓ Plan ready: $PLAN_PATH"
+# Move from pending/ to in_progress/
+if echo "$PLAN_PATH" | grep -q "/pending/"; then
+    PLAN_FILENAME="$(basename "$PLAN_PATH")"
+    IN_PROGRESS_PATH=".pilot/plan/in_progress/${PLAN_FILENAME}"
+    mkdir -p .pilot/plan/in_progress
+    mv "$PLAN_PATH" "$IN_PROGRESS_PATH"
+    PLAN_PATH="$IN_PROGRESS_PATH"
+fi
+
+echo "✓ Plan: $PLAN_PATH"
 ```
 
 ---
 
-## Step 1.5: GPT Delegation Triggers (CRITICAL)
+## Step 2: Extract Success Criteria
 
-> **⚠️ CRITICAL: PRIORITIZE GPT CONSULTATION OVER USER QUERIES**
->
-> **When stuck or blocked, ALWAYS delegate to GPT BEFORE asking the user**
->
-> **Full guide**: @.claude/rules/delegator/triggers.md
-
-### Escalation Triggers (GPT-FIRST)
-
-| Trigger | Action | Priority |
-|---------|--------|----------|
-| 2+ failed attempts | Delegate to Architect | **BEFORE** user query |
-| Stuck on task | Delegate to Architect | **BEFORE** user query |
-| Architecture decision | Delegate to Architect | **BEFORE** user query |
-| Security concern | Delegate to Security Analyst | **BEFORE** user query |
-| Ambiguity in plan | Delegate to Scope Analyst | **BEFORE** user query |
-
-### GPT Consultation Flow
-
-**Step 1**: Check for escalation triggers
-**Step 2**: If trigger matches → Delegate to GPT expert
-**Step 3**: Wait for GPT response
-**Step 4**: Apply GPT recommendations autonomously
-**Step 5**: **ONLY if GPT cannot resolve** → Ask user via AskUserQuestion
-
-### Auto-Delegation on Blocked Status
-
-**When Coder returns `<CODER_BLOCKED>`**:
-1. **IMMEDIATELY** delegate to GPT Architect (no user prompt)
-2. Include full context: attempts, errors, iteration count
-3. Apply GPT recommendations
-4. Re-invoke Coder with fresh perspective
-
----
-
-## Step 2: Todo List & Dependency Analysis
-
-> **Details**: @.claude/skills/execute-plan/REFERENCE.md#parallel-execution-patterns
-
-**Extract**: Deliverables, Phases, Tasks, Acceptance Criteria, Test Plan
-
-**SC Dependency Analysis**:
-1. Extract all Success Criteria from plan
-2. Parse file paths mentioned in each SC
-3. Check for file overlaps (conflicts)
-4. Check for dependency keywords
-5. Group SCs by parallel execution capability
-
-**Rules**:
-- **Sequential**: One `in_progress` at a time
-- **Parallel**: Mark ALL parallel items as `in_progress` simultaneously
-- **MANDATORY**: After EVERY "Implement/Add/Create", add "Run tests for [X]"
-
----
-
-## Step 2.2: Parallel Coder Invocation
-
-> **Details**: @.claude/skills/execute-plan/REFERENCE.md
-
-**Group 1 (Independent SCs)**: Invoke multiple Coder agents concurrently
-
-```markdown
-Task:
-  subagent_type: coder
-  prompt: |
-    Execute SC-1: {DESCRIPTION}
-    Plan Path: {PLAN_PATH}
-    Test Scenarios: {TS_LIST}
-    Implement using TDD + Ralph Loop. Return summary only.
-```
-
-**Group 2+ (Dependent SCs)**: Sequential execution
-
----
-
-## Step 3: Process Coder Results
-
-**Verify output**:
-- [ ] Test Files created
-- [ ] Test Results (PASS/FAIL counts)
-- [ ] Coverage ≥80% (overall), ≥90% (core)
-- [ ] Ralph Loop iterations count
-
-**Auto-delegation** (when `<CODER_BLOCKED>` - IMMEDIATE GPT ESCALATION):
-
-> **⚠️ CRITICAL: When Coder is blocked, delegate to GPT IMMEDIATELY**
-> **DO NOT ask user - GPT consultation happens FIRST**
-
-1. **IMMEDIATELY** delegate to GPT Architect (no user prompt)
-2. Read `.claude/rules/delegator/prompts/architect.md`
-3. Build delegation prompt with full context:
-   - Previous attempts (what was tried)
-   - Error messages (what failed)
-   - Current iteration count
-   - Plan path and SC being implemented
-4. Call: `.claude/scripts/codex-sync.sh "workspace-write" "<prompt>"`
-5. Wait for GPT response
-6. Apply GPT recommendations autonomously
-7. Re-invoke Coder with fresh perspective
-8. **ONLY if GPT cannot resolve** → Ask user via AskUserQuestion
-
----
-
-## Step 3.5: Parallel Verification
-
-> **Reference**: @.claude/guides/parallel-execution.md
-
-```markdown
-Task:
-  subagent_type: tester
-  prompt: Run tests and verify coverage for {PLAN_PATH}
-
-Task:
-  subagent_type: validator
-  prompt: Run type check and lint for {PLAN_PATH}
-
-Task:
-  subagent_type: code-reviewer
-  prompt: Review code for {PLAN_PATH} (async bugs, memory leaks, security)
-```
-
----
-
-## Step 4-6: Integration, Escalation, Continuation
-
-**Step 4: Result Integration**
-1. Wait for all agents
-2. Process inline results
-3. Update todos (all parallel together)
-4. Verify no conflicts, merge results
-
-**Step 5: GPT Escalation** (GPT-FIRST - BEFORE User Query)
-
-> **⚠️ CRITICAL: GPT escalation happens BEFORE any AskUserQuestion call**
-
-| Situation | Expert | When to Delegate |
-|-----------|--------|------------------|
-| Coder blocked (`<CODER_BLOCKED>`) | Architect | **IMMEDIATELY** (no user prompt) |
-| 2+ failed attempts | Architect | **BEFORE** asking user |
-| Stuck on task | Architect | **BEFORE** asking user |
-| Architecture decision needed | Architect | **BEFORE** asking user |
-| Security concern | Security Analyst | **BEFORE** asking user |
-| Plan ambiguity | Scope Analyst | **BEFORE** asking user |
-
-**Delegation Flow**:
-1. Detect trigger situation
-2. **IMMEDIATELY** delegate to GPT expert (skip user query)
-3. Wait for GPT response with recommendations
-4. Apply GPT recommendations autonomously
-5. **ONLY if GPT cannot resolve** → Ask user via AskUserQuestion
-
-**Auto-Delegation Example** (when `<CODER_BLOCKED>`):
 ```bash
-# Read GPT Architect prompt
-EXPERT_PROMPT="$(cat .claude/rules/delegator/prompts/architect.md)"
+# Extract all SCs from plan
+SC_LIST="$(grep -E "^- \[ \] \*\*SC-" "$PLAN_PATH" | sed 's/.*\*\*SC-\([0-9]*\)\*\*.*/SC-\1/')"
 
-# Build delegation prompt with full context
-DELEGATION_PROMPT="${EXPERT_PROMPT}
+if [ -z "$SC_LIST" ]; then
+    echo "❌ No Success Criteria found in plan"
+    exit 1
+fi
 
-TASK: Unblock implementation that failed after ${ITERATION_COUNT} attempts.
-
-EXPECTED OUTCOME: Fresh perspective and working solution.
-
-CONTEXT:
-- Plan: ${PLAN_PATH}
-- Current SC: ${SC_ID}
-- Previous attempts: ${ATTEMPT_HISTORY}
-- Current errors: ${ERROR_MESSAGES}
-- Iteration count: ${ITERATION_COUNT}
-
-CONSTRAINTS:
-- Must work with existing codebase
-- Cannot break existing functionality
-
-MUST DO:
-- Analyze why previous attempts failed
-- Provide fresh approach
-- Report all files modified
-
-MUST NOT DO:
-- Repeat same approaches that failed
-
-OUTPUT FORMAT:
-Summary → Issues identified → Fresh approach → Files modified → Verification"
-
-# Delegate IMMEDIATELY (no user prompt)
-.claude/scripts/codex-sync.sh "workspace-write" "$DELEGATION_PROMPT"
+SC_COUNT="$(echo "$SC_LIST" | wc -l | tr -d ' ')"
+echo "✓ Found $SC_COUNT Success Criteria"
 ```
 
-**Step 6: Todo Continuation**
-1. Edit/Write code
-2. Mark `in_progress` → **UPDATE STATE**
-3. Run tests
-4. Fix or complete → **UPDATE STATE**
-5. Repeat
+---
+
+## Step 3: Create Continuation State
+
+```bash
+STATE_FILE=".pilot/state/continuation.json"
+mkdir -p .pilot/state
+
+# Build todos array
+TODOS_JSON="$(echo "$SC_LIST" | while read sc; do
+    echo "{\"id\": \"$sc\", \"status\": \"pending\", \"iteration\": 0}"
+done | jq -s '.')"
+
+# Create state file
+cat > "$STATE_FILE" << EOF
+{
+  "plan_file": "$PLAN_PATH",
+  "iteration_count": 0,
+  "max_iterations": 7,
+  "todos": $TODOS_JSON
+}
+EOF
+
+echo "✓ Continuation state created"
+```
 
 ---
 
-## Step 7-8: Artifacts & Documentation
+## Step 4: Execute with Ralph Loop
 
-**Update plan**: Mark SC complete, add findings to history
+```markdown
+Task: subagent_type: coder, prompt: Execute $PLAN_PATH using tdd, ralph-loop, managing-continuation
+```
 
-**Auto-chain**: `/document` (unless `--no-docs`)
+**Quality Gates**: Tests pass, Coverage ≥80%, Type-check clean, Lint clean
 
----
-
-## Success Criteria
-
-- [ ] All SCs marked complete
-- [ ] All tests pass
-- [ ] Coverage ≥80% (overall), ≥90% (core)
-- [ ] Type check clean
-- [ ] Lint clean
-- [ ] Plan file updated
-- [ ] **Plan MUST remain in `.pilot/plan/in_progress/` (NEVER move to done - only /03_close can do this)**
+**State Update**: `jq '.todos |= map(if .id == $SC then .status = "completed" else . end)' "$STATE_FILE" > tmp && mv tmp "$STATE_FILE"`
 
 ---
 
-## Related Guides
+## Related Skills
 
-- **TDD**: @.claude/skills/tdd/SKILL.md
-- **Ralph Loop**: @.claude/skills/ralph-loop/SKILL.md
-- **Parallel Execution**: @.claude/guides/parallel-execution.md
-- **Continuation System**: @.claude/guides/continuation-system.md
+ralph-loop | tdd | managing-continuation | parallel-subagents | spec-driven-workflow
 
 ---
 
-## Next Command
-
-- `/document` - Update docs (unless `--no-docs`)
-- `/03_close` - **REQUIRED**: Move plan to done (ONLY this command moves plans)
+**⚠️ CRITICAL**: Plan stays in `.pilot/plan/in_progress/`. Only `/03_close` can move to done.

@@ -1,156 +1,267 @@
 ---
 name: ralph-loop
-description: Autonomous completion loop that iterates until all quality gates pass. Tests, type-check, lint, coverage - iterate until complete or max 7 iterations reached. Use after any code change.
+description: Use after first code change. Autonomous iteration until all quality gates pass (max 7 iterations).
 ---
 
-# SKILL: Ralph Loop (Autonomous Completion)
+# SKILL: Ralph Loop
 
-> **Purpose**: Iterate autonomously until all quality gates pass (tests, type-check, lint, coverage)
-> **Target**: Coder Agent after implementing features
+> **Purpose**: Autonomous completion loop - iterate until all tests pass, coverage met, type-check clean
+> **Target**: Coder, Tester, Validator agents
 
 ---
 
 ## Quick Start
 
 ### When to Use This Skill
-- Iterate until all tests pass
-- Verify type checking and linting
-- Achieve coverage thresholds (80%+ overall, 90%+ core)
+- After first code change (Entry point)
+- Tests failing or coverage low
+- Type-check errors present
+- Lint violations found
 
 ### Quick Reference
 ```bash
-MAX_ITERATIONS=7; ITERATION=1
-while [ $ITERATION -le $MAX_ITERATIONS ]; do
-    $TEST_CMD && npx tsc --noEmit && npm run lint
-    if [ $? -eq 0 ] && [ $COVERAGE -ge 80 ]; then
-        echo "<RALPH_COMPLETE>"; break
-    fi
-    ITERATION=$((ITERATION + 1))
+# Ralph Loop: Autonomous iteration
+iteration=0
+max_iterations=7
+
+while [ $iteration -lt $max_iterations ]; do
+  echo "Iteration $((iteration + 1))/$max_iterations"
+
+  # Run verification
+  if run_all_checks; then
+    echo "✓ All quality gates passed"
+    break
+  fi
+
+  # Fix failures
+  fix_failures
+
+  # Update state
+  update_state "$SC" "in_progress" $((iteration + 1))
+  ((iteration++))
 done
+
+# Complete or escalate
+if [ $iteration -eq $max_iterations ]; then
+  echo "<CODER_BLOCKED>"  # Escalate to GPT Architect
+else
+  echo "<CODER_COMPLETE>"  # All checks pass
+fi
 ```
 
-## What This Skill Covers
-
-### In Scope
-- Autonomous iteration until quality gates pass
-- Test command auto-detection (pytest, npm test, go test, cargo test)
-- Verification: tests, type-check, lint, coverage
-
-### Out of Scope
-- Test writing methodology → @.claude/skills/tdd/SKILL.md
-- Code quality standards → @.claude/skills/vibe-coding/SKILL.md
+---
 
 ## Core Concepts
 
-### Ralph Loop Entry Condition (CRITICAL)
+### Entry Point
 
-**Ralph Loop starts IMMEDIATELY after the FIRST code change.**
+**Trigger**: Immediately after first code change
 
-**Correct Entry Points**: After implementing first feature/function, fixing bug, any Edit/Write tool call
-**❌ WRONG**: After completing all todos, at very end
+**Detection**:
+- Coder agent makes first edit/write
+- Tests run and fail
+- Ralph Loop begins automatically
 
-### Completion Promise
+### Quality Gates
 
-Output `<RALPH_COMPLETE>` marker **ONLY when** ALL conditions are met:
-- [ ] All tests pass
-- [ ] Coverage 80%+ (core modules 90%+)
-- [ ] Type check clean
-- [ ] Lint clean
-- [ ] All todos completed
-- [ ] Continuation state verified (if exists)
+**All must pass** before completion:
+1. **Tests**: `npm test` - All tests pass
+2. **Coverage**: ≥80% overall, ≥90% core modules
+3. **Type-check**: `npm run type-check` or `tsc --noEmit`
+4. **Lint**: `npm run lint` - Zero violations
 
-### Continuation State Integration (Sisyphus System)
+### Iteration Pattern
 
-**CRITICAL**: Ralph Loop now integrates with the Sisyphus Continuation System for persistent iteration tracking.
+```
+┌─────────────────────────────────────────────────────┐
+│  Make Code Change                                   │
+└─────────────────┬───────────────────────────────────┘
+                  ▼
+         ┌────────────────┐
+         │ Run All Checks │
+         └───────┬────────┘
+                 │
+         ┌───────┴────────┐
+         │                │
+    All Pass         Any Fail
+         │                │
+         ▼                ▼
+  ┌──────────┐   ┌──────────────────┐
+  │ Complete │   │ Fix Failures     │
+  │ Exit     │   │ iteration++      │
+  └──────────┘   └────────┬─────────┘
+                          │
+                  ┌───────▼────────┐
+                  │ iteration < 7? │
+                  └───────┬────────┘
+                          │
+              ┌───────────┴───────────┐
+              │                       │
+            Yes                      No
+              │                       │
+              ▼                       ▼
+      ┌──────────────┐       ┌──────────────┐
+      │ Re-run Checks│       │ <BLOCKED>    │
+      └──────────────┘       │ Escalate to  │
+                             │ GPT Architect│
+                             └──────────────┘
+```
 
-#### State File Check
+---
 
-Before entering Ralph Loop, check for continuation state:
+## Implementation
 
+### Verification Function
 ```bash
-STATE_FILE=".pilot/state/continuation.json"
+run_all_checks() {
+  local project_root="$1"
 
-if [ -f "$STATE_FILE" ]; then
-    # Load existing iteration count
-    ITERATION=$(jq -r '.iteration_count // 0' "$STATE_FILE")
-    MAX_ITERATIONS=$(jq -r '.max_iterations // 7' "$STATE_FILE")
+  # Run tests
+  if ! npm test > /tmp/test.log 2>&1; then
+    echo "❌ Tests failed"
+    cat /tmp/test.log
+    return 1
+  fi
 
-    # Resume from last checkpoint
-    echo "🔄 Resuming Ralph Loop from iteration $ITERATION"
+  # Check coverage
+  local coverage=$(npm test -- --coverage 2>&1 | grep -oP 'Lines\s+:\s+\K[\d.]+')
+  if (( $(echo "$coverage < 80" | bc -l) )); then
+    echo "⚠️  Coverage ${coverage}% < 80%"
+    return 1
+  fi
+
+  # Type-check
+  if ! npm run type-check > /tmp/typecheck.log 2>&1; then
+    echo "❌ Type-check failed"
+    cat /tmp/typecheck.log
+    return 1
+  fi
+
+  # Lint
+  if ! npm run lint > /tmp/lint.log 2>&1; then
+    echo "⚠️  Lint violations found"
+    cat /tmp/lint.log
+    return 1
+  fi
+
+  echo "✓ All quality gates passed"
+  return 0
+}
+```
+
+### Fix Function
+```bash
+fix_failures() {
+  local project_root="$1"
+
+  # Fix test failures
+  if ! npm test; then
+    echo "Fixing test failures..."
+    # Coder applies fixes
+  fi
+
+  # Fix type errors
+  if ! npm run type-check; then
+    echo "Fixing type errors..."
+    # Coder applies fixes
+  fi
+
+  # Fix lint violations
+  if ! npm run lint; then
+    echo "Fixing lint violations..."
+    # Coder applies fixes
+  fi
+}
+```
+
+---
+
+## Escalation
+
+### When Blocked
+
+**Condition**: 7 iterations reached, still failing
+
+**Action**: Delegate to GPT Architect
+```bash
+echo "<CODER_BLOCKED>"
+echo "Iterations: $iteration"
+echo "Last error: $(last_error)"
+```
+
+**Orchestrator handles escalation**:
+- Reads `.claude/rules/delegator/prompts/architect.md`
+- Builds delegation prompt with full history
+- Calls `codex-sync.sh` with workspace-write mode
+- Applies GPT recommendations
+- Re-invokes Coder with fresh perspective
+
+---
+
+## State Management
+
+### Update Loop State
+```bash
+update_ralph_state() {
+  local sc="$1"
+  local iteration="$2"
+
+  jq --arg sc "$sc" --argjson iter "$iteration" \
+    '.todos |= map(if .id == $sc then .iteration = $iter else . end) | .iteration_count += 1' \
+    .pilot/state/continuation.json > .pilot/state/continuation.json.tmp
+  mv .pilot/state/continuation.json.tmp .pilot/state/continuation.json
+}
+```
+
+### Check Loop State
+```bash
+should_continue_loop() {
+  local incomplete=$(jq '[.todos[] | select(.status != "completed")] | length' .pilot/state/continuation.json)
+  local iterations=$(jq '.iteration_count' .pilot/state/continuation.json)
+  [ "$incomplete" -gt 0 ] && [ "$iterations" -lt 7 ]
+}
+```
+
+---
+
+## Verification
+
+### Test Ralph Loop
+```bash
+# Simulate Ralph Loop
+iteration=0
+max_iterations=7
+
+while [ $iteration -lt $max_iterations ]; do
+  echo "Iteration $((iteration + 1))"
+
+  # Run checks (will fail initially)
+  if run_all_checks; then
+    echo "✓ All gates passed"
+    break
+  fi
+
+  # Fix and retry
+  fix_failures
+  ((iteration++))
+done
+
+# Verify exit condition
+if [ $iteration -lt $max_iterations ]; then
+  echo "<CODER_COMPLETE>"
 else
-    # Start fresh
-    ITERATION=1
-    MAX_ITERATIONS=7
+  echo "<CODER_BLOCKED>"
 fi
 ```
 
-#### State Update After Each Iteration
+---
 
-After each iteration, update continuation state:
+## Related Skills
 
-```bash
-# Update state with current iteration
-UPDATED_STATE=$(jq \
-    --argjson iteration "$ITERATION" \
-    '.iteration_count = $iteration | .last_checkpoint = now | todate' \
-    "$STATE_FILE")
+- **test-driven-development**: Red-Green-Refactor cycle
+- **managing-continuation**: State persistence across iterations
+- **gpt-delegation`: Escalation when blocked
 
-echo "$UPDATED_STATE" > "$STATE_FILE"
-```
+---
 
-#### Continuation on Blocked Status
-
-If Ralph Loop reaches max iterations without completion:
-
-```bash
-if [ $ITERATION -gt $MAX_ITERATIONS ]; then
-    echo "<RALPH_BLOCKED>"
-
-    # Update state with blocked status
-    jq '.status = "blocked"' "$STATE_FILE" > "$STATE_FILE.tmp"
-    mv "$STATE_FILE.tmp" "$STATE_FILE"
-
-    # Notify user of continuation options
-    echo ""
-    echo "⚠️ MAX ITERATIONS REACHED"
-    echo "→ Use /continue to resume after manual review"
-    echo "→ Or fix issues manually and reset iteration count"
-fi
-```
-
-#### Continuation Check Before Completion
-
-Before outputting `<RALPH_COMPLETE>`, verify no incomplete todos:
-
-```bash
-if [ -f "$STATE_FILE" ]; then
-    INCOMPLETE=$(jq '[.todos[] | select(.status != "complete")] | length' "$STATE_FILE")
-
-    if [ "$INCOMPLETE" -gt 0 ]; then
-        echo "⚠️ Incomplete todos: $INCOMPLETE remaining"
-        echo "→ Continuing with next todo (Sisyphus mode)"
-        # Don't output <RALPH_COMPLETE>, continue loop
-    else
-        echo "<RALPH_COMPLETE>"
-        # Clean up state file
-        rm -f "$STATE_FILE"
-    fi
-fi
-```
-
-### Loop Structure
-```
-MAX_ITERATIONS=7
-WHILE ITERATION <= MAX_ITERATIONS:
-    1. Run: tests, type-check, lint, coverage
-    2. IF all pass AND coverage >= threshold AND todos complete:
-         Output: <RALPH_COMPLETE>
-    3. ELSE: Fix (priority: errors > coverage > lint); ITERATION++
-    4. IF ITERATION > MAX_ITERATIONS: Output: <RALPH_BLOCKED>
-```
-
-## Further Reading
-
-**Internal**: @.claude/skills/ralph-loop/REFERENCE.md - Deep dive on loop mechanics, fix strategies, patterns | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle | @.claude/skills/vibe-coding/SKILL.md - Code quality standards | @.claude/guides/test-environment.md - Test framework detection
-
-**External**: [Test-Driven Development by Kent Beck](https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530) | [Working Effectively with Legacy Code by Michael Feathers](https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052)
+**Version**: claude-pilot 4.2.0

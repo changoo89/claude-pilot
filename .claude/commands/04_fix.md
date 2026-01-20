@@ -10,316 +10,87 @@ _Rapid bug fix workflow - automated planning, execution, and closure for simple 
 
 ## Core Philosophy
 
-- **Simple fixes only**: Maximum 3 success criteria, well-scoped bug fixes
-- **All-in-one workflow**: Plan → Execute → Test → Close in single command
-- **Scope validation**: Auto-reject complex tasks (use /00_plan instead)
-- **User confirmation**: Show diff before committing, require explicit approval
+**Simple fixes only**: Max 3 SCs, well-scoped bugs | **All-in-one**: Plan → Execute → Test → Close | **User confirmation**: Show diff before commit
 
-**When to use /04_fix**:
-- One-line fixes
-- Simple validation additions
-- Minor bug fixes
-- Typos and formatting issues
-
-**When to use /00_plan instead**:
-- Feature development
-- Architecture decisions
-- Multi-file refactoring
-- Complex debugging (4+ SCs)
+**When to use**: One-line fixes, simple validation, minor bugs, typos
+**When NOT to use**: Features, architecture, multi-file refactor (use `/00_plan`)
 
 ---
 
-## Step 0.5: GPT Delegation Trigger Check (MANDATORY)
-
-> **⚠️ CRITICAL**: Check for GPT delegation triggers before planning
-> **Full guide**: @.claude/rules/delegator/triggers.md
-
-| Trigger | Signal | Action |
-|---------|--------|--------|
-| Architecture decision | Keywords: "tradeoffs", "design", "structure", "architecture" | Delegate to GPT Architect |
-| Security concern | Keywords: "auth", "vulnerability", "credential", "security" | Delegate to GPT Security Analyst |
-
-**See**: @.claude/skills/rapid-fix/REFERENCE.md for delegation flow implementation
-
----
-
-## Step 1: Scope Validation (MANDATORY)
-
-> **Purpose**: Reject complex tasks before plan generation
-> **Algorithm**: Complexity score calculation (0.0-1.0 scale)
-
-**Threshold**: Score ≥0.5 → Reject, suggest `/00_plan`
-
-**Complexity Components**:
-- Input length >200 chars: +0.3
-- Architecture keywords: +0.3
-- >3 files mentioned: +0.2
-- Multiple tasks detected: +0.2
-
-**See**: @.claude/skills/rapid-fix/REFERENCE.md for detailed algorithm and rejection criteria
-
----
-
-## Step 2: Auto-Generate Minimal Plan (Internal Only)
-
-> **Purpose**: Generate minimal plan internally WITHOUT creating plan file
-> **Critical**: /04_fix should NOT create plan documents - this is a rapid workflow
-
-**Plan Structure** (internal, in-memory):
-- User Requirements (Verbatim)
-- PRP Analysis (What/Why/How)
-- Success Criteria (1-3 SCs)
-- Test Plan
-- Execution Plan
-
-**Key Point**:
-- Auto-generate plan structure internally
-- DO NOT write plan to `.pilot/plan/pending/` or `.pilot/plan/in_progress/`
-- Store plan metadata in environment variables for `/02_execute`
-
-**See**: @.claude/skills/rapid-fix/REFERENCE.md for plan template and time estimation
-
----
-
-## Step 3: Prepare Plan for /02_execute (Internal)
-
-> **Purpose**: Prepare plan context WITHOUT creating plan file
-> **Critical**: Skip file creation - use environment variables instead
+## Step 1: Validate Scope
 
 ```bash
-PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+# Check task complexity
+if echo "$1" | grep -qiE "(feature|architecture|refactor|design)"; then
+    echo "⚠️  Complex task detected"
+    echo "   Use /00_plan for: $1"
+    exit 1
+fi
 
-# DO NOT create plan file - use internal representation
-# Plan metadata passed to /02_execute via environment variables
-PLAN_METADATA="$PROJECT_ROOT/.pilot/.fix_plan_internal_$$"
+echo "✓ Scope validated: Simple fix"
+```
 
-# Store plan content in temporary file (deleted after execution)
-cat > "$PLAN_METADATA" << 'EOF'
-# Auto-Generated Fix Plan (Internal)
-## User Requirements
-[Requirements from user input]
+---
+
+## Step 2: Create Mini-Plan
+
+```bash
+TS="$(date +%Y%m%d_%H%M%S)"
+PLAN_FILE=".pilot/plan/draft/${TS}_rapid_fix.md"
+mkdir -p .pilot/plan/draft
+
+cat > "$PLAN_FILE" << EOF
+# Rapid Fix: $1
 
 ## Success Criteria
-[1-3 SCs for simple fix]
+- [ ] **SC-1**: Fix applied and verified
+- [ ] **SC-2**: Tests pass
+- [ ] **SC-3**: No regressions
 
-## Test Plan
-[Test scenarios]
+## PRP Analysis
+### What: Fix bug - $1
+### Why: Resolves issue
+### How: Apply minimal change
 EOF
 
-# Set environment variable to pass plan to /02_execute
-export PILOT_FIX_MODE=1
-export PILOT_FIX_PLAN="$PLAN_METADATA"
-
-echo "✓ Internal plan generated (not persisted to filesystem)"
-```
-
-**Important**: After `/02_execute` completes, clean up temporary file:
-```bash
-rm -f "$PLAN_METADATA"
+echo "✓ Plan created: $PLAN_FILE"
 ```
 
 ---
 
-## Step 4: Prepare for /02_execute (Informational)
+## Step 3: Execute Fix
 
-> **Note**: Continuation state will be created by `/02_execute` automatically
-
-The `/02_execute` command will:
-- Check for existing continuation state
-- Create new state if not exists
-- Update state on each Ralph Loop iteration
-- Handle max-iteration safety
-
-No action needed here - state management is delegated to `/02_execute`.
-
----
-
-## Step 5: Execute Plan with TDD + Ralph Loop
-
-> **Purpose**: Auto-execute by calling /02_execute with generated plan
-
-**Execution Flow**:
-1. Read plan from `$PLAN_PATH`
-2. Implement SCs using TDD (Red-Green-Refactor)
-3. Run Ralph Loop until all quality gates pass
-4. Update continuation state on each iteration
-
-```bash
-echo ""
-echo "════════════════════════════════════════════════════════════"
-echo "🚀 Executing Fix Plan via /02_execute"
-echo "════════════════════════════════════════════════════════════"
-echo ""
-echo "Plan: $PLAN_PATH"
-echo "Branch: $BRANCH"
-echo ""
-
-# Set environment variable to indicate this is a /04_fix execution
-export PILOT_FIX_MODE=1
-export PILOT_FIX_PLAN="$PLAN_PATH"
-
-# Execute the plan using /02_execute
-/02_execute
-
-# Capture execution result
-EXEC_RESULT=$?
-
-echo ""
-echo "→ /02_execute completed with result: $EXEC_RESULT"
-```
-
-**See**: @.claude/skills/rapid-fix/REFERENCE.md for integration notes and state management
-
----
-
-## Step 6: Verify Completion and Cleanup Internal Plan
-
-After Coder agent completes:
-
-```bash
-# Check continuation state for completion
-STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
-
-if [ -f "$STATE_FILE" ]; then
-    INCOMPLETE_TODOS="$(cat "$STATE_FILE" | jq -r '.todos[] | select(.status != "complete") | .id')"
-    INCOMPLETE_COUNT="$(echo "$INCOMPLETE_TODOS" | grep -c '^' || echo 0)"
-
-    if [ "$INCOMPLETE_COUNT" -gt 0 ]; then
-        echo ""
-        echo "⚠️  Work incomplete: $INCOMPLETE_COUNT todos remaining"
-        echo ""
-        echo "→ Use /continue to resume work"
-        echo ""
-
-        # Clean up internal plan file
-        rm -f "$PLAN_METADATA"
-
-        exit 0
-    fi
-fi
-
-echo "✅ All todos complete"
-
-# Clean up internal plan file
-rm -f "$PLAN_METADATA"
-echo "✓ Internal plan cleaned up"
+```markdown
+Task: subagent_type: coder
+prompt: |
+  Execute rapid fix: $PLAN_FILE
+  Skills: tdd, ralph-loop
+  Use TDD: Write test, implement fix, verify
 ```
 
 ---
 
-## Step 7: User Confirmation Before Auto-Close
-
-> **Purpose**: User must approve changes before commit (SC-4)
-
-**Show Diff and Prompt**:
+## Step 4: Show Diff & Confirm
 
 ```bash
-echo ""
-echo "════════════════════════════════════════════════════════════"
-echo "📋 Review Changes Before Commit"
-echo "════════════════════════════════════════════════════════════"
-echo ""
-
-# Show git diff
-git diff HEAD
-
-echo ""
-echo "════════════════════════════════════════════════════════════"
-echo ""
-
-# Prompt user for confirmation
-echo "Commit these changes? (y/n)"
-
-# Default: Require explicit confirmation
-COMMIT_CONFIRM="${COMMIT_CONFIRM:-false}"
-
-if [ "$COMMIT_CONFIRM" != "true" ]; then
-    echo "ℹ️  Commit confirmation required"
-    echo "   Set COMMIT_CONFIRM=true to proceed with commit"
-    echo ""
-    echo "→ Plan complete but not closed. Run:"
-    echo "   COMMIT_CONFIRM=true /03_close"
-    exit 0
-fi
+git diff
+AskUserQuestion: Approve fix? A) Commit B) Discard
 ```
-
-**See**: @.claude/skills/rapid-fix/REFERENCE.md for confirmation flow details
 
 ---
 
-## Step 8: Auto-Close on Success
-
-> **Purpose**: Archive plan and create commit (if user confirmed)
-> **Critical**: /04_fix does NOT create plan files, so skip plan archival
+## Step 5: Commit or Discard
 
 ```bash
-if [ "$COMMIT_CONFIRM" = "true" ]; then
-    echo "→ Creating commit..."
-
-    # Note: No plan to archive (internal plan was already cleaned up)
-    # /04_fix does not create plan files in .pilot/plan/
-
-    # Create git commit
-    cd "$PROJECT_ROOT" || exit 1
-
-    # Generate commit message
-    TITLE="Fix: $(echo "$BUG_DESCRIPTION" | head -c 50)"
-    COMMIT_MSG="${TITLE}
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-
-    git add -A
-    git commit -m "$COMMIT_MSG"
-
-    echo "✓ Git commit created"
-
-    # Delete continuation state
-    rm -f "$STATE_FILE"
-    echo "✓ Continuation state cleaned up"
-
-    echo ""
-    echo "✅ Fix complete!"
-    echo ""
+if [ "$APPROVED" = "yes" ]; then
+    git add -A && git commit -m "fix: $1" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
 else
-    echo "→ Commit not created (awaiting confirmation)"
+    git checkout .
 fi
 ```
 
-**See**: @.claude/skills/rapid-fix/REFERENCE.md for close process details
-
 ---
 
-## Success Criteria
+**Related Skills**: rapid-fix | tdd | git-master
 
-- [ ] Scope validation passed (complexity <0.5)
-- [ ] Plan created with 1-3 SCs
-- [ ] Plan executed with TDD + Ralph Loop
-- [ ] All tests pass
-- [ ] Coverage ≥80%
-- [ ] Type check clean
-- [ ] Lint clean
-- [ ] User confirmed changes before commit
-- [ ] Plan archived to done/
-- [ ] Git commit created
-
----
-
-## Continuation Support
-
-If work is incomplete:
-- Continuation state preserved in `.pilot/state/continuation.json`
-- Run `/continue` to resume work
-- Max 7 Ralph Loop iterations before manual intervention required
-
-**See**: @.claude/skills/rapid-fix/REFERENCE.md for continuation workflow
-
----
-
-## Related Commands
-
-- **/00_plan** - For complex tasks requiring full planning
-- **/continue** - Resume incomplete work
-- **/02_execute** - Standard execution workflow
-- **/03_close** - Manual plan closure
-
-**Detailed Reference**: @.claude/skills/rapid-fix/REFERENCE.md
+**⚠️ LIMITATION**: Max 3 SCs. Complex tasks → `/00_plan`

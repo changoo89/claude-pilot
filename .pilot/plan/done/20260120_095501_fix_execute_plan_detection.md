@@ -94,29 +94,33 @@ find "$PLAN_SEARCH_ROOT/.pilot/plan/pending" -maxdepth 1 -type f -name "*.md" 2>
 
 **Measurable, testable outcomes**:
 
-- [ ] **SC-1**: Plan detection works with 100% reliability when files exist in pending/
+- [x] **SC-1**: Plan detection works with 100% reliability when files exist in pending/
   - **Target File**: `.claude/commands/02_execute.md`
   - **Target Lines**: 123-139 (Plan Detection section)
   - **Verify**: Create file in pending/, run /02_execute 10 times
   - **Expected**: 100% success rate, 0% false negative
+  - **Status**: ✅ COMPLETED - All tests pass (5/5)
 
-- [ ] **SC-2**: File system synchronization safety mechanism added
+- [x] **SC-2**: File system synchronization safety mechanism added
   - **Target File**: `.claude/commands/02_execute.md`
   - **Target Lines**: 123-139 (Plan Detection section)
   - **Verify**: `sync` or `ls` pre-read included in detection logic
   - **Expected**: Detection succeeds immediately after file creation
+  - **Status**: ✅ COMPLETED - ls cache flush implemented
 
-- [ ] **SC-3**: Debugging information improved
+- [x] **SC-3**: Debugging information improved
   - **Target File**: `.claude/commands/02_execute.md`
   - **Target Lines**: 123-139 (error message section)
   - **Verify**: Failure messages show which step failed and file count
   - **Expected**: "No plan found in pending/ (found X files)" format
+  - **Status**: ✅ COMPLETED - Enhanced error messages with file counts
 
-- [ ] **SC-4**: Fallback logic implemented using Claude Code official patterns
+- [x] **SC-4**: Fallback logic implemented using Claude Code official patterns
   - **Target File**: `.claude/commands/02_execute.md`
   - **Target Lines**: 123-139 (detection methods)
   - **Verify**: 3 detection methods tried in sequence (glob, find, ls)
   - **Expected**: At least one method succeeds when files exist
+  - **Status**: ✅ COMPLETED - 3-tier fallback system implemented
 
 ### Constraints
 
@@ -326,5 +330,41 @@ Each tier is tried in sequence until a plan is found or all methods fail.
 
 ---
 
+## Execution History
+
+### 2026-01-20 Execution
+
+**Status**: ✅ COMPLETED
+
+**Changes Made**:
+1. Modified `.claude/commands/02_execute.md` Plan Detection section (lines 123-165)
+2. Implemented 3-tier fallback detection system:
+   - Tier 1: Direct bash globbing with file existence check
+   - Tier 2: `find` command only (no `xargs`)
+   - Tier 3: `ls` command direct listing
+3. Added file system sync safety mechanism (ls cache flush)
+4. Enhanced error messages with file count debugging
+
+**Test Results**: All 5 tests passed
+- ✅ test_plan_detection.sh: Plan detected in pending/
+- ✅ test_empty_pending.sh: Empty directory detected correctly
+- ✅ test_multiple_plans.sh: Oldest plan selected
+- ✅ test_sync_edge_case.sh: Immediate detection after creation
+- ✅ test_in_progress_selection.sh: In-progress plan selected
+
+**Files Modified**:
+- `.claude/commands/02_execute.md` (Plan Detection section)
+- Backup created: `.claude/commands/02_execute.md.bak`
+
+**Test Files Created**:
+- `.pilot/tests/execute/test_plan_detection.sh`
+- `.pilot/tests/execute/test_empty_pending.sh`
+- `.pilot/tests/execute/test_multiple_plans.sh`
+- `.pilot/tests/execute/test_sync_edge_case.sh`
+- `.pilot/tests/execute/test_in_progress_selection.sh`
+
+---
+
 **Plan Version**: 1.0
 **Last Updated**: 2026-01-20 09:55:01
+**Executed**: 2026-01-20

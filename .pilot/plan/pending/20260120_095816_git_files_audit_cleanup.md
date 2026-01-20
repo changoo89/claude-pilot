@@ -53,7 +53,7 @@
 - 547 files tracked by git, including unnecessary files
 - Backup files (`.backup`, `.bak`) tracked in version control
 - `.claude-pilot/` prefix appears to duplicate files (7 files)
-- Historical plan files accumulate in `.pilot/plan/done/` (131 files)
+- Historical plan files accumulate in `.pilot/plan/done/` (137 files)
 - External skills bundle may contain unnecessary third-party code
 
 **Business Value**:
@@ -95,16 +95,19 @@
 ### Success Criteria
 
 - [ ] **SC-1**: Complete audit report with file categorization
-  - Verify: Report contains all 547 files categorized
+  - Verify: `grep -c "^|" audit_report.md` shows 547+ entries (header + all files)
   - Expected: Clear categories (core, backup, temp, duplicate, runtime state, historical)
+  - Command: Check report file exists at `.pilot/audit_report.md`
 
 - [ ] **SC-2**: Identify files for removal with justification
-  - Verify: Each removable file has reason documented
-  - Expected: List grouped by category (backup, temp, duplicate, runtime state)
+  - Verify: `grep -E "(\.backup|\.bak|\.tmp)" removable_files.txt | wc -l` shows 7 files
+  - Expected: List grouped by category (backup: 6 files, temp: 1 file, runtime: 137, duplicate: 7)
+  - Command: Check removal list contains all 151 files (137+7+7=151)
 
 - [ ] **SC-3**: Provide actionable cleanup recommendations
-  - Verify: Safe git commands provided for each removal category
+  - Verify: Plan contains "Cleanup Commands" section with executable git commands
   - Expected: Step-by-step cleanup plan with verification steps
+  - Command: `grep -E "^git rm" plan.md | wc -l` shows 4+ commands
 
 ### Constraints
 
@@ -243,20 +246,22 @@ No data flow changes - this is a repository hygiene task.
 
 1. **Phase 1: Update .gitignore** (coder, 5 min)
    - Add `.pilot/` to .gitignore
-   - Verify pattern coverage
+   - Verify pattern coverage with `git check-ignore -v .pilot/plan/test.md`
 
 2. **Phase 2: Remove Runtime State** (coder, 5 min)
-   - `git rm -r .pilot/` (131 files)
+   - `git rm -r .pilot/` (137 files)
    - `git rm -r .claude-pilot/` (7 files)
 
 3. **Phase 3: Remove Backup Files** (coder, 5 min)
    - Remove `.claude/guides/.backup/*` (3 files)
    - Remove `.claude/scripts/codex-sync.sh.backup`
+   - Remove `.pilot/state/continuation.json.backup`
+   - Remove `.pilot/state/continuation.json.final.backup`
    - Remove `CLAUDE.md.backup`
    - Remove `.tmp`
 
 4. **Phase 4: Verify and Commit** (validator, 5 min)
-   - Verify `git status` shows expected removals
+   - Verify `git status` shows expected 151 removals
    - Commit with descriptive message
    - Verify repository still functional
 
@@ -272,9 +277,10 @@ No data flow changes - this is a repository hygiene task.
   - Verify: `.gitignore` contains `.pilot/` pattern
   - Expected: Pattern present and effective
 
-- [ ] **AC-3**: 139 files removed from git tracking
-  - Verify: `git ls-files | wc -l` shows ~408 files (down from 547)
-  - Expected: 131 .pilot/ + 7 .claude-pilot/ + 1 .tmp = 139 files removed
+- [ ] **AC-3**: 151 files removed from git tracking
+  - Verify: `git ls-files | wc -l` shows ~396 files (down from 547)
+  - Expected: 137 .pilot/ + 7 .claude-pilot/ + 7 backup/temp = 151 files removed
+  - Command: `git status | grep "deleted:" | wc -l` shows 151
 
 - [ ] **AC-4**: Plugin functionality preserved
   - Verify: Plugin structure intact
@@ -287,10 +293,11 @@ No data flow changes - this is a repository hygiene task.
 | ID | Scenario | Expected | Type |
 |----|----------|----------|------|
 | TS-1 | File categorization complete | All 547 files categorized | N/A (report generation) |
-| TS-2 | Backup file detection | 8 backup/temp files found | N/A (analysis) |
-| TS-3 | Duplicate detection | 7 `.claude-pilot/` files identified | N/A (analysis) |
-| TS-4 | Cleanup commands execute | `git status` shows removals | Integration |
-| TS-5 | Plugin verification | `.claude/commands/` still present | Integration |
+| TS-2 | Backup file detection | 7 backup/temp files found | N/A (analysis) |
+| TS-3 | Runtime state detection | 137 `.pilot/` files identified | N/A (analysis) |
+| TS-4 | Duplicate detection | 7 `.claude-pilot/` files identified | N/A (analysis) |
+| TS-5 | Cleanup commands execute | `git status` shows 151 deletions | Integration |
+| TS-6 | Plugin verification | `.claude/commands/` still present | Integration |
 
 ---
 

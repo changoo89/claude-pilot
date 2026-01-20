@@ -92,22 +92,109 @@
    - Extensions: `*.tmp`, `*.temp`, `*.cache`
    - Directories: `.tmp/`, `tmp/`, `cache/`, `temp/`
 
-5. **Orphaned documentation detection**
-   - Find all `.md` files
-   - Check cross-references: `\[.*\]\(.*\.md\)` patterns
-   - Exclude auto-generated, active plans, index files
-   - Detect files with zero inbound references
+5. **Orphaned documentation detection** (DETAILED SPECIFICATION)
 
-6. **Document risk classification**
-   - **Low**: Backup files, temporary files, orphaned drafts
-   - **Medium**: Old plan files (`.pilot/plan/done/` older than 30 days), unused docs in `docs/`
-   - **High**: README.md, CLAUDE.md, docs/ index files, currently referenced docs
+**Definition of "Orphaned Document"**: A markdown file with ZERO inbound markdown references from other files in the repository.
+
+**Inbound Reference Types** (all counted):
+- Markdown inline links: `[text](path/to/file.md)`
+- Markdown reference-style links: `[text][ref]` where `[ref]: path/to/file.md`
+- Links with anchors: `[text](file.md#section)` (counts as reference to file.md)
+- URL-encoded paths: `[text](file%20name.md)` (decode before matching)
+- Case-insensitive matching: `FILE.MD` == `file.md`
+
+**Path Resolution Rules**:
+- Relative paths resolved from referencing file's directory
+- Absolute paths (starting with `/`) resolved from repository root
+- Parent directory references (`../`) handled correctly
+- Index files implicit: Link to `dir/` counts as reference to `dir/README.md` or `dir/index.md`
+
+**Scan Scope**:
+- **Primary scan**: All `.md` files in repository root and `docs/` directory
+- **Excluded from scan** (never checked for orphan status):
+  - `.pilot/plan/pending/**` (active work)
+  - `.pilot/plan/in_progress/**` (active work)
+  - `.claude/**` (plugin internals)
+  - `node_modules/**` (dependencies)
+  - `.git/**` (git internals)
+  - `vendor/**` (third-party)
+  - `dist/**`, `build/**` (build artifacts)
+
+**Auto-Generated Detection** (exclude from orphan detection):
+- Files with marker comment: `<!-- AUTO-GENERATED -->` or `<!-- @generated -->`
+- Files in `docs/generated/` directory
+- Files with `DO NOT EDIT` header comment
+
+**Protected Files** (always High-risk, never auto-delete):
+- `README.md` (any directory)
+- `CLAUDE.md`, `CLAUDE.local.md`
+- `INDEX.md`, `index.md` (any directory)
+- Files referenced from root `README.md`
+
+6. **Document risk classification** (ENHANCED RULES)
+
+**Low Risk** (auto-apply):
+- Backup files by location+pattern: In `.backup*/`, `.claude.backup.*`, OR matching `*.backup*`, `*.bak`, `*~`, `*.old`
+- Temporary files by location+pattern: In `.tmp/`, `tmp/`, OR matching `*.tmp`, `*.temp`
+- Files in `docs/` matching `*draft*`, `*wip*`, `*scratch*`
+
+**Medium Risk** (auto-apply):
+- Old plan files in `.pilot/plan/done/` (modified >30 days ago, verified by `git log -1 --until="30 days ago"`)
+- Unused docs in `docs/` (not referenced, not protected, not auto-generated)
+- Files matching `*archive*`, `*deprecated*`, `*old*`
+
+**High Risk** (confirmation required):
+- `README.md`, `CLAUDE.md`, `INDEX.md`, `index.md` (explicitly enumerated)
+- Files in `docs/` root directory (docs/guide.md, docs/api.md, etc.)
+- Currently referenced docs (has inbound links from other files)
+- ANY file with uncommitted modifications (pre-flight safety)
+
+**Age-Based Risk Adjustment**:
+- Files created/modified within last 7 days: +1 risk level (Low→Medium, Medium→High)
+- Files not modified in >90 days: -1 risk level (High→Medium, Medium→Low)
 
 7. **Integration with existing workflow**
    - Reuse `calculate_risk_level()` function with document patterns
    - Reuse `apply_file()` and `verify_and_rollback()` functions
    - Reuse pre-flight safety check for modified files
    - Follow same dry-run, auto-apply, and --apply patterns
+
+**Deletion Mechanics and Safety Model** (CRITICAL):
+
+**Tracked Files** (in git):
+- Use `git rm` for deletion (staged for commit)
+- Rollback: `git restore --source=HEAD --staged --worktree -- <file>`
+- Files are recoverable from git history until commit
+
+**Untracked Files** (not in git):
+- Move to `.trash/` directory (not immediate deletion)
+- Rollback: `mv .trash/$(basename <file>) $(dirname <file>)/`
+- `.trash/` is gitignored
+
+**Verification Command** (run after each batch of 10 deletions):
+- For tracked files: `git status --porcelain` (verify files removed)
+- For untracked files: Check `.trash/` count matches deletion count
+- Final verification: Run project-specific command if defined in CLAUDE.local.md
+
+**Quarantine Strategy** (recommended for safety):
+1. **Phase 1**: Move to `.trash/` (all files)
+2. **Verification**: Run tests, check for broken links
+3. **Phase 2**: If verification passes, permanent delete from `.trash/`
+4. **Rollback**: Restore from `.trash/` if verification fails
+
+**Golden Output for Dry-Run** (testable format):
+```markdown
+| Item | Reason | Detection | Risk | Verification | Rollback |
+|------|--------|-----------|------|-------------|----------|
+| .claude.backup.20260115/ | Backup directory | Tier 3 | Low | git status | mv .trash/ |
+| docs/draft.md | Orphaned (0 refs) | Tier 3 | Medium | git status | mv .trash/ |
+```
+
+**Non-Interactive Confirmation Testing**:
+- Test with `--apply` flag (bypasses confirmation)
+- Verify AskUserQuestion NOT called for Low/Medium risk
+- Verify AskUserQuestion called for High risk (check log output)
+- Use mock AskUserQuestion for automated testing
 
 **Dependencies**:
 - Existing `05_cleanup.md` infrastructure
@@ -434,18 +521,25 @@ Extend the existing 3-tier cleanup system to add a 4th tier for documents:
 
 ## Test Plan
 
-| ID | Scenario | Input | Expected | Type | Test File |
-|----|----------|-------|----------|------|-----------|
-| TS-1 | Detect backup files | Test repo with `*.backup`, `*.bak` files | All backup files detected | Unit | `.pilot/tests/test_cleanup_docs.sh::test_backup_detection` |
-| TS-2 | Detect temp files | Test repo with `.tmp/`, `*.tmp` files | All temp files detected | Unit | `.pilot/tests/test_cleanup_docs.sh::test_temp_detection` |
-| TS-3 | Detect orphaned docs | Test repo with unreferenced `.md` file | Orphaned file detected | Unit | `.pilot/tests/test_cleanup_docs.sh::test_orphan_detection` |
-| TS-4 | Cross-reference validation | Test repo with linked `.md` files | Referenced files NOT flagged | Unit | `.pilot/tests/test_cleanup_docs.sh::test_crossref_validation` |
-| TS-5 | Risk classification | Test backup (Low), old plan (Medium), README (High) | Correct risk levels | Unit | `.pilot/tests/test_cleanup_docs.sh::test_risk_classification` |
-| TS-6 | Pre-flight safety | Modified README.md in test repo | Modified file blocked | Integration | `.pilot/tests/test_cleanup_docs.sh::test_preflight_safety` |
-| TS-7 | Dry-run mode | `/05_cleanup mode=docs --dry-run` | Shows candidates, no deletion | Integration | `.pilot/tests/test_cleanup_docs.sh::test_dry_run` |
-| TS-8 | Auto-apply Low/Medium risk | Test repo with Low/Medium risk docs | Auto-applied without confirmation | Integration | `.pilot/tests/test_cleanup_docs.sh::test_auto_apply` |
-| TS-9 | High-risk confirmation | Test repo with High-risk docs | AskUserQuestion called | Integration | `.pilot/tests/test_cleanup_docs.sh::test_high_risk_confirm` |
-| TS-10 | Exclude active plans | Test repo with `pending/`, `in_progress/` plans | Active plans excluded | Unit | `.pilot/tests/test_cleanup_docs.sh::test_exclude_active_plans` |
+| ID | Scenario | Input | Expected | Type | Test File | Verification Method |
+|----|----------|-------|----------|------|-----------|---------------------|
+| TS-1 | Detect backup files | Test repo with `*.backup`, `*.bak` files | All backup files detected | Unit | `.pilot/tests/test_cleanup_docs.sh::test_backup_detection` | Count matches `find -name "*.backup" -o -name "*.bak"` |
+| TS-2 | Detect temp files | Test repo with `.tmp/`, `*.tmp` files | All temp files detected | Unit | `.pilot/tests/test_cleanup_docs.sh::test_temp_detection` | Count matches `find .tmp/ -o -name "*.tmp"` |
+| TS-3 | Detect orphaned docs | Test repo with unreferenced `.md` file | Orphaned file detected | Unit | `.pilot/tests/test_cleanup_docs.sh::test_orphan_detection` | Unreferenced file in candidates table |
+| TS-4 | Cross-reference validation | Test repo with linked `.md` files | Referenced files NOT flagged | Unit | `.pilot/tests/test_cleanup_docs.sh::test_crossref_validation` | Referenced file NOT in candidates table |
+| TS-5 | Risk classification | Test backup (Low), old plan (Medium), README (High) | Correct risk levels | Unit | `.pilot/tests/test_cleanup_docs.sh::test_risk_classification` | Risk column shows Low/Medium/High |
+| TS-6 | Pre-flight safety | Modified README.md in test repo | Modified file blocked | Integration | `.pilot/tests/test_cleanup_docs.sh::test_preflight_safety` | Risk shows "High (blocked)", rollback in place |
+| TS-7 | Dry-run mode | `/05_cleanup mode=docs --dry-run` | Shows candidates, no deletion | Integration | `.pilot/tests/test_cleanup_docs.sh::test_dry_run` | Output table non-empty, files still exist |
+| TS-8 | Auto-apply Low/Medium risk | Test repo with Low/Medium risk docs | Auto-applied without confirmation | Integration | `.pilot/tests/test_cleanup_docs.sh::test_auto_apply` | Files moved to .trash/, no AskUserQuestion in log |
+| TS-9 | High-risk confirmation | Test repo with High-risk docs | AskUserQuestion called | Integration | `.pilot/tests/test_cleanup_docs.sh::test_high_risk_confirm` | Log contains "AskUserQuestion" for High risk |
+| TS-10 | Exclude active plans | Test repo with `pending/`, `in_progress/` plans | Active plans excluded | Unit | `.pilot/tests/test_cleanup_docs.sh::test_exclude_active_plans` | Active plans NOT in candidates table |
+
+**Coverage Verification** (objective measure):
+- **Function coverage**: Each detection function has dedicated test (backup, temp, orphan, crossref, risk)
+- **Branch coverage**: Risk classification tests all 3 levels (Low, Medium, High)
+- **Integration coverage**: End-to-end workflow tested (dry-run, auto-apply, confirmation)
+- **Assertion count**: Minimum 30 assertions across all test functions
+- **Pass rate**: 100% (all tests must pass)
 
 ---
 
@@ -469,6 +563,47 @@ Extend the existing 3-tier cleanup system to add a 4th tier for documents:
 ---
 
 ## Review History
+
+### 2026-01-20 - GPT Plan Reviewer (BLOCKING → Fixed)
+
+**Summary**: GPT Plan Reviewer rejected initial plan due to underspecified behaviors
+
+**Findings** (BLOCKING):
+- BLOCKING: 5 critical issues identified
+  1. "Orphaned doc" definition not precise enough
+  2. Scan scope and exclusions not locked down
+  3. Deletion mechanics and safety model not specified
+  4. Risk classification rules too loose
+  5. Tests not objectively verifiable
+
+**Changes Made** (Interactive Recovery):
+1. **Added detailed orphan detection specification**:
+   - Defined all inbound reference types (inline, reference-style, anchors, URL-encoded, case-insensitive)
+   - Specified path resolution rules (relative, absolute, parent, index)
+   - Listed scan scope and exclusions (pending/, in_progress/, .claude/, node_modules/, etc.)
+   - Added auto-generated detection rules
+   - Enumerated protected files (README.md, CLAUDE.md, INDEX.md, index.md)
+
+2. **Enhanced risk classification rules**:
+   - Low Risk: Backup/temp files by location+pattern
+   - Medium Risk: Old plans (>30 days), unused docs, archive/deprecated/old files
+   - High Risk: Protected files, docs root files, currently referenced, modified files
+   - Added age-based risk adjustment (+7 days, -90 days)
+
+3. **Specified deletion mechanics and safety model**:
+   - Tracked files: `git rm`, rollback with `git restore`
+   - Untracked files: Move to `.trash/`, rollback with `mv`
+   - Verification commands after each batch
+   - Quarantine strategy (move → verify → permanent delete)
+   - Golden output format for dry-run testing
+   - Non-interactive confirmation testing methods
+
+4. **Made tests objectively verifiable**:
+   - Added "Verification Method" column with specific commands
+   - Added objective coverage measures (function, branch, integration)
+   - Specified assertion count (minimum 30) and pass rate (100%)
+
+**Updated Sections**: How (Approach) - Sections 5, 6, 7; Test Plan; Review History
 
 ### 2026-01-20 - Auto-Review
 

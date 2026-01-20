@@ -120,28 +120,12 @@ if [ -f "$WORKTREE_PERSIST_FILE" ]; then
 fi
 ```
 
-**Plan detection** (oldest-first selection with 3-tier fallback):
+**Plan detection** (oldest-first selection):
 ```bash
 PLAN_PATH="${EXPLICIT_PATH}"
 PLAN_SEARCH_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
-
-# Step 0: File system cache flush (sync safety)
-ls "$PLAN_SEARCH_ROOT/.pilot/plan/pending" >/dev/null 2>&1 || true
-
-# Step 1: Method 1 - Direct globbing (most reliable)
-if [ -z "$PLAN_PATH" ]; then
-    PLAN_PATH="$(printf "%s\n" "$PLAN_SEARCH_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | while read -r f; do [ -f "$f" ] && printf "%s\n" "$f"; done | sort | head -1)"
-fi
-
-# Step 2: Method 2 - find only (no xargs)
-if [ -z "$PLAN_PATH" ]; then
-    PLAN_PATH="$(find "$PLAN_SEARCH_ROOT/.pilot/plan/pending" -maxdepth 1 -type f -name "*.md" 2>/dev/null | sort | head -1)"
-fi
-
-# Step 3: Method 3 - ls direct (last resort)
-if [ -z "$PLAN_PATH" ]; then
-    PLAN_PATH="$(ls -1tr "$PLAN_SEARCH_ROOT/.pilot/plan/pending"/*.md 2>/dev/null | head -1)"
-fi
+# Select oldest pending plan (use find to avoid glob errors, ls -1tr for oldest first)
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(find "$PLAN_SEARCH_ROOT/.pilot/plan/pending" -maxdepth 1 -type f -name "*.md" 2>/dev/null | xargs ls -1tr 2>/dev/null | head -1)"
 
 if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
     PLAN_FILENAME="$(basename "$PLAN_PATH")"
@@ -151,18 +135,8 @@ if [ -n "$PLAN_PATH" ] && printf "%s" "$PLAN_PATH" | grep -q "/pending/"; then
     PLAN_PATH="$IN_PROGRESS_PATH"
 fi
 
-# Fallback to in_progress if no pending plans
-if [ -z "$PLAN_PATH" ]; then
-    PLAN_PATH="$(find "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress" -maxdepth 1 -type f -name "*.md" 2>/dev/null | sort | head -1)"
-fi
-
-# Enhanced debugging information
-if [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ]; then
-    COUNT_PENDING=$(find "$PLAN_SEARCH_ROOT/.pilot/plan/pending" -maxdepth 1 -type f -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-    COUNT_IN_PROGRESS=$(find "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress" -maxdepth 1 -type f -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-    echo "❌ No plan found (pending: $COUNT_PENDING, in_progress: $COUNT_IN_PROGRESS)" >&2
-    exit 1
-fi
+[ -z "$PLAN_PATH" ] && PLAN_PATH="$(find "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress" -maxdepth 1 -type f -name "*.md" 2>/dev/null | xargs ls -1t 2>/dev/null | head -1)"
+[ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ] && { echo "❌ No plan found" >&2; exit 1; }
 
 ACTIVE_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
 mkdir -p "$ACTIVE_ROOT/.pilot/plan/active"

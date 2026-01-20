@@ -1,18 +1,27 @@
 # claude-pilot ⭐
 
-**SPEC-First Development Workflow for Claude Code**
+**Claude Code workflow engine - SPEC-first planning, TDD automation, GPT delegation, and context engineering. From idea to production, discipline included.**
 
 > Autonomous agents. TDD-driven. Documentation sync.
 
+[![GitHub Stars](https://img.shields.io/github/stars/changoo89/claude-pilot?style=social)](https://github.com/changoo89/claude-pilot/stargazers)
 [![Version](https://img.shields.io/github/v/release/changoo89/claude-pilot)](https://github.com/changoo89/claude-pilot/releases)
 [![License](https://img.shields.io/github/license/changoo89/claude-pilot)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/changoo89/claude-pilot)](https://github.com/changoo89/claude-pilot/stargazers)
+[![CI](https://img.shields.io/github/actions/workflow/status/changoo89/claude-pilot/release.yml?branch=main)](https://github.com/changoo89/claude-pilot/actions)
 
 ---
 
-## Why claude-pilot?
+## 💡 Why claude-pilot?
 
-Stop planning in your head. Start with SPECs, iterate with agents, review with confidence.
+Claude Code is powerful, but unstructured. **claude-pilot adds discipline:**
+
+- ❌ **Vague prompts** → ✅ **PRP pattern** (What, Why, How, Success Criteria)
+- ❌ **Manual iteration** → ✅ **Ralph Loop** (autonomous TDD until tests pass)
+- ❌ **Context bloat** → ✅ **3-Tier docs** (optimized token usage)
+- ❌ **Stuck on bugs** → ✅ **GPT delegation** (fresh perspective after 2nd failure)
+- ❌ **Documentation drift** → ✅ **Auto-sync** (docs stay in sync with code)
+
+**Result**: Higher quality code, faster iteration, happier team.
 
 **Key Benefits**:
 - ✅ **SPEC-First**: Requirements before code

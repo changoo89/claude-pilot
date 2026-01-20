@@ -92,33 +92,42 @@
    - Extensions: `*.tmp`, `*.temp`, `*.cache`
    - Directories: `.tmp/`, `tmp/`, `cache/`, `temp/`
 
-5. **Orphaned documentation detection** (DETAILED SPECIFICATION)
+5. **Orphaned documentation detection** (DETAILED SPECIFICATION - SCOPE LOCKED)
 
 **Definition of "Orphaned Document"**: A markdown file with ZERO inbound markdown references from other files in the repository.
 
 **Inbound Reference Types** (all counted):
 - Markdown inline links: `[text](path/to/file.md)`
 - Markdown reference-style links: `[text][ref]` where `[ref]: path/to/file.md`
-- Links with anchors: `[text](file.md#section)` (counts as reference to file.md)
-- URL-encoded paths: `[text](file%20name.md)` (decode before matching)
-- Case-insensitive matching: `FILE.MD` == `file.md`
+- Links with anchors: `[text](file.md#section)` (counts as reference to file.md, anchor ignored for orphan check)
+- URL-encoded paths: `[text](file%20name.md)` (decode before matching: `file name.md`)
+- Case-insensitive matching: `FILE.MD` == `file.md` (casefold comparison)
+- Angle-bracket links: `<file.md>` (sometimes used in wikis)
 
 **Path Resolution Rules**:
-- Relative paths resolved from referencing file's directory
+- Relative paths resolved from referencing file's directory: `docs/guide.md` + `../api.md` = `api.md`
 - Absolute paths (starting with `/`) resolved from repository root
 - Parent directory references (`../`) handled correctly
-- Index files implicit: Link to `dir/` counts as reference to `dir/README.md` or `dir/index.md`
+- Index file precedence (in order): Link to `dir/` checks `dir/README.md` first, then `dir/index.md`
 
-**Scan Scope**:
-- **Primary scan**: All `.md` files in repository root and `docs/` directory
-- **Excluded from scan** (never checked for orphan status):
-  - `.pilot/plan/pending/**` (active work)
-  - `.pilot/plan/in_progress/**` (active work)
-  - `.claude/**` (plugin internals)
-  - `node_modules/**` (dependencies)
-  - `.git/**` (git internals)
-  - `vendor/**` (third-party)
-  - `dist/**`, `build/**` (build artifacts)
+**EXPLICIT SCAN SCOPE** (locked down, no contradictions):
+
+**A. Backup/Temp Detection** (pattern-based, NOT orphan-dependent):
+- Scan: All files in repository (recursive from root)
+- Match by: File extension (`*.backup`, `*.bak`, `*~`, `*.old`, `*.tmp`, `*.temp`) OR directory location (`.backup*`, `.tmp/`, `tmp/`, `cache/`)
+- Excludes: `.git/**`, `node_modules/**`, `vendor/**`, `dist/**`, `build/**`
+
+**B. Orphan Detection** (markdown-only, cross-reference-based - NO CONTRADICTIONS):
+- **SINGLE UNIFIED SCAN SCOPE**: All `.md` files in **repository root** AND **`docs/`** directory ONLY
+- **Inbound link sources**: Same `.md` files in **repository root** AND **`docs/`** directory ONLY
+- **Explicitly EXCLUDED from orphan scan**: `.pilot/plan/**` (ALL subdirectories: pending/, in_progress/, done/), `.claude/**`, `node_modules/**`, `vendor/**`, `dist/**`, `build/**`
+- **Note**: `.pilot/plan/done/**` is EXCLUDED from orphan detection (too risky to auto-delete completed work)
+- **Rationale**: Completed plans are historical records, not candidates for cleanup regardless of references
+
+**C. Risk Classification Scope** (applies to ALL detected files):
+- Backup/temp files: Repository-wide (any location)
+- Orphan candidates: Root + `docs/` ONLY (`.pilot/plan/done/` excluded from orphan detection, see section 5B)
+- Protected files: Repository-wide (any location)
 
 **Auto-Generated Detection** (exclude from orphan detection):
 - Files with marker comment: `<!-- AUTO-GENERATED -->` or `<!-- @generated -->`
@@ -129,9 +138,9 @@
 - `README.md` (any directory)
 - `CLAUDE.md`, `CLAUDE.local.md`
 - `INDEX.md`, `index.md` (any directory)
-- Files referenced from root `README.md`
+- Files referenced from root `README.md` (extract links with `grep -o '\\[.*\\](.*\\.md)' README.md`)
 
-6. **Document risk classification** (ENHANCED RULES)
+6. **Document risk classification** (ENHANCED RULES - AGE-BASED)
 
 **Low Risk** (auto-apply):
 - Backup files by location+pattern: In `.backup*/`, `.claude.backup.*`, OR matching `*.backup*`, `*.bak`, `*~`, `*.old`
@@ -139,19 +148,21 @@
 - Files in `docs/` matching `*draft*`, `*wip*`, `*scratch*`
 
 **Medium Risk** (auto-apply):
-- Old plan files in `.pilot/plan/done/` (modified >30 days ago, verified by `git log -1 --until="30 days ago"`)
-- Unused docs in `docs/` (not referenced, not protected, not auto-generated)
+- Unused docs in `docs/` (orphaned, not protected, not auto-generated)
 - Files matching `*archive*`, `*deprecated*`, `*old*`
+- Note: `.pilot/plan/done/` is excluded from orphan detection (too risky for auto-deletion)
 
 **High Risk** (confirmation required):
 - `README.md`, `CLAUDE.md`, `INDEX.md`, `index.md` (explicitly enumerated)
 - Files in `docs/` root directory (docs/guide.md, docs/api.md, etc.)
-- Currently referenced docs (has inbound links from other files)
-- ANY file with uncommitted modifications (pre-flight safety)
+- Currently referenced docs (has inbound links from other files in scan scope)
+- ANY file with uncommitted modifications (pre-flight safety, git-based check)
 
-**Age-Based Risk Adjustment**:
+**Age-Based Risk Adjustment** (git-based, fallback to filesystem):
+- For tracked files: Use `git log -1 --format="%ct" -- <file>` to get last commit timestamp
+- For untracked files: Use `stat -f "%m" <file>` or `stat -c "%Y" <file>` (filesystem modification time)
 - Files created/modified within last 7 days: +1 risk level (Low→Medium, Medium→High)
-- Files not modified in >90 days: -1 risk level (High→Medium, Medium→Low)
+- Files not modified in >90 days: -1 risk level (High→Medium, Medium→Low), floor at Low
 
 7. **Integration with existing workflow**
    - Reuse `calculate_risk_level()` function with document patterns
@@ -159,42 +170,78 @@
    - Reuse pre-flight safety check for modified files
    - Follow same dry-run, auto-apply, and --apply patterns
 
-**Deletion Mechanics and Safety Model** (CRITICAL):
+**Deletion Mechanics and Safety Model** (CRITICAL - CONSISTENT STRATEGY):
+
+**PRIMARY STRATEGY**: Two-tier deletion (tracked vs untracked)
 
 **Tracked Files** (in git):
-- Use `git rm` for deletion (staged for commit)
-- Rollback: `git restore --source=HEAD --staged --worktree -- <file>`
-- Files are recoverable from git history until commit
+- **Direct deletion**: Use `git rm` for immediate removal (staged for commit)
+- **Rollback**: `git restore --source=HEAD --staged --worktree -- <file>`
+- **Recoverability**: Files are recoverable from git history until commit
+- **Verification**: `git status --porcelain` shows deleted files as `D  <file>`
 
 **Untracked Files** (not in git):
-- Move to `.trash/` directory (not immediate deletion)
-- Rollback: `mv .trash/$(basename <file>) $(dirname <file>)/`
-- `.trash/` is gitignored
+- **Quarantine**: Move to `.trash/<timestamp>_/<relative_path>` (timestamped subdirectories prevent collisions)
+- **Rollback**: `mv .trash/<timestamp>_/<relative_path> <original_dir>/`
+- **Recoverability**: Files remain in `.trash/` until manual cleanup
+- **Verification**: Check `.trash/` directory count matches expected deletions
 
-**Verification Command** (run after each batch of 10 deletions):
-- For tracked files: `git status --porcelain` (verify files removed)
-- For untracked files: Check `.trash/` count matches deletion count
-- Final verification: Run project-specific command if defined in CLAUDE.local.md
+**CRITICAL: .trash/ Collision Prevention**:
+- **Problem**: Two files with same basename (e.g., `a/file.md` and `b/file.md`) collide in `.trash/`
+- **Solution**: Store full relative path with timestamp prefix: `.trash/20260120_120000/a/file.md`
+- **Rollback command**: `mv ".trash/20260120_120000/$relative_path" "$repo_root/$relative_path"`
+- **Directory recreation**: `mkdir -p "$(dirname "$repo_root/$relative_path")"` before restore
 
-**Quarantine Strategy** (recommended for safety):
-1. **Phase 1**: Move to `.trash/` (all files)
-2. **Verification**: Run tests, check for broken links
-3. **Phase 2**: If verification passes, permanent delete from `.trash/`
-4. **Rollback**: Restore from `.trash/` if verification fails
+**Batch Verification** (after each 10 deletions):
+```bash
+# For tracked files
+git status --porcelain | grep "^D " | wc -l  # Count deleted tracked files
+
+# For untracked files
+# Use $TIMESTAMP_PREFIX variable set at invocation time (consistent across session)
+ls -la .trash/ | grep "$TIMESTAMP_PREFIX" | wc -l  # Count files in current timestamp batch
+
+# Final verification (if defined in CLAUDE.local.md)
+if grep -q "verification_command:" CLAUDE.local.md 2>/dev/null; then
+  $(grep "verification_command:" CLAUDE.local.md | cut -d: -f2)
+fi
+```
+
+**Timestamp Unit**: One timestamp directory per `/05_cleanup` invocation (all files in one batch share same timestamp prefix)
+
+**Directory Handling** (explicit commands):
+```bash
+# Tracked files (including directories)
+git rm -r <directory>  # For directories
+git rm <file>           # For single files
+
+# Untracked files (quarantine to .trash/)
+TIMESTAMP_PREFIX=$(date +%Y%m%d_%H%M%S)
+mv <directory> .trash/$TIMESTAMP_PREFIX/<relative_path>/  # For directories (mv handles directories)
+mv <file> .trash/$TIMESTAMP_PREFIX/<relative_path>         # For single files
+
+# Directory recreation during rollback
+mkdir -p "$(dirname "$repo_root/$relative_path")"
+mv .trash/$TIMESTAMP_PREFIX/$relative_path $repo_root/$relative_path
+```
+
+**NO Separate Quarantine Phase**: The "quarantine strategy" mentioned earlier is simplified to:
+- **Tracked**: Direct `git rm` (git history serves as quarantine until commit)
+- **Untracked**: Move to `.trash/` with timestamp prefix (serves as quarantine)
 
 **Golden Output for Dry-Run** (testable format):
 ```markdown
 | Item | Reason | Detection | Risk | Verification | Rollback |
 |------|--------|-----------|------|-------------|----------|
-| .claude.backup.20260115/ | Backup directory | Tier 3 | Low | git status | mv .trash/ |
+| .claude.backup.20260115/ | Backup directory | Tier 3 | Low | git status | git restore |
 | docs/draft.md | Orphaned (0 refs) | Tier 3 | Medium | git status | mv .trash/ |
 ```
 
 **Non-Interactive Confirmation Testing**:
-- Test with `--apply` flag (bypasses confirmation)
-- Verify AskUserQuestion NOT called for Low/Medium risk
-- Verify AskUserQuestion called for High risk (check log output)
-- Use mock AskUserQuestion for automated testing
+- Test with `--apply` flag: Bypasses ALL AskUserQuestion calls
+- Test without `--apply`: Mock AskUserQuestion with environment variable `ASK_USER_QUESTION_RESPONSE=<choice_index>`
+- Log-based verification: Check output for "AskUserQuestion" string to confirm confirmation was requested
+- Automated test fixture: Source `.claude/mocks/ask-user-question.sh` which provides non-interactive responses
 
 **Dependencies**:
 - Existing `05_cleanup.md` infrastructure
@@ -239,7 +286,7 @@
 
 - [ ] **SC-7**: Write tests for document detection functionality
   - **Verify**: Run test suite with new document detection tests
-  - **Expected**: All tests pass, coverage ≥80%
+  - **Expected**: All tests pass, minimum 30 assertions, all detection functions covered
 
 - [ ] **SC-8**: Update command documentation and help text
   - **Verify**: Check frontmatter argument-hint includes docs mode
@@ -260,7 +307,7 @@
 - Must preserve `README.md`, `CLAUDE.md`, index files unless explicitly confirmed
 
 **Quality Constraints**:
-- **Coverage**: ≥80% overall, ≥90% for detection logic
+- **Test Coverage**: All 4 detection functions tested, all 3 risk levels tested, minimum 30 assertions (NO %-based targets, Bash scripts lack coverage tools)
 - **Type Safety**: N/A (Bash script)
 - **Code Quality**: Follow Vibe Coding (≤50 lines/function, ≤200 lines/file additions)
 - **Standards**: Consistent with existing `05_cleanup.md` patterns
@@ -296,7 +343,7 @@
 
 **Test Directory**: `.pilot/tests/`
 
-**Coverage Target**: 80%+ overall, 90%+ for detection logic
+**Coverage Target**: All 4 detection functions tested, all 3 risk levels tested, minimum 30 assertions (NO %-based targets, Bash scripts lack coverage tools)
 
 ---
 
@@ -492,7 +539,7 @@ Extend the existing 3-tier cleanup system to add a 4th tier for documents:
 | SC-7 | Write test_auto_apply test case | tester | 10 min | pending |
 | SC-7 | Write test_high_risk_confirm test case | tester | 10 min | pending |
 | SC-7 | Write test_exclude_active_plans test case | tester | 10 min | pending |
-| SC-7 | Run all tests and verify coverage ≥80% | validator | 5 min | pending |
+| SC-7 | Run all tests and verify minimum 30 assertions, all detection functions covered | validator | 5 min | pending |
 | SC-8 | Update command description in frontmatter | documenter | 5 min | pending |
 | SC-8 | Add docs mode examples to Safety & Examples section | documenter | 10 min | pending |
 | SC-8 | Update Step 9 verification command detection for docs | coder | 5 min | pending |
@@ -515,7 +562,7 @@ Extend the existing 3-tier cleanup system to add a 4th tier for documents:
 - [ ] **AC-5**: Document risk classification works correctly
 - [ ] **AC-6**: Auto-apply works for Low/Medium risk documents
 - [ ] **AC-7**: High-risk documents require confirmation
-- [ ] **AC-8**: All tests pass with coverage ≥80%
+- [ ] **AC-8**: All tests pass with minimum 30 assertions, all detection functions covered
 
 ---
 
@@ -534,12 +581,22 @@ Extend the existing 3-tier cleanup system to add a 4th tier for documents:
 | TS-9 | High-risk confirmation | Test repo with High-risk docs | AskUserQuestion called | Integration | `.pilot/tests/test_cleanup_docs.sh::test_high_risk_confirm` | Log contains "AskUserQuestion" for High risk |
 | TS-10 | Exclude active plans | Test repo with `pending/`, `in_progress/` plans | Active plans excluded | Unit | `.pilot/tests/test_cleanup_docs.sh::test_exclude_active_plans` | Active plans NOT in candidates table |
 
-**Coverage Verification** (objective measure):
-- **Function coverage**: Each detection function has dedicated test (backup, temp, orphan, crossref, risk)
-- **Branch coverage**: Risk classification tests all 3 levels (Low, Medium, High)
-- **Integration coverage**: End-to-end workflow tested (dry-run, auto-apply, confirmation)
+**Coverage Verification** (objective measure, NO tool-based coverage):
+- **Detection function coverage**: All 4 detection functions tested (backup, temp, orphan, crossref)
+  - Verify: Each function has dedicated test in test_cleanup_docs.sh
+  - Check: `grep -c "test_.*_detection\|test_.*_validation" test_cleanup_docs.sh | wc -l` >= 4
+- **Risk classification coverage**: All 3 risk levels tested (Low, Medium, High)
+  - Verify: Risk level tested for each category
+  - Check: Test includes `assert_contains "Low"`, `assert_contains "Medium"`, `assert_contains "High"`
+- **Integration coverage**: End-to-end workflow tested
+  - Verify: Dry-run, auto-apply, high-risk confirmation all tested
+  - Check: `grep -c "test_dry_run\|test_auto_apply\|test_high_risk_confirm" test_cleanup_docs.sh | wc -l` >= 3
 - **Assertion count**: Minimum 30 assertions across all test functions
+  - Verify: `grep -c "assert\|verify\|check" test_cleanup_docs.sh | wc -l` >= 30
 - **Pass rate**: 100% (all tests must pass)
+  - Verify: Test script returns 0 only if all assertions pass
+
+**Note**: Bash scripts don't have standard coverage tools like Istanbul/nyc. The above measures provide objective verification without requiring additional tools.
 
 ---
 
@@ -564,11 +621,114 @@ Extend the existing 3-tier cleanup system to add a 4th tier for documents:
 
 ## Review History
 
-### 2026-01-20 - GPT Plan Reviewer (BLOCKING → Fixed)
+### 2026-01-20 - GPT Plan Reviewer (Round 4 - Final)
+
+**Summary**: GPT Plan Reviewer found 3 remaining BLOCKING issues after Round 3; all have been addressed in this round.
+
+**Findings** (BLOCKING - Round 4 → All Fixed):
+1. ✅ Todo list "verify coverage ≥80%" contradiction RESOLVED
+2. ✅ `mv -r` invalid option RESOLVED
+3. ✅ .trash/ verification TIMESTAMP_PREFIX recompute RESOLVED
+
+**Changes Made** (Interactive Recovery Round 4):
+1. **Fixed todo list coverage contradiction**:
+   - Updated line 545: Changed "verify coverage ≥80%" to "verify minimum 30 assertions, all detection functions covered"
+   - Now consistent with Round 3 fix that removed %-based targets
+
+2. **Fixed mv -r invalid option**:
+   - Updated line 223: Changed `mv -r <directory>` to `mv <directory>` (mv handles directories without -r flag)
+   - Added comment clarifying mv handles directories automatically
+
+3. **Fixed .trash/ verification TIMESTAMP_PREFIX recompute**:
+   - Removed recomputation of TIMESTAMP_PREFIX with `$(date ...)` in verification section
+   - Added comment: "Use $TIMESTAMP_PREFIX variable set at invocation time (consistent across session)"
+   - Removed alternative verification command that recomputed timestamp
+
+**Updated Sections**: Execution Plan (line 545), Directory Handling (line 223), Batch Verification (lines 200-202), Review History
+
+**Status**: All Round 4 BLOCKING issues resolved. Ready for Round 5 GPT Plan Reviewer verification.
+
+### 2026-01-20 - GPT Plan Reviewer (Round 3 - Final)
+
+**Summary**: GPT Plan Reviewer found 3 remaining BLOCKING issues after Round 2; all have been addressed in this round.
+
+**Findings** (BLOCKING - Round 3 → All Fixed):
+1. ✅ Orphan scope contradiction RESOLVED
+2. ✅ Coverage contradiction RESOLVED
+3. ✅ .trash/ verification semantics RESOLVED
+
+**Changes Made** (Interactive Recovery Round 3):
+1. **Fixed orphan scope contradiction**:
+   - Clarified `.pilot/plan/**` is EXCLUDED from orphan detection (ALL subdirectories)
+   - Removed `.pilot/plan/done/` from orphan candidates (too risky)
+   - Single unified scan scope: root + `docs/` ONLY
+   - Updated Medium Risk: Removed old plans mention
+   - Added rationale: Completed plans are historical records
+
+2. **Resolved coverage contradiction**:
+   - Removed ALL %-based targets from Quality Constraints
+   - Updated SC-7: "minimum 30 assertions, all detection functions covered" (no %)
+   - Updated Test Environment: "NO %-based targets, Bash scripts lack coverage tools"
+   - Updated AC-8: Same as SC-7 (consistency)
+   - Added note: "Bash scripts lack coverage tools, using grep-based verification"
+
+3. **Clarified .trash/ verification semantics**:
+   - Timestamp unit: One timestamp directory per `/05_cleanup` invocation
+   - Added verification commands for current batch
+   - Explicit directory handling commands (git rm -r, mv -r)
+   - Directory recreation during rollback specified
+
+**Updated Sections**: How (Approach) - Section 5B (Orphan Detection), Section 6 (Risk Classification), Section 7 (Deletion Mechanics), Quality Constraints, Test Environment, SC-7, AC-8, Review History
+
+### 2026-01-20 - GPT Plan Reviewer (Round 2 - BLOCKING → Fixed)
+
+**Summary**: GPT Plan Reviewer found 5 remaining BLOCKING issues about scope contradictions, quarantine consistency, .trash/ rollback, non-interactive testing, and coverage measurement
+
+**Findings** (BLOCKING - Round 2):
+1. Scope contradictions between orphan scan and .pilot/plan/done/
+2. Quarantine/deletion strategy conflicts
+3. .trash/ rollback collision bugs
+4. Non-interactive confirmation mocking not specified
+5. Coverage requirements not measurable
+
+**Changes Made** (Interactive Recovery Round 2):
+1. **Locked down scan scope** (no contradictions):
+   - Explicit A/B/C scan scopes for backup/temp, orphan detection, and risk classification
+   - Orphan scan NOW includes `.pilot/plan/done/**` (old plans can be orphans)
+   - Inbound link sources limited to root + `docs/` (plugin internals excluded)
+   - Clear explicit inclusion/exclusion lists for each scan type
+
+2. **Unified deletion strategy** (consistent, no conflicts):
+   - Tracked: Direct `git rm` (git history is quarantine)
+   - Untracked: Move to `.trash/<timestamp>_/<relative_path>` (quarantine)
+   - NO separate quarantine phase - simplified model
+
+3. **Fixed .trash/ rollback collision prevention**:
+   - Timestamped subdirectories: `.trash/20260120_120000/a/file.md`
+   - Full relative path preserved (no basename collisions)
+   - Rollback with directory recreation: `mkdir -p "$(dirname "$repo_root/$relative_path")"`
+
+4. **Specified non-interactive confirmation**:
+   - `--apply` flag bypasses ALL AskUserQuestion calls
+   - Mock with environment variable: `ASK_USER_QUESTION_RESPONSE=<choice_index>`
+   - Log-based verification: Check output for "AskUserQuestion" string
+   - Test fixture: `.claude/mocks/ask-user-question.sh`
+
+5. **Replaced coverage with objective measures** (no tool-based coverage):
+   - Detection function coverage: Count test functions (>=4 required)
+   - Risk classification coverage: Check for all 3 levels tested
+   - Integration coverage: Count workflow tests (>=3 required)
+   - Assertion count: Minimum 30 assertions
+   - Pass rate: 100%
+   - Note: Bash has no Istanbul/nyc, using grep-based verification
+
+**Updated Sections**: How (Approach) - Sections 5, 6, 7 (Deletion Mechanics); Test Plan (Coverage Verification); Review History
+
+### 2026-01-20 - GPT Plan Reviewer (Round 1 - BLOCKING → Fixed)
 
 **Summary**: GPT Plan Reviewer rejected initial plan due to underspecified behaviors
 
-**Findings** (BLOCKING):
+**Findings** (BLOCKING - Round 1):
 - BLOCKING: 5 critical issues identified
   1. "Orphaned doc" definition not precise enough
   2. Scan scope and exclusions not locked down
@@ -576,7 +736,7 @@ Extend the existing 3-tier cleanup system to add a 4th tier for documents:
   4. Risk classification rules too loose
   5. Tests not objectively verifiable
 
-**Changes Made** (Interactive Recovery):
+**Changes Made** (Interactive Recovery Round 1):
 1. **Added detailed orphan detection specification**:
    - Defined all inbound reference types (inline, reference-style, anchors, URL-encoded, case-insensitive)
    - Specified path resolution rules (relative, absolute, parent, index)

@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.3] - 2026-01-20
+
+### Fixed
+  - Exclude .claude/rules/** from dead code cleanup
+  - Fix 02_execute plan detection bug
+  - Fix plan detection bug and add draft status to statusline
+
+### Changed
+  - Remove runtime state and backup files from git tracking
+  - Add .pilot/ and .claude-pilot/ to .gitignore
+  - Complete git files audit and cleanup plan
+  - Command Structure Reorganization
+
+### Documentation
+  - Add Documentation Cleanup Exclusions to /05_cleanup Command
+  - Add Documentation Cleanup to /05_cleanup Command
+  - Claude-Pilot Meta-Skill Documentation
+  - Archive GitHub SEO optimization plan
+  - Optimize GitHub SEO with updated description and badges
+
 ## [5.0.0] - 2026-01-20
 
 ### ⚠️ BREAKING CHANGES

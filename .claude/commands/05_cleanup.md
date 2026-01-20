@@ -19,13 +19,14 @@ _Auto-apply dead code cleanup with risk-based confirmation._
 ## Usage
 
 ```bash
-/05_cleanup [mode=imports|files|all] [scope=repo|path=...] [--dry-run] [--apply]
+/05_cleanup [mode=imports|files|docs|all] [scope=repo|path=...] [--dry-run] [--apply]
 ```
 
 **Modes**:
 - `imports` (Tier 1): Unused import statements
 - `files` (Tier 2): Dead files (zero references)
-- `all` (Tier 1+2): Both imports and files
+- `docs` (Tier 3): Dead documentation files (zero @references)
+- `all` (Tier 1+2+3): Imports, files, and documentation
 
 **Scope**:
 - `repo` (default): Entire repository
@@ -65,7 +66,7 @@ done
 if [ "$DRY_RUN" = "true" ] && [ "$APPLY" = "true" ]; then
   echo "Error: --dry-run and --apply flags are mutually exclusive"
   echo ""
-  echo "Usage: /05_cleanup [mode=...] [scope=...] [--dry-run | --apply]"
+  echo "Usage: /05_cleanup [mode=imports|files|docs|all] [scope=...] [--dry-run | --apply]"
   echo "  --dry-run: Show candidates only, no deletions"
   echo "  --apply:   Apply everything including High-risk"
   exit 1
@@ -83,8 +84,10 @@ DETECTION_PATH="$([ "$SCOPE" = "repo" ] && echo "." || echo "$SCOPE")"
 
 ## Step 2: Risk Level Classification (SC-6)
 
+### Code File Risk Classification
+
 ```bash
-# Calculate risk level for a file
+# Calculate risk level for a code file
 calculate_risk_level() {
   local file="$1"
 
@@ -113,6 +116,58 @@ calculate_risk_level() {
 # Calculate risk score for backward compatibility
 calculate_risk_score() {
   calculate_risk_level "$1"
+}
+```
+
+### Documentation File Risk Classification (SC-3)
+
+```bash
+# Calculate risk level for a documentation file
+calculate_doc_risk_level() {
+  local file="$1"
+  local basename
+  basename=$(basename "$file" .md)
+
+  # High risk: Core documentation files
+  if [[ "$file" =~ CONTEXT\.md$ ]] || \
+     [[ "$file" =~ CLAUDE\.md$ ]] || \
+     [[ "$basename" =~ ^(README|ARCHITECTURE|DESIGN|CHANGELOG|CONTRIBUTING)$ ]]; then
+    echo "High"
+    return
+  fi
+
+  # Low risk: Deprecated/obsolete files
+  if [[ "$file" =~ (deprecated|old|backup|archive|obsolete) ]] || \
+     [[ "$basename" =~ (deprecated|old|backup|archive|obsolete) ]]; then
+    echo "Low"
+    return
+  fi
+
+  # Medium risk: Default for guides, commands, skills, agents
+  echo "Medium"
+}
+```
+
+---
+
+## Step 2.5: Documentation Reference Detection (SC-2)
+
+```bash
+# Count @references to a documentation file
+check_doc_references() {
+  local file="$1"
+  local basename
+  basename=$(basename "$file" .md)
+
+  # Count @references using ripgrep
+  # Pattern: @basename.md or @basename (without .md extension)
+  local ref_count
+  ref_count=$(rg --glob '*.md' --glob '!*.md.bak' \
+    --glob '!docs/**' \
+    "@${basename}(\\.md)?\\b" \
+    .claude/ 2>/dev/null | wc -l | tr -d ' ')
+
+  echo "${ref_count:-0}"
 }
 ```
 
@@ -185,6 +240,37 @@ fi
 ```
 
 **Exclusions**: `index.ts`, `main.ts`, `cli.ts`, `*.config.ts`, `*.test.ts`, `*.spec.ts`, `*.mock.ts`, `*.d.ts`, `dist/**`, `build/**`
+
+### Tier 3: Dead Documentation Files (SC-4)
+
+```bash
+if [ "$MODE" = "docs" ] || [ "$MODE" = "all" ]; then
+  DOC_FILES=$(rg --files --glob '*.md' --glob '!*.md.bak' \
+    --glob '!docs/**' \
+    --glob '!README.md' \
+    --glob '!CLAUDE.md' \
+    --glob '!**/.trash/**' \
+    "$DETECTION_PATH" 2>/dev/null)
+
+  for file in $DOC_FILES; do
+    REF_COUNT=$(check_doc_references "$file")
+    if [ "$REF_COUNT" -eq 0 ]; then
+      RISK=$(calculate_doc_risk_level "$file")
+
+      # Pre-flight safety check (SC-7)
+      IS_MODIFIED=$(check_file_modified "$file")
+      if [ "$IS_MODIFIED" = "true" ]; then
+        RISK="High (blocked)"
+        echo "| $file | No @references (modified) | Tier 3 | $RISK | npm test | SKIP: Uncommitted changes |"
+      else
+        echo "| $file | No @references | Tier 3 | $RISK | npm test | git checkout HEAD -- $file |"
+      fi
+    fi
+  done
+fi
+```
+
+**Exclusions**: `docs/**`, `README.md`, `CLAUDE.md`, `*.md.bak`, `.trash/**`
 
 ---
 
@@ -429,6 +515,7 @@ detect_verification_command() {
 3. Verification commands after each batch (max 10 deletions)
 4. Stop-on-failure with automatic rollback
 5. Safe-file-ops integration (git rm, .trash/)
+6. Documentation exclusions: `docs/**`, `README.md`, `CLAUDE.md`, `*.md.bak`, `.trash/**`
 
 **Non-Interactive Mode** (CI/non-TTY):
 - Default: behaves like `--dry-run` (no modifications)
@@ -439,9 +526,11 @@ detect_verification_command() {
 ```bash
 /05_cleanup mode=imports                    # Auto-apply Low/Medium
 /05_cleanup mode=files                      # Auto-apply Low/Medium, confirm High
+/05_cleanup mode=docs                       # Auto-apply Low/Medium docs, confirm High
+/05_cleanup mode=all                        # All tiers (imports, files, docs)
 /05_cleanup mode=imports --dry-run          # Preview only
 /05_cleanup mode=files --apply              # Apply everything (no confirm)
-/05_cleanup mode=files path=src/components  # Specific scope
+/05_cleanup mode=docs path=.claude/guides   # Specific scope for docs
 ```
 
 ---

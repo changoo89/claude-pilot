@@ -20,11 +20,6 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/quality-dispatch.sh",
             "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/check-todos.sh",
-            "timeout": 10
           }
         ]
       }

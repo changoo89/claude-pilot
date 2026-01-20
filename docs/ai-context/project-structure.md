@@ -96,12 +96,11 @@ claude-pilot/
 │   │   ├── code-reviewer.md
 │   │   └── documenter.md
 │   ├── scripts/
-│   │   ├── hooks/          # Git/workflow hooks (6) (UPDATED v4.3.0)
+│   │   ├── hooks/          # Git/workflow hooks (5) (UPDATED v4.3.0)
 │   │   │   ├── quality-dispatch.sh  # O(1) dispatcher with caching (NEW)
 │   │   │   ├── cache.sh             # Cache utilities (NEW)
 │   │   │   ├── typecheck.sh         # TypeScript validation (optimized)
 │   │   │   ├── lint.sh              # Multi-language lint (optimized)
-│   │   │   ├── check-todos.sh       # TODO completion (optimized)
 │   │   │   └── branch-guard.sh      # Protected branch warnings
 │   │   ├── codex-sync.sh   # GPT expert delegation
 │   │   └── worktree-utils.sh  # Worktree utilities (lock, cleanup)
@@ -425,8 +424,9 @@ You are the Coder Agent. Implement features using TDD...
 | `cache.sh` | Cache utilities (hash-based invalidation) | NEW |
 | `typecheck.sh` | TypeScript validation (`tsc --noEmit`) | Yes (early exit + cache) |
 | `lint.sh` | ESLint/Pylint/gofmt validation | Yes (early exit + cache) |
-| `check-todos.sh` | Ralph Loop continuation enforcement | Yes (debounce) |
 | `branch-guard.sh` | Protected branch warnings | No (already fast) |
+
+**Note**: Todo validation moved to `/03_close` command (skill-only architecture)
 
 ### Migration Guide
 
@@ -546,7 +546,7 @@ claude-pilot update --apply-statusline
 - **Gate vs Validator separation**: Safety checks (PreToolUse) vs quality checks (Stop)
 - **Profile system**: User-configurable modes (off/stop/strict) for quality checks
 - **New files**: `quality-dispatch.sh` (247 lines), `cache.sh` (256 lines), `settings.json.example` (60 lines), `quality-profile.json.template` (50 lines), `migration-guide.md` (889 lines)
-- **Optimized files**: `typecheck.sh`, `lint.sh`, `check-todos.sh` (early exit + caching)
+- **Optimized files**: `typecheck.sh`, `lint.sh` (early exit + caching)
 - **Performance impact**: 99.4-99.8% reduction in hook overhead (10-25s → 30-60ms for 100 edits)
 - **Test results**: 7/8 test suites passing (87.5%), 100% cache hit rate, 75-100% external process reduction
 - **New tests**: 8 test files for dispatcher, cache, debounce, profiles, backward compatibility

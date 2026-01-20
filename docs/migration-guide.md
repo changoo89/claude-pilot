@@ -71,8 +71,9 @@ Stop Hook (BATCH)
     │   ├─→ Check cache (hit? skip)
     │   ├─→ Detect project type
     │   └─→ Run validators if needed
-    └─→ check-todos.sh (20-50ms, with debounce)
-Total overhead: 30-60ms once per session
+Total overhead: 20-30ms once per session
+
+**Note**: Todo validation moved to `/03_close` command (skill-only architecture)
 ```
 
 ### Configuration Comparison
@@ -117,20 +118,12 @@ Total overhead: 30-60ms once per session
           }
         ]
       }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/check-todos.sh"
-          }
-        ]
-      }
     ]
   }
 }
 ```
+
+**Note**: `Stop` hook removed (todo validation moved to `/03_close` command)
 
 **Issues**:
 - PreToolUse hooks block every file edit
@@ -163,11 +156,6 @@ Total overhead: 30-60ms once per session
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/quality-dispatch.sh",
             "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/check-todos.sh",
-            "timeout": 10
           }
         ]
       }
@@ -511,8 +499,10 @@ fi
 2. **Verify Stop hook exists**:
    ```bash
    jq '.hooks.Stop[]?.command' .claude/settings.json
-   # Should show quality-dispatch.sh and check-todos.sh
+   # Should show quality-dispatch.sh
    ```
+
+**Note**: `check-todos.sh` removed from Stop hooks (todo validation moved to `/03_close` command)
 
 3. **Test dispatcher manually**:
    ```bash

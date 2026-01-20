@@ -22,7 +22,7 @@ npm run type-check  # or: tsc --noEmit
 npm run lint  # or: eslint . --ext .ts,.tsx
 
 # Todo validation
-.claude/scripts/hooks/check-todos.sh
+/03_close  # Validates all SCs complete before closing plan
 
 # Branch guard
 .claude/scripts/hooks/branch-guard.sh
@@ -151,48 +151,42 @@ fi
 
 ### Todo Validation
 
-**Purpose**: Ensure all plan todos complete before commit
+**Purpose**: Ensure all plan Success Criteria complete before closing plan
+
+**Primary Validation Point**: `/03_close` command
 
 **Command**:
 ```bash
-.claude/scripts/hooks/check-todos.sh
+/03_close
 ```
 
 **Expected Output**:
-- Success: "All todos complete - commit allowed" (exit code 0)
-- Failure: "X todos pending - complete before commit" (exit code 1)
+- Success: "All Success Criteria complete" (exit code 0)
+- Failure: "X Success Criteria incomplete - Continue with: /02_execute" (exit code 1)
 
-**Logic**:
+**Logic** (from `/03_close` Step 2):
 ```bash
-PLAN_FILE=".pilot/plan/in_progress/plan.md"
+PLAN_PATH=".pilot/plan/in_progress/plan.md"
 
-if [ ! -f "$PLAN_FILE" ]; then
-  echo "No active plan - skipping todo check"
-  exit 0  # Pass (no plan to check)
+INCOMPLETE_SC="$(grep -c "^- \[ \]" "$PLAN_PATH" 2>/dev/null || echo 0)"
+
+if [ "$INCOMPLETE_SC" -gt 0 ]; then
+  echo "⚠️  $INCOMPLETE_SC Success Criteria incomplete"
+  echo "   Continue with: /02_execute"
+  exit 1  # Block plan closing
 fi
 
-# Extract incomplete todos
-INCOMPLETE=$(grep -c "status: \"pending\"" "$PLAN_FILE")
-
-if [ "$INCOMPLETE" -gt 0 ]; then
-  echo "Error: $INCOMPLETE todos pending - complete before commit"
-  exit 1  # Fail
-fi
-
-echo "All todos complete - commit allowed"
-exit 0  # Pass
+echo "✓ All Success Criteria complete"
+exit 0  # Allow plan closing
 ```
 
-**Hook Script**: `.claude/scripts/hooks/check-todos.sh`
+**Why /03_close instead of hooks?**
+- **Skill-only architecture**: Validation documented in command, not hook script
+- **Explicit validation**: User must run `/03_close` to complete plan
+- **No automatic blocking**: Doesn't interrupt development workflow
+- **Single source of truth**: Plan file is checked directly
 
-**Configuration**:
-```json
-{
-  "pre-commit": [
-    ".claude/scripts/hooks/check-todos.sh"
-  ]
-}
-```
+**Reference**: `.claude/commands/03_close.md` (Step 2)
 
 ---
 
@@ -244,26 +238,30 @@ exit 0  # Branch is not protected
 
 ### Opt-In Installation
 
-**Step 1: Copy hooks to Git hooks directory**
-```bash
-# Create symlink in .git/hooks/
-ln -s ../../.claude/scripts/hooks/check-todos.sh .git/hooks/pre-commit
-```
-
-**Step 2: Configure via .claude/hooks.json**
+**Step 1: Configure via .claude/settings.json**
 ```json
 {
-  "profile": "strict",
-  "pre-commit": [
-    ".claude/scripts/hooks/check-todos.sh",
-    ".claude/scripts/hooks/branch-guard.sh",
-    ".claude/scripts/hooks/lint.sh",
-    ".claude/scripts/hooks/typecheck.sh"
-  ]
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "\\.(ts|js|tsx|jsx|py|go|rs)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/typecheck.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/lint.sh"
+          }
+        ]
+      }
+    ]
+  }
 }
 ```
 
-**Step 3: Set profile mode**
+**Step 2: Set profile mode**
 ```bash
 # Profile modes: off | stop | strict
 export CLAUDE_HOOKS_PROFILE="strict"
@@ -392,10 +390,6 @@ echo "Exit code: $?"  # 0 = pass, 1 = fail
 
 # Test lint hook
 .claude/scripts/hooks/lint.sh
-echo "Exit code: $?"
-
-# Test todo validation
-.claude/scripts/hooks/check-todos.sh
 echo "Exit code: $?"
 
 # Test branch guard

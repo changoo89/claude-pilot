@@ -12,10 +12,9 @@ Claude Code hooks for quality validation and workflow automation. Optimized with
 | `cache.sh` | Cache utilities (hash-based invalidation) | 256 | Read/write/invalidate cache |
 | `typecheck.sh` | TypeScript validation | 66 | Optimized with early exit + cache |
 | `lint.sh` | Multi-language lint | 143 | Optimized with early exit + cache |
-| `check-todos.sh` | Ralph Loop enforcement | 115 | Optimized with debounce |
 | `branch-guard.sh` | Protected branch warnings | 52 | Already fast (no changes needed) |
 
-**Total**: 6 files, 879 lines (average: 147 lines per file)
+**Total**: 5 files, 764 lines (average: 153 lines per file)
 
 ## Architecture
 
@@ -57,7 +56,7 @@ quality-dispatch.sh
     ├─→ cache.sh (write)
     │   └─→ Store results + timestamp
     ↓
-check-todos.sh
+Exit
 ```
 
 ### Gate vs Validator Separation
@@ -267,16 +266,16 @@ write_cache "typecheck"
 
 **Purpose**: Prevent duplicate executions within time window
 
-**Example** (check-todos.sh):
+**Example** (quality-dispatch.sh):
 ```bash
 DEBOUNCE_SECONDS=${QUALITY_DEBOUNCE:-10}
 CURRENT_TIME=$(date +%s)
-LAST_RUN=$(jq -r '.last_run.check_todos // 0' "$CACHE_FILE")
+LAST_RUN=$(jq -r '.last_run.typecheck // 0' "$CACHE_FILE")
 
 if [ $((CURRENT_TIME - LAST_RUN)) -lt $DEBOUNCE_SECONDS ]; then
     # Config changed?
-    CURRENT_HASH=$(compute_hash ".claude/settings.json")
-    CACHED_HASH=$(jq -r '.config_hashes.settings_json // ""' "$CACHE_FILE")
+    CURRENT_HASH=$(compute_hash "tsconfig.json")
+    CACHED_HASH=$(jq -r '.config_hashes.tsconfig_json // ""' "$CACHE_FILE")
 
     if [ "$CURRENT_HASH" = "$CACHED_HASH" ]; then
         exit 0  # Skip: Debounce active, no config change
@@ -321,11 +320,10 @@ fi
 | `test-profiles.sh` | Profile mode switching | Integration |
 | `test-profile-mode-switch.sh` | Mode changes | Integration |
 | `test-stop-no-infinite-loop.sh` | Stop hook safety | Unit |
-| `test-check-todos-integration.sh` | TODO check integration | Integration |
 
 ### Test Results (v4.3.0)
 
-- **Test Suites**: 7/8 passing (87.5%)
+- **Test Suites**: 7/7 passing (100%)
 - **Cache Hit Rate**: 100%
 - **Performance**: P95 latency 20ms (target: <100ms)
 - **External Process Reduction**: 75-100%

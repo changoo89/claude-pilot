@@ -33,14 +33,13 @@ Following obra/superpowers philosophy: skills as the product, scripts as optiona
 
 | File | Purpose | Lines | Usage |
 |------|---------|-------|-------|
-| `check-todos.sh` | Pre-commit todo validation | 84 | Verify todos complete before commit |
 | `branch-guard.sh` | Pre-commit branch validation | 51 | Prevent commits to protected branches |
 | `lint.sh` | Pre-commit lint validation | 87 | Run project linter |
 | `typecheck.sh` | Pre-commit type check validation | 42 | Run project type checker |
 
 **Skills Directory**: See @.claude/skills/CONTEXT.md for complete skill documentation
 
-**Total**: 10 script files, 1 streamlining to skill-only procedures
+**Total**: 9 script files, 1 streamlining to skill-only procedures
 
 ## Common Tasks
 
@@ -104,10 +103,10 @@ release_lock "$PLAN_FILE"
 - **Scripts**: @.claude/scripts/hooks/
 - **Output**: Pass/fail status for each hook
 - **Hooks**:
-  - `check-todos.sh`: Verify all todos complete
   - `branch-guard.sh`: Prevent commits to main/master
   - `lint.sh`: Run project linter (eslint, ruff, gofmt)
   - `typecheck.sh`: Run type checker (tsc, mypy)
+- **Todo validation**: Handled by `/03_close` command (not hooks)
 
 **Configuration**: Hooks defined in `.claude/hooks.json`
 
@@ -218,24 +217,18 @@ trap 'release_lock "$PLAN_FILE"' EXIT INT TERM
 
 ```bash
 #!/bin/bash
-# Example: check-todos.sh
+# Example: branch-guard.sh
 
-PLAN_FILE=".pilot/plan/in_progress/plan.md"
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+PROTECTED_BRANCHES=("main" "master" "develop" "production")
 
-if [ ! -f "$PLAN_FILE" ]; then
-    echo "No active plan - skipping todo check"
-    exit 0  # Pass (no plan to check)
-fi
-
-# Extract incomplete todos
-INCOMPLETE=$(grep -c "status: \"pending\"" "$PLAN_FILE")
-
-if [ "$INCOMPLETE" -gt 0 ]; then
-    echo "Error: $INCOMPLETE todos pending - complete before commit"
+for protected in "${PROTECTED_BRANCHES[@]}"; do
+  if [ "$BRANCH" = "$protected" ]; then
+    echo "Error: Cannot commit to protected branch '$BRANCH'"
     exit 1  # Fail
-fi
+  fi
+done
 
-echo "All todos complete - commit allowed"
 exit 0  # Pass
 ```
 
@@ -275,7 +268,6 @@ export CODEX_REASONING_EFFORT="medium"  # low|medium|high|xhigh
 - `statusline.sh`: Git status formatting
 
 ### Hook Scripts
-- `check-todos.sh`: Todo validation
 - `branch-guard.sh`: Branch protection
 - `lint.sh`: Lint validation
 - `typecheck.sh`: Type check validation
@@ -338,15 +330,26 @@ chmod +x .claude/scripts/hooks/*.sh
 
 ### Hook Integration
 
-**Pre-commit hooks** (`.claude/hooks.json`):
+**Pre-commit hooks** (`.claude/settings.json`):
 ```json
 {
-  "pre-commit": [
-    ".claude/scripts/hooks/check-todos.sh",
-    ".claude/scripts/hooks/branch-guard.sh",
-    ".claude/scripts/hooks/lint.sh",
-    ".claude/scripts/hooks/typecheck.sh"
-  ]
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "\\.(ts|js|tsx|jsx|py|go|rs)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/typecheck.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/lint.sh"
+          }
+        ]
+      }
+    ]
+  }
 }
 ```
 

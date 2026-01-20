@@ -1,40 +1,57 @@
 # MCP Servers
 
-> **Last Updated**: 2026-01-18
+> **Last Updated**: 2026-01-20
 > **Purpose**: Recommended MCP servers for Claude Code
 
 ---
 
 ## Recommended Servers
 
-| Server | Purpose |
-|--------|---------|
-| **context7** | Documentation navigation and context |
-| **serena** | Code operations and refactoring |
-| **grep-app** | Fast code search |
-| **sequential-thinking** | Complex reasoning and planning |
-| **codex** | GPT delegation (intelligent escalation) |
+| Server | Purpose | Package |
+|--------|---------|---------|
+| **context7** | Documentation navigation and context | `@upstash/context7-mcp` |
+| **sequential-thinking** | Complex reasoning and planning | `@modelcontextprotocol/server-sequential-thinking` |
+
+### Optional Servers (Require Additional Setup)
+
+| Server | Purpose | Setup |
+|--------|---------|-------|
+| **serena** | Code operations and refactoring | Python-based, requires `uvx` (see below) |
+| **grep-app** | Fast GitHub code search | Requires build from source |
 
 ---
 
 ## Configuration
 
-**File**: `mcp.json` (project root)
+**Location**: Project-level MCP servers are configured in `~/.claude.json` under `projects.<project-path>.mcpServers`
 
-**Example Configuration**:
-```json
+**Quick Setup** (context7 + sequential-thinking):
+```bash
+# Add to ~/.claude.json manually:
 {
-  "mcpServers": {
-    "context7": {
-      "command": "npx",
-      "args": ["-y", "@context7/mcp-server"]
-    },
-    "serena": {
-      "command": "npx",
-      "args": ["-y", "@serena/mcp-server"]
+  "projects": {
+    "/Users/chanho/claude-pilot": {
+      "mcpServers": {
+        "context7": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "@upstash/context7-mcp"]
+        },
+        "sequential-thinking": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+        }
+      }
     }
   }
 }
+```
+
+**Alternative: CLI Wizard**:
+```bash
+claude mcp add context7
+claude mcp add sequential-thinking
 ```
 
 ---
@@ -43,6 +60,7 @@
 
 ### context7
 
+**Package**: `@upstash/context7-mcp`
 **Purpose**: Documentation navigation and context retrieval
 
 **Use When**:
@@ -50,26 +68,11 @@
 - Finding relevant documentation
 - Context-aware code assistance
 
-### serena
-
-**Purpose**: Code operations and refactoring
-
-**Use When**:
-- Performing code refactoring
-- Applying code transformations
-- Bulk code operations
-
-### grep-app
-
-**Purpose**: Fast code search
-
-**Use When**:
-- Searching for patterns across files
-- Finding usages of symbols
-- Quick code navigation
+**Source**: [github.com/upstash/context7](https://github.com/upstash/context7)
 
 ### sequential-thinking
 
+**Package**: `@modelcontextprotocol/server-sequential-thinking`
 **Purpose**: Complex reasoning and planning
 
 **Use When**:
@@ -77,16 +80,70 @@
 - Multi-step reasoning
 - Strategic planning
 
-### codex
+### serena (Optional)
 
-**Purpose**: GPT delegation (intelligent escalation)
+**Purpose**: Code operations and refactoring (Python-based)
+
+**Setup**:
+```bash
+# Install uv first
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Add to ~/.claude.json:
+{
+  "mcpServers": {
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server"]
+    }
+  }
+}
+```
+
+**Source**: [github.com/oraios/serena](https://github.com/oraios/serena)
 
 **Use When**:
-- Delegating to GPT experts
-- Progressive escalation after failures
-- High-difficulty analysis
+- Performing code refactoring
+- Applying code transformations
+- Bulk code operations
 
-**See**: **@docs/ai-context/codex-integration.md** for full delegation guide
+### grep-app (Optional)
+
+**Purpose**: Fast GitHub code search
+
+**Setup**: Requires build from source
+```bash
+git clone https://github.com/ai-tools-all/grep_app_mcp.git
+cd grep_app_mcp
+npm install
+npm run build
+```
+
+**Source**: [github.com/ai-tools-all/grep_app_mcp](https://github.com/ai-tools-all/grep_app_mcp)
+
+**Use When**:
+- Searching GitHub code repositories
+- Finding implementation examples
+- Learning from open source projects
+
+---
+
+## Verification
+
+After adding MCP servers, restart Claude Code and verify:
+
+```bash
+/mcp
+```
+
+Expected output:
+```
+⎿  MCP Server Status
+⎿
+⎿  • context7: connected
+⎿  • sequential-thinking: connected
+```
 
 ---
 
@@ -94,4 +151,5 @@
 
 - **@docs/ai-context/system-integration.md** - System integration overview
 - **@docs/ai-context/codex-integration.md** - Codex delegation details
+- **[Configuring MCP Tools in Claude Code - The Better Way](https://scottspence.com/posts/configuring-mcp-tools-in-claude-code)** - External guide
 - **@CLAUDE.md** - Project standards (Tier 1)

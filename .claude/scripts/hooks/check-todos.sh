@@ -82,7 +82,9 @@ fi
 INCOMPLETE=$(grep -c '^\- \[ \]' "$PLAN_FILE" 2>/dev/null || echo "0")
 
 # Also check continuation state file (Sisyphus system)
-STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
+# Get git repository root (or use current directory if not in git repo)
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
+STATE_FILE="$REPO_ROOT/.pilot/state/continuation.json"
 STATE_INCOMPLETE=0
 
 if [ -f "$STATE_FILE" ]; then

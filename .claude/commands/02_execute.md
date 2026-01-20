@@ -160,7 +160,35 @@ fi
 if [ -z "$PLAN_PATH" ] || [ ! -f "$PLAN_PATH" ]; then
     COUNT_PENDING=$(find "$PLAN_SEARCH_ROOT/.pilot/plan/pending" -maxdepth 1 -type f -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
     COUNT_IN_PROGRESS=$(find "$PLAN_SEARCH_ROOT/.pilot/plan/in_progress" -maxdepth 1 -type f -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
-    echo "❌ No plan found (pending: $COUNT_PENDING, in_progress: $COUNT_IN_PROGRESS)" >&2
+
+    # Check continuation state (reuse STATE_FILE from Step 0.5)
+    CONTINUATION_STATUS="not found"
+    if [ -f "${STATE_FILE:-}" ]; then
+        CONTINUATION_STATUS="exists"
+    fi
+
+    # Enhanced error message with clear guidance
+    echo "" >&2
+    echo "## No Execution Plan Found" >&2
+    echo "" >&2
+    echo "**Diagnostic Information**:" >&2
+    echo "- Pending plans: $COUNT_PENDING" >&2
+    echo "- In-progress plans: $COUNT_IN_PROGRESS" >&2
+    echo "- Continuation state: $CONTINUATION_STATUS" >&2
+    echo "" >&2
+    echo "**Required Action**:" >&2
+    echo "You need to create an execution plan before running /02_execute." >&2
+    echo "" >&2
+    echo "**Next Steps** (choose one):" >&2
+    echo "1. Create a new plan: /00_plan \"describe your task\"" >&2
+    echo "2. If you have a draft plan: /01_confirm" >&2
+    if [ "$CONTINUATION_STATUS" = "exists" ]; then
+        echo "3. Resume previous work: /00_continue (continuation state exists)" >&2
+    fi
+    echo "" >&2
+    echo "**Workflow Reference**:" >&2
+    echo "/00_plan → /01_confirm → /02_execute → /03_close" >&2
+    echo "" >&2
     exit 1
 fi
 

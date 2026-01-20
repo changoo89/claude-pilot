@@ -22,6 +22,9 @@ BATCH_SIZE=10
 CURRENT_BATCH=0
 ROLLBACK_FILES=()
 
+# Script directory for relative paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Parse arguments
 for arg in "$@"; do
   case $arg in
@@ -220,7 +223,8 @@ check_file_references() {
 detect_unused_imports() {
   log_info "Detecting unused imports (Tier 1)..."
 
-  if [ ! -f ".claude/scripts/smart-import-generator.mjs" ]; then
+  local smart_import="${SCRIPT_DIR}/smart-import-generator.mjs"
+  if [ ! -f "$smart_import" ]; then
     log_warning "smart-import-generator.mjs not found, skipping Tier 1"
     return
   fi
@@ -233,7 +237,7 @@ detect_unused_imports() {
 
   # Run smart-import-generator
   local output
-  output=$(node .claude/scripts/smart-import-generator.mjs --dir "$DETECTION_PATH" 2>&1) || true
+  output=$(node "$smart_import" --dir "$DETECTION_PATH" 2>&1) || true
 
   # Parse JSON output and extract unused imports
   if echo "$output" | jq -e '.unused_imports' >/dev/null 2>&1; then

@@ -105,33 +105,39 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": "\\.(ts|js|tsx|jsx|py|go|rs)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/typecheck.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/lint.sh"
+          }
+        ]
+      },
+      {
         "matcher": "bash",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/branch-guard.sh",
-            "timeout": 5
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/branch-guard.sh"
           }
         ]
       }
     ],
-    "PostToolUse": [],
-    "Stop": [
+    "PostToolUse": [
       {
+        "matcher": "\\.(ts|js|tsx|jsx|py|go|rs)$",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/quality-dispatch.sh",
-            "timeout": 30
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/typecheck.sh"
           }
         ]
       }
     ]
-  },
-  "quality": {
-    "mode": "stop",
-    "cache_ttl": 30,
-    "debounce_seconds": 10
   },
   "lsp": {
     "typescript": {
@@ -165,3 +171,4 @@
     "escapeHatch": ["/cancel", "/stop", "/done"]
   }
 }
+

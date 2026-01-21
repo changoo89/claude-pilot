@@ -8,6 +8,14 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash(*), AskUserQuestion, Task
 
 _Execute plan using Ralph Loop TDD pattern. Single source of truth: plan file drives work._
 
+## ⚠️ EXECUTION DIRECTIVE
+
+**IMPORTANT**: Execute ALL steps below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
+- Do NOT pause between steps
+- Do NOT ask "should I continue?" or wait for "keep going"
+- Execute Step 1 → 2 → 3 in sequence, then launch parallel/sequential coder agents
+- Only stop on ERROR or when all SCs are blocked
+
 ---
 
 ## Step 1: Plan Detection

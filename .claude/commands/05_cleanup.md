@@ -8,6 +8,16 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash(*), AskUserQuestion
 
 _Auto-apply dead code cleanup with risk-based confirmation._
 
+## ⚠️ EXECUTION DIRECTIVE
+
+**IMPORTANT**: Execute ALL steps below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
+- Do NOT pause between steps
+- Do NOT ask "should I continue?" or wait for "keep going"
+- Execute Step 1 → 2 → 3 → 4 in sequence
+- Only stop on ERROR or for High-risk confirmations (Step 3)
+
+---
+
 ## Core Philosophy
 
 **Auto-apply**: Low/Medium risk deleted without confirmation | **High-risk**: User confirmation required | **Safe flags**: `--dry-run`, `--apply` | **Verification**: Commands after each batch

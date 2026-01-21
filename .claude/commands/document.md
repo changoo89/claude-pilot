@@ -8,6 +8,16 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash(git:*)
 
 _Update documentation with full auto-sync and hierarchical CONTEXT.md management._
 
+## ⚠️ EXECUTION DIRECTIVE
+
+**IMPORTANT**: Execute ALL steps below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
+- Do NOT pause between steps
+- Do NOT ask "should I continue?" or wait for "keep going"
+- Execute Step 1 → 2 → 3 in sequence
+- This command has NO user interaction - run to completion
+
+---
+
 ## Core Philosophy
 
 **Full Auto**: No prompts, always full sync | **Context Engineering**: Generate folder CONTEXT.md | **Zero Intervention**: Complete without user interaction

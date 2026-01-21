@@ -8,6 +8,16 @@ allowed-tools: Read, Write, Glob, Grep, Bash(*), AskUserQuestion
 
 _Release plugin version with git tag and GitHub release._
 
+## ⚠️ EXECUTION DIRECTIVE
+
+**IMPORTANT**: Execute ALL phases below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
+- Do NOT pause between phases
+- Do NOT ask "should I continue?" or wait for "keep going"
+- Execute Phase 1 → 2 → 3 → 4 → 5 in sequence
+- Only stop on ERROR or when requiring explicit user decision (e.g., --dry-run review)
+
+---
+
 ## Core Philosophy
 
 **Atomic**: All steps succeed or none | **Safe**: Pre-flight checks | **Comprehensive**: Auto-generate CHANGELOG

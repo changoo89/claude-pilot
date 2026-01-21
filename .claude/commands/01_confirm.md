@@ -8,6 +8,16 @@ allowed-tools: Read, Glob, Grep, Write, Bash(*), AskUserQuestion, Skill
 
 _Extract plan from conversation, create file, auto-review (non-BLOCKING), move to pending._
 
+## ⚠️ EXECUTION DIRECTIVE
+
+**IMPORTANT**: Execute ALL steps below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
+- Do NOT pause between steps
+- Do NOT ask "should I continue?" or wait for "keep going"
+- Execute Step 1 → 2 → 3 → 4 in sequence
+- Only stop for BLOCKING findings that require Interactive Recovery
+
+---
+
 ## Core Philosophy
 
 **No Execution**: Only creates plan file and reviews | **Context-Driven**: Extract from conversation | **English Only**: Plan MUST be in English | **Strict Mode Default**: BLOCKING → Interactive Recovery

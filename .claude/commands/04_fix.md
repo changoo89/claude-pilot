@@ -8,6 +8,16 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash(*), AskUserQuestion
 
 _Rapid bug fix workflow - automated planning, execution, and closure for simple fixes._
 
+## ⚠️ EXECUTION DIRECTIVE
+
+**IMPORTANT**: Execute ALL steps below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
+- Do NOT pause between steps
+- Do NOT ask "should I continue?" or wait for "keep going"
+- Execute Step 1 → 2 → 3 → 4 → 5 in sequence
+- Only stop on ERROR or when requiring user approval (Step 4)
+
+---
+
 ## Core Philosophy
 
 **Simple fixes only**: Max 3 SCs, well-scoped bugs | **All-in-one**: Plan → Execute → Test → Close | **User confirmation**: Show diff before commit

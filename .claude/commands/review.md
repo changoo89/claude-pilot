@@ -8,6 +8,16 @@ allowed-tools: Read, Glob, Grep, Bash(*), Bash(git:*)
 
 _Review plan for completeness, gaps, and quality issues before execution._
 
+## ⚠️ EXECUTION DIRECTIVE
+
+**IMPORTANT**: Execute ALL steps below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
+- Do NOT pause between steps
+- Do NOT ask "should I continue?" or wait for "keep going"
+- Execute Step 1 → 2 → 3 → 4 in sequence
+- Only stop for BLOCKING findings that require Interactive Recovery
+
+---
+
 ## Core Philosophy
 
 **Comprehensive**: Multi-angle review | **Actionable**: Findings map to plan sections | **Severity-based**: BLOCKING → Interactive Recovery

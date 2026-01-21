@@ -8,6 +8,16 @@ allowed-tools: Read, Glob, Grep, Edit, Write, Bash(git:*), Bash(*), Task
 
 _Finalize plan by moving to done and creating git commit._
 
+## ⚠️ EXECUTION DIRECTIVE
+
+**IMPORTANT**: Execute ALL steps below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
+- Do NOT pause between steps
+- Do NOT ask "should I continue?" or wait for "keep going"
+- Execute Step 1 → 2 → 3 → 4 → 5 in sequence
+- Only stop on ERROR or incomplete SCs
+
+---
+
 ## Core Philosophy
 
 **Verification Required**: All SCs complete with evidence | **Traceability**: Preserve plan with results | **Default commit**: Auto-git commit (skip with `no-commit`)

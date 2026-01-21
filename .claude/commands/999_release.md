@@ -38,9 +38,8 @@ command -v jq >/dev/null 2>&1 || { echo "Error: jq required"; exit 1; }
 # Check git working tree is clean
 git diff --quiet || { echo "Error: Uncommitted changes"; exit 1; }
 
-# Validate plugin manifests
+# Validate plugin manifest (single plugin standard)
 jq -e '.version' .claude-plugin/plugin.json >/dev/null 2>&1 || { echo "Error: Invalid plugin.json"; exit 1; }
-jq -e '.metadata.version' .claude-plugin/marketplace.json >/dev/null 2>&1 || { echo "Error: Invalid marketplace.json"; exit 1; }
 ```
 
 **Check for existing tag**:
@@ -71,25 +70,17 @@ case "$VERSION_BUMP" in
 esac
 ```
 
-**Update all 2 version files**:
+**Update version file**:
 ```bash
-# 1. Update plugin.json (PRIMARY - single source of truth)
+# Update plugin.json (single source of truth for single plugin standard)
 jq --arg v "$VERSION" '.version = $v' .claude-plugin/plugin.json > tmp.json && mv tmp.json .claude-plugin/plugin.json
-
-# 2. Update marketplace.json (plugin entry version)
-jq --arg v "$VERSION" '(.plugins[] | select(.name == "claude-pilot").version) = $v' .claude-plugin/marketplace.json > tmp.json && mv tmp.json .claude-plugin/marketplace.json
-
-# Note: marketplace.json metadata.version is also updated separately
-jq --arg v "$VERSION" '.metadata.version = $v' .claude-plugin/marketplace.json > tmp.json && mv tmp.json .claude-plugin/marketplace.json
 ```
 
 **Verify version consistency**:
 ```bash
 PLUGIN_VER=$(jq -r '.version' .claude-plugin/plugin.json)
-MARKET_VER=$(jq -r '.plugins[] | select(.name == "claude-pilot").version' .claude-plugin/marketplace.json)
-MARKET_META_VER=$(jq -r '.metadata.version' .claude-plugin/marketplace.json)
 
-if [ "$PLUGIN_VER" != "$VERSION" ] || [ "$MARKET_VER" != "$VERSION" ] || [ "$MARKET_META_VER" != "$VERSION" ]; then
+if [ "$PLUGIN_VER" != "$VERSION" ]; then
     echo "ERROR: Version mismatch detected"
     exit 1
 fi
@@ -152,7 +143,7 @@ CHANGELOG_ENTRY+="### Added"
 **Commit and tag**:
 ```bash
 # Stage all version files
-git add .claude-plugin/plugin.json .claude-plugin/marketplace.json CHANGELOG.md
+git add .claude-plugin/plugin.json CHANGELOG.md
 
 # Commit with conventional commit format
 git commit -m "chore(release): Bump version to $VERSION
@@ -193,8 +184,7 @@ fi
 
 | File | Purpose | Version Field |
 |------|---------|---------------|
-| `.claude-plugin/plugin.json` | **PRIMARY** - Single source of truth | `version` |
-| `.claude-plugin/marketplace.json` | Plugin manifest | `plugins[0].version`, `metadata.version` |
+| `.claude-plugin/plugin.json` | **PRIMARY** - Single source of truth (single plugin standard) | `version` |
 | `CHANGELOG.md` | Release notes | N/A |
 
 ---
@@ -210,7 +200,6 @@ fi
 # CI validates these match:
 - Git tag version (vX.Y.Z)
 - plugin.json version
-- marketplace.json version (both fields)
 ```
 
 **Benefits**:

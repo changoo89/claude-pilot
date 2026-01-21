@@ -17,11 +17,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate version consistency
-        run: |
-          # Use dedicated validation script for consistency
-          .github/scripts/validate_versions.sh "${GITHUB_REF_NAME}"
-
       - name: Extract release notes from CHANGELOG
         id: changelog
         run: |

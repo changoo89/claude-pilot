@@ -23,9 +23,6 @@
   "skills": [
     "./.claude/skills/"
   ],
-  "agents": [
-    "./.claude/agents/"
-  ],
   "mcpServers": {
     "context7": {
       "command": "npx",

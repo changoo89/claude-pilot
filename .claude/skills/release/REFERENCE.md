@@ -446,11 +446,11 @@ jobs:
           VERSION_FROM_TAG="${{ github.ref_name }}"
           PLUGIN_VERSION=$(jq -r '.version' .claude-plugin/plugin.json)
           MARKET_VERSION=$(jq -r '.plugins[] | select(.name == "claude-pilot").version' .claude-plugin/marketplace.json)
-          PILOT_VERSION=$(cat .claude/.pilot-version)
+          MARKET_META_VERSION=$(jq -r '.metadata.version' .claude-plugin/marketplace.json)
 
           if [ "$VERSION_FROM_TAG" != "v$PLUGIN_VERSION" ] || \
              [ "$VERSION_FROM_TAG" != "v$MARKET_VERSION" ] || \
-             [ "$VERSION_FROM_TAG" != "v$PILOT_VERSION" ]; then
+             [ "$VERSION_FROM_TAG" != "v$MARKET_META_VERSION" ]; then
             echo "Version mismatch detected"
             exit 1
           fi
@@ -591,4 +591,3 @@ rm -rf ~/.claude/plugins/cache/claude-pilot
 
 **Never manually edit**:
 - `.claude-plugin/marketplace.json` version (auto-synced)
-- `.pilot-version` (auto-synced)

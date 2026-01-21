@@ -17,7 +17,7 @@ The release process uses a hybrid approach combining local preparation with CI/C
 
 ### Local Phase (`/999_release`)
 
-1. Bumps version across all files (plugin.json, marketplace.json, .pilot-version)
+1. Bumps version across all files (plugin.json, marketplace.json)
 2. Generates CHANGELOG entry from git commits
 3. Creates git tag (vX.Y.Z)
 4. Skips GitHub release creation by default (`--skip-gh`)
@@ -43,7 +43,6 @@ The release process uses a hybrid approach combining local preparation with CI/C
 - Git tag version (vX.Y.Z)
 - plugin.json version
 - marketplace.json version
-- .pilot-version
 ```
 
 **Release Notes**: Automatically extracted from CHANGELOG.md section matching tag version
@@ -55,7 +54,6 @@ The release process uses a hybrid approach combining local preparation with CI/C
 **Validation Script** (`.github/scripts/validate_versions.sh`):
 - Checks `plugin.json` version
 - Checks `marketplace.json` version
-- Checks `.pilot-version` file
 - Compares all versions against git tag
 - Exits with error if mismatch detected
 

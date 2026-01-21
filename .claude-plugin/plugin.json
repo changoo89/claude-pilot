@@ -22,15 +22,5 @@
   ],
   "skills": [
     "./.claude/skills/"
-  ],
-  "mcpServers": {
-    "context7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ],
-      "description": "Query up-to-date documentation and code examples for any programming library or framework"
-    }
-  }
+  ]
 }

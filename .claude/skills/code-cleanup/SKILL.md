@@ -1,3 +1,8 @@
+---
+name: code-cleanup
+description: Dead code detection and removal using standard tooling. Use when removing unused imports, variables, or dead files.
+---
+
 # SKILL: Code Cleanup
 
 > **Purpose**: Dead code detection and removal using standard tooling (ESLint, TypeScript)
@@ -8,11 +13,13 @@
 ## Quick Start
 
 ### When to Use This Skill
+
 - Remove unused import statements
 - Detect and delete dead files (zero references)
 - Clean up codebase after refactoring
 
 ### Quick Reference
+
 ```bash
 # Unused imports (ESLint)
 eslint . --ext .ts,.tsx --rule '@typescript-eslint/no-unused-vars: error'
@@ -21,304 +28,138 @@ eslint . --ext .ts,.tsx --rule '@typescript-eslint/no-unused-vars: error'
 tsc --noUnusedLocals --noUnusedParameters --noEmit
 
 # Dead files (ripgrep)
-rg --files -g '!*.test.ts' -g '!*.spec.ts' | while read f; do
+rg --files -g '!*.test.ts' | while read f; do
   refs=$(rg -c "from.*$f" . 2>/dev/null || echo 0)
   [ "$refs" -eq 0 ] && echo "$f"
 done
 ```
 
----
-
-## What This Skill Covers
-
-### In Scope
-- Unused import detection (ESLint-based)
-- Unused local variable/parameter detection (TypeScript-based)
-- Dead file detection (ripgrep-based reference counting)
-- Safe deletion with rollback
-
-### Out of Scope
-- Custom static analysis tools → Use standard tooling instead
-- Complex dependency analysis → Manual review required
-- Runtime code coverage → Use coverage tools (istanbul, c8)
-
----
-
 ## Core Concepts
 
 ### Tier System
 
-**Tier 1**: Unused imports (ESLint + TypeScript)
-- `@typescript-eslint/no-unused-vars` rule
-- `--noUnusedLocals --noUnusedParameters` flags
-- Fast, reliable, zero false positives
+**Tier 1**: Unused imports (ESLint + TypeScript) - Fast, reliable, zero false positives
 
-**Tier 2**: Dead files (ripgrep reference counting)
-- Files with zero inbound imports
-- Conservative exclusion patterns (index.*, main.*, *.config.*)
-- Risk-based classification (Low/Medium/High)
+**Tier 2**: Dead files (ripgrep reference counting) - Files with zero inbound imports, risk-based classification
 
-**Why Standard Tooling?**
-- ESLint/TypeScript are already configured in projects
-- No bespoke tooling maintenance burden
-- Community-tested, well-documented
-- Matches obra/superpowers skill-only philosophy
-
----
+**Why Standard Tooling?** ESLint/TypeScript already configured, no bespoke tooling, community-tested
 
 ## Procedures
 
 ### Detect Unused Imports (Tier 1)
 
-**Step 1: Run ESLint with no-unused-vars rule**
-```bash
-eslint . --ext .ts,.tsx --rule '@typescript-eslint/no-unused-vars: error' --format json
-```
+**Step 1**: `eslint . --ext .ts,.tsx --rule '@typescript-eslint/no-unused-vars: error' --format json`
 
-**Expected Output**:
-```json
-{
-  "results": [
-    {
-      "filePath": "src/components/Button.tsx",
-      "messages": [
-        {
-          "ruleId": "@typescript-eslint/no-unused-vars",
-          "message": "'Button' is assigned a value but never used.",
-          "line": 10,
-          "column": 7
-        }
-      ]
-    }
-  ]
-}
-```
+**Step 2**: Parse results: `jq '.[].messages[] | select(.ruleId == "no-unused-vars")' eslint-report.json`
 
-**Step 2: Extract unused imports**
-```bash
-eslint . --ext .ts,.tsx \
-  --rule '@typescript-eslint/no-unused-vars: error' \
-  --format json | \
-  jq -r '.results[] | select(.messages | length > 0) |
-    "\(.filePath): \([.messages[].message] | join(", "))"'
-```
-
-**Step 3: Run TypeScript compiler for unused locals/params**
-```bash
-tsc --noUnusedLocals --noUnusedParameters --noEmit
-```
-
-**Expected Output**:
-```
-src/utils/helpers.ts:15:11 - error TS6133: 'formatDate' is declared but its value is never read.
-```
-
-**Cleanup Command**:
-```bash
-# Auto-fix with ESLint (safe imports only)
-eslint . --ext .ts,.tsx --fix
-
-# Manual removal for unused locals/params
-# (TS compiler doesn't auto-fix these)
-```
-
----
+**Step 3**: Auto-fix: `eslint . --ext .ts,.tsx --fix`
 
 ### Detect Dead Files (Tier 2)
 
-**Step 1: Find all source files**
+**Find files**: `rg --files --glob '!*.test.ts' src/`
+
+**Count references**:
 ```bash
-rg --files --type ts --type js --type tsx --type jsx \
-  --glob '!*.test.ts' --glob '!*.test.tsx' --glob '!*.test.js' \
-  --glob '!*.spec.ts' --glob '!*.spec.tsx' --glob '!*.spec.js' \
-  --glob '!*.mock.ts' --glob '!*.mock.tsx' --glob '!*.mock.js' \
-  --glob '!*.d.ts' \
-  --glob '!*.config.ts' --glob '!*.config.js' \
-  --glob '!dist/**' --glob '!build/**' \
-  --glob '!node_modules/**' --glob '!.next/**'
+for file in $(rg --files src/); do
+  refs=$(rg -c "from.*['\"]$file" src/ || echo 0)
+  echo "$file: $refs"
+done
 ```
 
-**Step 2: Check file references**
+**Filter zero refs**:
 ```bash
-check_file_references() {
-  local file="$1"
-  local basename=$(basename "$file" | sed 's/\.[^.]*$//')
-
-  # Count references (excluding the file itself)
-  local ref_count=$(rg -c "(from[[:space:]]+['\"]$file|import[[:space:]]+.*from[[:space:]]+['\"].*$basename)" \
-    --glob "!$file" \
-    --glob "!node_modules/**" \
-    --glob "!.next/**" \
-    . 2>/dev/null | awk -F: '{s+=$2} END {print s+0}')
-
-  echo "${ref_count:-0}"
-}
-
-# Find dead files
-while IFS= read -r file; do
-  refs=$(check_file_references "$file")
-  if [ "$refs" -eq 0 ]; then
-    echo "$file"
-  fi
-done < <(rg --files --type ts)
+rg --files src/ | while read file; do
+  refs=$(rg -c "from.*['\"]$file" src/ || echo 0)
+  [ "$refs" -eq 0 ] && echo "$file"
+done
 ```
 
-**Step 3: Risk classification**
+### Risk Classification
+
+| Risk | Examples | Action |
+|------|----------|--------|
+| **Low** | Tests, utils | Auto-delete |
+| **Medium** | Components, services | Auto-delete (TTY) or dry-run (CI) |
+| **High** | Auth, database, models | User confirmation required |
+
+### Pre-flight Safety
+
 ```bash
-calculate_risk() {
-  local file="$1"
-
-  if echo "$file" | grep -qE "(test|spec|mock|example|demo)"; then
-    echo "Low"
-  elif echo "$file" | grep -qE "(util|helper|service|handler)"; then
-    echo "Medium"
-  elif echo "$file" | grep -qE "(component|route|controller|middleware|plugin)"; then
-    echo "High"
-  fi
-}
-```
-
-**Exclusion Patterns**:
-- `index.*`, `main.*`, `cli.*` (entry points)
-- `*.config.*` (configuration files)
-- `*.test.*`, `*.spec.*`, `*.mock.*` (test files)
-- `*.d.ts` (type definitions)
-- `dist/**`, `build/**`, `node_modules/**`, `.next/**` (build artifacts)
-
----
-
-### Safe Deletion Procedure
-
-**Pre-flight Checks**:
-```bash
-# Check for modified/staged files (block deletion)
+# Block if modified or staged files exist
 if [ -n "$(git status --porcelain)" ]; then
-  echo "Error: Working directory not clean"
-  echo "Commit or stash changes before cleanup"
-  exit 1
+  echo "⚠️  Working directory not clean"
+  exit 2
+fi
+```
+
+### Auto-Apply Workflow
+
+```bash
+# Auto-apply Low/Medium risk
+for file in $(detect_dead_files); do
+  risk=$(classify_risk "$file")
+  if [ "$risk" = "Low" ] || [ "$risk" = "Medium" ]; then
+    rm "$file"
+  fi
+done
+
+# Confirm High risk
+for file in $(detect_high_risk_files); do
+  read -p "Delete $file? [y/N]: " confirm
+  [ "$confirm" = "y" ] && rm "$file"
+done
+```
+
+## Verification
+
+**After each batch**: `npm test && npm run type-check && npm run lint`
+
+**Final verification**: All checks must pass
+
+**Rollback on failure**: `git checkout -- .`
+
+## Command Integration
+
+### /05_cleanup Command
+
+```bash
+# Pre-flight check
+if [ -n "$(git status --porcelain)" ]; then
+  echo "⚠️  Working directory not clean"
+  exit 2
 fi
 
-# Verify tests pass
-npm test || {
-  echo "Error: Tests failing - cannot cleanup"
-  exit 1
-}
+# Detect and classify
+detect_dead_files | while IFS='|' read -r file risk; do
+  echo "$file|$risk"
+done | tee /tmp/cleanup_candidates.txt
 ```
 
-**Deletion Loop**:
-```bash
-BATCH_SIZE=10
-CURRENT_BATCH=0
+## Troubleshooting
 
-for file in $DEAD_FILES; do
-  risk=$(calculate_risk "$file")
+### False Positives
 
-  # Auto-apply Low/Medium risk
-  if [ "$risk" != "High" ]; then
-    git rm "$file" || mv "$file" .trash/
-    echo "Removed: $file"
-  else
-    # High risk: prompt user
-    echo "Delete $file? (y/n)"
-    read answer
-    [ "$answer" = "y" ] && git rm "$file"
-  fi
+**Issue**: File marked as dead but actually used
 
-  # Verification after each batch
-  ((CURRENT_BATCH++))
-  if [ $((CURRENT_BATCH % BATCH_SIZE)) -eq 0 ]; then
-    npm test || {
-      echo "Tests failed - rolling back"
-      git checkout .
-      exit 1
-    }
-  fi
-done
-```
+**Causes**: Dynamic imports | Runtime requires | Non-standard syntax
 
-**Rollback on Failure**:
-```bash
-# Restore from .trash/
-for file in .trash/*; do
-  mv "$file" "${file#.trash/}"
-done
+**Solution**: Manual review before deletion
 
-# Or use git
-git checkout .
-```
+### Test Failures
 
----
+**Issue**: Tests fail after cleanup
 
-## Integration Points
+**Solution**: Rollback immediately: `git checkout -- .`
 
-### `/05_cleanup` Command
-- **Mode**: `imports` (Tier 1), `files` (Tier 2), `all` (both)
-- **Scope**: `repo` (default), `path=...` (specific directory)
-- **Flags**: `--dry-run` (preview), `--apply` (execute)
+## Best Practices
 
-**Usage Examples**:
-```bash
-/05_cleanup mode=imports          # Detect unused imports (dry-run)
-/05_cleanup mode=files --apply    # Delete dead files
-/05_cleanup mode=all path=src/components  # Analyze specific dir
-```
+- **Run tests after each batch**: Max 10 deletions per batch
+- **Conservative exclusion**: Exclude index.*, main.*, *.config.*
+- **Risk-based approach**: Auto-apply Low/Medium, confirm High
+- **Clean working directory**: Block if modified/staged files exist
 
-### Pre-commit Integration
-**Optional**: Add to `.claude/hooks.json`
-```json
-{
-  "pre-commit": [
-    "eslint . --ext .ts,.tsx --rule '@typescript-eslint/no-unused-vars: error'"
-  ]
-}
-```
+## Further Reading
 
-**Better**: Use CI for enforcement (developer autonomy)
+**Internal**: @.claude/skills/code-cleanup/REFERENCE.md - Complete procedures, risk classification, auto-apply workflow, verification, troubleshooting | @.claude/skills/vibe-coding/SKILL.md - Code quality standards
 
----
-
-## Verification Commands
-
-**After Cleanup**:
-```bash
-# Verify tests pass
-npm test
-
-# Verify type-check clean
-tsc --noEmit
-
-# Verify lint clean
-eslint . --ext .ts,.tsx
-
-# Verify no broken imports
-rg "from ['\"]\.\./.*['\"]" --files-with-matches | xargs -I {} sh -c 'tsc --noEmit {} || echo "{}: broken import"'
-```
-
----
-
-## Error Handling
-
-**ESLint Not Installed**:
-```bash
-npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
-```
-
-**TypeScript Not Installed**:
-```bash
-npm install --save-dev typescript
-```
-
-**Ripgrep Not Installed**:
-```bash
-brew install ripgrep
-```
-
----
-
-## Related Skills
-
-**vibe-coding**: Code quality standards (≤50 lines functions, ≤200 lines files) | **safe-file-ops**: Safe deletion patterns | **quality-gates**: Pre-commit procedures
-
----
-
-**Version**: claude-pilot 4.3.0
+**External**: [ESLint Unused Vars Rule](https://typescript-eslint.io/rules/no-unused-vars/) | [TypeScript Compiler Options](https://www.typescriptlang.org/tsconfig)

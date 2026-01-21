@@ -52,6 +52,19 @@ git diff --quiet || { echo "Error: Uncommitted changes"; exit 1; }
 jq -e '.version' .claude-plugin/plugin.json >/dev/null 2>&1 || { echo "Error: Invalid plugin.json"; exit 1; }
 ```
 
+**Check marketplace.json version sync**:
+```bash
+# Verify marketplace.json version matches plugin.json (pre-flight warning)
+if [ -f .claude-plugin/marketplace.json ]; then
+    MKTPLACE_VER=$(jq -r '.version' .claude-plugin/marketplace.json)
+    PLUGIN_VER=$(jq -r '.version' .claude-plugin/plugin.json)
+    if [ "$MKTPLACE_VER" != "$PLUGIN_VER" ]; then
+        echo "Warning: marketplace.json ($MKTPLACE_VER) != plugin.json ($PLUGIN_VER)"
+        echo "Will sync marketplace.json during version bump"
+    fi
+fi
+```
+
 **Check for existing tag**:
 ```bash
 if git tag -l | grep -q "^v${VERSION}$"; then
@@ -80,10 +93,20 @@ case "$VERSION_BUMP" in
 esac
 ```
 
-**Update version file**:
+**Update version files**:
 ```bash
 # Update plugin.json (single source of truth for single plugin standard)
 jq --arg v "$VERSION" '.version = $v' .claude-plugin/plugin.json > tmp.json && mv tmp.json .claude-plugin/plugin.json
+
+# Update marketplace.json (if exists) - sync all version fields
+if [ -f .claude-plugin/marketplace.json ]; then
+    jq --arg v "$VERSION" '
+        .version = $v |
+        .metadata.version = $v |
+        .plugins[0].version = $v
+    ' .claude-plugin/marketplace.json > tmp.json && mv tmp.json .claude-plugin/marketplace.json
+    echo "Updated marketplace.json version to $VERSION"
+fi
 ```
 
 **Verify version consistency**:
@@ -153,7 +176,7 @@ CHANGELOG_ENTRY+="### Added"
 **Commit and tag**:
 ```bash
 # Stage all version files
-git add .claude-plugin/plugin.json CHANGELOG.md
+git add .claude-plugin/plugin.json .claude-plugin/marketplace.json CHANGELOG.md
 
 # Commit with conventional commit format
 git commit -m "chore(release): Bump version to $VERSION
@@ -195,6 +218,7 @@ fi
 | File | Purpose | Version Field |
 |------|---------|---------------|
 | `.claude-plugin/plugin.json` | **PRIMARY** - Single source of truth (single plugin standard) | `version` |
+| `.claude-plugin/marketplace.json` | Marketplace display version | `version`, `metadata.version`, `plugins[].version` |
 | `CHANGELOG.md` | Release notes | N/A |
 
 ---
@@ -254,6 +278,27 @@ Error: Git tag v4.3.3 already exists
 ```bash
 git tag -d v4.3.3
 git push origin :refs/tags/v4.3.3
+```
+
+### Marketplace Shows Old Version
+
+**Symptom**: Marketplace shows 4.4.5 but plugin.json is 4.4.6
+
+**Cause**: marketplace.json version not updated during release
+
+**Solution**: Update all version fields in marketplace.json
+```bash
+jq --arg v "4.4.6" '
+    .version = $v |
+    .metadata.version = $v |
+    .plugins[0].version = $v
+' .claude-plugin/marketplace.json > tmp.json && mv tmp.json .claude-plugin/marketplace.json
+
+# Commit and update tag
+git add .claude-plugin/marketplace.json
+git commit -m "fix: Update marketplace.json version to 4.4.6"
+git tag -d v4.4.6 && git push origin --delete v4.4.6
+git tag v4.4.6 && git push origin main --tags
 ```
 
 ---

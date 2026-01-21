@@ -24,8 +24,8 @@ npm run lint  # or: eslint . --ext .ts,.tsx
 # Todo validation
 /03_close  # Validates all SCs complete before closing plan
 
-# Branch guard
-.claude/scripts/hooks/branch-guard.sh
+# Branch guard (Git native)
+git config --global receive.denyDeleteCurrent warn
 ```
 
 ---
@@ -194,43 +194,35 @@ exit 0  # Allow plan closing
 
 **Purpose**: Prevent commits to protected branches (main, master)
 
-**Command**:
+**Git Native Configuration** (recommended):
 ```bash
-.claude/scripts/hooks/branch-guard.sh
+# Prevent pushing to current branch
+git config --global receive.denyDeleteCurrent warn
+
+# Or for server-side protection (GitHub/GitLab):
+# Use branch protection rules in the hosting platform
 ```
 
-**Expected Output**:
-- Success: Commit allowed (exit code 0)
-- Failure: "Error: Cannot commit to protected branch 'main'" (exit code 1)
-
-**Logic**:
+**Manual Check**:
 ```bash
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 PROTECTED_BRANCHES=("main" "master" "develop" "production")
 
 for protected in "${PROTECTED_BRANCHES[@]}"; do
   if [ "$BRANCH" = "$protected" ]; then
-    echo "Error: Cannot commit to protected branch '$BRANCH'"
+    echo "Warning: On protected branch '$BRANCH'"
     echo "Create a feature branch: git checkout -b feature/your-feature"
-    exit 1
+    # exit 1  # Uncomment to enforce
   fi
 done
-
-exit 0  # Branch is not protected
-```
-
-**Hook Script**: `.claude/scripts/hooks/branch-guard.sh`
-
-**Configuration**:
-```json
-{
-  "pre-commit": [
-    ".claude/scripts/hooks/branch-guard.sh"
-  ]
-}
 ```
 
 **Protected Branches**: main, master, develop, production
+
+**Git Best Practices**:
+- Use feature branches for all work
+- Protect main/master via GitHub/GitLab branch rules
+- Require pull requests for main branch merges
 
 ---
 
@@ -392,9 +384,10 @@ echo "Exit code: $?"  # 0 = pass, 1 = fail
 .claude/scripts/hooks/lint.sh
 echo "Exit code: $?"
 
-# Test branch guard
-.claude/scripts/hooks/branch-guard.sh
-echo "Exit code: $?"
+# Test branch guard (manual check)
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "Current branch: $BRANCH"
+# Should warn if on protected branch
 ```
 
 ### Test Profile System

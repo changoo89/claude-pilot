@@ -176,7 +176,6 @@ grep "SC-" plan.md | wc -l  # Should map all URs
 
 ## Related Skills
 
-- **managing-continuation**: State persistence across sessions
 - **ralph-loop**: Autonomous iteration until SCs complete
 - **test-driven-development**: Red-Green-Refactor for SC implementation
 

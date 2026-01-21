@@ -259,7 +259,6 @@ fi
 ## Related Skills
 
 - **test-driven-development**: Red-Green-Refactor cycle
-- **managing-continuation**: State persistence across iterations
 - **gpt-delegation`: Escalation when blocked
 
 ---

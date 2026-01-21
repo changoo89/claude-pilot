@@ -214,7 +214,6 @@ Task: Implement data service src/data/data.service.ts
 ## Related Skills
 
 - **using-git-worktrees**: Parallel development in isolated workspaces
-- **managing-continuation**: State coordination across parallel agents
 - **ralph-loop**: Autonomous iteration with parallel execution support
 
 ---

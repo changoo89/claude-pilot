@@ -241,7 +241,6 @@ done
 
 - **spec-driven-workflow**: Documentation in planning phase
 - **code-quality-gates**: PreToolUse checks for .md creation
-- **managing-continuation**: State persistence across sessions
 
 ---
 

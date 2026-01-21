@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-20 (Updated: Plan Detection Fix and Statusline Enhancement v4.3.2)
+> **Last Updated**: 2026-01-21 (Updated: Skill-Only Worktree & Continuation Removal v4.4.0)
 
 ---
 
@@ -31,9 +31,8 @@ claude-pilot/
 │       └── validate_versions.sh  # Version consistency validation
 ├── .gitattributes          # Git file attributes (LF line endings, executable bit enforcement for .sh files)
 ├── .claude/
-│   ├── commands/           # Slash commands (12)
+│   ├── commands/           # Slash commands (11)
 │   │   ├── CONTEXT.md      # Command folder context
-│   │   ├── 00_continue.md  # Resume from continuation state (NEW v4.2.0)
 │   │   ├── 000_pilot_setup.md  # Setup command (NEW v4.1.0)
 │   │   ├── 00_plan.md      # Create SPEC-First plan
 │   │   ├── 01_confirm.md   # Confirm plan (with Step 1.5 extraction)
@@ -62,8 +61,7 @@ claude-pilot/
 │   │   ├── requirements-verification.md # Requirements Verification
 │   │   ├── instruction-clarity.md    # LLM-readable instruction patterns
 │   │   ├── intelligent-delegation.md # Intelligent Codex delegation (NEW v4.1.0)
-│   │   ├── todo-granularity.md       # Granular todo breakdown (NEW v4.2.0)
-│   │   └── continuation-system.md    # Sisyphus agent continuation (NEW v4.2.0)
+│   │   └── todo-granularity.md       # Granular todo breakdown (NEW v4.2.0)
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
 │   │   ├── prp-template.md            # PRP template
 │   │   ├── gap-checklist.md
@@ -128,13 +126,6 @@ claude-pilot/
 │   │   ├── in_progress/    # Currently executing
 │   │   ├── done/           # Completed plans
 │   │   └── active/         # Branch pointers
-│   ├── state/              # Continuation state (NEW v4.2.0)
-│   │   ├── continuation.json       # Active continuation state
-│   │   └── continuation.json.backup # State backup
-│   ├── scripts/            # State management scripts (NEW v4.2.0)
-│   │   ├── state_read.sh   # Read continuation state
-│   │   ├── state_write.sh  # Write continuation state
-│   │   └── state_backup.sh # Backup continuation state
 │   └── tests/              # Integration tests (v4.0.5)
 │       ├── test_00_plan_delegation.test.sh
 │       ├── test_01_confirm_delegation.test.sh
@@ -144,8 +135,6 @@ claude-pilot/
 │       ├── test_codex_detection.test.sh    # Codex CLI detection tests (v4.1.0)
 │       ├── test_path_init.test.sh          # PATH initialization tests (v4.1.0)
 │       ├── test_debug_mode.test.sh         # DEBUG mode tests (v4.1.0)
-│       ├── test_00_continue.test.sh        # Continue command tests (NEW v4.2.0)
-│       ├── test_continuation_state.test.sh # State management tests (NEW v4.2.0)
 │       ├── test_sc5_integration.test.sh    # Integration tests (NEW v4.2.0)
 │       ├── test_github_workflow.sh         # GitHub Actions workflow tests (NEW v4.1.8)
 │       ├── test_999_skip_gh.sh             # 999_release skip-gh tests (NEW v4.1.8)
@@ -553,24 +542,6 @@ claude-pilot update --apply-statusline
 - **Critical fixes**: Race condition (flock), input validation (mode validation), cleanup handlers (trap)
 - **Backward compatible**: Auto-detection for existing settings.json
 - Verification: All 7 success criteria met (SC-1 through SC-7)
-
-### v4.2.0 (2026-01-18)
-
-**Sisyphus Continuation System**: Agent-based continuation for automatic task completion
-- **State management**: `.pilot/state/continuation.json` for session persistence
-- **Agent continuation**: Agents check state before stopping, continue until todos complete
-- **Granular todos**: `/00_plan` breaks down tasks into ≤15 minute chunks
-- **New command**: `/00_continue` for resuming interrupted sessions
-- **State scripts**: `state_read.sh`, `state_write.sh`, `state_backup.sh` with JSON validation and atomic writes
-- **Agent updates**: Added continuation logic to coder, tester, validator, documenter
-- **Command integration**: `/02_execute` creates/resumes state, `/03_close` verifies completion
-- **New guides**: `continuation-system.md` (355 lines), `todo-granularity.md` (672 lines)
-- **New tests**: 3 test files (test_00_continue, test_continuation_state, test_sc5_integration)
-- **Configuration**: `CONTINUATION_LEVEL` (aggressive/normal/polite), `MAX_ITERATIONS` (default: 7)
-- **Escape hatch**: `/cancel`, `/stop`, `/done` commands for manual interruption
-- **Features**: File locking (flock), JSON safety (jq), automatic backup, session UUID tracking
-- Updated files: All agents (4), commands (4), guides (2 new)
-- Verification: All 5 success criteria met (SC-1 through SC-5), 57/58 tests passed (98.3%)
 
 ### v4.2.1 (2026-01-18)
 

@@ -53,47 +53,19 @@ echo "✓ Found $SC_COUNT Success Criteria"
 
 ---
 
-## Step 3: Create Continuation State
-
-```bash
-STATE_FILE=".pilot/state/continuation.json"
-mkdir -p .pilot/state
-
-# Build todos array
-TODOS_JSON="$(echo "$SC_LIST" | while read sc; do
-    echo "{\"id\": \"$sc\", \"status\": \"pending\", \"iteration\": 0}"
-done | jq -s '.')"
-
-# Create state file
-cat > "$STATE_FILE" << EOF
-{
-  "plan_file": "$PLAN_PATH",
-  "iteration_count": 0,
-  "max_iterations": 7,
-  "todos": $TODOS_JSON
-}
-EOF
-
-echo "✓ Continuation state created"
-```
-
----
-
-## Step 4: Execute with Ralph Loop
+## Step 3: Execute with Ralph Loop
 
 ```markdown
-Task: subagent_type: coder, prompt: Execute $PLAN_PATH using tdd, ralph-loop, managing-continuation
+Task: subagent_type: coder, prompt: Execute $PLAN_PATH using tdd, ralph-loop
 ```
 
 **Quality Gates**: Tests pass, Coverage ≥80%, Type-check clean, Lint clean
-
-**State Update**: `jq '.todos |= map(if .id == $SC then .status = "completed" else . end)' "$STATE_FILE" > tmp && mv tmp "$STATE_FILE"`
 
 ---
 
 ## Related Skills
 
-ralph-loop | tdd | managing-continuation | parallel-subagents | spec-driven-workflow
+ralph-loop | tdd | parallel-subagents | spec-driven-workflow
 
 ---
 

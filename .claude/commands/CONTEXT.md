@@ -37,7 +37,6 @@ Each command delegates to appropriate skills:
 - **spec-driven-workflow**: Plan creation
 - **tdd**: Test-driven development
 - **ralph-loop**: Autonomous iteration
-- **managing-continuation**: State persistence
 - **git-master**: Git operations
 
 ---

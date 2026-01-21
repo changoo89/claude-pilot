@@ -67,20 +67,12 @@ echo "✓ Plan moved to done"
 
 ---
 
-## Step 5: Archive State & Git Commit
+## Step 5: Git Commit
 
 ```bash
-# Archive state
-STATE_FILE=".pilot/state/continuation.json"
-if [ -f "$STATE_FILE" ]; then
-    mkdir -p .pilot/state/archive
-    cp "$STATE_FILE" ".pilot/state/archive/$(date +%Y%m%d_%H%M%S)_continuation.json"
-    rm "$STATE_FILE"
-fi
-
 # Git commit (skip with no-commit)
 if [ "$1" != "no-commit" ]; then
-    git add .pilot/plan/done/ .pilot/state/archive/
+    git add .pilot/plan/done/
     git commit -m "close(plan): $(basename "$PLAN_PATH" .md)" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
 fi
 ```
@@ -89,7 +81,7 @@ fi
 
 ## Related Skills
 
-**managing-continuation**: State cleanup | **git-master**: Commit creation
+**git-master**: Commit creation
 
 ---
 

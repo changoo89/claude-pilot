@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.3.1 | **Last Updated**: 2026-01-20
+> **Version**: 4.4.0 | **Last Updated**: 2026-01-21
 
 ---
 
@@ -37,7 +37,6 @@
 **Core Features**:
 - **SPEC-First Planning**: `/00_plan "task"`
 - **TDD + Ralph Loop**: `/02_execute` - Autonomous iteration until quality gates pass
-- **Sisyphus Continuation**: `/00_continue` - Resume across sessions
 - **Multi-Angle Review**: `/review` - Parallel verification
 - **Auto-Documentation**: `/document` - 3-Tier sync
 
@@ -49,26 +48,16 @@
 
 | Component | Purpose | Location |
 |-----------|---------|----------|
-| Commands | Slash commands (11) | `.claude/commands/` |
+| Commands | Slash commands (10) | `.claude/commands/` |
 | Guides | Methodology (17) | `.claude/guides/` |
 | Skills | TDD, Ralph Loop, Vibe Coding | `.claude/skills/` |
 | Agents | Specialized roles (8) | `.claude/agents/` |
-| State | Continuation system | `.pilot/state/` |
 
 **Plugin Directory**: `@docs/ai-context/project-structure.md`
 
 ---
 
 ## Key Features
-
-### Sisyphus Continuation (v4.2.0)
-**Intelligent Agent Persistence**: Agents continue work across sessions until completion
-
-**Commands**: `/00_continue` (resume), `/02_execute` (create state), `/03_close` (verify)
-
-**Configuration**: `export CONTINUATION_LEVEL="normal"` (aggressive | normal | polite)
-
-**Full Guide**: `@docs/ai-context/continuation-system.md`
 
 ### Codex Integration (v4.2.0)
 **Intelligent GPT Delegation**: Context-aware, autonomous delegation to GPT experts

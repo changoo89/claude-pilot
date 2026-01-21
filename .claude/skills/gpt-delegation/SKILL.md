@@ -413,7 +413,6 @@ fi
 
 ## Related Skills
 
-- **managing-continuation**: State persistence during delegation
 - **ralph-loop**: Escalation when blocked (7 iterations)
 - **parallel-subagents**: Coordination during parallel execution
 

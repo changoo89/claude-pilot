@@ -16,14 +16,13 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `frontend-design` | Production-grade frontend design | Detailed examples, patterns | Distinctive, non-generic UI design | "UI design", "frontend styling", "landing page" |
 | `confirm-plan` | Plan confirmation workflow | Detailed implementation, Interactive Recovery | Extract plan, create file, auto-review | "confirm plan", "plan review", "requirements verification" |
 | `execute-plan` | Plan execution workflow | State management, verification patterns | Execute plans with TDD + Ralph Loop | "execute plan", "implement SC", "parallel execution" |
-| `continue-work` | Continuation system (Sisyphus) | State management, error recovery | Resume work from continuation state | "continue work", "resume state", "continue execution" |
 | `release` | Plugin release workflow | Version sync, git tagging, CI/CD | Bump version, tag, GitHub release | "release version", "bump version", "git tag", "GitHub release" |
 | `rapid-fix` | Rapid bug fix workflow | Scope validation, auto-plan execution | Auto-plan, execute, test, close simple fixes | "fix bug", "quick fix", "one-line fix" |
 | `code-cleanup` | Dead code detection and removal | ESLint/TypeScript procedures, safe deletion | Remove unused imports, delete dead files | "cleanup", "remove unused code", "dead code" |
 | `gpt-delegation` | Intelligent Codex/GPT consultation | Capability detection, fallback order | Consult GPT experts when blocked | "GPT delegation", "Codex CLI", "escalate" |
 | `quality-gates` | Pre-commit quality validation | Type-check, lint, todos, branch guard | Enforce code quality before commit | "pre-commit", "quality check", "validate" |
 
-**Total**: 14 skills, each with SKILL.md (~100 lines) and REFERENCE.md (~300 lines)
+**Total**: 13 skills, each with SKILL.md (~100 lines) and REFERENCE.md (~300 lines)
 
 ## Common Tasks
 
@@ -118,23 +117,9 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 
 **Plan execution workflow**:
 - Detect plan in pending/ or in_progress/
-- Create continuation state (Sisyphus system)
 - Analyze SC dependencies for parallel execution
 - Implement with TDD (Red-Green-Refactor)
 - Iterate with Ralph Loop until quality gates pass
-
-### Resume Work from Continuation State
-- **Task**: Continue incomplete work using continuation state
-- **Skill**: @.claude/skills/continue-work/SKILL.md
-- **Agent**: All agents (coder, tester, validator, documenter)
-- **Usage**: `/continue` command
-
-**Continuation workflow**:
-- Check `.pilot/state/continuation.json` exists
-- Load and validate state (with automatic backup recovery)
-- Resume with next incomplete todo
-- Update state after each iteration
-- Continue until all todos complete or max iterations (7) reached
 
 ## Patterns
 
@@ -231,7 +216,6 @@ All SKILL.md files link to REFERENCE.md and external resources:
 ### Workflow Skills
 - `ralph-loop`: Autonomous completion loop
 - `git-master`: Version control workflow
-- `continue-work`: Continuation system (Sisyphus)
 
 ### Documentation Skills
 - `documentation-best-practices`: Documentation standards
@@ -249,11 +233,6 @@ All SKILL.md files link to REFERENCE.md and external resources:
 
 ### Plan-Reviewer Agent (sonnet)
 - `documentation-best-practices`: Review plan documentation
-
-### All Agents
-- `continue-work`: Check continuation state before stopping
-- `vibe-coding`: Apply code quality standards
-- `documentation-best-practices`: Create clear documentation
 
 ## Frontmatter Verification
 
@@ -319,15 +298,6 @@ ralph-loop (Iterate until pass)
 vibe-coding (Refactor for quality)
 ```
 
-### Continuation Workflow
-```
-continue-work (Sisyphus system)
-    ↓
-Check state before stopping
-    ↓
-Continue if incomplete todos exist
-```
-
 ### Documentation Workflow
 ```
 documentation-best-practices (standards)
@@ -371,13 +341,10 @@ Create commit with conventional format
 ├── execute-plan/
 │   ├── SKILL.md
 │   └── REFERENCE.md
-├── continue-work/
-│   ├── SKILL.md
-│   └── REFERENCE.md
-└── CONTEXT.md
 ├── release/
 │   ├── SKILL.md
 │   └── REFERENCE.md
+└── CONTEXT.md
 ```
 
 ### Naming Convention

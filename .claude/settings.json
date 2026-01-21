@@ -8,10 +8,7 @@
   "alwaysThinkingEnabled": true,
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "context7",
-    "serena",
-    "grep-app",
-    "sequential-thinking"
+    "context7"
   ],
   "permissions": {
     "allow": [
@@ -174,3 +171,4 @@
     "escapeHatch": ["/cancel", "/stop", "/done"]
   }
 }
+

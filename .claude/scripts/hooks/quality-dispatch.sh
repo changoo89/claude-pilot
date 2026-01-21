@@ -3,8 +3,15 @@
 # O(1) project type detection and validator routing with caching
 # Part of hooks performance optimization
 
+# Source common environment library
+# shellcheck source=../../lib/env.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../../lib/env.sh" ]]; then
+    source "$SCRIPT_DIR/../../lib/env.sh"
+fi
+
 # shellcheck source=cache.sh
-CACHE_SCRIPT="$(dirname "$0")/cache.sh"
+CACHE_SCRIPT="${SCRIPT_DIR}/cache.sh"
 
 set -e
 
@@ -117,17 +124,17 @@ resolve_mode() {
     fi
 
     # 2. Repository profile
-    if [ -f ".claude/quality-profile.json" ]; then
+    if [ -f "$PROJECT_DIR/.claude/quality-profile.json" ]; then
         local mode
-        mode=$(jq -r '.mode // "stop"' .claude/quality-profile.json 2>/dev/null || echo "stop")
+        mode=$(jq -r '.mode // "stop"' "$PROJECT_DIR/.claude/quality-profile.json" 2>/dev/null || echo "stop")
         validate_mode "$mode"
         return
     fi
 
     # 3. User settings
-    if [ -f ".claude/settings.json" ]; then
+    if [ -f "$PROJECT_DIR/.claude/settings.json" ]; then
         local mode
-        mode=$(jq -r '.quality.mode // "stop"' .claude/settings.json 2>/dev/null || echo "stop")
+        mode=$(jq -r '.quality.mode // "stop"' "$PROJECT_DIR/.claude/settings.json" 2>/dev/null || echo "stop")
         validate_mode "$mode"
         return
     fi
@@ -142,10 +149,10 @@ should_run_validator() {
     local lang="$2"      # typescript, python, go, rust
 
     # Check repository profile for language override
-    if [ -f ".claude/quality-profile.json" ]; then
+    if [ -f "$PROJECT_DIR/.claude/quality-profile.json" ]; then
         local enabled
         enabled=$(jq -r ".language_overrides.${lang}.${validator} // \"null\"" \
-            .claude/quality-profile.json 2>/dev/null || echo "null")
+            "$PROJECT_DIR/.claude/quality-profile.json" 2>/dev/null || echo "null")
 
         if [ "$enabled" = "false" ]; then
             return 1  # Disabled
@@ -161,10 +168,8 @@ should_run_validator() {
 # Run validators based on project type
 run_validators() {
     local project_type="$1"
-    local hook_dir
     local config_file=""
     local check_type=""
-    hook_dir="$(dirname "$0")"
 
     # Determine config file and check type based on project type
     case "$project_type" in
@@ -203,8 +208,8 @@ run_validators() {
         typescript)
             # Check if typecheck should run
             if should_run_validator "typecheck" "typescript"; then
-                if [ -f "$hook_dir/typecheck.sh" ]; then
-                    "$hook_dir/typecheck.sh"
+                if [ -f "${SCRIPT_DIR}/typecheck.sh" ]; then
+                    "${SCRIPT_DIR}/typecheck.sh"
                     # Update cache after successful validation
                     cache_write "$project_type" "tsc" "unknown" "$config_file" "$check_type"
                 fi
@@ -215,8 +220,8 @@ run_validators() {
         nodejs|go|rust|python)
             # Check if lint should run
             if should_run_validator "lint" "$project_type"; then
-                if [ -f "$hook_dir/lint.sh" ]; then
-                    "$hook_dir/lint.sh"
+                if [ -f "${SCRIPT_DIR}/lint.sh" ]; then
+                    "${SCRIPT_DIR}/lint.sh"
                     # Update cache after successful validation
                     cache_write "$project_type" "lint" "unknown" "$config_file" "$check_type"
                 fi

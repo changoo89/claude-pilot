@@ -10,6 +10,13 @@
 #
 # Requirements: jq for JSON parsing
 
+# Source common environment library
+# shellcheck source=../lib/env.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../lib/env.sh" ]]; then
+    source "$SCRIPT_DIR/../lib/env.sh"
+fi
+
 set -euo pipefail
 
 # Read JSON input from stdin
@@ -20,9 +27,7 @@ cwd=$(echo "$input" | jq -r '.workspace.current_dir')
 
 # Source worktree utilities for worktree detection
 # Use lib directory for worktree utilities
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-WORKTREE_UTILS="${PROJECT_ROOT}/.claude/scripts/worktree-utils.sh"
+WORKTREE_UTILS="${SCRIPT_DIR}/worktree-utils.sh"
 if [ -f "$WORKTREE_UTILS" ]; then
     . "$WORKTREE_UTILS"
 fi
@@ -42,9 +47,9 @@ fi
 # If in worktree, use main repo's .pilot directory
 # Otherwise, use local .pilot directory
 if is_in_worktree 2>/dev/null; then
-    pilot_dir="$(get_main_pilot_dir 2>/dev/null || echo "${cwd}/.pilot")"
+    pilot_dir="$(get_main_pilot_dir 2>/dev/null || echo "$PROJECT_DIR/.pilot")"
 else
-    pilot_dir="${cwd}/.pilot"
+    pilot_dir="$PROJECT_DIR/.pilot"
 fi
 
 # Count pending plans (always show count, even when 0)

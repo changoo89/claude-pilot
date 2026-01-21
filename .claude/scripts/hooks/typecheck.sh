@@ -3,6 +3,13 @@
 # Runs before/after file edits to catch type errors early
 # Optimized with early exit and caching
 
+# Source common environment library
+# shellcheck source=../../lib/env.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../../lib/env.sh" ]]; then
+    source "$SCRIPT_DIR/../../lib/env.sh"
+fi
+
 set -e
 
 # Cleanup handler for temporary files
@@ -44,7 +51,7 @@ if ! command -v tsc &> /dev/null && ! command -v npx &> /dev/null; then
 fi
 
 # Load cache functions
-CACHE_SCRIPT="$(dirname "${BASH_SOURCE[0]}")/cache.sh"
+CACHE_SCRIPT="${SCRIPT_DIR}/cache.sh"
 if [ -f "$CACHE_SCRIPT" ]; then
     # shellcheck source=cache.sh disable=SC1091
     source "$CACHE_SCRIPT"

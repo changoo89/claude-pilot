@@ -3,6 +3,13 @@
 # Full procedures: @.claude/skills/gpt-delegation/SKILL.md
 # Usage: codex-sync.sh <mode> <prompt> [working_dir]
 
+# Source common environment library
+# shellcheck source=../lib/env.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../lib/env.sh" ]]; then
+    source "$SCRIPT_DIR/../lib/env.sh"
+fi
+
 set -eo pipefail
 
 MODEL="${CODEX_MODEL:-gpt-5.2}"

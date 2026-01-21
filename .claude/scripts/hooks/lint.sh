@@ -3,6 +3,13 @@
 # Runs before/after file edits to catch linting issues early
 # Optimized with early exit and caching
 
+# Source common environment library
+# shellcheck source=../../lib/env.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../../lib/env.sh" ]]; then
+    source "$SCRIPT_DIR/../../lib/env.sh"
+fi
+
 set -e
 
 # Cleanup handler for temporary files
@@ -32,7 +39,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Load cache functions
-CACHE_SCRIPT="$(dirname "${BASH_SOURCE[0]}")/cache.sh"
+CACHE_SCRIPT="${SCRIPT_DIR}/cache.sh"
 LINTER_FOUND=false
 
 # Try ESLint

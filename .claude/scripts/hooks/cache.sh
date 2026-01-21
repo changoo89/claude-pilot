@@ -2,8 +2,15 @@
 # cache.sh - Quality check cache utility with hash-based invalidation
 # Provides read/write/invalidate functions for hook caching
 
+# Source common environment library
+# shellcheck source=../../lib/env.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../../lib/env.sh" ]]; then
+    source "$SCRIPT_DIR/../../lib/env.sh"
+fi
+
 # Cache file location (can be overridden via CACHE_FILE env var)
-CACHE_FILE="${CACHE_FILE:-.claude/cache/quality-check.json}"
+CACHE_FILE="${CACHE_FILE:-${CONFIG_DIR}/cache/quality-check.json}"
 
 # Cache version
 CACHE_VERSION=1
@@ -44,12 +51,12 @@ cache_init() {
 # Load cache settings from quality profile
 cache_load_settings() {
     # Check repository profile for cache settings
-    if [ -f ".claude/quality-profile.json" ]; then
+    if [ -f "${CONFIG_DIR}/quality-profile.json" ]; then
         local cache_ttl
         local debounce
 
-        cache_ttl=$(jq -r '.cache_ttl // "null"' .claude/quality-profile.json 2>/dev/null || echo "null")
-        debounce=$(jq -r '.debounce_seconds // "null"' .claude/quality-profile.json 2>/dev/null || echo "null")
+        cache_ttl=$(jq -r '.cache_ttl // "null"' "${CONFIG_DIR}/quality-profile.json" 2>/dev/null || echo "null")
+        debounce=$(jq -r '.debounce_seconds // "null"' "${CONFIG_DIR}/quality-profile.json" 2>/dev/null || echo "null")
 
         # Update if values are valid numbers
         if [ "$cache_ttl" != "null" ] && [ -n "$cache_ttl" ]; then
@@ -62,12 +69,12 @@ cache_load_settings() {
     fi
 
     # Also check settings.json
-    if [ -f ".claude/settings.json" ]; then
+    if [ -f "${CONFIG_DIR}/settings.json" ]; then
         local cache_ttl
         local debounce
 
-        cache_ttl=$(jq -r '.quality.cache_ttl // "null"' .claude/settings.json 2>/dev/null || echo "null")
-        debounce=$(jq -r '.quality.debounce_seconds // "null"' .claude/settings.json 2>/dev/null || echo "null")
+        cache_ttl=$(jq -r '.quality.cache_ttl // "null"' "${CONFIG_DIR}/settings.json" 2>/dev/null || echo "null")
+        debounce=$(jq -r '.quality.debounce_seconds // "null"' "${CONFIG_DIR}/settings.json" 2>/dev/null || echo "null")
 
         # Update if values are valid numbers (only if not already set by profile)
         if [ "$cache_ttl" != "null" ] && [ -n "$cache_ttl" ] && [ "${CACHE_TTL:-3600}" = "3600" ]; then

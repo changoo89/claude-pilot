@@ -2,6 +2,13 @@
 # Worktree utility functions for /02_execute and /03_close
 # These functions provide Git worktree support for parallel plan execution
 
+# Source common environment library
+# shellcheck source=../lib/env.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../lib/env.sh" ]]; then
+    source "$SCRIPT_DIR/../lib/env.sh"
+fi
+
 # Check if --wt flag is in arguments
 # Usage: is_worktree_mode "$@"
 # Returns: 0 if --wt flag present, 1 otherwise
@@ -16,7 +23,7 @@ is_worktree_mode() {
 # Usage: oldest_plan=$(select_oldest_pending)
 # Returns: Path to oldest pending plan, or empty if none
 select_oldest_pending() {
-    find .pilot/plan/pending -maxdepth 1 -type f -name "*.md" 2>/dev/null | xargs ls -1tr 2>/dev/null | head -1
+    find "$PROJECT_DIR/.pilot/plan/pending" -maxdepth 1 -type f -name "*.md" 2>/dev/null | xargs ls -1tr 2>/dev/null | head -1
 }
 
 # Select and lock the oldest pending plan (atomic operation)
@@ -24,10 +31,10 @@ select_oldest_pending() {
 # Returns: Path to locked plan, or empty if none available
 # This function prevents race conditions when multiple executors select plans
 select_and_lock_pending() {
-    local lock_dir=".pilot/plan/.locks"
+    local lock_dir="$PROJECT_DIR/.pilot/plan/.locks"
     mkdir -p "$lock_dir"
 
-    for plan in $(find .pilot/plan/pending -maxdepth 1 -type f -name "*.md" 2>/dev/null | xargs ls -1tr 2>/dev/null); do
+    for plan in $(find "$PROJECT_DIR/.pilot/plan/pending" -maxdepth 1 -type f -name "*.md" 2>/dev/null | xargs ls -1tr 2>/dev/null); do
         local plan_name="$(basename "$plan")"
         local lock_file="${lock_dir}/${plan_name}.lock"
 
@@ -324,7 +331,7 @@ check_worktree_support() {
 # Returns: Path to active plan with worktree metadata, or empty if none
 # This function searches for plans in in_progress/ that match current worktree
 get_active_plan_from_metadata() {
-    local project_root="${1:-$(pwd)}"
+    local project_root="${1:-$PROJECT_DIR}"
     local in_progress_dir="${project_root}/.pilot/plan/in_progress"
     local current_worktree_path
     current_worktree_path="$(pwd)"

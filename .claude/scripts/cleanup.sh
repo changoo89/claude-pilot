@@ -4,6 +4,13 @@
 # Part of claude-pilot plugin
 # Safe dead code cleanup with conservative detection and two-step verification
 
+# Source common environment library
+# shellcheck source=../lib/env.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../lib/env.sh" ]]; then
+    source "$SCRIPT_DIR/../lib/env.sh"
+fi
+
 set -euo pipefail
 
 # Color codes for output
@@ -21,9 +28,6 @@ DETECTION_PATH="."
 BATCH_SIZE=10
 CURRENT_BATCH=0
 ROLLBACK_FILES=()
-
-# Script directory for relative paths
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Parse arguments
 for arg in "$@"; do

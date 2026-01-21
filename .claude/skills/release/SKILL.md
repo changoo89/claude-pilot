@@ -81,6 +81,48 @@ description: Plugin release workflow skill for version bumping, git tagging, and
 - No authentication setup
 - Runs on GitHub's infrastructure
 
+---
+
+## Plugin Manifest Requirements (Critical)
+
+### plugin.json Array Format
+
+**MUST use array format** for commands/skills/agents paths:
+
+```json
+// ✅ Correct (array format)
+"commands": ["./.claude/commands/"],
+"skills": ["./.claude/skills/"],
+"agents": ["./.claude/agents/"]
+
+// ❌ Wrong (string format) - Plugin loads but components NOT exposed
+"commands": "./.claude/commands/"
+```
+
+**Symptom**: Plugin shows "installed" but commands/agents don't appear in Claude Code
+
+### marketplace.json Required
+
+Claude Code plugin system **requires** marketplace.json:
+- Location: `.claude-plugin/marketplace.json`
+- Without it: `/plugin install` fails with "Marketplace not found"
+- Must be synced with plugin.json version
+
+### Directory Structure
+
+```
+plugin/
+├── .claude-plugin/
+│   ├── plugin.json        # Primary version source (array format!)
+│   └── marketplace.json   # Required for installation
+├── .claude/
+│   ├── commands/          # Slash commands
+│   ├── skills/            # SKILL.md files
+│   └── agents/            # Agent definitions
+```
+
+---
+
 ## Further Reading
 
 **Internal**: @.claude/skills/release/REFERENCE.md - Full release workflow implementation details | @.claude/skills/git-master/SKILL.md - Git operations and commits | @.claude/commands/999_release.md - Release command

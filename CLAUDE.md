@@ -151,51 +151,16 @@ Response Handling (synthesize, apply, verify)
 
 ---
 
-## Plugin Development Troubleshooting
-
-### plugin.json Format (Critical)
-
-**MUST use array format** for commands/skills/agents:
-
-```json
-// ✅ Correct (array)
-"commands": ["./.claude/commands/"],
-"skills": ["./.claude/skills/"],
-"agents": ["./.claude/agents/"]
-
-// ❌ Wrong (string) - Plugin loads but components not exposed
-"commands": "./.claude/commands/",
-```
-
-**Symptom**: Plugin shows "installed" but commands/agents don't appear
-
-### marketplace.json Required
-
-Claude Code requires `marketplace.json` for plugin installation:
-- Location: `.claude-plugin/marketplace.json`
-- Without it: `/plugin install` fails with "Marketplace not found"
-
-### Directory Structure
-
-```
-plugin/
-├── .claude-plugin/
-│   ├── plugin.json        # Plugin manifest (array format!)
-│   └── marketplace.json   # Required for installation
-├── .claude/
-│   ├── commands/          # Slash commands
-│   ├── skills/            # SKILL.md files
-│   └── agents/            # Agent definitions
-```
-
----
-
 ## Version & Distribution
 
-**Plugin Version**: 4.4.5 (Plugin Format Fix)
+**Plugin Version**: 4.3.4 (Hooks Simplification)
 **Distribution**: GitHub Marketplace (pure plugin)
 
 **Release Process**: `@.claude/commands/999_release.md`
+
+---
+
+**Line Count**: 175 lines (Target: ≤200 lines) ✅
 
 ---
 

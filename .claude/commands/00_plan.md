@@ -28,6 +28,42 @@ grep -r "keyword" src/ --include="*.ts"
 
 ---
 
+## Step 1.1: Parallel Exploration (Codebase + External Research)
+
+Launch explorer and researcher in parallel for faster context gathering:
+
+### Task 1.1a: Codebase Exploration
+
+```markdown
+Task:
+  subagent_type: explorer
+  prompt: |
+    Explore codebase for {task_description}
+    - Find relevant TypeScript/JavaScript files in src/
+    - Look for existing patterns related to {domain}
+    - Identify config files, test files, and documentation
+    - Search for similar implementations using Grep/Glob
+    Output: File list with brief descriptions
+```
+
+### Task 1.1b: External Research
+
+```markdown
+Task:
+  subagent_type: researcher
+  prompt: |
+    Research external documentation for {task_description}
+    - Search for official docs and API references
+    - Find best practices and design patterns
+    - Identify security considerations
+    - Look for similar implementations/examples
+    Output: Research summary with links and recommendations
+```
+
+**Expected Speedup**: 50-60% faster exploration (codebase + external research in parallel)
+
+---
+
 ## Step 2: Gather Requirements
 
 **User Requirements (Verbatim)**: Capture user's exact input
@@ -201,7 +237,7 @@ AskUserQuestion:
 
 ## Related Skills
 
-**spec-driven-workflow**: SPEC-First methodology | **gpt-delegation**: GPT consultation with fallback
+**spec-driven-workflow**: SPEC-First methodology | **gpt-delegation**: GPT consultation with fallback | **parallel-subagents**: Parallel exploration patterns
 
 ---
 

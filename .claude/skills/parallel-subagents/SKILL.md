@@ -185,6 +185,306 @@ Task:
 
 ---
 
+## Command-Specific Patterns
+
+### /00_plan: Parallel Exploration (Explorer + Researcher)
+
+**Use Case**: Initial exploration phase to gather context and research
+
+**Pattern**:
+```markdown
+## Step 1.1: Parallel Exploration
+
+### Task 1.1a: Codebase Exploration
+Task:
+  subagent_type: explorer
+  prompt: |
+    Find relevant files for {task}
+    - Search for TypeScript/JavaScript files in src/
+    - Look for existing patterns related to {domain}
+    - Identify config files and test files
+    - Output: File list with brief descriptions
+
+### Task 1.1b: External Research
+Task:
+  subagent_type: researcher
+  prompt: |
+    Research external documentation for {task}
+    - Search for official docs, best practices
+    - Find similar implementations/examples
+    - Identify security considerations
+    - Output: Research summary with links
+```
+
+**Integration Point**: Add after Step 1 in `/00_plan`
+
+**Result**: 50-60% faster exploration (codebase + external research in parallel)
+
+---
+
+### /02_execute: Multi-Coder SC Execution
+
+**Use Case**: Multiple independent SCs that can be implemented simultaneously
+
+**Dependency Analysis Script**:
+```bash
+#!/bin/bash
+# Analyze SC dependencies for parallel execution
+
+analyze_sc_dependencies() {
+    local plan_file="$1"
+    local sc_list=$(grep -E "^- \[ \] \*\*SC-" "$plan_file" | sed 's/.*\*\*SC-\([0-9]*\)\*\*.*/SC-\1/')
+
+    echo "# Dependency Analysis Results"
+    echo ""
+
+    for sc in $sc_list; do
+        sc_content=$(sed -n "/\*\*${sc}\*\*/,/^\*- \[ \]/p" "$plan_file" | head -n -1)
+
+        # Extract file mentions
+        files=$(echo "$sc_content" | grep -oE 'src/[^ [:space:]]+' | sort -u | tr '\n' ' ')
+
+        # Check for dependency keywords
+        deps=$(echo "$sc_content" | grep -iE 'after|depends|requires|follows' || true)
+
+        if [ -n "$deps" ]; then
+            echo "**Sequential**: $sc (has dependencies)"
+        elif [ -n "$files" ]; then
+            echo "**ParallelGroup**: $sc (files: $files)"
+        else
+            echo "**ParallelGroup**: $sc (no file conflicts detected)"
+        fi
+    done
+}
+```
+
+**Parallel Execution Pattern**:
+```markdown
+## Step 3.1: Dependency Analysis
+[Bash script to analyze SC dependencies]
+
+## Step 3.2a: Parallel Execution (Independent SCs)
+### Task 3.2a-1: Coder for SC-1
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-1 from $PLAN_PATH
+    Use skills: tdd, ralph-loop, vibe-coding
+    Focus only on SC-1: {SC-1 description}
+
+### Task 3.2a-2: Coder for SC-2
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-2 from $PLAN_PATH
+    Use skills: tdd, ralph-loop, vibe-coding
+    Focus only on SC-2: {SC-2 description}
+
+### Task 3.2a-3: Coder for SC-3
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-3 from $PLAN_PATH
+    Use skills: tdd, ralph-loop, vibe-coding
+    Focus only on SC-3: {SC-3 description}
+
+### Task 3.2a-4: Coder for SC-4
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-4 from $PLAN_PATH
+    Use skills: tdd, ralph-loop, vibe-coding
+    Focus only on SC-4: {SC-4 description}
+
+## Step 3.2b: Sequential Execution (Dependent SCs)
+[For SCs with dependencies, execute sequentially]
+
+## Step 3.3: Process Results
+[Wait for all parallel agents, verify completion markers]
+```
+
+**Integration Point**: Replace Step 3 in `/02_execute`
+
+**Result**: 50-70% speedup for independent SCs (4 SCs in ~1.5x time, not 4x)
+
+---
+
+### /review: Multi-Angle Parallel Verification
+
+**Use Case**: Comprehensive review from multiple perspectives simultaneously
+
+**Pattern**:
+```markdown
+## Step 2: Multi-Angle Parallel Review
+
+### Task 2.1: Test Coverage Review
+Task:
+  subagent_type: tester
+  prompt: |
+    Review plan: $PLAN_PATH
+    Evaluate test coverage and verification:
+    - Are all SCs verifiable?
+    - Do verify commands exist?
+    - Is coverage threshold ≥80%?
+    Output: TEST_PASS or TEST_FAIL with findings
+
+### Task 2.2: Type Safety & Lint Review
+Task:
+  subagent_type: validator
+  prompt: |
+    Review plan: $PLAN_PATH
+    Evaluate type safety and code quality:
+    - Are types specified?
+    - Is lint check included?
+    - Any potential issues?
+    Output: VALIDATE_PASS or VALIDATE_FAIL with findings
+
+### Task 2.3: Code Quality Review
+Task:
+  subagent_type: code-reviewer
+  prompt: |
+    Review plan: $PLAN_PATH
+    Evaluate code quality and design:
+    - SRP, DRY, KISS compliance?
+    - Function/file size limits?
+    - Early return pattern?
+    Output: REVIEW_PASS or REVIEW_FAIL with findings
+
+## Step 3: Aggregate Results
+[Combine all 3 reviews, BLOCKING if any FAIL]
+```
+
+**Integration Point**: Replace Step 2 in `/review`
+
+**Result**: 60-70% faster review (test + type + quality in parallel)
+
+---
+
+### /03_close: Parallel Verification
+
+**Use Case**: Final verification before closing plan
+
+**Pattern**:
+```markdown
+## Step 3: Parallel Verification
+
+### Task 3.1: Verify SC Completion
+Task:
+  subagent_type: validator
+  prompt: |
+    Verify all SCs marked complete in $PLAN_PATH
+    - Check all checkboxes: [x]
+    - Verify evidence exists
+    Output: VERIFY_PASS or VERIFY_FAIL
+
+### Task 3.2: Verify Test Results
+Task:
+  subagent_type: tester
+  prompt: |
+    Run verify commands from $PLAN_PATH
+    - Execute all verify: commands
+    - Check test coverage ≥80%
+    Output: TEST_PASS or TEST_FAIL with details
+```
+
+**Integration Point**: Add after Step 2 in `/03_close`
+
+---
+
+### /05_cleanup: Parallel File Scanning
+
+**Use Case**: Scan multiple directories simultaneously for cleanup candidates
+
+**Pattern**:
+```markdown
+## Step 1: Parallel Detection
+
+### Task 1.1: Scan Source Files
+Task:
+  subagent_type: explorer
+  prompt: |
+    Find dead files in src/
+    - Check for unused imports
+    - Find unreferenced files
+    Output: List of candidates
+
+### Task 1.2: Scan Test Files
+Task:
+  subagent_type: explorer
+  prompt: |
+    Find dead files in tests/
+    - Check for orphaned test files
+    - Find unreferenced fixtures
+    Output: List of candidates
+
+### Task 1.3: Scan Config Files
+Task:
+  subagent_type: explorer
+  prompt: |
+    Find dead config files
+    - Unused .env files
+    - Stale config files
+    Output: List of candidates
+
+## Step 2: Aggregate Results
+[Merge all candidate lists, classify by risk]
+```
+
+**Integration Point**: Replace Step 1 in `/05_cleanup`
+
+**Result**: 60-70% faster scanning (3 parallel directory scans)
+
+---
+
+## Coordination Patterns
+
+### File Conflict Prevention
+
+**Each parallel agent works on different files**:
+
+```markdown
+# Coder-1: src/auth/*
+Task: subagent_type: coder
+prompt: Implement SC-1 (auth service)
+
+# Coder-2: src/users/*
+Task: subagent_type: coder
+prompt: Implement SC-2 (user service)
+
+# Coder-3: src/data/*
+Task: subagent_type: coder
+prompt: Implement SC-3 (data service)
+```
+
+**Overlap Detection**:
+```bash
+# Before parallel execution, verify no file overlap
+sc_1_files=$(grep -oE 'src/[^ ]+' sc1.txt | sort -u)
+sc_2_files=$(grep -oE 'src/[^ ]+' sc2.txt | sort -u)
+
+overlap=$(comm -12 <(echo "$sc_1_files") <(echo "$sc_2_files"))
+if [ -n "$overlap" ]; then
+    echo "⚠️  File overlap detected: $overlap"
+    echo "Execute SC-1 and SC-2 sequentially"
+fi
+```
+
+### Result Integration
+
+**Wait for all agents, then integrate**:
+
+```markdown
+# After parallel execution completes
+## Step 4: Integrate Results
+
+1. Check for <CODER_COMPLETE> markers
+2. Run tests: npm test
+3. If tests pass: Mark all SCs as complete
+4. If tests fail: Sequential retry of failed SCs
+```
+
+---
+
 ## Anti-Patterns
 
 **Don't parallelize**:

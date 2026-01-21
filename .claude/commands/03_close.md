@@ -81,7 +81,7 @@ fi
 
 ## Related Skills
 
-**git-master**: Commit creation
+**git-master**: Commit creation | **parallel-subagents**: Parallel verification patterns
 
 ---
 

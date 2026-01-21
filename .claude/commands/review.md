@@ -23,15 +23,57 @@ PLAN_PATH="${1:-$(find .pilot/plan/pending .pilot/plan/in_progress -name "*.md" 
 
 ---
 
-## Step 2: Invoke Plan-Reviewer Agent
+## Step 2: Multi-Angle Parallel Review
+
+Launch 3 parallel agents for comprehensive review from different perspectives:
+
+### Task 2.1: Test Coverage Review
 
 ```markdown
-Task: subagent_type: plan-reviewer
-prompt: |
-  Review plan: $PLAN_PATH
-  Evaluate: Clarity, Verifiability, Completeness, Big Picture
-  Output: APPROVE/REJECT with justification
+Task:
+  subagent_type: tester
+  prompt: |
+    Review plan: $PLAN_PATH
+    Evaluate test coverage and verification:
+    - Are all SCs verifiable with test commands?
+    - Do verify: commands exist and executable?
+    - Is coverage threshold specified (≥80%)?
+    - Are test scenarios comprehensive?
+    Output: TEST_PASS or TEST_FAIL with findings
 ```
+
+### Task 2.2: Type Safety & Lint Review
+
+```markdown
+Task:
+  subagent_type: validator
+  prompt: |
+    Review plan: $PLAN_PATH
+    Evaluate type safety and code quality:
+    - Are types specified for APIs/functions?
+    - Is lint check included in verification?
+    - Any potential type-related issues?
+    - Code quality standards (SRP, DRY, KISS)?
+    Output: VALIDATE_PASS or VALIDATE_FAIL with findings
+```
+
+### Task 2.3: Code Quality Review
+
+```markdown
+Task:
+  subagent_type: code-reviewer
+  prompt: |
+    Review plan: $PLAN_PATH
+    Evaluate code quality and design:
+    - Architecture and design patterns?
+    - Function/file size limits (≤50/≤200 lines)?
+    - Early return pattern applied?
+    - Nesting level (≤3)?
+    - Potential bugs or edge cases?
+    Output: REVIEW_PASS or REVIEW_FAIL with findings
+```
+
+**Expected Speedup**: 60-70% faster review (test + type + quality in parallel)
 
 ---
 
@@ -55,8 +97,8 @@ fi
 
 ## Related Skills
 
-**gpt-delegation**: Codex integration | **confirm-plan**: Plan validation workflow
+**gpt-delegation**: Codex integration | **confirm-plan**: Plan validation workflow | **parallel-subagents**: Multi-angle parallel review
 
 ---
 
-**Multi-Angle**: Mandatory + Extended + Gap Detection
+**Multi-Angle**: Mandatory + Extended + Gap Detection (3 parallel agents)

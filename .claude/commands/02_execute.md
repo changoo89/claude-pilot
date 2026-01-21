@@ -55,9 +55,88 @@ echo "✓ Found $SC_COUNT Success Criteria"
 
 ## Step 3: Execute with Ralph Loop
 
-```markdown
-Task: subagent_type: coder, prompt: Execute $PLAN_PATH using tdd, ralph-loop
+### Step 3.1: Dependency Analysis
+
+Analyze SC dependencies to determine parallel vs sequential execution:
+
+```bash
+# Extract SC list from plan
+SC_LIST="$(grep -E "^- \[ \] \*\*SC-" "$PLAN_PATH" | sed 's/.*\*\*SC-\([0-9]*\)\*\*.*/SC-\1/')"
+
+# Analyze dependencies
+for SC in $SC_LIST; do
+    SC_CONTENT=$(sed -n "/\*\*${SC}\*\*/,/^\*- \[ \]/p" "$PLAN_PATH" | head -n -1)
+
+    # Check for dependency keywords
+    if echo "$SC_CONTENT" | grep -qiE 'after|depends|requires|follows'; then
+        echo "**SequentialGroup**: $SC (has dependencies)"
+    else
+        echo "**ParallelGroup**: $SC (independent)"
+    fi
+done
 ```
+
+### Step 3.2a: Parallel Execution (Independent SCs)
+
+For independent SCs (no shared files, no dependencies), launch 4 parallel coders:
+
+```markdown
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-1 from $PLAN_PATH
+    Use skills: tdd, ralph-loop, vibe-coding
+    Focus only on SC-1: {description from plan}
+    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
+
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-2 from $PLAN_PATH
+    Use skills: tdd, ralph-loop, vibe-coding
+    Focus only on SC-2: {description from plan}
+    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
+
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-3 from $PLAN_PATH
+    Use skills: tdd, ralph-loop, vibe-coding
+    Focus only on SC-3: {description from plan}
+    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
+
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-4 from $PLAN_PATH
+    Use skills: tdd, ralph-loop, vibe-coding
+    Focus only on SC-4: {description from plan}
+    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
+```
+
+**Expected Speedup**: 50-70% (4 SCs in ~1.5x time, not 4x)
+
+### Step 3.2b: Sequential Execution (Dependent SCs)
+
+For SCs with dependencies, execute sequentially:
+
+```markdown
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute all SCs from $PLAN_PATH using tdd, ralph-loop
+    SCs have dependencies - execute sequentially
+    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
+```
+
+### Step 3.3: Process Results
+
+After parallel execution completes:
+
+1. Check for `<CODER_COMPLETE>` markers from all agents
+2. Run tests: `npm test` (or project-specific test command)
+3. If tests pass: Mark all SCs as complete in plan
+4. If tests fail: Sequential retry of failed SCs
 
 **Quality Gates**: Tests pass, Coverage ≥80%, Type-check clean, Lint clean
 

@@ -83,7 +83,7 @@ fi
 
 ## Related Skills
 
-**safe-file-ops**: Safe deletion patterns | **vibe-coding**: Code quality standards
+**safe-file-ops**: Safe deletion patterns | **vibe-coding**: Code quality standards | **parallel-subagents**: Parallel file scanning patterns
 
 ---
 

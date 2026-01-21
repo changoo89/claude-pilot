@@ -55,7 +55,7 @@ fi
 # Count pending plans (always show count, even when 0)
 pending_dir="${pilot_dir}/plan/pending/"
 if [ -d "$pending_dir" ]; then
-    pending=$(find "$pending_dir" -type f ! -name '.gitkeep' 2>/dev/null | wc -l | tr -d ' ') || pending=0
+    pending=$(rg --files --no-ignore --glob '!*.gitkeep' "$pending_dir" 2>/dev/null | wc -l | tr -d ' ') || pending=0
 else
     pending=0
 fi
@@ -63,7 +63,7 @@ fi
 # Count draft plans (always show count, even when 0)
 draft_dir="${pilot_dir}/plan/draft/"
 if [ -d "$draft_dir" ]; then
-    draft=$(find "$draft_dir" -type f ! -name '.gitkeep' 2>/dev/null | wc -l | tr -d ' ') || draft=0
+    draft=$(rg --files --no-ignore --glob '!*.gitkeep' "$draft_dir" 2>/dev/null | wc -l | tr -d ' ') || draft=0
 else
     draft=0
 fi
@@ -71,7 +71,7 @@ fi
 # Count in-progress plans (always show count, even when 0)
 in_progress_dir="${pilot_dir}/plan/in_progress/"
 if [ -d "$in_progress_dir" ]; then
-    in_progress=$(find "$in_progress_dir" -type f ! -name '.gitkeep' 2>/dev/null | wc -l | tr -d ' ') || in_progress=0
+    in_progress=$(rg --files --no-ignore --glob '!*.gitkeep' "$in_progress_dir" 2>/dev/null | wc -l | tr -d ' ') || in_progress=0
 else
     in_progress=0
 fi

@@ -103,18 +103,7 @@
     "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/statusline.sh"
   },
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/branch-guard.sh",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
+    "PreToolUse": [],
     "PostToolUse": [],
     "Stop": [
       {

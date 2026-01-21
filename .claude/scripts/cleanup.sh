@@ -150,11 +150,11 @@ calculate_risk_score() {
   local risk="Low"
 
   # Check file path components
-  if echo "$file" | grep -qE "(test|spec|mock|example|demo)"; then
+  if [[ "$file" =~ (test|spec|mock|example|demo) ]]; then
     risk="Low"
-  elif echo "$file" | grep -qE "(util|helper|service|handler)"; then
+  elif [[ "$file" =~ (util|helper|service|handler) ]]; then
     risk="Medium"
-  elif echo "$file" | grep -qE "(component|route|controller|middleware|plugin)"; then
+  elif [[ "$file" =~ (component|route|controller|middleware|plugin) ]]; then
     risk="High"
   fi
 
@@ -165,39 +165,31 @@ calculate_risk_score() {
 should_exclude_file() {
   local file="$1"
 
-  # Exclusion patterns
-  local exclusions=(
-    "index.ts"
-    "index.js"
-    "index.tsx"
-    "index.jsx"
-    "main.ts"
-    "main.js"
-    "cli.ts"
-    "cli.js"
-    "*.config.ts"
-    "*.config.js"
-    "*.test.ts"
-    "*.test.tsx"
-    "*.test.js"
-    "*.spec.ts"
-    "*.spec.tsx"
-    "*.spec.js"
-    "*.mock.ts"
-    "*.mock.tsx"
-    "*.d.ts"
-    "dist/**"
-    "build/**"
-    "node_modules/**"
-    ".next/**"
-    "out/**"
-  )
+  # Exclusion patterns (converted to bash regex)
+  # Exact filenames
+  if [[ "$file" =~ ^(index|main|cli)\.(ts|js|tsx|jsx)$ ]]; then
+    return 0  # Should exclude
+  fi
 
-  for pattern in "${exclusions[@]}"; do
-    if echo "$file" | grep -qE "$pattern"; then
-      return 0  # Should exclude
-    fi
-  done
+  # Config files
+  if [[ "$file" =~ \.config\.(ts|js)$ ]]; then
+    return 0
+  fi
+
+  # Test files
+  if [[ "$file" =~ \.(test|spec|mock)\.(ts|tsx|js)$ ]]; then
+    return 0
+  fi
+
+  # Type definition files
+  if [[ "$file" =~ \.d\.ts$ ]]; then
+    return 0
+  fi
+
+  # Directory exclusions
+  if [[ "$file" =~ ^(dist|build|node_modules|\.next|out)/ ]]; then
+    return 0
+  fi
 
   return 1  # Should not exclude
 }

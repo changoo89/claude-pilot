@@ -8,11 +8,40 @@ allowed-tools: Read, Glob, Grep, Bash(git:*), WebSearch, AskUserQuestion, mcp__p
 
 _Explore codebase, gather requirements, and design SPEC-First execution plan (read-only)._
 
+---
+
+## EXECUTION DIRECTIVE
+
+**THIS IS A DIALOGUE PHASE - NOT AN EXECUTION PHASE**
+
+You MUST follow this interaction pattern:
+
+1. **ASK before acting**: Every major step requires user input
+2. **WAIT for response**: Do not proceed until user responds
+3. **NEVER auto-execute**: Do not run /01_confirm or /02_execute without explicit user request
+4. **ONE question at a time**: Don't overwhelm with multiple questions
+
+**MANDATORY Checkpoints** (must use AskUserQuestion):
+- [ ] After codebase exploration → Ask what areas to focus on
+- [ ] After requirements gathering → Confirm understanding is correct
+- [ ] After proposing approaches → Let user choose approach
+- [ ] After each design section → Validate before proceeding
+- [ ] Before completing → Ask user's next step preference
+
+**PROHIBITED Actions**:
+- Creating plan files without user approval
+- Running /01_confirm automatically
+- Running /02_execute automatically
+- Skipping user validation checkpoints
+- Assuming user agreement without explicit confirmation
+
+---
+
 ## Core Philosophy
 
 **Read-Only**: NO code modifications. Only exploration, analysis, and planning
 **SPEC-First**: Requirements, success criteria, test scenarios BEFORE implementation
-**Collaborative**: Dialogue with user to clarify ambiguities
+**Collaborative**: Dialogue with user to clarify ambiguities - **EVERY STEP requires user input**
 
 ---
 
@@ -64,6 +93,27 @@ Task:
 
 ---
 
+## CHECKPOINT 1: Exploration Review (MANDATORY)
+
+**STOP HERE** - Do not proceed until user responds.
+
+```markdown
+AskUserQuestion:
+  questions:
+    - question: "코드베이스 탐색 결과를 공유했습니다. 어떤 부분에 집중할까요?"
+      header: "탐색 결과"
+      options:
+        - label: "A) 발견한 영역이 맞음"
+          description: "이 영역들을 기반으로 요구사항 수집 진행"
+        - label: "B) 다른 영역 탐색 필요"
+          description: "추가로 살펴볼 영역을 알려주세요"
+        - label: "C) 더 자세히 설명해줘"
+          description: "발견한 내용을 더 상세히 설명"
+      multiSelect: false
+```
+
+---
+
 ## Step 2: Gather Requirements
 
 **User Requirements (Verbatim)**: Capture user's exact input
@@ -100,6 +150,28 @@ AskUserQuestion:
           description: "핵심 기능 위주, 확장 가능하게"
       multiSelect: false
 ```
+
+---
+
+## CHECKPOINT 2: Requirements Confirmation (MANDATORY)
+
+**STOP HERE** - Do not proceed until user confirms requirements understanding.
+
+```markdown
+AskUserQuestion:
+  questions:
+    - question: "제가 이해한 요구사항이 맞나요?"
+      header: "요구사항 확인"
+      options:
+        - label: "A) 맞아요, 진행해주세요"
+          description: "요구사항 이해가 정확함"
+        - label: "B) 일부 수정 필요"
+          description: "몇 가지 부분을 수정/추가하고 싶어요"
+        - label: "C) 다시 설명해줄게요"
+          description: "요구사항을 다시 정리해서 알려드릴게요"
+      multiSelect: false
+```
+
 ---
 
 ## Step 3: Create SPEC-First Plan
@@ -158,6 +230,14 @@ AskUserQuestion:
 
 ---
 
+## CHECKPOINT 3: Approach Selection (MANDATORY)
+
+**STOP HERE** - User MUST select an approach before proceeding to detailed design.
+
+This checkpoint is CRITICAL. Do NOT assume user preference. Do NOT proceed with a "recommended" approach without explicit user confirmation.
+
+---
+
 ## Step 4: Requirements Coverage Check
 
 **Verify 100% mapping** (UR → SC):
@@ -212,14 +292,30 @@ AskUserQuestion:
 
 ## Step 5: Confirm Plan Complete
 
+## CHECKPOINT 4: Final User Decision (MANDATORY)
+
+**STOP HERE** - This is the FINAL checkpoint. User MUST explicitly choose next action.
+
+**NEVER auto-proceed to /01_confirm or /02_execute.**
+
 ```markdown
 AskUserQuestion:
-  What would you like to do next?
-  A) Continue refining the plan
-  B) Explore alternative approaches
-  C) Run /01_confirm (save plan for execution)
-  D) Run /02_execute (start implementation immediately)
+  questions:
+    - question: "계획이 완성되었습니다. 다음 단계를 선택해주세요."
+      header: "다음 단계"
+      options:
+        - label: "A) 계획 수정 계속"
+          description: "계획을 더 다듬거나 수정하고 싶어요"
+        - label: "B) 다른 접근법 탐색"
+          description: "대안적인 접근 방식을 보고 싶어요"
+        - label: "C) /01_confirm 실행"
+          description: "계획을 파일로 저장하고 검토할게요"
+        - label: "D) /02_execute 실행"
+          description: "바로 구현을 시작할게요"
+      multiSelect: false
 ```
+
+**IMPORTANT**: Only run /01_confirm or /02_execute when user explicitly selects option C or D.
 
 ---
 
@@ -241,4 +337,26 @@ AskUserQuestion:
 
 ---
 
-**⚠️ CRITICAL**: /00_plan is read-only. Implementation starts ONLY after `/01_confirm` → `/02_execute`
+## Summary: Dialogue Flow
+
+```
+CHECKPOINT 1: Exploration Review
+      ↓ (user confirms)
+CHECKPOINT 2: Requirements Confirmation
+      ↓ (user confirms)
+CHECKPOINT 3: Approach Selection
+      ↓ (user selects)
+CHECKPOINT 4: Final Decision
+      ↓ (user chooses next step)
+```
+
+**Each checkpoint requires AskUserQuestion and user response before proceeding.**
+
+---
+
+**⚠️ CRITICAL**:
+- /00_plan is **read-only** and **dialogue-based**
+- You MUST use AskUserQuestion at each CHECKPOINT
+- You MUST wait for user response before proceeding
+- Implementation starts ONLY when user explicitly requests `/01_confirm` → `/02_execute`
+- NEVER assume user agreement - always ask explicitly

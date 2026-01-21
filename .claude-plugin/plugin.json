@@ -17,9 +17,9 @@
     "testing",
     "documentation"
   ],
-  "commands": "./.claude/commands/",
-  "skills": "./.claude/skills/",
-  "agents": "./.claude/agents/",
+  "commands": ["./.claude/commands/"],
+  "skills": ["./.claude/skills/"],
+  "agents": ["./.claude/agents/"],
   "mcpServers": {
     "context7": {
       "command": "npx",

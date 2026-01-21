@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.3.3 | **Last Updated**: 2026-01-21
+> **Version**: 4.4.5 | **Last Updated**: 2026-01-21
 
 ---
 

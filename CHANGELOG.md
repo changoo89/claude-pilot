@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2026-01-21
+
+### Added
+  - Dead code cleanup command (/05_cleanup) with auto-apply workflow
+  - Risk-based confirmation (Low/Medium auto-apply, High confirm)
+  - Pre-flight safety checks (auto-block modified/staged files)
+  - Batch verification with automatic rollback on failure
+  - Non-interactive mode support (--dry-run, --apply flags)
+
+### Changed
+  - Transform to skill-only architecture following obra/superpowers
+  - Remove check-todos.sh, migrate todo validation to /03_close command
+  - Optimize MCP server configuration
+  - Add absolute path resolution for local/deployment compatibility
+  - Remove obsolete settings.json.backup file
+
+### Documentation
+  - Update deployment documentation with absolute paths
+  - Add deployment documentation audit and cleanup
+
+
 ## [4.3.4] - 2026-01-21
 
 ### Performance

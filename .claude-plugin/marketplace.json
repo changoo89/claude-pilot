@@ -9,14 +9,14 @@
   },
   "metadata": {
     "description": "SPEC-First development workflow with TDD, Ralph Loop, autonomous agents, and intelligent GPT Codex delegation for Claude Code",
-    "version": "4.4.3",
+    "version": "4.4.4",
     "pluginRoot": "./"
   },
   "plugins": [
     {
       "name": "claude-pilot",
       "description": "SPEC-First development workflow: Plan -> Confirm -> Execute -> Review -> Document -> Close. Features TDD, Ralph Loop, autonomous agents, and intelligent GPT Codex delegation.",
-      "version": "4.4.3",
+      "version": "4.4.4",
       "author": {
         "name": "changoo89",
         "email": "changoo89@users.noreply.github.com"

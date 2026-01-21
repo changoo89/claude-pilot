@@ -9,7 +9,7 @@
 
 | Server | Purpose | Package |
 |--------|---------|---------|
-| **context7** | Documentation navigation and context | `@modelcontextprotocol/server-context7` |
+| **context7** | Documentation navigation and context | `@upstash/context7-mcp` |
 | **filesystem** | Local file operations and grep search | `@modelcontextprotocol/server-filesystem` |
 | **grep-app** | GitHub public repository search | `@modelcontextprotocol/server-grep-app` |
 
@@ -28,7 +28,7 @@
       "mcpServers": {
         "context7": {
           "command": "npx",
-          "args": ["-y", "@modelcontextprotocol/server-context7"]
+          "args": ["-y", "@upstash/context7-mcp"]
         },
         "filesystem": {
           "command": "npx",
@@ -55,7 +55,7 @@
 
 ### context7
 
-**Package**: `@modelcontextprotocol/server-context7`
+**Package**: `@upstash/context7-mcp`
 **Purpose**: Latest library documentation and code examples
 
 **Use When**:
@@ -63,7 +63,7 @@
 - Finding up-to-date code examples
 - Version-specific documentation queries
 
-**Source**: [github.com/modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers/tree/main/src/context7)
+**Source**: [github.com/upstash/context7](https://github.com/upstash/context7)
 
 ### filesystem
 

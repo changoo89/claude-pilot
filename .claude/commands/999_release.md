@@ -65,6 +65,24 @@ if [ -f .claude-plugin/marketplace.json ]; then
 fi
 ```
 
+**Validate plugin.json fields** (Critical):
+```bash
+# Check for unsupported fields that cause install failures
+UNSUPPORTED_FIELDS=("agents")
+for field in "${UNSUPPORTED_FIELDS[@]}"; do
+    if jq -e ".$field" .claude-plugin/plugin.json >/dev/null 2>&1; then
+        echo "ERROR: plugin.json contains unsupported field '$field'"
+        echo "Claude Code does not support '$field' in plugin manifest"
+        echo "Remove this field before releasing"
+        exit 1
+    fi
+done
+
+# Verify commands/skills use string format (not array)
+# Valid: "commands": "./commands/"
+# Invalid: "commands": ["./commands/"]
+```
+
 **Check for existing tag**:
 ```bash
 if git tag -l | grep -q "^v${VERSION}$"; then
@@ -301,6 +319,138 @@ git tag -d v4.4.6 && git push origin --delete v4.4.6
 git tag v4.4.6 && git push origin main --tags
 ```
 
+### Plugin Install Fails with "Invalid Input"
+
+**Symptom**:
+```
+Error: Failed to install: Plugin has an invalid manifest file
+Validation errors: agents: Invalid input
+```
+
+**Cause**: plugin.json contains unsupported fields
+
+**Supported fields** (based on official plugins):
+| Field | Type | Required | Example |
+|-------|------|----------|---------|
+| `name` | string | ✓ | `"claude-pilot"` |
+| `description` | string | ✓ | `"SPEC-First workflow..."` |
+| `version` | string | ✓ | `"4.4.6"` |
+| `author` | object | ✓ | `{"name": "...", "url": "..."}` |
+| `commands` | string | ○ | `"./.claude/commands/"` |
+| `skills` | string | ○ | `"./.claude/skills/"` |
+| `mcpServers` | object | ○ | MCP server configs |
+| `homepage` | string | ○ | GitHub URL |
+| `repository` | string | ○ | GitHub URL |
+| `license` | string | ○ | `"MIT"` |
+| `keywords` | array | ○ | `["tdd", "workflow"]` |
+
+**Unsupported fields** (will cause install failure):
+- `agents` - Claude Code auto-detects from `agents/` directory
+- Any unknown fields
+
+**Solution**:
+```bash
+# Remove unsupported field
+jq 'del(.agents)' .claude-plugin/plugin.json > tmp.json && mv tmp.json .claude-plugin/plugin.json
+
+# Commit, push, and update tag
+git add .claude-plugin/plugin.json
+git commit -m "fix: Remove unsupported agents field from plugin.json"
+git push origin main
+git tag -d vX.Y.Z && git push origin --delete vX.Y.Z
+git tag -a vX.Y.Z -m "Release vX.Y.Z" && git push origin vX.Y.Z
+```
+
+### Remote Tag Not Updated
+
+**Symptom**: Local tag points to correct commit but remote tag points to old commit
+
+**Diagnosis**:
+```bash
+# Check local tag
+git rev-parse v4.4.6^{}
+
+# Check remote tag (should match local)
+curl -sL "https://api.github.com/repos/OWNER/REPO/git/refs/tags/v4.4.6" | jq -r '.object.sha'
+
+# For annotated tags, check the commit it points to
+curl -sL "https://api.github.com/repos/OWNER/REPO/git/tags/TAG_SHA" | jq -r '.object.sha'
+```
+
+**Solution**:
+```bash
+# Force delete and recreate remote tag
+git push origin --delete v4.4.6
+git push origin v4.4.6
+
+# Recreate GitHub release
+gh release delete v4.4.6 --yes
+gh release create v4.4.6 --title "Release v4.4.6" --notes "Release notes..."
+```
+
+### Plugin Cache Issues
+
+**Symptom**: Plugin won't reinstall or shows old version after update
+
+**Solution**: Clear all plugin caches
+```bash
+# Remove plugin from installed list
+cat ~/.claude/plugins/installed_plugins.json | \
+  jq 'del(.plugins["claude-pilot@claude-pilot"])' > /tmp/ip.json && \
+  mv /tmp/ip.json ~/.claude/plugins/installed_plugins.json
+
+# Remove cached plugin files
+rm -rf ~/.claude/plugins/cache/claude-pilot
+
+# Remove marketplace cache
+rm -rf ~/.claude/plugins/marketplaces/claude-pilot
+
+# Now reinstall
+/plugin install claude-pilot
+```
+
+---
+
+## Plugin Manifest Reference
+
+### Official Plugin Structure (Recommended)
+
+Based on analysis of official Claude Code plugins:
+
+```
+plugin-root/
+├── .claude-plugin/
+│   └── plugin.json      # Minimal: name, description, author
+├── agents/              # Auto-detected (no manifest entry needed)
+│   └── *.md
+├── commands/            # Referenced in plugin.json
+│   └── *.md
+├── skills/              # Referenced in plugin.json
+│   └── */SKILL.md
+└── README.md
+```
+
+### plugin.json Best Practices
+
+```json
+{
+  "name": "plugin-name",
+  "description": "Short description",
+  "version": "1.0.0",
+  "author": {
+    "name": "Author Name",
+    "url": "https://github.com/author"
+  },
+  "commands": "./.claude/commands/",
+  "skills": "./.claude/skills/"
+}
+```
+
+**Key points**:
+- Keep it minimal - only include supported fields
+- `agents` directory is auto-detected, do NOT add to manifest
+- Use string paths, not arrays (Vercel plugin style)
+
 ---
 
 ## Related Skills
@@ -311,4 +461,4 @@ git tag v4.4.6 && git push origin main --tags
 
 ---
 
-**Version**: 4.3.3 | **Last Updated**: 2026-01-21
+**Version**: 4.4.6 | **Last Updated**: 2026-01-21

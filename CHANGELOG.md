@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.6] - 2026-01-21
+
+### Added
+- Add mandatory dialogue checkpoints to /00_plan command
+- Add EXECUTION DIRECTIVE to prevent unnecessary user prompts
+- Strengthen parallel agent execution across all commands
+
+### Fixed
+- Restore plugin.json array format and marketplace.json
+
+### Documentation
+- Move Plugin Manifest Requirements to release skill
+- Add Plugin Development Troubleshooting section
+
 ## [4.4.5] - 2026-01-21
 
 ### Fixed

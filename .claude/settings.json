@@ -105,22 +105,7 @@
   "hooks": {
     "PreToolUse": [],
     "PostToolUse": [],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/hooks/quality-dispatch.sh",
-            "timeout": 30
-          }
-        ]
-      }
-    ]
-  },
-  "quality": {
-    "mode": "stop",
-    "cache_ttl": 30,
-    "debounce_seconds": 10
+    "Stop": []
   },
   "lsp": {
     "typescript": {

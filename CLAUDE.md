@@ -124,18 +124,13 @@ Response Handling (synthesize, apply, verify)
 
 ## Quality & Hooks
 
-**Hooks Performance** (v4.3.0):
-- **Dispatcher Pattern**: O(1) project type detection (P95: 20ms)
-- **Smart Caching**: Config hash-based cache invalidation
-- **Gate vs Validator**: Safety checks (PreToolUse) vs quality checks (Stop)
-- **Profile System**: User-configurable modes (off/stop/strict)
+**Pre-commit Hook** (`.claude/scripts/hooks/pre-commit.sh`):
+- Fast JSON syntax validation
+- Markdown link sanity check
+- Runs only on staged files
+- Symlinked to `.git/hooks/pre-commit`
 
-**Migration Guide**: `@docs/migration-guide.md`
-
-**Pre-commit Hooks** (`.claude/hooks.json`):
-- Type check validation
-- Lint validation
-- Custom project hooks (configure in `CLAUDE.local.md`)
+**No Claude Code Hooks**: Plugin doesn't use Stop/PreToolUse hooks to avoid performance overhead
 
 **Plugin Testing**: Integration tests in `.pilot/tests/`
 
@@ -158,18 +153,27 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.3.1 (Dead Code Cleanup Command - Auto-Apply Workflow)
+**Plugin Version**: 4.3.4 (Hooks Simplification)
 **Distribution**: GitHub Marketplace (pure plugin)
 
 **Release Process**: `@.claude/commands/999_release.md`
 
 ---
 
-**Line Count**: 178 lines (Target: ≤200 lines) ✅
+**Line Count**: 175 lines (Target: ≤200 lines) ✅
 
 ---
 
 ## Version History
+
+### v4.3.4 (2026-01-21)
+
+**Hooks Simplification**: Removed over-engineered Stop hooks
+- Removed quality-dispatch.sh, cache.sh, typecheck.sh, lint.sh (944+ lines)
+- Replaced with simple pre-commit hook (40 lines)
+- Pre-commit: JSON syntax validation, markdown link sanity check
+- No Claude Code hooks (Stop/PreToolUse) to avoid performance overhead
+- Result: Bash commands no longer blocked by typecheck/lint
 
 ### v4.3.1 (2026-01-20)
 

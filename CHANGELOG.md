@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.4] - 2026-01-21
+
+### Performance
+  - **Hooks Simplification**: Removed over-engineered Stop hooks causing 7+ minute delays
+  - Removed quality-dispatch.sh, cache.sh, typecheck.sh, lint.sh (944+ lines of code)
+  - Replaced with simple pre-commit hook (40 lines) for JSON syntax validation only
+  - No Claude Code hooks (Stop/PreToolUse) to avoid performance overhead on every Bash command
+
+### Changed
+  - settings.json: Removed Stop hooks configuration
+  - Removed quality.mode, cache_ttl, debounce_seconds settings (no longer needed)
+  - Pre-commit hook now runs only on staged files via Git native hooks
+
+### Fixed
+  - Bash commands no longer blocked by typecheck/lint after every execution
+  - Simple git operations complete in seconds instead of minutes
+
 ## [4.3.3] - 2026-01-21
 
 ### Fixed

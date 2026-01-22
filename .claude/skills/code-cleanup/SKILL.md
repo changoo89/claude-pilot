@@ -1,11 +1,11 @@
 ---
 name: code-cleanup
-description: Dead code detection and removal using standard tooling. Use when removing unused imports, variables, or dead files.
+description: Dead code detection and removal using knip (recommended) or standard tooling. Use when removing unused imports, variables, or dead files.
 ---
 
 # SKILL: Code Cleanup
 
-> **Purpose**: Dead code detection and removal using standard tooling (ESLint, TypeScript)
+> **Purpose**: Dead code detection and removal using knip (recommended) or ESLint/TypeScript fallback
 > **Target**: Coder Agent, cleanup commands
 
 ---
@@ -18,8 +18,16 @@ description: Dead code detection and removal using standard tooling. Use when re
 - Detect and delete dead files (zero references)
 - Clean up codebase after refactoring
 
-### Quick Reference
+### Detection Tools (Choose One)
 
+**Recommended: knip** (comprehensive, single tool)
+```bash
+npx knip                    # Full analysis: unused files, exports, deps
+npx knip --reporter compact # Concise output
+npx knip --fix              # Auto-fix safe issues
+```
+
+**Fallback: Standard tooling** (when knip not installed)
 ```bash
 # Unused imports (ESLint)
 eslint . --ext .ts,.tsx --rule '@typescript-eslint/no-unused-vars: error'
@@ -33,6 +41,28 @@ rg --files -g '!*.test.ts' | while read f; do
   [ "$refs" -eq 0 ] && echo "$f"
 done
 ```
+
+---
+
+## Parallel Detection (Default)
+
+Launch 3 detection agents in parallel using haiku model for speed:
+
+```markdown
+# Parallel Detection Pattern (read-only, safe)
+Task A (haiku): npx knip --reporter json
+Task B (haiku): eslint . --report-unused-disable-directives --format json
+Task C (haiku): tsc --noUnusedLocals --noEmit 2>&1
+
+# Result merge (sequential)
+- Deduplicate findings across tools
+- Apply .cleanup-ignore patterns
+- Classify by risk level
+```
+
+**Why parallel is safe**: All detection commands are read-only (no file modifications).
+
+**Fallback (knip not installed)**: Use rg-based detection, sequential execution only.
 
 ## Core Concepts
 

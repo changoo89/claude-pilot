@@ -67,6 +67,36 @@ mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 
 ---
 
+## Step 2.5: GPT Delegation Check
+
+**Trigger**: Large plans (5+ Success Criteria) automatically trigger GPT Plan Reviewer
+
+```bash
+# Check if Codex CLI is available
+if ! command -v codex &> /dev/null; then
+  echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
+else
+  # Count Success Criteria in plan
+  SC_COUNT=$(grep -c "^- \[ \] \*\*SC-" "$PLAN_FILE" 2>/dev/null || echo 0)
+
+  if [ "$SC_COUNT" -ge 5 ]; then
+    echo "Large plan detected ($SC_COUNT SCs) - delegating to GPT Plan Reviewer..."
+
+    # Delegate to GPT Plan Reviewer using codex-sync.sh
+    "$PROJECT_ROOT/.claude/scripts/codex-sync.sh" \
+      --expert "plan-reviewer" \
+      --mode "workspace-write" \
+      --plan "$PLAN_FILE"
+
+    echo "GPT Plan Reviewer analysis complete"
+  fi
+fi
+```
+
+**Note**: Graceful fallback if Codex CLI not installed (continues with Claude-only analysis)
+
+---
+
 ## Step 3: Auto-Review & Auto-Apply
 
 **Invoke plan-reviewer agent** for analysis:

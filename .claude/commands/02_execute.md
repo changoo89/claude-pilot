@@ -153,12 +153,48 @@ After parallel execution completes:
 
 **Quality Gates**: Tests pass, Coverage ≥80%, Type-check clean, Lint clean
 
+### Step 3.4: Handle CODER_BLOCKED
+
+When any coder agent returns `<CODER_BLOCKED>`, automatically delegate to GPT Architect:
+
+```bash
+# Check for CODER_BLOCKED markers
+BLOCKED_COUNT=$(grep -c "<CODER_BLOCKED>" /tmp/coder_output.log 2>/dev/null || echo 0)
+
+if [ "$BLOCKED_COUNT" -gt 0 ]; then
+    echo "⚠️  $BLOCKED_COUNT coder(s) blocked - delegating to GPT Architect"
+
+    # Graceful fallback if Codex CLI not installed
+    if ! command -v codex &> /dev/null; then
+        echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
+        echo "Consider installing Codex CLI for GPT-4 architectural guidance"
+        # Continue with Claude - not an error
+    else
+        # Delegate to GPT Architect (workspace-write mode)
+        # Reference: .claude/skills/gpt-delegation/REFERENCE.md (lines 7-54)
+        .claude/scripts/codex-sync.sh \
+            --expert architect \
+            --mode workspace-write \
+            --plan-file "$PLAN_PATH" \
+            --iteration "$ITERATION_COUNT"
+
+        # Re-invoke coder with GPT recommendations
+        echo "✓ GPT Architect recommendations applied - retrying implementation"
+    fi
+fi
+```
+
+**Delegation Conditions**:
+- Any `<CODER_BLOCKED>` marker detected in agent output
+- Max iterations (7) reached without completion
+- Critical errors preventing progress
+
+**Fallback Behavior**: Continue with Claude if Codex CLI unavailable
+
 ---
 
 ## Related Skills
 
-ralph-loop | tdd | parallel-subagents | spec-driven-workflow
-
----
+ralph-loop | tdd | parallel-subagents | spec-driven-workflow | gpt-delegation
 
 **⚠️ CRITICAL**: Plan stays in `.pilot/plan/in_progress/`. Only `/03_close` can move to done.

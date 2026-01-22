@@ -54,7 +54,7 @@ Claude Code is powerful, but unstructured. **claude-pilot adds discipline:**
 - **Ralph Loop**: Autonomous iteration until all tests pass
 - **3-Tier Documentation**: Foundation/Component/Feature hierarchy for efficient context
 - **PRP Pattern**: Structured prompts for unambiguous requirements
-- **Integrated Hooks**: Type checking, linting, and todo validation
+- **Pre-commit Hook**: JSON validation and markdown link check
 - **Pure Plugin**: No Python dependency, native Claude Code integration
 
 ---
@@ -134,8 +134,7 @@ claude-pilot/
 │   ├── skills/            # TDD, Ralph Loop, Vibe Coding
 │   ├── guides/            # Methodology guides
 │   ├── templates/         # CONTEXT.md, SKILL.md templates
-│   ├── scripts/hooks/     # Typecheck, lint, todos, branch
-│   ├── hooks.json         # Hook definitions
+│   ├── scripts/hooks/     # Pre-commit hook
 │   └── settings.json      # Example settings
 ├── .pilot/                # Plan management
 │   └── plan/
@@ -182,9 +181,9 @@ claude-pilot/
 
 - **11 Slash Commands**: Plan, Confirm, Execute, Close, Review, Document, Init, Setup, Release, Cleanup, Continue
 - **8 Agents**: Coder, Tester, Validator, Documenter, Explorer, Researcher, Plan Reviewer, Code Reviewer
-- **4 Skills**: TDD, Ralph Loop, Vibe Coding, Git Master
+- **31 Skills**: TDD, Ralph Loop, Vibe Coding, Git Master, and 27 more
 - **MCP Servers**: context7, filesystem, grep-app (configured via `/pilot:setup`)
-- **Hooks**: Type checking, linting, todo validation, branch guard
+- **Hooks**: Pre-commit hook for JSON validation and markdown link check
 
 ---
 

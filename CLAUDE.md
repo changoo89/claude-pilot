@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.5 | **Last Updated**: 2026-01-21
+> **Version**: 4.4.11 | **Last Updated**: 2026-01-22
 
 ---
 
@@ -48,8 +48,7 @@
 
 | Component | Purpose | Location |
 |-----------|---------|----------|
-| Commands | Slash commands (10) | `.claude/commands/` |
-| Guides | Methodology (17) | `.claude/guides/` |
+| Commands | Slash commands (11) | `.claude/commands/` |
 | Skills | TDD, Ralph Loop, Vibe Coding | `.claude/skills/` |
 | Agents | Specialized roles (8) | `.claude/agents/` |
 
@@ -105,7 +104,7 @@ Response Handling (synthesize, apply, verify)
 
 ## MCP Servers
 
-**Plugin-Recommended**: context7, serena, grep-app, sequential-thinking, codex
+**Plugin-Recommended**: context7, filesystem, sequential-thinking
 
 **Full List**: `@docs/ai-context/mcp-servers.md`
 
@@ -153,7 +152,7 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.3.4 (Hooks Simplification)
+**Plugin Version**: 4.4.11 (GPT Auto-Delegation + Command Gate)
 **Distribution**: GitHub Marketplace (pure plugin)
 
 **Release Process**: `@.claude/commands/999_release.md`
@@ -165,6 +164,24 @@ Response Handling (synthesize, apply, verify)
 ---
 
 ## Version History
+
+### v4.4.11 (2026-01-22)
+GPT auto-delegation triggers, explicit command gate for phase transitions, absolute paths for plan files
+
+### v4.4.10 (2026-01-22)
+Setup always copies statusline.sh from plugin (ensures latest version)
+
+### v4.4.9 (2026-01-22)
+Scripts self-contained, remove env.sh dependency, simplify statusline.sh
+
+### v4.4.8 (2026-01-22)
+Unify statusline configuration into single script block
+
+### v4.4.7 (2026-01-22)
+Refactor setup command for statusline auto-configuration
+
+### v4.4.6 (2026-01-21)
+Mandatory dialogue checkpoints to /00_plan, EXECUTION DIRECTIVE, parallel agent execution
 
 ### v4.3.4 (2026-01-21)
 

@@ -14,7 +14,6 @@ Slash commands for SPEC-First development workflow.
 | `/05_cleanup` | Dead code cleanup | Maintenance |
 | `/review` | Multi-angle code review | Quality |
 | `/document` | Sync documentation | Maintenance |
-| `/continue` | Resume from state | Continuation |
 | `/999_release` | Version bump + release | Release |
 
 ---
@@ -27,7 +26,6 @@ Slash commands for SPEC-First development workflow.
 
 **Alternative**: `/04_fix` for simple bugs
 
-**Continuation**: `/continue` if session interrupted
 
 ---
 

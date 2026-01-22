@@ -56,20 +56,41 @@ if [ "$INCOMPLETE_SC" -gt 0 ]; then
 fi
 
 echo "✓ All Success Criteria complete"
-
-# Check if documentation sync was run
-echo ""
-echo "📚 Documentation Sync Check:"
-echo "   Have you run /document to sync documentation?"
-echo "   - Updates 3-tier docs (CLAUDE.md, Tier 2, CONTEXT.md)"
-echo "   - Ensures metadata consistency"
-echo "   - Recommended before closing plan"
-echo ""
 ```
 
 ---
 
-## Step 3: Verify Evidence
+## Step 3: Auto Documentation Sync
+
+Run documentation sync automatically (equivalent to `/document`):
+
+```bash
+echo "📚 Auto-syncing documentation..."
+
+# Sync CONTEXT.md for modified directories
+for dir in src/ components/ lib/ .claude/commands/ .claude/skills/ .claude/agents/; do
+    [ -d "$dir" ] || continue
+    if [ -f "$dir/CONTEXT.md" ]; then
+        echo "   ✓ $dir/CONTEXT.md exists"
+    fi
+done
+
+# Verify CLAUDE.md size compliance
+if [ -f "CLAUDE.md" ]; then
+    LINES=$(wc -l < CLAUDE.md | tr -d ' ')
+    if [ "$LINES" -le 200 ]; then
+        echo "   ✓ CLAUDE.md: $LINES lines (≤200)"
+    else
+        echo "   ⚠️ CLAUDE.md: $LINES lines (exceeds 200)"
+    fi
+fi
+
+echo "✓ Documentation sync complete"
+```
+
+---
+
+## Step 4: Verify Evidence
 
 ```bash
 grep -A1 "Verify:" "$PLAN_PATH" | while read cmd; do
@@ -79,7 +100,7 @@ done
 
 ---
 
-## Step 4: Move Plan to Done
+## Step 5: Move Plan to Done
 
 ```bash
 # Use same PROJECT_ROOT from Step 1
@@ -92,7 +113,7 @@ echo "✓ Plan moved to done"
 
 ---
 
-## Step 5: Git Commit
+## Step 6: Git Commit
 
 ```bash
 # Git commit (skip with no-commit)

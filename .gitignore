@@ -49,3 +49,6 @@ yarn-error.log*
 
 # Temporary files (plugin workspace)
 .tmp/
+
+# Trash folder
+.trash/

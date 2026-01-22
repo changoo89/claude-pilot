@@ -186,7 +186,7 @@ All commands use MANDATORY ACTION sections for reliable agent delegation:
 
 **When to split**:
 - If command exceeds 200 lines
-- Extract methodology to guides/skills
+- Extract methodology to skills
 - Use cross-references
 ```
 
@@ -194,7 +194,7 @@ All commands use MANDATORY ACTION sections for reliable agent delegation:
 
 **Requirements**:
 - Use @ syntax for cross-references
-- Group by type (commands, guides, skills)
+- Group by type (commands, skills, agents)
 - Include claude-code-standards.md
 
 **Example**:

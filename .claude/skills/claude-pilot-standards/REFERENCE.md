@@ -67,16 +67,16 @@ description: {action verbs + scenarios}
 
 ---
 
-## Guides
+## Templates
 
 ### Structure
 ```
-.claude/guides/{name}/
-├── {name}.md (≤150 lines)
-└── {name}-REFERENCE.md (≤300 lines)
+.claude/templates/
+├── {template-name}.md
+└── usage guides
 ```
 
-### Quick Ref Pattern
+### Template Pattern
 - Purpose + version
 - Quick reference table
 - Core concepts summary

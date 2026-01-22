@@ -53,15 +53,15 @@ You MUST follow this interaction pattern:
 
 ## Selection vs Execution (CRITICAL)
 
-**When user says "B로 해" (choose option B):**
+**When user says "Go with B" (choose option B):**
 - ✅ CORRECT: Continue planning with approach B → refine plan → present complete plan
 - ❌ WRONG: Start implementing approach B
 
 **Example Flow**:
 1. Present: "A) Simple approach, B) Scalable approach"
-2. User: "B로 해"
-3. ✅ Do: "B 접근 방식으로 계획을 구체화하겠습니다. [detailed plan for B]..."
-4. ❌ Don't: "B로 구현을 시작하겠습니다. [writes code]"
+2. User: "Go with B" or "Choose option B"
+3. ✅ Do: "I'll refine the plan with approach B. [detailed plan for B]..."
+4. ❌ Don't: "I'll start implementing with B. [writes code]"
 
 **Implementation ONLY starts when**: User explicitly runs `/01_confirm` → `/02_execute`
 
@@ -89,14 +89,14 @@ You MUST follow this interaction pattern:
 - Running /02_execute automatically
 - **Starting implementation after user selects an approach** (selection = continue planning)
 - **Interpreting ANY natural language as phase transition trigger**
-  - Examples: "proceed", "go ahead", "do it", "sounds good", "yes", "let's do it", "B로 해"
+  - Examples: "proceed", "go ahead", "do it", "sounds good", "yes", "let's do it", "go with B"
   - These expressions mean "continue planning in this direction", NOT "start implementation"
 
 **EXPLICIT COMMAND REQUIRED**:
 - To move to /01_confirm: User must type exactly `/01_confirm`
 - To move to /02_execute: User must type exactly `/02_execute`
 - NO natural language expression can trigger phase transition
-- When in doubt, ASK: "계획을 계속 다듬을까요, 아니면 /01_confirm을 실행할까요?"
+- When in doubt, ASK: "Should I continue refining the plan, or run /01_confirm?"
 
 ---
 

@@ -78,8 +78,8 @@
 - **Tier 3**: `{feature}/CONTEXT.md` - Feature implementation
 
 **Key Docs**:
-- `@docs/ai-context/project-structure.md` - 프로젝트 구조
-- `@docs/ai-context/docs-overview.md` - 문서 네비게이션
+- `@docs/ai-context/project-structure.md` - Project structure
+- `@docs/ai-context/docs-overview.md` - Documentation navigation
 
 ---
 
@@ -211,16 +211,16 @@ Input → Component A → Component B → Output
 
 ## Tier 1 Supplementary: docs/ai-context/ Structure
 
-**Purpose**: Tier 1 보조 문서 (CLAUDE.md와 함께 Tier 1 구성)
+**Purpose**: Tier 1 supplementary documents (forms Tier 1 together with CLAUDE.md)
 
 **Allowed files** (2 files only):
 ```
 docs/ai-context/
-├── project-structure.md      # 프로젝트 구조, 기술 스택, 파일 트리
-└── docs-overview.md          # 문서 아키텍처, Tier 맵핑, 컴포넌트 참조
+├── project-structure.md      # Project structure, tech stack, file tree
+└── docs-overview.md          # Documentation architecture, Tier mapping, component references
 ```
 
-**Migration**: 기존 ai-context 파일들은 각 컴포넌트의 CONTEXT.md/REFERENCE.md로 이동:
+**Migration**: Existing ai-context files moved to each component's CONTEXT.md/REFERENCE.md:
 - agent-ecosystem.md → `@.claude/agents/CONTEXT.md`
 - codex-integration.md → `@.claude/skills/gpt-delegation/REFERENCE.md`
 - mcp-servers.md → `@.claude/commands/setup.md`

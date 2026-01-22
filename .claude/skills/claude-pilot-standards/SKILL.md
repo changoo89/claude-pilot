@@ -1,12 +1,12 @@
 ---
 name: claude-pilot-standards
-description: Author reference for claude-pilot components. Skills, commands, guides, agents, rules documentation patterns. VIBE coding compliance.
+description: Author reference for claude-pilot components. Skills, commands, agents, rules documentation patterns. VIBE coding compliance.
 ---
 
 # SKILL: Claude-Pilot Standards
 
 > **Purpose**: Author reference for creating plugin components
-> **Target**: Contributors creating skills, commands, guides, agents
+> **Target**: Contributors creating skills, commands, agents
 
 ## Quick Reference
 
@@ -14,7 +14,6 @@ description: Author reference for claude-pilot components. Skills, commands, gui
 |-----------|----------|---------|------------|
 | **Skills** | `.claude/skills/{name}/` | Auto-discoverable capabilities | SKILL: 100, REF: 300 |
 | **Commands** | `.claude/commands/` | Slash commands | 150 lines |
-| **Guides** | `.claude/guides/` | Methodology patterns | 300 lines |
 | **Agents** | `.claude/agents/` | Specialized configs | 200 lines |
 | **Rules** | `.claude/rules/` | Delegation patterns | 200 lines |
 
@@ -33,11 +32,6 @@ description: Author reference for claude-pilot components. Skills, commands, gui
 **Required**: `description` with action verbs + scenarios
 
 **Examples**: @.claude/commands/00_plan.md | @.claude/commands/02_execute.md
-
-### Guides
-**Structure**: Quick ref + detailed reference (split pattern)
-
-**Examples**: @.claude/skills/coding-standards/SKILL.md
 
 ### Agents
 **Required**: `name`, `description`, `model`, `tools`

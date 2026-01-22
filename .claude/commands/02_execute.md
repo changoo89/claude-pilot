@@ -29,7 +29,7 @@ _Execute plan using Ralph Loop TDD pattern. Single source of truth: plan file dr
 **⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
 
 ```bash
-# PROJECT_ROOT = Claude Code 실행 위치 (절대 경로 필수)
+# PROJECT_ROOT = Claude Code execution directory (absolute path required)
 PROJECT_ROOT="$(pwd)"
 
 # Find plan in pending/ or in_progress/

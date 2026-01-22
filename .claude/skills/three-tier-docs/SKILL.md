@@ -20,7 +20,7 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ### Quick Reference
 ```bash
-# Tier 1: 3개 Entry Point 문서 동기화
+# Tier 1: Sync 3 Entry Point documents
 # - CLAUDE.md (≤200 lines)
 # - docs/ai-context/project-structure.md
 # - docs/ai-context/docs-overview.md
@@ -52,20 +52,20 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ### 3-Tier Hierarchy
 
-**Tier 1: Entry Points** (3개 파일)
-- `CLAUDE.md` - 아키텍처, 기능, Quick Start (≤200 lines)
-- `docs/ai-context/project-structure.md` - 기술 스택, 파일 트리
-- `docs/ai-context/docs-overview.md` - 문서 네비게이션, Tier 맵핑
-- **필수**: CLAUDE.md 상단에 나머지 2개 파일 참조 포함
+**Tier 1: Entry Points** (3 files)
+- `CLAUDE.md` - Architecture, features, Quick Start (≤200 lines)
+- `docs/ai-context/project-structure.md` - Tech stack, file tree
+- `docs/ai-context/docs-overview.md` - Documentation navigation, Tier mapping
+- **Required**: CLAUDE.md top section must reference the other 2 files
 
 **Tier 2: CONTEXT.md** (Component Directory)
-- **Purpose**: 컴포넌트별 컨텍스트
+- **Purpose**: Component context
 - **Content**: Purpose, key files, patterns
 - **Size**: ≤100 lines per file
 - **Scope**: Component-level context
 
 **Tier 3: CONTEXT.md** (Feature Directory)
-- **Purpose**: 기능별 구현 세부사항
+- **Purpose**: Feature implementation details
 - **Content**: Implementation details, deep-dive
 - **Size**: ≤150 lines per file
 - **Scope**: Feature-level context

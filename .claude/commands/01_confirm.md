@@ -39,7 +39,7 @@ _Extract plan from conversation, create file, auto-review (non-BLOCKING), move t
 **⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
 
 ```bash
-# PROJECT_ROOT = Claude Code 실행 위치 (절대 경로 필수)
+# PROJECT_ROOT = Claude Code execution directory (absolute path required)
 PROJECT_ROOT="$(pwd)"
 TS="$(date +%Y%m%d_%H%M%S)"
 PLAN_FILE="$PROJECT_ROOT/.pilot/plan/draft/${TS}_${work_name}.md"

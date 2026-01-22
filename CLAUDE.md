@@ -4,14 +4,14 @@
 
 ---
 
-## ⚠️ CRITICAL: 필수 참조 문서
+## ⚠️ CRITICAL: Required Reference Documents
 
-**모든 작업 시작 전 반드시 다음 문서를 읽으세요:**
+**Before starting any work, you MUST read the following documents:**
 
-- `@docs/ai-context/project-structure.md` - 프로젝트 구조, 기술 스택, 파일 트리
-- `@docs/ai-context/docs-overview.md` - 문서 아키텍처, Tier 맵핑, 컴포넌트 참조
+- `@docs/ai-context/project-structure.md` - Project structure, tech stack, file tree
+- `@docs/ai-context/docs-overview.md` - Documentation architecture, Tier mapping, component references
 
-이 두 문서는 Tier 1 문서로, CLAUDE.md와 함께 모든 AI 에이전트가 작업 전 필수로 참조해야 합니다.
+These two documents are Tier 1 documents that all AI agents MUST reference before starting any work, along with CLAUDE.md.
 
 ---
 
@@ -138,8 +138,8 @@ Response Handling (synthesize, apply, verify)
 - **Tier 3**: `{component}/{feature}/CONTEXT.md` - Feature details
 
 **Key Docs**:
-- `@docs/ai-context/project-structure.md` - Plugin layout, 기술 스택
-- `@docs/ai-context/docs-overview.md` - 문서 아키텍처, Tier 맵핑
+- `@docs/ai-context/project-structure.md` - Plugin layout, tech stack
+- `@docs/ai-context/docs-overview.md` - Documentation architecture, Tier mapping
 - `@.claude/agents/CONTEXT.md` - Agent ecosystem
 - `@.claude/commands/CONTEXT.md` - Command workflows
 

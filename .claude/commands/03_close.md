@@ -29,7 +29,7 @@ _Finalize plan by moving to done and creating git commit._
 **⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
 
 ```bash
-# PROJECT_ROOT = Claude Code 실행 위치 (절대 경로 필수)
+# PROJECT_ROOT = Claude Code execution directory (absolute path required)
 PROJECT_ROOT="$(pwd)"
 
 PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | head -1)"

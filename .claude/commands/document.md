@@ -26,12 +26,12 @@ _Update documentation with full auto-sync and hierarchical CONTEXT.md management
 
 ## Step 1: Sync Tier 1 Documents
 
-**Tier 1 구성** (총 3개 파일):
-- `CLAUDE.md` - 프로젝트 아키텍처, 기능, Quick Start (≤200 lines)
-- `docs/ai-context/project-structure.md` - 기술 스택, 파일 트리
-- `docs/ai-context/docs-overview.md` - 문서 네비게이션, Tier 맵핑
+**Tier 1 Structure** (3 files total):
+- `CLAUDE.md` - Project architecture, features, Quick Start (≤200 lines)
+- `docs/ai-context/project-structure.md` - Tech stack, file tree
+- `docs/ai-context/docs-overview.md` - Documentation navigation, Tier mapping
 
-**필수**: CLAUDE.md 상단에 project-structure.md, docs-overview.md 참조 포함
+**Required**: CLAUDE.md must reference project-structure.md and docs-overview.md at the top
 
 ---
 
@@ -56,14 +56,14 @@ done
 ## Step 3: Verify Compliance
 
 ```bash
-# Tier 1 검증
+# Tier 1 validation
 test $(wc -l < CLAUDE.md) -le 200 || echo "CLAUDE.md too large"
 test $(find docs/ai-context -maxdepth 1 -name "*.md" | wc -l) -eq 2 || echo "docs/ai-context should have exactly 2 files"
 
-# Tier 2 검증
+# Tier 2 validation
 for f in **/CONTEXT.md; do test $(wc -l < "$f") -le 100 || echo "$f too large"; done
 
-# 순환참조 검증
+# Circular reference validation
 .claude/scripts/docs-verify.sh --circular-check
 ```
 

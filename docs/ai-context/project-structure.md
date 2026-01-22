@@ -42,8 +42,6 @@ claude-pilot/
 │   │   ├── review.md       # Review code
 │   │   ├── document.md     # Update docs
 │   │   └── 999_release.md  # Bump version + release
-│   ├── guides/             # Methodology guides (17)
-│   │   └── CONTEXT.md      # Guide folder context
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
 │   ├── skills/             # Reusable skill modules
 │   │   ├── CONTEXT.md      # Skill folder context
@@ -155,7 +153,6 @@ For detailed information about each component, see the corresponding CONTEXT.md:
 - **Commands**: `@.claude/commands/CONTEXT.md`
 - **Skills**: `@.claude/skills/CONTEXT.md`
 - **Agents**: `@.claude/agents/CONTEXT.md`
-- **Guides**: `@.claude/guides/CONTEXT.md`
 
 ---
 

@@ -23,7 +23,7 @@ docs/ai-context/ (Tier 1 - Detailed Reference)
             ↓
 {component}/CONTEXT.md (Tier 2 - Component)
     ├── .claude/commands/CONTEXT.md
-    ├── .claude/guides/CONTEXT.md
+    ├── .claude/agents/CONTEXT.md
     └── .claude/skills/CONTEXT.md
             ↓
 {feature}/CONTEXT.md (Tier 3 - Feature)
@@ -76,11 +76,11 @@ Detailed documentation that supplements Tier 1 when it exceeds size limits. Cont
 | **project-structure.md** | Technology stack, directory layout, key files | Understanding codebase organization |
 | **docs-overview.md** | This file: Navigation for all documentation | Finding specific documentation |
 
-**Note**: 다른 상세 문서는 각 컴포넌트의 CONTEXT.md 또는 REFERENCE.md에서 확인:
-- 워크플로우: `@.claude/commands/CONTEXT.md`
-- GPT 위임: `@.claude/skills/gpt-delegation/REFERENCE.md`
-- 에이전트: `@.claude/agents/CONTEXT.md`
-- MCP 서버: `@.claude/commands/setup.md`
+**Note**: Other detailed documentation is in each component's CONTEXT.md or REFERENCE.md:
+- Workflows: `@.claude/commands/CONTEXT.md`
+- GPT delegation: `@.claude/skills/gpt-delegation/REFERENCE.md`
+- Agents: `@.claude/agents/CONTEXT.md`
+- MCP servers: `@.claude/commands/setup.md`
 - CI/CD: `@.claude/commands/999_release.md`
 
 ### Size Limits
@@ -101,7 +101,6 @@ Component-level architecture documentation for major modules, libraries, or feat
 | Pattern | Example | Criteria |
 |---------|---------|----------|
 | `.claude/commands/` | Command workflows | 6+ command files |
-| `.claude/guides/` | Methodology guides | 8+ guide files |
 | `.claude/skills/` | Reusable skills | 4+ skill modules |
 | `.claude/agents/` | Specialized agents | 4+ agent configs |
 | `src/*/`, `lib/*/` | Source components | 3+ files |
@@ -185,10 +184,8 @@ Feature-level implementation details for specific features or deeply nested impl
 | Location | Status | Notes |
 |----------|--------|-------|
 | `.claude/commands/CONTEXT.md` | Created | Documents 8 command files |
-| `.claude/guides/CONTEXT.md` | Created | Documents 10+ guide files |
 | `.claude/skills/CONTEXT.md` | Created | Documents 5 skill modules (tdd, ralph-loop, vibe-coding, git-master, documentation-best-practices) |
 | `.claude/agents/CONTEXT.md` | Created | Documents 8 agent configs |
-| `src/claude_pilot/CONTEXT.md` | Created | Core Python package architecture (cli.py, codex.py, config.py, assets.py, build_hook.py, initializer.py, updater.py) |
 
 ### To Create
 
@@ -196,7 +193,6 @@ Use `/document {folder_name}` to create CONTEXT.md for any folder:
 
 ```bash
 /document .claude/commands
-/document .claude/guides
 /document .claude/skills
 /document .claude/agents
 ```
@@ -336,7 +332,6 @@ Automatically compresses documentation that exceeds thresholds:
 ## Related Documentation
 
 - `CLAUDE.md` - Tier 1: Project documentation
-- `.claude/guides/3tier-documentation.md` - 3-Tier system guide
 - `.claude/templates/CONTEXT-tier2.md.template` - Component template
 - `.claude/templates/CONTEXT-tier3.md.template` - Feature template
 

@@ -85,7 +85,7 @@ Language: TypeScript
 project-root/
 ├── .claude/
 │   ├── commands/     # Slash commands
-│   ├── guides/       # Methodology guides
+│   ├── skills/       # Reusable skills
 │   └── agents/       # Agent configs
 ...
 ```
@@ -510,7 +510,7 @@ All commands use MANDATORY ACTION sections for reliable agent delegation:
 ```
 
 ### Cross-Reference Pattern
-Methodology details extracted to guides/skills:
+Methodology details extracted to skills:
 ```markdown
 > **Methodology**: @.claude/skills/tdd/SKILL.md
 ```
@@ -574,7 +574,7 @@ ls @.claude/skills/tdd/SKILL.md
 
 **Problem**: Commands exceed 150 lines with methodology explanations
 
-**Solution**: Extract to guides/skills
+**Solution**: Extract to skills
 ```markdown
 BEFORE (in command):
 ## TDD Methodology

@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.11 | **Last Updated**: 2026-01-22
+> **Version**: 4.4.12 | **Last Updated**: 2026-01-23
 
 ---
 
@@ -147,7 +147,7 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.11 (GPT Auto-Delegation + Command Gate)
+**Plugin Version**: 4.4.12 (Documentation integration + 3-Tier restructure)
 **Distribution**: GitHub Marketplace (pure plugin)
 
 **Release Process**: `@.claude/commands/999_release.md`
@@ -159,6 +159,9 @@ Response Handling (synthesize, apply, verify)
 ---
 
 ## Version History
+
+### v4.4.12 (2026-01-23)
+Integrate /document into /03_close, 3-Tier documentation restructure, dual-source verification
 
 ### v4.4.11 (2026-01-22)
 GPT auto-delegation triggers, explicit command gate, absolute paths for plan files

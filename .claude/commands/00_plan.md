@@ -32,6 +32,15 @@ You MUST follow this interaction pattern:
 - Running /01_confirm automatically
 - Running /02_execute automatically
 - Skipping user validation checkpoints
+- **Interpreting ANY natural language as phase transition trigger**
+  - Examples: "proceed", "go ahead", "do it", "sounds good", "yes", "let's do it"
+  - These expressions mean "continue planning in this direction", NOT "start implementation"
+
+**EXPLICIT COMMAND REQUIRED**:
+- To move to /01_confirm: User must type exactly `/01_confirm`
+- To move to /02_execute: User must type exactly `/02_execute`
+- NO natural language expression can trigger phase transition
+- When in doubt, ASK: "Do you want me to continue planning, or run /01_confirm?"
 
 ---
 

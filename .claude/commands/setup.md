@@ -16,32 +16,26 @@ echo "✓ .pilot directories created"
 ## Step 2: Configure Statusline
 
 ```bash
-# 플러그인 설치 경로 찾기
-PLUGIN_PATH=$(jq -r '.plugins["claude-pilot@claude-pilot"][0].installPath // empty' ~/.claude/plugins/installed_plugins.json 2>/dev/null)
+# Unified statusline configuration script
+# Finds source, copies script, and updates settings.json atomically
 
-# 소스 경로 결정
-if [ -f ".claude/scripts/statusline.sh" ]; then
-    SOURCE_SCRIPT=".claude/scripts/statusline.sh"
-elif [ -n "$PLUGIN_PATH" ] && [ -f "$PLUGIN_PATH/.claude/scripts/statusline.sh" ]; then
-    SOURCE_SCRIPT="$PLUGIN_PATH/.claude/scripts/statusline.sh"
-else
-    SOURCE_SCRIPT=""
-fi
+PLUGIN_PATH=$(jq -r '.plugins["claude-pilot@claude-pilot"][0].installPath // empty' ~/.claude/plugins/installed_plugins.json 2>/dev/null || true)
+SOURCE=""
+[[ -f ".claude/scripts/statusline.sh" ]] && SOURCE=".claude/scripts/statusline.sh"
+[[ -z "$SOURCE" && -n "$PLUGIN_PATH" && -f "$PLUGIN_PATH/.claude/scripts/statusline.sh" ]] && SOURCE="$PLUGIN_PATH/.claude/scripts/statusline.sh"
 
-# 스크립트 복사 및 설정
-if [ -n "$SOURCE_SCRIPT" ]; then
+if [[ -n "$SOURCE" ]]; then
     mkdir -p .claude/scripts
-    cp "$SOURCE_SCRIPT" .claude/scripts/statusline.sh
+    cp "$SOURCE" .claude/scripts/statusline.sh
     chmod +x .claude/scripts/statusline.sh
 
-    # settings.json에 statusLine 추가
-    if [ -f ".claude/settings.json" ]; then
-        if ! jq -e '.statusLine' .claude/settings.json >/dev/null 2>&1; then
-            jq '. + {"statusLine": {"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/statusline.sh"}}' \
-              .claude/settings.json > tmp.json && mv tmp.json .claude/settings.json
-        fi
+    SETTINGS=".claude/settings.json"
+    STATUSLINE='{"type":"command","command":"\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/statusline.sh"}'
+
+    if [[ -f "$SETTINGS" ]]; then
+        jq --argjson sl "$STATUSLINE" '. + {statusLine: $sl}' "$SETTINGS" > /tmp/settings.json && mv /tmp/settings.json "$SETTINGS"
     else
-        echo '{"statusLine": {"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/scripts/statusline.sh"}}' > .claude/settings.json
+        echo "{\"statusLine\": $STATUSLINE}" > "$SETTINGS"
     fi
     echo "✓ Statusline configured"
 else

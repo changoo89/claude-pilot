@@ -102,6 +102,6 @@ Task: subagent_type: code-reviewer, prompt: "Review code"
 
 ## Further Reading
 
-**Internal**: @.claude/skills/execute-plan/REFERENCE.md - Full implementation details, state management, worktree setup, verification patterns | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle | @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop | @.claude/guides/parallel-execution.md - Parallel execution orchestration | @.claude/guides/continuation-system.md - Sisyphus continuation system
+**Internal**: @.claude/skills/execute-plan/REFERENCE.md - Full implementation details, state management, worktree setup, verification patterns | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle | @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop | @.claude/skills/parallel-subagents/SKILL.md - Parallel execution orchestration
 
 **External**: [Test-Driven Development by Kent Beck](https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530) | [Working Effectively with Legacy Code by Michael Feathers](https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052)

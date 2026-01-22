@@ -121,7 +121,7 @@ When BLOCKING issues found, enter dialogue mode:
 
 ## Further Reading
 
-**Internal**: @.claude/guides/spec-driven-workflow.md - SPEC-First methodology
+**Internal**: @.claude/skills/spec-driven-workflow/SKILL.md - SPEC-First methodology
 
 **External**:
 - [Superpowers Planning Guide](https://github.com/obra/superpowers)

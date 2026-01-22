@@ -404,7 +404,7 @@ def process_large_dataset(self, size):
 ### Internal Resources
 - @.claude/skills/ralph-loop/SKILL.md - Autonomous verification loop
 - @.claude/skills/vibe-coding/SKILL.md - Code quality standards
-- @.claude/guides/test-environment.md - Test framework detection
+- @.claude/skills/tdd/REFERENCE.md - Test framework detection
 
 ### External Resources
 - [Test-Driven Development by Kent Beck](https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530)

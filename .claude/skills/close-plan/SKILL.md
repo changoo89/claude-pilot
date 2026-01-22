@@ -53,8 +53,7 @@ git_push_with_retry "origin" "$BRANCH"
 
 ### Out of Scope
 - Git operations → @.claude/skills/git-master/SKILL.md
-- Continuation system → @.claude/guides/continuation-system.md
-- Documentation updates → @.claude/guides/3tier-documentation.md
+- Documentation updates → @.claude/skills/three-tier-docs/SKILL.md
 
 ---
 
@@ -128,6 +127,6 @@ fi
 
 ## Further Reading
 
-**Internal**: @.claude/skills/close-plan/REFERENCE.md - Full implementation details, state management, git push system, worktree cleanup | @.claude/skills/git-master/SKILL.md - Version control workflow | @.claude/guides/continuation-system.md - Sisyphus continuation system | @.claude/guides/3tier-documentation.md - Documentation synchronization
+**Internal**: @.claude/skills/close-plan/REFERENCE.md - Full implementation details, state management, git push system, worktree cleanup | @.claude/skills/git-master/SKILL.md - Version control workflow | @.claude/skills/three-tier-docs/SKILL.md - Documentation synchronization
 
 **External**: [Conventional Commits](https://www.conventionalcommits.org/) | [GitHub CLI](https://cli.github.com/manual/gh_pr_create)

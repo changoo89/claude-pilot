@@ -202,15 +202,15 @@ All commands use MANDATORY ACTION sections for reliable agent delegation:
 ## See Also
 
 **Workflow guides**:
-- @.claude/guides/requirements-tracking.md - User Requirements Collection methodology
-- @.claude/guides/prp-framework.md - SPEC-First requirements methodology
+- @.claude/skills/confirm-plan/SKILL.md - User Requirements Collection methodology
+- @.claude/skills/spec-driven-workflow/SKILL.md - SPEC-First requirements methodology
 
 **Implementation guides**:
 - @.claude/skills/tdd/SKILL.md - Test-Driven Development cycle
 - @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop
 
 **Documentation standards**:
-- @.claude/guides/claude-code-standards.md - Official Claude Code standards
+- @.claude/skills/coding-standards/SKILL.md - Official Claude Code standards
 ```
 
 ## Directory-Specific Examples
@@ -299,14 +299,14 @@ Use @ syntax for all cross-references:
 
 ```markdown
 **Related guides**:
-- @.claude/guides/prp-framework.md - SPEC-First requirements
-- @.claude/guides/test-environment.md - Test framework detection
+- @.claude/skills/spec-driven-workflow/SKILL.md - SPEC-First requirements
+- @.claude/skills/tdd/REFERENCE.md - Test framework detection
 ```
 
 ### Link Clarity
 
-- **Good**: `@.claude/guides/prp-framework.md - SPEC-First requirements methodology`
-- **Bad**: `@.claude/guides/prp-framework.md`
+- **Good**: `@.claude/skills/spec-driven-workflow/SKILL.md - SPEC-First requirements methodology`
+- **Bad**: `@.claude/skills/spec-driven-workflow/SKILL.md`
 
 Include brief description after each link.
 
@@ -316,8 +316,8 @@ Group related links by type:
 
 ```markdown
 **Workflow guides**:
-- @.claude/guides/requirements-tracking.md
-- @.claude/guides/prp-framework.md
+- @.claude/skills/confirm-plan/SKILL.md
+- @.claude/skills/spec-driven-workflow/SKILL.md
 
 **Implementation guides**:
 - @.claude/skills/tdd/SKILL.md
@@ -421,9 +421,9 @@ done
 **Existing Examples**:
 - @.claude/commands/CONTEXT.md - Commands directory
 - @.claude/agents/CONTEXT.md - Agents directory
-- @.claude/guides/CONTEXT.md - Guides directory
+- @.claude/skills/CONTEXT.md - Guides directory
 - @.claude/skills/CONTEXT.md - Skills directory
 
 **Documentation Standards**:
-- @.claude/guides/claude-code-standards.md - Official Claude Code standards
+- @.claude/skills/coding-standards/SKILL.md - Official Claude Code standards
 - @.claude/skills/documentation-best-practices/SKILL.md - Documentation quick reference

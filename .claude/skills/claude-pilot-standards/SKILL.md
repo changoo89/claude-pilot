@@ -37,7 +37,7 @@ description: Author reference for claude-pilot components. Skills, commands, gui
 ### Guides
 **Structure**: Quick ref + detailed reference (split pattern)
 
-**Examples**: @.claude/guides/claude-code-standards.md
+**Examples**: @.claude/skills/coding-standards/SKILL.md
 
 ### Agents
 **Required**: `name`, `description`, `model`, `tools`

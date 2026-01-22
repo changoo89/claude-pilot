@@ -92,7 +92,7 @@ project-root/
 
 ## Development Workflow
 
-> **Methodology**: See @.claude/guides/prp-framework.md
+> **Methodology**: See @.claude/skills/spec-driven-workflow/SKILL.md
 
 ### SPEC-First Development
 1. **What**: Functionality requirements
@@ -102,7 +102,7 @@ project-root/
 
 ## Context Engineering
 
-> **Details**: @.claude/guides/3tier-documentation.md
+> **Details**: @.claude/skills/three-tier-docs/SKILL.md
 
 - **L0** (Immediate): Quick reference
 - **L1** (Structural): Architecture
@@ -516,9 +516,9 @@ Methodology details extracted to guides/skills:
 ```
 
 ## See Also
-- @.claude/guides/prp-framework.md - SPEC-First methodology
-- @.claude/guides/gap-detection.md - Gap detection review
-- @.claude/guides/parallel-execution.md - Agent orchestration
+- @.claude/skills/spec-driven-workflow/SKILL.md - SPEC-First methodology
+- @.claude/skills/confirm-plan/REFERENCE.md - Gap detection review
+- @.claude/skills/parallel-subagents/SKILL.md - Agent orchestration
 - @.claude/agents/CONTEXT.md - Agent specifications
 ```
 
@@ -545,7 +545,7 @@ Methodology details extracted to guides/skills:
 ```markdown
 Good:
 > **Methodology**: @.claude/skills/tdd/SKILL.md
-See @.claude/guides/parallel-execution.md for patterns
+See @.claude/skills/parallel-subagents/SKILL.md for patterns
 
 Bad:
 See the TDD skill (not clickable)
@@ -697,8 +697,8 @@ From [My LLM coding workflow 2026 - Addy Osmani](https://medium.com/@addyosmani/
 
 **Internal**:
 - @.claude/skills/documentation-best-practices/SKILL.md - Quick reference for documentation standards
-- @.claude/guides/claude-code-standards.md - Official directory structure and conventions
-- @.claude/guides/3tier-documentation.md - Complete 3-Tier documentation system
+- @.claude/skills/coding-standards/SKILL.md - Official directory structure and conventions
+- @.claude/skills/three-tier-docs/SKILL.md - Complete 3-Tier documentation system
 
 **External**:
 - [Claude Code: Best practices for agentic coding - Anthropic](https://www.anthropic.com/engineering/claude-code-best-practices)

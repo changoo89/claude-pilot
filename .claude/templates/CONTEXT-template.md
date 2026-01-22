@@ -86,10 +86,10 @@
 - @.claude/{path}/CONTEXT.md - {Description}
 
 **Related guides**:
-- @.claude/guides/{guide}.md - {Description}
+- @.claude/skills/{skill}/SKILL.md - {Description}
 
 **Related skills**:
 - @.claude/skills/{skill}/SKILL.md - {Description}
 
 **Documentation standards**:
-- @.claude/guides/claude-code-standards.md - {Description}
+- @.claude/skills/coding-standards/SKILL.md - {Description}

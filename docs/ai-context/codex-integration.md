@@ -382,7 +382,7 @@ Test file: `tests/test_codex.py` (11 tests, 81% coverage)
 
 ## See Also
 
-- **@.claude/guides/intelligent-delegation.md** - Full delegation guide
+- **@.claude/skills/gpt-delegation/SKILL.md** - GPT delegation skill
 - **@.claude/rules/delegator/orchestration.md** - Orchestration patterns
 - **@CLAUDE.md** - Project standards (Tier 1)
 

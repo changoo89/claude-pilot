@@ -33,7 +33,7 @@ description: Test-Driven Development (TDD) skill for Red-Green-Refactor cycle. U
 - Minimal implementation for Green phase
 
 ### Out of Scope
-- Test framework selection → @.claude/guides/test-environment.md
+- Test framework selection → @.claude/skills/tdd/REFERENCE.md
 - Coverage thresholds → @.claude/skills/ralph-loop/SKILL.md
 - Code quality standards → @.claude/skills/vibe-coding/SKILL.md
 
@@ -72,6 +72,6 @@ Run ALL tests → Confirm ALL PASS (✅)
 
 ## Further Reading
 
-**Internal**: @.claude/skills/tdd/REFERENCE.md - Advanced TDD concepts, patterns, and examples | @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop | @.claude/skills/vibe-coding/SKILL.md - Code quality standards | @.claude/guides/test-environment.md - Test framework detection
+**Internal**: @.claude/skills/tdd/REFERENCE.md - Advanced TDD concepts, patterns, and examples | @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop | @.claude/skills/vibe-coding/SKILL.md - Code quality standards | @.claude/skills/tdd/REFERENCE.md - Test framework detection
 
 **External**: [Test-Driven Development by Kent Beck](https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530) | [Growing Object-Oriented Software, Guided by Tests](https://www.amazon.com/Growing-Object-Oriented-Software-Guided-Tests/dp/0321503627)

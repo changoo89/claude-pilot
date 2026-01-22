@@ -29,7 +29,7 @@
 - Findings application to plan
 
 ### Out of Scope
-- Plan creation → @.claude/guides/prp-framework.md
+- Plan creation → @.claude/skills/spec-driven-workflow/SKILL.md
 - Test execution → @.claude/skills/tdd/SKILL.md
 - GPT delegation → @.claude/rules/delegator/orchestration.md
 
@@ -77,6 +77,6 @@ For config/documentation types:
 
 ## Further Reading
 
-**Internal**: @.claude/skills/review/REFERENCE.md - Detailed review criteria, gap detection, GPT delegation | @.claude/guides/review-checklist.md - Full review checklist | @.claude/guides/gap-detection.md - External service integration gaps | @.claude/rules/delegator/orchestration.md - GPT expert delegation
+**Internal**: @.claude/skills/review/REFERENCE.md - Detailed review criteria, gap detection, GPT delegation | @.claude/rules/delegator/orchestration.md - GPT expert delegation
 
 **External**: [Code Review by Jason Cohen](https://blog.smartbear.com/code-review/best-practices-for-code-review/) | [The Art of Readable Code](https://www.amazon.com/Art-Readable-Code-Simple/dp/1593272740)

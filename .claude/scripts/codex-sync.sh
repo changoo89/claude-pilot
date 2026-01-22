@@ -14,6 +14,24 @@ fi
 
 set -eo pipefail
 
+# Check for flag-style arguments (common mistake)
+if [[ "${1:-}" == --* ]]; then
+  echo "Error: This script uses positional arguments, not flags." >&2
+  echo "" >&2
+  echo "Usage: codex-sync.sh <mode> <prompt> [working_dir]" >&2
+  echo "" >&2
+  echo "Parameters:" >&2
+  echo "  mode    : 'read-only' (advisory) or 'workspace-write' (implementation)" >&2
+  echo "  prompt  : The delegation prompt text" >&2
+  echo "  working_dir : Optional working directory (default: current)" >&2
+  echo "" >&2
+  echo "Example:" >&2
+  echo "  .claude/scripts/codex-sync.sh \"read-only\" \"You are a software architect...\"" >&2
+  echo "" >&2
+  echo "Received: $*" >&2
+  exit 1
+fi
+
 MODEL="${CODEX_MODEL:-gpt-5.2}"
 TIMEOUT_SEC="${CODEX_TIMEOUT:-300}"
 MODE="${1:-read-only}"
@@ -23,6 +41,9 @@ WORKDIR="${3:-.}"
 # Validate arguments
 if [[ "$MODE" != "read-only" && "$MODE" != "workspace-write" ]]; then
   echo "Error: Invalid mode '$MODE'. Use 'read-only' or 'workspace-write'" >&2
+  echo "" >&2
+  echo "Usage: codex-sync.sh <mode> <prompt> [working_dir]" >&2
+  echo "Example: .claude/scripts/codex-sync.sh \"read-only\" \"Your prompt here\"" >&2
   exit 1
 fi
 if [[ -z "$PROMPT" ]]; then

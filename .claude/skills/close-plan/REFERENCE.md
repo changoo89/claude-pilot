@@ -456,7 +456,7 @@ done
 
 ### Documenter Agent Invocation (Step 5)
 
-**Full details**: See @.claude/guides/3tier-documentation.md
+**Full details**: See @.claude/skills/three-tier-docs/SKILL.md
 
 **Default Behavior**: Always invoke Documenter Agent after plan completion
 
@@ -508,8 +508,8 @@ Task:
 - @.claude/skills/execute-plan/SKILL.md - Plan execution workflow
 
 **System Integration**:
-- @.claude/guides/continuation-system.md - Sisyphus continuation system
-- @.claude/guides/3tier-documentation.md - Documentation synchronization
+- @.claude/skills/execute-plan/SKILL.md - Sisyphus continuation system
+- @.claude/skills/three-tier-docs/SKILL.md - Documentation synchronization
 - @.claude/scripts/worktree-utils.sh - Worktree utilities
 
 **Command Reference**:

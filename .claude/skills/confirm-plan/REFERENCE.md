@@ -87,7 +87,7 @@ Summary: [4-criteria assessment]
 ### Step 1: Extract Plan from Conversation (Detailed)
 
 > **Purpose**: Extract plan content from /00_plan conversation
-> **PRP Framework**: See @.claude/guides/prp-framework.md
+> **PRP Framework**: See @.claude/skills/spec-driven-workflow/SKILL.md
 
 #### 1.1 Review Context
 
@@ -252,7 +252,7 @@ Continue to Step 2.
 
 ### Step 1.7: Requirements Verification (Detailed)
 
-> **Full methodology**: See @.claude/guides/requirements-verification.md
+> **Full methodology**: See @.claude/skills/confirm-plan/REFERENCE.md
 > **Purpose**: Verify ALL user requirements are captured in the plan
 
 #### 🎯 MANDATORY ACTION: Verify Requirements Coverage
@@ -697,7 +697,7 @@ Task:
 
 #### 4.5 Interactive Recovery Loop
 
-**Gap Detection**: See @.claude/guides/gap-detection.md
+**Gap Detection**: See @.claude/skills/confirm-plan/REFERENCE.md
 
 ```bash
 MAX_ITERATIONS=5

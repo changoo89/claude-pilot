@@ -201,7 +201,7 @@ This will:
 
 ## Related Documentation
 
-- **Worktree Setup Guide**: @.claude/guides/worktree-setup.md
+- **Worktree Setup Guide**: @.claude/skills/using-git-worktrees/SKILL.md
 - **Execute Command**: @.claude/commands/02_execute.md
 - **Close Command**: @.claude/commands/03_close.md
 - **Worktree Limitations**: @docs/ai-context/worktree-mode-limitations.md

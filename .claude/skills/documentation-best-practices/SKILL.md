@@ -123,6 +123,6 @@ skills: [skill list]
 
 ## Further Reading
 
-**Internal**: @.claude/skills/documentation-best-practices/REFERENCE.md - Detailed examples, good/bad patterns, external links | @.claude/guides/claude-code-standards.md - Official directory structure | @.claude/guides/3tier-documentation.md - Complete 3-Tier system
+**Internal**: @.claude/skills/documentation-best-practices/REFERENCE.md - Detailed examples, good/bad patterns, external links | @.claude/skills/coding-standards/SKILL.md - Official directory structure | @.claude/skills/three-tier-docs/SKILL.md - Complete 3-Tier system
 
 **External**: [Claude Code Best Practices - Anthropic](https://www.anthropic.com/engineering/claude-code-best-practices) | [Superpowers - obra/superpowers](https://github.com/obra/superpowers)

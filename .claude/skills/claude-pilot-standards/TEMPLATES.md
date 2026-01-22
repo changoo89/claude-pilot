@@ -68,7 +68,7 @@ _{Brief tagline}
 
 > **⚠️ CRITICAL**: {Critical note}
 
-**Full methodology**: @.claude/guides/{guide}.md
+**Full methodology**: @.claude/skills/{skill}/SKILL.md
 
 ---
 
@@ -100,7 +100,7 @@ _{Brief tagline}
 ## Related Documentation
 
 **Methodology**: @.claude/skills/{skill}/SKILL.md
-**Guide**: @.claude/guides/{guide}.md
+**Skill**: @.claude/skills/{skill}/SKILL.md
 ```
 
 ---
@@ -157,8 +157,7 @@ _{Brief tagline}
 
 ## Related Documentation
 
-**Detailed Reference**: @.claude/guides/{guide}-REFERENCE.md
-**Skills**: @.claude/skills/{skill}/SKILL.md
+**Detailed Reference**: @.claude/skills/{skill}/REFERENCE.md
 ```
 
 ---
@@ -257,7 +256,7 @@ You are the {Agent} Agent. Your mission is {specific mission}.
 ## See Also
 
 **Related**: @.claude/{path}/{file}
-**Guide**: @.claude/guides/{guide}.md
+**Skill**: @.claude/skills/{skill}/SKILL.md
 ```
 
 ---

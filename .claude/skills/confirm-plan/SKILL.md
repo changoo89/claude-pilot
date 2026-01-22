@@ -108,6 +108,6 @@ resolve_blocking_findings "$PLAN_FILE"
 
 ## Further Reading
 
-**Internal**: @.claude/skills/confirm-plan/REFERENCE.md - Detailed implementation, step-by-step methodology, Interactive Recovery patterns | @.claude/guides/requirements-verification.md - Requirements Verification methodology | @.claude/guides/gap-detection.md - External service verification | @.claude/guides/prp-framework.md - Problem-Requirements-Plan
+**Internal**: @.claude/skills/confirm-plan/REFERENCE.md - Detailed implementation, step-by-step methodology, Interactive Recovery patterns | @.claude/skills/spec-driven-workflow/SKILL.md - SPEC-First methodology (Problem-Requirements-Plan)
 
 **External**: [Specification by Example](https://www.amazon.com/Specification-Example-Gojko-Adzic/dp/0321842733) | [User Stories Applied](https://www.amazon.com/Stories-Agile-Development-Software-Cohn/dp/0321205685)

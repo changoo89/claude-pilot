@@ -146,8 +146,8 @@ Use @ syntax for all cross-references:
 
 ```markdown
 **Related guides**:
-- @.claude/guides/prp-framework.md - SPEC-First requirements
-- @.claude/guides/test-environment.md - Test framework detection
+- @.claude/skills/spec-driven-workflow/SKILL.md - SPEC-First requirements
+- @.claude/skills/tdd/REFERENCE.md - Test framework detection
 ```
 
 **Always include description** after each link.
@@ -194,9 +194,9 @@ After adding/removing files or major refactoring.
 **Existing Examples**:
 - @.claude/commands/CONTEXT.md - Commands directory
 - @.claude/agents/CONTEXT.md - Agents directory
-- @.claude/guides/CONTEXT.md - Guides directory
+- @.claude/skills/CONTEXT.md - Guides directory
 - @.claude/skills/CONTEXT.md - Skills directory
 
 **Documentation Standards**:
-- @.claude/guides/claude-code-standards.md - Official Claude Code standards
+- @.claude/skills/coding-standards/SKILL.md - Official Claude Code standards
 - @.claude/skills/documentation-best-practices/SKILL.md - Documentation quick reference

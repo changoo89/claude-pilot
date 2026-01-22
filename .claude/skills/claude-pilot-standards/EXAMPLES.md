@@ -103,7 +103,7 @@ description: Analyze codebase and create SPEC-First execution plan through dialo
 
 **✅ Methodology Extraction**
 ```markdown
-**Full methodology**: @.claude/guides/prp-framework.md
+**Full methodology**: @.claude/skills/spec-driven-workflow/SKILL.md
 ```
 
 **✅ GPT Delegation Trigger Check**
@@ -167,7 +167,7 @@ in an isolated context, with support for SC-based parallel execution.
 
 **✅ Descriptive Text**
 ```markdown
-**Full methodology**: @.claude/guides/prp-framework.md
+**Full methodology**: @.claude/skills/spec-driven-workflow/SKILL.md
 ```
 
 **✅ Multiple Links**

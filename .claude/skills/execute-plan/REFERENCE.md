@@ -227,7 +227,7 @@ fi
 
 ### Worktree Creation Process
 
-Full worktree setup guide: **@.claude/guides/worktree-setup.md**
+Full worktree setup guide: **@.claude/skills/using-git-worktrees/SKILL.md**
 
 **Step 1: Parse --wt flag**
 ```bash
@@ -582,7 +582,7 @@ Read .claude/rules/delegator/prompts/[expert].md
 - **TDD Methodology**: @.claude/skills/tdd/SKILL.md
 - **Ralph Loop**: @.claude/skills/ralph-loop/SKILL.md
 - **Vibe Coding**: @.claude/skills/vibe-coding/SKILL.md
-- **Parallel Execution**: @.claude/guides/parallel-execution.md
-- **Worktree Setup**: @.claude/guides/worktree-setup.md
+- **Parallel Execution**: @.claude/skills/parallel-subagents/SKILL.md
+- **Worktree Setup**: @.claude/skills/using-git-worktrees/SKILL.md
 - **GPT Delegation**: @.claude/rules/delegator/orchestration.md
-- **Continuation System**: @.claude/guides/continuation-system.md
+- **Continuation System**: @.claude/skills/execute-plan/SKILL.md

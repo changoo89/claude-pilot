@@ -469,7 +469,7 @@ function SearchInput() {
 - **Vibe Coding**: @.claude/skills/vibe-coding/SKILL.md
 - **TDD**: @.claude/skills/tdd/SKILL.md
 - **Ralph Loop**: @.claude/skills/ralph-loop/SKILL.md
-- **Claude Code Standards**: @.claude/guides/claude-code-standards.md
+- **Claude Code Standards**: @.claude/skills/coding-standards/SKILL.md
 
 ---
 

@@ -163,7 +163,7 @@ grep -rn "need to investigate\|TODO\|confirm\|check" "$PLAN_PATH"
 ### Step 2: Type Detection (Detailed)
 
 > **Purpose**: Auto-detect plan type to activate appropriate extended reviews
-> **Full activation matrix**: See @.claude/guides/review-checklist.md - Extended Reviews
+> **Full activation matrix**: See @.claude/skills/review/REFERENCE.md - Extended Reviews
 
 #### Type Detection Matrix
 
@@ -218,7 +218,7 @@ echo "Detected plan type: $PLAN_TYPE"
 ### Step 3: Mandatory Reviews (Detailed)
 
 > **Purpose**: Execute 8 mandatory reviews for every plan
-> **Full checklist**: See @.claude/guides/review-checklist.md
+> **Full checklist**: See @.claude/skills/review/REFERENCE.md
 
 #### 1. Development Principles Review
 
@@ -340,7 +340,7 @@ echo "Detected plan type: $PLAN_TYPE"
 ### Step 5: Extended Reviews (Detailed)
 
 > **Purpose**: Type-specific reviews beyond mandatory 8 items
-> **Activation Matrix**: See @.claude/guides/review-checklist.md
+> **Activation Matrix**: See @.claude/skills/review/REFERENCE.md
 
 #### Extended Review by Type
 
@@ -492,7 +492,7 @@ echo "Detected plan type: $PLAN_TYPE"
 ### Step 7: Gap Detection Review (Detailed)
 
 > **Purpose**: Identify gaps in external service integration
-> **Full gap detection**: See @.claude/guides/gap-detection.md
+> **Full gap detection**: See @.claude/skills/confirm-plan/REFERENCE.md
 
 #### Severity Levels
 

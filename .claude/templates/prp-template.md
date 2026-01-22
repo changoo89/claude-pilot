@@ -2,7 +2,7 @@
 
 > **Purpose**: Standardized structure for SPEC-First planning documents
 > **Usage**: Template for /00_plan output
-> **Full Reference**: @.claude/guides/prp-framework.md
+> **Full Reference**: @.claude/skills/spec-driven-workflow/SKILL.md
 
 ---
 
@@ -129,7 +129,7 @@
 
 ### Phase 4: Parallel Verification
 
-**3 agents** (@.claude/guides/parallel-execution.md):
+**3 agents** (@.claude/skills/parallel-subagents/SKILL.md):
 - [ ] Tester: Tests, coverage
 - [ ] Validator: Type check, lint
 - [ ] Code-Reviewer: Code quality
@@ -177,9 +177,9 @@
 
 ## Related Documentation
 
-- **PRP Framework**: @.claude/guides/prp-framework.md
-- **Test Plan Design**: @.claude/guides/test-plan-design.md
-- **Test Environment**: @.claude/guides/test-environment.md
+- **PRP Framework**: @.claude/skills/spec-driven-workflow/SKILL.md
+- **Test Plan Design**: @.claude/skills/tdd/SKILL.md
+- **Test Environment**: @.claude/skills/tdd/REFERENCE.md
 - **TDD**: @.claude/skills/tdd/SKILL.md
 - **Ralph Loop**: @.claude/skills/ralph-loop/SKILL.md
 - **Vibe Coding**: @.claude/skills/vibe-coding/SKILL.md

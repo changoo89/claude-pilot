@@ -2,6 +2,59 @@
 
 > **Detailed patterns, examples, and troubleshooting for Codex/GPT delegation**
 
+---
+
+## Delegation Triggers
+
+### Explicit Triggers (Keyword-Based)
+- User explicitly requests: "ask GPT", "review architecture"
+
+### Semantic Triggers (Heuristic-Based)
+- **Failure-based**: Agent fails 2+ times on same task
+- **Ambiguity**: Vague requirements, no success criteria
+- **Complexity**: 10+ success criteria, deep dependencies
+- **Risk**: Auth/credential keywords, security-sensitive code
+- **Progress stagnation**: No meaningful progress in N iterations
+
+### Description-Based (Claude Code Official)
+- Agent descriptions with "use proactively" phrase
+- Semantic task matching by Claude Code
+
+---
+
+## Expert Mapping
+
+| Situation | GPT Expert |
+|-----------|------------|
+| Security-related code | **Security Analyst** |
+| Large plan (5+ SCs) | **Plan Reviewer** |
+| Architecture decisions | **Architect** |
+| 2+ failed fix attempts | **Architect** (progressive escalation) |
+| Coder blocked (automatic) | **Architect** (self-assessment) |
+
+---
+
+## Progressive Escalation
+
+**Principle**: Delegate ONLY after 2nd failure, not first
+
+**Pattern**:
+```
+Attempt 1 → Fail → Retry with Claude
+Attempt 2 → Fail → Delegate to GPT Architect
+Attempt 3 → (via GPT) → Success
+```
+
+---
+
+## Confidence Scoring
+
+- Scale: 0.0-1.0
+- Threshold: <0.5 → MUST delegate
+- Formula: `confidence = base - (failures * 0.2) - (ambiguity * 0.3) - (complexity * 0.1)`
+
+---
+
 ## Complete Prompt Templates
 
 ### Architect Prompt (workspace-write)

@@ -59,27 +59,27 @@
 - Capability B
 - Capability C
 
-**Full Guide**: `@docs/ai-context/feature-1.md`
+**Full Guide**: `@.claude/skills/feature-1/REFERENCE.md`
 
 ### Feature Name 2
 **Description**: One-line summary
 
 **Configuration**: `export VAR="value"` (default)
 
-**Full Guide**: `@docs/ai-context/feature-2.md`
+**Full Guide**: `@.claude/skills/feature-2/REFERENCE.md`
 
 ---
 
 ## Documentation
 
 **3-Tier Hierarchy**:
-- **Tier 1**: `CLAUDE.md` (this file) - Project overview
+- **Tier 1**: `CLAUDE.md` + `docs/ai-context/project-structure.md` + `docs/ai-context/docs-overview.md`
 - **Tier 2**: `{component}/CONTEXT.md` - Component details
-- **Tier 3**: `docs/ai-context/*.md` - Deep guides
+- **Tier 3**: `{feature}/CONTEXT.md` - Feature implementation
 
 **Key Docs**:
-- `@docs/ai-context/doc1.md` - Description
-- `@docs/ai-context/doc2.md` - Description
+- `@docs/ai-context/project-structure.md` - 프로젝트 구조
+- `@docs/ai-context/docs-overview.md` - 문서 네비게이션
 
 ---
 
@@ -159,7 +159,7 @@ example command
 
 **Result**: Expected output or behavior
 
-**See Also**: @docs/ai-context/related-guide.md
+**See Also**: @.claude/skills/related-skill/REFERENCE.md
 
 ### Task 2: Description
 
@@ -209,27 +209,23 @@ Input → Component A → Component B → Output
 
 ---
 
-## Tier 3: docs/ai-context/ Structure
+## Tier 1 Supplementary: docs/ai-context/ Structure
 
-**Purpose**: Comprehensive documentation for complex systems
+**Purpose**: Tier 1 보조 문서 (CLAUDE.md와 함께 Tier 1 구성)
 
-**When to create**:
-- Multi-component integration patterns
-- System architecture documentation
-- Advanced workflows
-- Migration guides
-- Deep technical guides
-
-**Example structure**:
+**Allowed files** (2 files only):
 ```
 docs/ai-context/
-├── system-integration.md      # How all systems work together
-├── agent-ecosystem.md         # Agent model allocation
-├── continuation-system.md     # State management deep-dive
-├── mcp-servers.md            # MCP server integration
-├── codex-integration.md      # GPT delegation system
-└── cicd-integration.md       # CI/CD workflows
+├── project-structure.md      # 프로젝트 구조, 기술 스택, 파일 트리
+└── docs-overview.md          # 문서 아키텍처, Tier 맵핑, 컴포넌트 참조
 ```
+
+**Migration**: 기존 ai-context 파일들은 각 컴포넌트의 CONTEXT.md/REFERENCE.md로 이동:
+- agent-ecosystem.md → `@.claude/agents/CONTEXT.md`
+- codex-integration.md → `@.claude/skills/gpt-delegation/REFERENCE.md`
+- mcp-servers.md → `@.claude/commands/setup.md`
+- system-integration.md → `@.claude/commands/CONTEXT.md`
+- cicd-integration.md → `@.claude/commands/999_release.md`
 
 **Template**:
 ```markdown
@@ -338,7 +334,7 @@ Output example
 
 **Internal**:
 - @.claude/skills/related-skill/SKILL.md
-- @docs/ai-context/related-doc.md
+- @.claude/commands/CONTEXT.md
 
 **External**:
 - [External Resource 1](url)
@@ -458,12 +454,12 @@ CLAUDE.md:
 ### Feature A
 **Description**: One-line summary
 
-**Full Guide**: `@docs/ai-context/feature-a.md`
+**Full Guide**: `@.claude/skills/feature-a/REFERENCE.md`
 ```
 
-docs/ai-context/feature-a.md:
+.claude/skills/feature-a/REFERENCE.md:
 ```markdown
-# Feature A - Detailed Guide
+# Feature A - Reference
 
 [50+ lines of detailed explanation]
 ```
@@ -493,12 +489,12 @@ CONTEXT.md:
 
 ### Task 1
 **Command**: `example`
-**See Also**: @docs/ai-context/component-guide.md
+**See Also**: @.claude/skills/component/REFERENCE.md
 ```
 
-docs/ai-context/component-guide.md:
+.claude/skills/component/REFERENCE.md:
 ```markdown
-# Component - Usage Guide
+# Component - Reference
 
 [Detailed examples moved here]
 ```

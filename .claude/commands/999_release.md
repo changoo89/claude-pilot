@@ -24,6 +24,23 @@ _Release plugin version with git tag and GitHub release._
 
 ---
 
+## Hybrid Release Model
+
+**Local Phase** (`/999_release`):
+1. Version bump (plugin.json, marketplace.json)
+2. CHANGELOG auto-generation
+3. Git commit + tag creation
+4. Push to trigger CI
+
+**CI/CD Phase** (GitHub Actions):
+1. Tag push triggers workflow
+2. Version validation (tag vs plugin.json)
+3. GitHub Release creation
+
+**Benefits**: No API rate limits, no auth setup, runs on GitHub infrastructure
+
+---
+
 ## Quick Start
 
 ```bash
@@ -457,7 +474,6 @@ plugin-root/
 
 **@.claude/skills/release/SKILL.md** - Full release workflow methodology
 **@.claude/skills/git-master/SKILL.md** - Git operations and commits
-**@docs/ai-context/cicd-integration.md** - CI/CD integration details
 
 ---
 

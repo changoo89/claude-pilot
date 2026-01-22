@@ -20,20 +20,16 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ### Quick Reference
 ```bash
-# Tier 1: Update CLAUDE.md (project instructions)
-# - Architecture overview
-# - Key features
-# - Quick start guide
+# Tier 1: 3개 Entry Point 문서 동기화
+# - CLAUDE.md (≤200 lines)
+# - docs/ai-context/project-structure.md
+# - docs/ai-context/docs-overview.md
 
-# Tier 2: Update component CONTEXT.md
-# - Component purpose
-# - Key files
-# - Usage examples
+# Tier 2: Component CONTEXT.md (≤100 lines)
+# - Purpose, key files, patterns
 
-# Tier 3: Update docs/ai-context/
-# - System integration details
-# - Implementation patterns
-# - Advanced guides
+# Tier 3: Feature CONTEXT.md (≤150 lines)
+# - Implementation details
 ```
 
 ---
@@ -56,35 +52,31 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ### 3-Tier Hierarchy
 
-**Tier 1: CLAUDE.md** (Project Root)
-- **Purpose**: Project-level instructions for Claude
-- **Audience**: Claude (primary), Users (reference)
-- **Content**: Architecture, features, quick start
-- **Size**: ≤200 lines
-- **Scope**: Essential info only
+**Tier 1: Entry Points** (3개 파일)
+- `CLAUDE.md` - 아키텍처, 기능, Quick Start (≤200 lines)
+- `docs/ai-context/project-structure.md` - 기술 스택, 파일 트리
+- `docs/ai-context/docs-overview.md` - 문서 네비게이션, Tier 맵핑
+- **필수**: CLAUDE.md 상단에 나머지 2개 파일 참조 포함
 
 **Tier 2: CONTEXT.md** (Component Directory)
-- **Purpose**: Component-specific context
-- **Audience**: Claude working on that component
+- **Purpose**: 컴포넌트별 컨텍스트
 - **Content**: Purpose, key files, patterns
 - **Size**: ≤100 lines per file
 - **Scope**: Component-level context
 
-**Tier 3: docs/ai-context/** (Detailed Reference)
-- **Purpose**: Deep-dive documentation
-- **Audience**: Claude needing detailed info
-- **Content**: System integration, advanced patterns
-- **Size**: Unlimited
-- **Scope**: Comprehensive reference
+**Tier 3: CONTEXT.md** (Feature Directory)
+- **Purpose**: 기능별 구현 세부사항
+- **Content**: Implementation details, deep-dive
+- **Size**: ≤150 lines per file
+- **Scope**: Feature-level context
 
 ### Content Organization
 
-| Tier | Location | Type | Update Frequency |
-|------|----------|------|------------------|
-| L0 | Root | CLAUDE.md | Project changes |
-| L1 | Component dirs | CONTEXT.md | Component changes |
-| L2 | docs/ai-context/ | Detailed docs | As needed |
-| L3 | External | External references | Rarely |
+| Tier | Location | Files | Update Frequency |
+|------|----------|-------|------------------|
+| 1 | Root + docs/ai-context/ | CLAUDE.md, project-structure.md, docs-overview.md | Project changes |
+| 2 | Component dirs | CONTEXT.md | Component changes |
+| 3 | Feature dirs | CONTEXT.md | Feature changes |
 
 ---
 

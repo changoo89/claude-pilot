@@ -129,7 +129,113 @@ if [ "$LINE_COUNT_ERRORS" -eq 0 ]; then
     echo -e "${GREEN}✓ Line count validation complete${NC}"
 fi
 
-# 4. Version sync validation
+# 4. Tier 1 file count validation
+echo ""
+echo "📁 Tier 1 file count validation..."
+
+AI_CONTEXT_DIR="$PROJECT_ROOT/docs/ai-context"
+if [ -d "$AI_CONTEXT_DIR" ]; then
+    AI_CONTEXT_COUNT=$(find "$AI_CONTEXT_DIR" -maxdepth 1 -name "*.md" -type f | wc -l | tr -d ' ')
+    if [ "$AI_CONTEXT_COUNT" -eq 2 ]; then
+        echo -e "${GREEN}✓ docs/ai-context/ contains exactly 2 files${NC}"
+    else
+        echo -e "${RED}✗ docs/ai-context/ should contain exactly 2 files (project-structure.md, docs-overview.md), found $AI_CONTEXT_COUNT${NC}"
+        ERRORS=$((ERRORS + 1))
+    fi
+else
+    echo -e "${YELLOW}⚠ docs/ai-context/ directory not found${NC}"
+    WARNINGS=$((WARNINGS + 1))
+fi
+
+# 5. Circular reference detection (self-references in REFERENCE.md are allowed as examples)
+echo ""
+echo "🔄 Circular reference detection..."
+
+CIRCULAR_FOUND=0
+
+# Check for direct self-references (A → A), skip REFERENCE.md files (they contain examples)
+while IFS= read -r doc_file; do
+    [ ! -f "$doc_file" ] && continue
+
+    # Skip REFERENCE.md files (allowed to have self-refs for examples)
+    [[ "$doc_file" == *"REFERENCE.md" ]] && continue
+
+    key="${doc_file#$PROJECT_ROOT/}"
+
+    # Extract @.claude/ and @docs/ references from this file
+    refs=$(grep -oE '@\.(claude|docs)/[^)[:space:]]+' "$doc_file" 2>/dev/null || true)
+
+    for ref in $refs; do
+        [[ "$ref" =~ \{|\}|\.\.\. ]] && continue
+        cleaned_ref="${ref%[\`\*\]\"]}"
+        cleaned_ref="${cleaned_ref%[\*]}"
+        ref_path="${cleaned_ref#@}"
+
+        # Self-reference check
+        if [ "$ref_path" = "$key" ]; then
+            echo -e "${RED}✗ Self-reference detected: $key${NC}"
+            CIRCULAR_FOUND=$((CIRCULAR_FOUND + 1))
+        fi
+    done
+done < <(find "$PROJECT_ROOT" \( -name "*.md" -o -name "CONTEXT.md" \) ! -path "*/.trash/*" ! -path "*/.git/*" ! -path "*/node_modules/*" ! -path "*/.pilot/plan/done/*" 2>/dev/null)
+
+if [ "$CIRCULAR_FOUND" -eq 0 ]; then
+    echo -e "${GREEN}✓ No circular references detected${NC}"
+else
+    ERRORS=$((ERRORS + CIRCULAR_FOUND))
+fi
+
+# 6. Orphan document detection (simplified - just warn about CONTEXT.md not linked from Tier 1)
+echo ""
+echo "🔍 Orphan document detection..."
+
+# Build list of referenced CONTEXT.md files from Tier 1
+TIER1_REFS=""
+for tier1_file in "$PROJECT_ROOT/CLAUDE.md" "$PROJECT_ROOT/docs/ai-context/project-structure.md" "$PROJECT_ROOT/docs/ai-context/docs-overview.md"; do
+    [ -f "$tier1_file" ] && TIER1_REFS="$TIER1_REFS $(grep -oE '@\.(claude|docs)/[^)[:space:]]+' "$tier1_file" 2>/dev/null | sed 's/@//' || true)"
+done
+
+ORPHAN_COUNT=0
+while IFS= read -r context_file; do
+    [ ! -f "$context_file" ] && continue
+    key="${context_file#$PROJECT_ROOT/}"
+
+    # Check if this file is referenced from Tier 1
+    if ! echo "$TIER1_REFS" | grep -qF "$key"; then
+        echo -e "${YELLOW}⚠ Orphan document (not linked from Tier 1): $key${NC}"
+        ORPHAN_COUNT=$((ORPHAN_COUNT + 1))
+    fi
+done < <(find "$PROJECT_ROOT" -name "CONTEXT.md" ! -path "*/.trash/*" ! -path "*/.git/*" ! -path "*/node_modules/*" 2>/dev/null)
+
+if [ "$ORPHAN_COUNT" -eq 0 ]; then
+    echo -e "${GREEN}✓ No orphan documents detected${NC}"
+else
+    echo -e "${YELLOW}⚠ Found $ORPHAN_COUNT orphan document(s)${NC}"
+    WARNINGS=$((WARNINGS + ORPHAN_COUNT))
+fi
+
+# 7. Temporary file validation
+echo ""
+echo "🗑️ Temporary file validation..."
+
+# Check for temp files outside .tmp/ (exclude the .tmp directory itself)
+TEMP_OUTSIDE_COUNT=0
+while IFS= read -r temp_file; do
+    # Skip the .tmp directory itself
+    [ "$temp_file" = "$PROJECT_ROOT/.tmp" ] && continue
+    echo -e "${YELLOW}⚠ Temp file outside .tmp/: $temp_file${NC}"
+    TEMP_OUTSIDE_COUNT=$((TEMP_OUTSIDE_COUNT + 1))
+done < <(find "$PROJECT_ROOT" \( -name "*.tmp" -o -name "*.temp" -o -name "tmp.*" -o -name "temp.*" \) \
+    ! -path "*/.tmp/*" ! -path "*/.git/*" ! -path "*/node_modules/*" ! -path "*/.trash/*" 2>/dev/null)
+
+if [ "$TEMP_OUTSIDE_COUNT" -eq 0 ]; then
+    echo -e "${GREEN}✓ No temp files outside .tmp/${NC}"
+else
+    echo -e "${YELLOW}⚠ Found $TEMP_OUTSIDE_COUNT temp file(s) outside .tmp/${NC}"
+    WARNINGS=$((WARNINGS + TEMP_OUTSIDE_COUNT))
+fi
+
+# 8. Version sync validation
 echo ""
 echo "🔢 Version sync validation..."
 

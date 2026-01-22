@@ -82,13 +82,10 @@ echo -e "${GREEN}✓${NC} Found $AT_REFS @ syntax references"
 # Check for specific critical @ references
 CRITICAL_REFS=(
     "@docs/ai-context/project-structure.md"
-    "@docs/ai-context/codex-integration.md"
-    "@docs/ai-context/continuation-system.md"
-    "@docs/ai-context/cicd-integration.md"
-    "@docs/ai-context/testing-quality.md"
+    "@docs/ai-context/docs-overview.md"
     "@.claude/agents/CONTEXT.md"
     "@.claude/commands/CONTEXT.md"
-    "@.claude/skills/frontend-design/SKILL.md"
+    "@.claude/skills/gpt-delegation/REFERENCE.md"
 )
 
 for ref in "${CRITICAL_REFS[@]}"; do

@@ -841,7 +841,7 @@ jq '.hooks.PreToolUse' .claude/settings.json
 
 - **Plugin Documentation**: `@CLAUDE.md`
 - **Project Structure**: `@docs/ai-context/project-structure.md`
-- **System Integration**: `@docs/ai-context/system-integration.md`
+- **Documentation Overview**: `@docs/ai-context/docs-overview.md`
 - **GitHub Repository**: https://github.com/changoo89/claude-pilot
 - **Issue Tracker**: https://github.com/changoo89/claude-pilot/issues
 

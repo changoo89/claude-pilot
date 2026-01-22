@@ -4,6 +4,18 @@
 
 ---
 
+## MCP Servers (Recommended)
+
+| Server | Purpose | Package |
+|--------|---------|---------|
+| **context7** | Latest library documentation | `@upstash/context7-mcp` |
+| **filesystem** | Local file operations | `@modelcontextprotocol/server-filesystem` |
+| **sequential-thinking** | Step-by-step reasoning | `@modelcontextprotocol/server-sequential-thinking` |
+
+**Configuration**: Add to `~/.claude.json` under `projects.<project-path>.mcpServers`
+
+---
+
 ## Step 1: Create Directories
 
 ```bash

@@ -99,10 +99,32 @@ Agents output completion markers:
 - `<PLAN_COMPLETE>`: Plan approved, no gaps
 - `<PLAN_BLOCKED>`: BLOCKING gaps found
 
+## Parallel Execution Patterns
+
+### Planning Phase
+**Agents**: Explorer + Researcher (parallel)
+- **Explorer**: Discovers context, finds relevant files
+- **Researcher**: Deep dives into specific topics
+
+### Execution Phase
+**Agents**: Parallel Coder agents per SC (independent SCs)
+- Each Coder agent works on independent success criteria
+- No file conflicts when SCs are properly scoped
+
+### Verification Phase
+**Agents**: Tester + Validator + Code-Reviewer (parallel)
+- **Tester**: Runs test suite, measures coverage
+- **Validator**: Verifies all quality gates pass
+- **Code-Reviewer**: Deep code review for issues
+
+## Agent Coordination
+
+**Sequential Execution**: Single agent with `in_progress` status, mark todo as `completed` before next
+
+**Parallel Execution**: Multiple agents with `in_progress` simultaneously, used for independent SCs
+
 ## See Also
 
-**Command specifications**:
 - @.claude/commands/CONTEXT.md - Command workflow and agent invocation
-
-**Skill specifications**:
 - @.claude/skills/CONTEXT.md - Agent capabilities and skills
+- @.claude/skills/parallel-subagents/SKILL.md - Parallel execution orchestration

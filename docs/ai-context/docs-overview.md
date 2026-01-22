@@ -17,8 +17,7 @@ CLAUDE.md (Tier 1 - Project)
     ├── Links to detailed docs
     └── Standards and workflows
             ↓
-docs/ai-context/ (Detailed Reference)
-    ├── system-integration.md
+docs/ai-context/ (Tier 1 - Detailed Reference)
     ├── project-structure.md
     └── docs-overview.md (this file)
             ↓
@@ -74,14 +73,15 @@ Detailed documentation that supplements Tier 1 when it exceeds size limits. Cont
 
 | File | Purpose | When to Reference |
 |------|---------|-------------------|
-| **system-integration.md** | Component interactions, workflows, integration points | Understanding how commands work together |
 | **project-structure.md** | Technology stack, directory layout, key files | Understanding codebase organization |
-| **cicd-integration.md** | GitHub Actions CI/CD workflow for automated releases | Understanding release automation |
-| **codex-integration.md** | GPT delegation via Codex CLI for complex tasks | Understanding intelligent delegation |
-| **testing-quality.md** | Testing standards, coverage targets, quality gates | Understanding quality requirements |
-| **agent-ecosystem.md** | Specialized agent configurations (8 agents) | Understanding agent model selection |
-| **mcp-servers.md** | Recommended MCP servers for enhanced capabilities | Understanding context and code ops tools |
 | **docs-overview.md** | This file: Navigation for all documentation | Finding specific documentation |
+
+**Note**: 다른 상세 문서는 각 컴포넌트의 CONTEXT.md 또는 REFERENCE.md에서 확인:
+- 워크플로우: `@.claude/commands/CONTEXT.md`
+- GPT 위임: `@.claude/skills/gpt-delegation/REFERENCE.md`
+- 에이전트: `@.claude/agents/CONTEXT.md`
+- MCP 서버: `@.claude/commands/setup.md`
+- CI/CD: `@.claude/commands/999_release.md`
 
 ### Size Limits
 
@@ -214,21 +214,20 @@ Start with **Tier 1 (CLAUDE.md)** for:
 
 ### For Workflow Details
 
-See **@docs/ai-context/system-integration.md** for:
+See **@.claude/commands/CONTEXT.md** for:
 - Command workflows
 - Integration points
-- Ralph Loop logic
-- Interactive Recovery flow
+- Phase boundary protection
 
-See **@docs/ai-context/codex-integration.md** for:
+See **@.claude/skills/gpt-delegation/REFERENCE.md** for:
 - GPT delegation triggers and patterns
 - Codex CLI integration
 - Intelligent escalation
 
-See **@docs/ai-context/cicd-integration.md** for:
-- GitHub Actions CI/CD workflow
-- Automated release process
+See **@.claude/commands/999_release.md** for:
+- Hybrid release model (local + CI/CD)
 - Version validation
+- GitHub Actions workflow
 
 ### For Codebase Structure
 
@@ -236,28 +235,19 @@ See **@docs/ai-context/project-structure.md** for:
 - Directory layout
 - Key files by purpose
 - Technology stack
-- Version history
-
-### For Quality & Testing
-
-See **@docs/ai-context/testing-quality.md** for:
-- Testing standards and coverage targets
-- Quality gates (TDD, Ralph Loop)
-- Pre-commit checklist
 
 ### For Agent Configuration
 
-See **@docs/ai-context/agent-ecosystem.md** for:
+See **@.claude/agents/CONTEXT.md** for:
 - 8 specialized agent configurations
 - Model selection (Haiku, Sonnet, Opus)
 - Parallel execution patterns
 
 ### For MCP Servers
 
-See **@docs/ai-context/mcp-servers.md** for:
+See **@.claude/commands/setup.md** for:
 - Recommended MCP servers
 - Context enhancement tools
-- Code operations integrations
 
 ### For Component Details
 
@@ -285,7 +275,7 @@ See **Tier 3 CONTEXT.md** files for:
 
 Creates full 3-Tier from scratch:
 - Tier 1: CLAUDE.md with detected tech stack
-- docs/ai-context/: docs-overview.md, project-structure.md, system-integration.md
+- docs/ai-context/: docs-overview.md, project-structure.md
 - Tier 2: CONTEXT.md for selected folders
 
 ### Auto-Sync After Implementation
@@ -296,7 +286,7 @@ Creates full 3-Tier from scratch:
 
 Updates:
 - Tier 1: CLAUDE.md (last-updated, new sections)
-- docs/ai-context/: project-structure.md, system-integration.md, docs-overview.md
+- docs/ai-context/: project-structure.md, docs-overview.md
 - Tier 2/3: CONTEXT.md files
 - Archives: test-scenarios.md, coverage-report.txt, ralph-loop-log.md
 

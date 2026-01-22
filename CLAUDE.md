@@ -4,6 +4,17 @@
 
 ---
 
+## ⚠️ CRITICAL: 필수 참조 문서
+
+**모든 작업 시작 전 반드시 다음 문서를 읽으세요:**
+
+- `@docs/ai-context/project-structure.md` - 프로젝트 구조, 기술 스택, 파일 트리
+- `@docs/ai-context/docs-overview.md` - 문서 아키텍처, Tier 맵핑, 컴포넌트 참조
+
+이 두 문서는 Tier 1 문서로, CLAUDE.md와 함께 모든 AI 에이전트가 작업 전 필수로 참조해야 합니다.
+
+---
+
 ## Quick Start
 
 ```bash
@@ -54,7 +65,7 @@
 
 **Configuration**: `export CODEX_REASONING_EFFORT="medium"` (default)
 
-**Full Guide**: `@docs/ai-context/codex-integration.md`
+**Full Guide**: `@.claude/skills/gpt-delegation/REFERENCE.md`
 
 **Delegation Flow**:
 ```
@@ -72,7 +83,7 @@ Response Handling (synthesize, apply, verify)
 
 **Release**: `/999_release minor` → Bump version, tag, push → CI creates GitHub Release
 
-**Full Guide**: `@docs/ai-context/cicd-integration.md`
+**Full Guide**: `@.claude/commands/999_release.md`
 
 ### Agent Ecosystem
 
@@ -82,7 +93,7 @@ Response Handling (synthesize, apply, verify)
 | Sonnet | coder, tester, plan-reviewer | Balanced quality/speed |
 | Opus | code-reviewer | Deep reasoning |
 
-**Full Guide**: `@docs/ai-context/agent-ecosystem.md`
+**Full Guide**: `@.claude/agents/CONTEXT.md`
 
 ---
 
@@ -90,7 +101,7 @@ Response Handling (synthesize, apply, verify)
 
 **Plugin-Recommended**: context7, filesystem, sequential-thinking
 
-**Full List**: `@docs/ai-context/mcp-servers.md`
+**Setup Guide**: `@.claude/commands/setup.md`
 
 ---
 
@@ -122,13 +133,13 @@ Response Handling (synthesize, apply, verify)
 ## Plugin Documentation
 
 **3-Tier Hierarchy**:
-- **Tier 1**: `CLAUDE.md` (this file) - Plugin architecture
-- **Tier 2**: `docs/ai-context/*.md` - System integration
-- **Tier 3**: `{component}/CONTEXT.md` - Component details
+- **Tier 1**: `CLAUDE.md` + `project-structure.md` + `docs-overview.md` (3 files only)
+- **Tier 2**: `{component}/CONTEXT.md` - Component details
+- **Tier 3**: `{component}/{feature}/CONTEXT.md` - Feature details
 
 **Key Docs**:
-- `@docs/ai-context/system-integration.md` - CLI workflow, Codex, MCP
-- `@docs/ai-context/project-structure.md` - Plugin layout, **Local Configuration**
+- `@docs/ai-context/project-structure.md` - Plugin layout, 기술 스택
+- `@docs/ai-context/docs-overview.md` - 문서 아키텍처, Tier 맵핑
 - `@.claude/agents/CONTEXT.md` - Agent ecosystem
 - `@.claude/commands/CONTEXT.md` - Command workflows
 
@@ -150,42 +161,15 @@ Response Handling (synthesize, apply, verify)
 ## Version History
 
 ### v4.4.11 (2026-01-22)
-GPT auto-delegation triggers, explicit command gate for phase transitions, absolute paths for plan files
-
-### v4.4.10 (2026-01-22)
-Setup always copies statusline.sh from plugin (ensures latest version)
-
-### v4.4.9 (2026-01-22)
-Scripts self-contained, remove env.sh dependency, simplify statusline.sh
-
-### v4.4.8 (2026-01-22)
-Unify statusline configuration into single script block
-
-### v4.4.7 (2026-01-22)
-Refactor setup command for statusline auto-configuration
+GPT auto-delegation triggers, explicit command gate, absolute paths for plan files
 
 ### v4.4.6 (2026-01-21)
-Mandatory dialogue checkpoints to /00_plan, EXECUTION DIRECTIVE, parallel agent execution
+Mandatory dialogue checkpoints, EXECUTION DIRECTIVE, parallel agent execution
 
 ### v4.3.4 (2026-01-21)
-
-**Hooks Simplification**: Removed over-engineered Stop hooks
-- Removed quality-dispatch.sh, cache.sh, typecheck.sh, lint.sh (944+ lines)
-- Replaced with simple pre-commit hook (40 lines)
-- Pre-commit: JSON syntax validation, markdown link sanity check
-- No Claude Code hooks (Stop/PreToolUse) to avoid performance overhead
-- Result: Bash commands no longer blocked by typecheck/lint
+Hooks simplification: Removed Stop hooks, simple pre-commit hook only
 
 ### v4.3.1 (2026-01-20)
+Dead code cleanup command with risk-based confirmation
 
-**Dead Code Cleanup Command**: Auto-apply workflow with risk-based confirmation
-- Auto-apply Low/Medium risk items without confirmation (interactive TTY)
-- High-risk items require user confirmation with 3 choices
-- Safe flags: `--dry-run` for preview, `--apply` for force-apply
-- Risk classification: Low (tests), Medium (utils), High (components/routes)
-- Pre-flight safety: Auto-block modified/staged files
-- Verification after each batch (max 10 deletions) and at end
-- Automatic rollback on verification failure
-- Non-interactive mode: CI/non-TTY defaults to --dry-run behavior (exit 2 if changes needed)
-- 10 new test files (52 assertions, 100% pass rate)
-
+**Full History**: See `CHANGELOG.md`

@@ -19,14 +19,33 @@ Slash commands for SPEC-First development workflow.
 
 ---
 
-## Workflow
+## Workflow Sequence
 
 ```
-/00_plan → /01_confirm → /02_execute → /03_close → /document
+User Request
+       ↓
+/00_plan (read-only exploration)
+       ↓
+/01_confirm (requirements verification)
+       ↓
+/02_execute (TDD + Ralph Loop)
+       ↓
+/03_close (archive + commit)
+       ↓
+/review (anytime - optional)
 ```
 
 **Alternative**: `/04_fix` for simple bugs
 
+---
+
+## Phase Boundary Protection
+
+**Planning Phase Rules**:
+- **CAN DO**: Read, Search, Analyze, Discuss, Plan
+- **CANNOT DO**: Edit files, Write files, Create code, Implement
+
+**Implementation Phase**: Starts ONLY after `/01_confirm` → `/02_execute`
 
 ---
 

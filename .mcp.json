@@ -2,15 +2,18 @@
   "mcpServers": {
     "context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
+      "args": ["-y", "@upstash/context7-mcp"],
+      "instructions": "Use for looking up latest library APIs, finding up-to-date code examples, and version-specific documentation queries."
     },
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/chanho/claude-pilot"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/chanho/claude-pilot"],
+      "instructions": "Use for local file read/write operations and searching code within local project."
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "instructions": "Use for complex multi-step problem solving, architecture decisions requiring structured reasoning, and debugging complex issues."
     }
   }
 }

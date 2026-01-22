@@ -4,33 +4,36 @@
     "context7": {
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp"],
-      "description": "최신 라이브러리 문서 및 코드 예제 검색"
+      "description": "Query up-to-date documentation and code examples for any library",
+      "instructions": "Use for looking up latest library APIs, finding up-to-date code examples, and version-specific documentation queries."
     },
     "filesystem": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "<PROJECT_PATH>"],
-      "description": "로컬 파일 시스템 작업 (읽기/쓰기/검색)"
+      "description": "Local file system operations (read/write/search)",
+      "instructions": "Use for local file read/write operations and searching code within local project."
     },
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "description": "복잡한 문제 해결을 위한 단계별 사고 지원"
+      "description": "Step-by-step reasoning for complex problem solving",
+      "instructions": "Use for complex multi-step problem solving, architecture decisions requiring structured reasoning, and debugging complex issues."
     }
   },
   "recommendedServers": [
     {
       "name": "context7",
-      "purpose": "최신 라이브러리 문서 검색",
+      "purpose": "Query latest library documentation",
       "url": "https://github.com/upstash/context7"
     },
     {
       "name": "filesystem",
-      "purpose": "로컬 파일 시스템 작업",
+      "purpose": "Local file system operations",
       "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem"
     },
     {
       "name": "sequential-thinking",
-      "purpose": "단계별 사고 및 복잡한 추론",
+      "purpose": "Step-by-step reasoning and complex problem solving",
       "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking"
     }
   ]

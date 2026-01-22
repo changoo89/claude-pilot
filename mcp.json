@@ -5,6 +5,16 @@
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp"],
       "description": "최신 라이브러리 문서 및 코드 예제 검색"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "<PROJECT_PATH>"],
+      "description": "로컬 파일 시스템 작업 (읽기/쓰기/검색)"
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "복잡한 문제 해결을 위한 단계별 사고 지원"
     }
   },
   "recommendedServers": [
@@ -12,6 +22,16 @@
       "name": "context7",
       "purpose": "최신 라이브러리 문서 검색",
       "url": "https://github.com/upstash/context7"
+    },
+    {
+      "name": "filesystem",
+      "purpose": "로컬 파일 시스템 작업",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem"
+    },
+    {
+      "name": "sequential-thinking",
+      "purpose": "단계별 사고 및 복잡한 추론",
+      "url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking"
     }
   ]
 }

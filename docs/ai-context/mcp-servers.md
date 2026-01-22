@@ -11,6 +11,7 @@
 |--------|---------|---------|
 | **context7** | Documentation navigation and context | `@upstash/context7-mcp` |
 | **filesystem** | Local file operations and grep search | `@modelcontextprotocol/server-filesystem` |
+| **sequential-thinking** | Step-by-step reasoning for complex problems | `@modelcontextprotocol/server-sequential-thinking` |
 | **grep-app** | GitHub public repository search | `@modelcontextprotocol/server-grep-app` |
 
 ---
@@ -19,12 +20,12 @@
 
 **Location**: Project-level MCP servers are configured in `~/.claude.json` under `projects.<project-path>.mcpServers`
 
-**Quick Setup** (context7 + filesystem + grep-app):
+**Quick Setup** (context7 + filesystem + sequential-thinking):
 ```bash
 # Add to ~/.claude.json manually:
 {
   "projects": {
-    "/Users/chanho/claude-pilot": {
+    "/your/project/path": {
       "mcpServers": {
         "context7": {
           "command": "npx",
@@ -32,11 +33,11 @@
         },
         "filesystem": {
           "command": "npx",
-          "args": ["-y", "@modelcontextprotocol/server-filesystem", "--allow", "."]
+          "args": ["-y", "@modelcontextprotocol/server-filesystem", "/your/project/path"]
         },
-        "grep-app": {
+        "sequential-thinking": {
           "command": "npx",
-          "args": ["-y", "@modelcontextprotocol/server-grep-app"]
+          "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
         }
       }
     }
@@ -77,6 +78,19 @@
 
 **Source**: [github.com/modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem)
 
+### sequential-thinking
+
+**Package**: `@modelcontextprotocol/server-sequential-thinking`
+**Purpose**: Step-by-step reasoning for complex problems
+
+**Use When**:
+- Complex multi-step problem solving
+- Architecture decisions requiring structured reasoning
+- Debugging complex issues with systematic approach
+- Planning implementation with clear thought progression
+
+**Source**: [github.com/modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking)
+
 ### grep-app
 
 **Package**: `@modelcontextprotocol/server-grep-app`
@@ -105,19 +119,24 @@ Expected output:
 ⎿
 ⎿  • context7: connected
 ⎿  • filesystem: connected
-⎿  • grep-app: connected
+⎿  • sequential-thinking: connected
 ```
 
 ---
 
 ## Migration Notes
 
+### Restored Servers (2026-01-22)
+
+| Server | Reason |
+|--------|--------|
+| **sequential-thinking** | Re-added for complex problem solving use cases |
+
 ### Removed Servers (2026-01-21)
 
 | Server | Reason | Replacement |
 |--------|--------|-------------|
 | **serena** | Inefficient, complex setup | `filesystem` for local operations |
-| **sequential-thinking** | Redundant with core capabilities | Built-in reasoning sufficient |
 
 ---
 

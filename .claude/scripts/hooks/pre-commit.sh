@@ -43,6 +43,19 @@ for file in $STAGED_FILES; do
     fi
 done
 
+# Run documentation verification on staged documentation files
+DOC_FILES_STAGED=$(echo "$STAGED_FILES" | grep -E '(\.md$|CONTEXT\.md)' || true)
+if [ -n "$DOC_FILES_STAGED" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    if [ -x "$SCRIPT_DIR/../docs-verify.sh" ]; then
+        echo -e "\n${GREEN}📚 Running documentation verification...${NC}"
+        if ! bash "$SCRIPT_DIR/../docs-verify.sh"; then
+            echo -e "${RED}✗ Documentation verification failed${NC}"
+            ERRORS=$((ERRORS + 1))
+        fi
+    fi
+fi
+
 # Final result
 if [ $ERRORS -gt 0 ]; then
     echo -e "${RED}✗ Pre-commit check failed with $ERRORS error(s)${NC}"

@@ -38,6 +38,20 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ---
 
+## What This Skill Covers
+
+### In Scope
+- 3-tier documentation hierarchy (CLAUDE.md, CONTEXT.md, docs/)
+- Size limits and content organization
+- Auto-sync patterns after code changes
+
+### Out of Scope
+- Detailed templates → @.claude/skills/three-tier-docs/REFERENCE.md
+- Verification scripts → docs-verify.sh
+- Git documentation workflow → @.claude/skills/git-master/SKILL.md
+
+---
+
 ## Core Concepts
 
 ### 3-Tier Hierarchy
@@ -74,114 +88,6 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ---
 
-## Tier 1: CLAUDE.md
-
-**Template**:
-```markdown
-# project-name
-
-> **Version**: X.Y.Z | **Last Updated**: YYYY-MM-DD
-
----
-
-## Quick Start
-
-```bash
-/install/command
-/usage/example
-```
-
----
-
-## Plugin Architecture
-
-**Core Features**:
-- Feature 1: Description
-- Feature 2: Description
-
-**Workflow**: Plan → Confirm → Execute → Review → Document
-
----
-
-## Key Components
-
-| Component | Purpose | Location |
-|-----------|---------|----------|
-| Component A | Description | path/to/A |
-| Component B | Description | path/to/B |
-
----
-
-**Line Count**: X lines (Target: ≤200 lines)
-```
-
-**Content Rules**:
-- ≤200 lines (use `wc -l CLAUDE.md` to verify)
-- Essential info only
-- No implementation details
-- Link to CONTEXT.md for component details
-
----
-
-## Tier 2: CONTEXT.md
-
-**Template**:
-```markdown
-# Component Context
-
-## Purpose
-[What this component does]
-
-## Key Files
-
-| File | Purpose | Lines |
-|------|---------|-------|
-| file.ts | Description | N |
-
-## Common Tasks
-
-### Task 1
-**Command**: `example command`
-**Result**: Expected output
-
-## Integration Points
-- Depends on: [other components]
-- Used by: [other components]
-
-**Line Count**: X lines (Target: ≤100 lines)
-```
-
-**Content Rules**:
-- ≤100 lines per file
-- Component-specific context only
-- Usage examples
-- Integration points
-
----
-
-## Tier 3: docs/ai-context/
-
-**Purpose**: Comprehensive documentation for complex systems
-
-**When to create**:
-- Multi-component integration patterns
-- System architecture documentation
-- Advanced workflows
-- Migration guides
-
-**Example structure**:
-```
-docs/ai-context/
-├── system-integration.md
-├── agent-ecosystem.md
-├── continuation-system.md
-└── mcp-servers.md
-```
-
-**No line limit** - This is for deep documentation
-
----
-
 ## Auto-Sync Pattern
 
 ### After Implementation
@@ -209,32 +115,24 @@ docs/ai-context/
 
 ---
 
-## Verification
+## Verification Failure Recovery
 
-### Test Documentation Sync
-```bash
-# Verify Tier 1 exists
-test -f CLAUDE.md
+**Line count violations**: CLAUDE.md >200 lines → Extract to docs/ai-context/ | CONTEXT.md >100 lines → Move examples or simplify
 
-# Verify Tier 1 size
-test $(wc -l < CLAUDE.md) -le 200
+**Broken cross-references**: Check file exists with `test -f {path}` | Use absolute paths (e.g., `@.claude/skills/...`)
 
-# Verify Tier 2 files exist
-find . -name "CONTEXT.md" -type f
+**Missing frontmatter**: Add required fields (name, description) | Validate with `yamllint {file}`
 
-# Verify Tier 2 size
-for f in $(find . -name "CONTEXT.md" -type f); do
-  test $(wc -l < "$f") -le 100 || echo "Too large: $f"
-done
-```
+**Recovery Steps**: Read error from docs-verify.sh → Find violating file → Apply fix from REFERENCE.md → Re-verify
 
 ---
 
-## Related Skills
+## Further Reading
 
-- **spec-driven-workflow**: Documentation in planning phase
-- **code-quality-gates**: PreToolUse checks for .md creation
+**Internal**: @.claude/skills/three-tier-docs/REFERENCE.md - Complete templates, examples, verification patterns | @.claude/skills/documentation-best-practices/SKILL.md - Size limits, quality standards
+
+**External**: [Documentation System Design](https://documentation.divio.com/) | [Writing for AI](https://docs.anthropic.com/claude/docs/guide-to-writing-good-docs)
 
 ---
 
-**Version**: claude-pilot 4.2.0
+**Version**: claude-pilot 4.4.11

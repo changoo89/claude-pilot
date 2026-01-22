@@ -198,6 +198,24 @@ fi
 
 ---
 
+## Completion Message
+
+After all SCs are complete:
+
+```bash
+echo "✅ All Success Criteria Complete"
+echo ""
+echo "📚 Next Step: Documentation Sync"
+echo "   Run /document to update 3-tier documentation"
+echo "   - Ensures CLAUDE.md, Tier 2, and CONTEXT.md are in sync"
+echo "   - Updates metadata (line counts, skill counts, versions)"
+echo "   - Recommended before running /03_close"
+echo ""
+echo "Then run /03_close to finalize and commit the plan"
+```
+
+---
+
 ## Related Skills
 
 ralph-loop | tdd | parallel-subagents | spec-driven-workflow | gpt-delegation

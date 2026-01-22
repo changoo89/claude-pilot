@@ -24,7 +24,7 @@
 - **Multi-Angle Review**: `/review` - Parallel verification
 - **Auto-Documentation**: `/document` - 3-Tier sync
 
-**Workflow**: Plan → Confirm → Execute → Review → Document → Close
+**Workflow**: Plan (`/00_plan`) → Confirm (`/01_confirm`) → Execute (`/02_execute`) → Review (`/review`) → Document (`/document`) → Close (`/03_close`)
 
 ---
 

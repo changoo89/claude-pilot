@@ -56,6 +56,15 @@ if [ "$INCOMPLETE_SC" -gt 0 ]; then
 fi
 
 echo "✓ All Success Criteria complete"
+
+# Check if documentation sync was run
+echo ""
+echo "📚 Documentation Sync Check:"
+echo "   Have you run /document to sync documentation?"
+echo "   - Updates 3-tier docs (CLAUDE.md, Tier 2, CONTEXT.md)"
+echo "   - Ensures metadata consistency"
+echo "   - Recommended before closing plan"
+echo ""
 ```
 
 ---

@@ -121,6 +121,34 @@ skills: [skill list]
 - [ ] No duplicated content
 - [ ] Examples provided
 
+---
+
+## Common Mistakes Checklist
+
+### Metadata Errors
+- [ ] **Outdated line counts**: CONTEXT.md line values don't match actual files
+- [ ] **Stale skill counts**: README.md lists wrong number of skills (use `ls .claude/skills | wc -l`)
+- [ ] **Version number drift**: CLAUDE.md version differs from package.json or other sources
+- [ ] **Missing frontmatter**: SKILL.md or Agent files lack required name/description fields
+
+### Cross-Reference Errors
+- [ ] **Broken links**: `@.claude/path/to/file.md` points to non-existent file
+- [ ] **Relative paths**: Using `../skills/` instead of `@.claude/skills/`
+- [ ] **Deleted file references**: Documentation still mentions removed systems (e.g., Sisyphus after removal)
+- [ ] **Wrong file extensions**: Linking to `.ts` instead of `.md` for documentation
+
+### Content Errors
+- [ ] **Duplicate content**: Same info appears in CLAUDE.md and CONTEXT.md
+- [ ] **Wrong tier**: Implementation details in CLAUDE.md instead of docs/ai-context/
+- [ ] **Missing examples**: Abstract concepts without concrete usage examples
+- [ ] **Over-sized files**: SKILL.md >150 lines without split to REFERENCE.md
+
+### Recovery Actions
+- **Before commit**: Run `bash .claude/scripts/docs-verify.sh`
+- **On verification failure**: Check error message, locate file, apply fix, re-verify
+- **For line count violations**: Extract content to REFERENCE.md or docs/ai-context/
+- **For broken links**: Verify file exists with `test -f {path}`, use absolute paths
+
 ## Further Reading
 
 **Internal**: @.claude/skills/documentation-best-practices/REFERENCE.md - Detailed examples, good/bad patterns, external links | @.claude/skills/coding-standards/SKILL.md - Official directory structure | @.claude/skills/three-tier-docs/SKILL.md - Complete 3-Tier system

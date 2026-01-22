@@ -17,12 +17,13 @@ echo "✓ .pilot directories created"
 
 ```bash
 # Unified statusline configuration script
-# Finds source, copies script, and updates settings.json atomically
+# Always copies from plugin (ensures latest version), then updates settings.json
 
 PLUGIN_PATH=$(jq -r '.plugins["claude-pilot@claude-pilot"][0].installPath // empty' ~/.claude/plugins/installed_plugins.json 2>/dev/null || true)
 SOURCE=""
-[[ -f ".claude/scripts/statusline.sh" ]] && SOURCE=".claude/scripts/statusline.sh"
-[[ -z "$SOURCE" && -n "$PLUGIN_PATH" && -f "$PLUGIN_PATH/.claude/scripts/statusline.sh" ]] && SOURCE="$PLUGIN_PATH/.claude/scripts/statusline.sh"
+
+# Always prefer plugin version to ensure latest
+[[ -n "$PLUGIN_PATH" && -f "$PLUGIN_PATH/.claude/scripts/statusline.sh" ]] && SOURCE="$PLUGIN_PATH/.claude/scripts/statusline.sh"
 
 if [[ -n "$SOURCE" ]]; then
     mkdir -p .claude/scripts
@@ -37,9 +38,9 @@ if [[ -n "$SOURCE" ]]; then
     else
         echo "{\"statusLine\": $STATUSLINE}" > "$SETTINGS"
     fi
-    echo "✓ Statusline configured"
+    echo "✓ Statusline configured (from plugin v$(jq -r '.version' "$PLUGIN_PATH/.claude-plugin/plugin.json" 2>/dev/null || echo 'unknown'))"
 else
-    echo "⚠ Statusline script not found, skipping"
+    echo "⚠ Statusline script not found in plugin, skipping"
 fi
 ```
 

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.10] - 2026-01-22
+
+### Fixed
+- Setup now always copies statusline.sh from plugin (ensures latest version)
+- Previously local file took precedence, preventing updates on /pilot:setup
+
 ## [4.4.9] - 2026-01-22
 
 ### Changed

@@ -26,8 +26,13 @@ _Review plan for completeness, gaps, and quality issues before execution._
 
 ## Step 1: Load Plan
 
+**⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
+
 ```bash
-PLAN_PATH="${1:-$(find .pilot/plan/pending .pilot/plan/in_progress -name "*.md" -type f 2>/dev/null | head -1)}"
+# PROJECT_ROOT = Claude Code 실행 위치 (절대 경로 필수)
+PROJECT_ROOT="$(pwd)"
+
+PLAN_PATH="${1:-$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | head -1)}"
 [ -f "$PLAN_PATH" ] || { echo "❌ No plan found"; exit 1; }
 ```
 

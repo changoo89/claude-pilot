@@ -36,11 +36,17 @@ _Extract plan from conversation, create file, auto-review (non-BLOCKING), move t
 
 ## Step 2: Create Plan File in draft/
 
+**⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
+
 ```bash
+# PROJECT_ROOT = Claude Code 실행 위치 (절대 경로 필수)
+PROJECT_ROOT="$(pwd)"
 TS="$(date +%Y%m%d_%H%M%S)"
-PLAN_FILE=".pilot/plan/draft/${TS}_${work_name}.md"
-mkdir -p .pilot/plan/draft
+PLAN_FILE="$PROJECT_ROOT/.pilot/plan/draft/${TS}_${work_name}.md"
+mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 ```
+
+**Note**: Do NOT use relative paths. The plan must always be created in the project where Claude Code was launched, not in any subdirectory being explored.
 
 **Plan Template**:
 ```markdown
@@ -78,8 +84,9 @@ mkdir -p .pilot/plan/draft
 ## Step 4: Move to pending
 
 ```bash
-mkdir -p .pilot/plan/pending
-mv "$PLAN_FILE" ".pilot/plan/pending/$(basename "$PLAN_FILE")"
+# Use same PROJECT_ROOT from Step 2
+mkdir -p "$PROJECT_ROOT/.pilot/plan/pending"
+mv "$PLAN_FILE" "$PROJECT_ROOT/.pilot/plan/pending/$(basename "$PLAN_FILE")"
 echo "✓ Plan ready for execution: /02_execute"
 ```
 

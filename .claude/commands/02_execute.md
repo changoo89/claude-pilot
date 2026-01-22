@@ -20,9 +20,14 @@ _Execute plan using Ralph Loop TDD pattern. Single source of truth: plan file dr
 
 ## Step 1: Plan Detection
 
+**⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
+
 ```bash
+# PROJECT_ROOT = Claude Code 실행 위치 (절대 경로 필수)
+PROJECT_ROOT="$(pwd)"
+
 # Find plan in pending/ or in_progress/
-PLAN_PATH="$(find .pilot/plan/pending .pilot/plan/in_progress -name "*.md" -type f 2>/dev/null | sort | head -1)"
+PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | sort | head -1)"
 
 if [ -z "$PLAN_PATH" ]; then
     echo "❌ No plan found"
@@ -33,8 +38,8 @@ fi
 # Move from pending/ to in_progress/
 if echo "$PLAN_PATH" | grep -q "/pending/"; then
     PLAN_FILENAME="$(basename "$PLAN_PATH")"
-    IN_PROGRESS_PATH=".pilot/plan/in_progress/${PLAN_FILENAME}"
-    mkdir -p .pilot/plan/in_progress
+    IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
+    mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
     mv "$PLAN_PATH" "$IN_PROGRESS_PATH"
     PLAN_PATH="$IN_PROGRESS_PATH"
 fi

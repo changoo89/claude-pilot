@@ -44,10 +44,15 @@ echo "✓ Scope validated: Simple fix"
 
 ## Step 2: Create Mini-Plan
 
+**⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
+
 ```bash
+# PROJECT_ROOT = Claude Code 실행 위치 (절대 경로 필수)
+PROJECT_ROOT="$(pwd)"
+
 TS="$(date +%Y%m%d_%H%M%S)"
-PLAN_FILE=".pilot/plan/draft/${TS}_rapid_fix.md"
-mkdir -p .pilot/plan/draft
+PLAN_FILE="$PROJECT_ROOT/.pilot/plan/draft/${TS}_rapid_fix.md"
+mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 
 cat > "$PLAN_FILE" << EOF
 # Rapid Fix: $1

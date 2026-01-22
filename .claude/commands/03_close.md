@@ -26,8 +26,13 @@ _Finalize plan by moving to done and creating git commit._
 
 ## Step 1: Load Plan
 
+**⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
+
 ```bash
-PLAN_PATH="$(find .pilot/plan/in_progress -name "*.md" -type f 2>/dev/null | head -1)"
+# PROJECT_ROOT = Claude Code 실행 위치 (절대 경로 필수)
+PROJECT_ROOT="$(pwd)"
+
+PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | head -1)"
 
 if [ -z "$PLAN_PATH" ]; then
     echo "❌ No plan in progress"
@@ -68,8 +73,9 @@ done
 ## Step 4: Move Plan to Done
 
 ```bash
+# Use same PROJECT_ROOT from Step 1
 TIMESTAMP="$(date +%Y%m%d)"
-DONE_DIR=".pilot/plan/done/${TIMESTAMP}"
+DONE_DIR="$PROJECT_ROOT/.pilot/plan/done/${TIMESTAMP}"
 mkdir -p "$DONE_DIR"
 mv "$PLAN_PATH" "$DONE_DIR/"
 echo "✓ Plan moved to done"
@@ -82,7 +88,7 @@ echo "✓ Plan moved to done"
 ```bash
 # Git commit (skip with no-commit)
 if [ "$1" != "no-commit" ]; then
-    git add .pilot/plan/done/
+    git add "$PROJECT_ROOT/.pilot/plan/done/"
     git commit -m "close(plan): $(basename "$PLAN_PATH" .md)" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
 fi
 ```

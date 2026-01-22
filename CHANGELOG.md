@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.11] - 2026-01-22
+
+### Added
+- GPT auto-delegation triggers to confirm and execute commands
+- Explicit command gate for phase transitions
+
+### Fixed
+- Use absolute paths for plan file creation
+
+### Changed
+- Remove worktree-create.sh, migrate to skill-based git commands
+
 ## [4.4.10] - 2026-01-22
 
 ### Fixed

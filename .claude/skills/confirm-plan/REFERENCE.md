@@ -237,99 +237,43 @@ fi
 
 **Auto-Invoke Plan-Reviewer Agent**:
 ```markdown
-Task:
-  subagent_type: plan-reviewer
-  description: "Review plan for completeness and gaps"
-  prompt: |
-    Review the plan file at: {PLAN_FILE}
-
-    Focus on:
-    1. Completeness Check (all sections present)
-    2. Gap Detection (external services, APIs, databases, async, env vars, error handling)
-    3. Feasibility Analysis (technical approach sound)
-    4. Clarity & Specificity (verifiable SCs, clear steps)
-
-    Return structured review with severity levels:
-    - BLOCKING: Prevents execution
-    - Critical: Should fix
-    - Warning: Consider fixing
-    - Suggestion: Nice to have
+Task: Review plan at {PLAN_FILE}
+Focus: Completeness, Gaps (APIs, DBs, async, env, errors), Feasibility, Clarity
+Severity: BLOCKING (prevents execution), Critical, Warning, Suggestion
 ```
 
-**BLOCKING Findings Handling**:
+**BLOCKING Handling**:
+- BLOCKING > 0 AND no --lenient → Interactive Recovery Loop
+- BLOCKING > 0 AND --lenient → Log warning, proceed
+- BLOCKING = 0 → Proceed
 
-| Condition | Action |
-|-----------|--------|
-| BLOCKING > 0 AND no --lenient | Enter Interactive Recovery |
-| BLOCKING > 0 AND --lenient | Log warning, proceed |
-| BLOCKING = 0 | Proceed |
-
-**Interactive Recovery Loop**:
+**Interactive Recovery Loop** (max 5 iterations):
 ```bash
-MAX_ITERATIONS=5
-ITERATION=1
-
-while [ $BLOCKING_COUNT -gt 0 ] && [ $ITERATION -le $MAX_ITERATIONS ]; do
-    # Use AskUserQuestion for each BLOCKING
-    # Options: Fix now, Add as TODO, Mark out of scope
-
-    # Update plan with responses
-    # Re-run plan-reviewer agent
-    # Check if BLOCKING resolved
-
+while [ $BLOCKING_COUNT -gt 0 ] && [ $ITERATION -le 5 ]; do
+    # AskUserQuestion: Fix now / Add as TODO / Mark out of scope
+    # Update plan, re-run plan-reviewer, check BLOCKING resolved
     BLOCKING_COUNT=$(grep -c "BLOCKING" "$PLAN_FILE")
     ITERATION=$((ITERATION + 1))
 done
-```
-
-**Plan Update Format**:
-```markdown
-## External Service Integration
-
-### API Calls Required
-| Call | From | To | Endpoint | SDK/HTTP | Status |
-|------|------|----|----------|----------|--------|
-| [Description] | [Service] | [Service] | [Path] | [Package] | [New] |
-
-[OR if skipped]
-> ⚠️ SKIPPED: Deferred to implementation phase
 ```
 
 ---
 
 ## Testing
 
-### Manual Testing
-
-**Standard Confirmation**:
+**Commands**:
 ```bash
-/01_confirm "test_plan"
+/01_confirm "test_plan"                  # Standard (auto-review + BLOCKING resolution)
+/01_confirm "test_plan" --no-review      # Skip review
+/01_confirm "test_plan" --lenient        # Convert BLOCKING to WARNING
 ```
-Expected: Plan created in pending/, auto-review run, BLOCKING findings resolved
 
-**Skip Review**:
-```bash
-/01_confirm "test_plan" --no-review
-```
-Expected: Plan created, auto-review skipped
-
-**Lenient Mode**:
-```bash
-/01_confirm "test_plan" --lenient
-```
-Expected: BLOCKING converted to WARNING
-
-### Verification Checklist
-
-After running `/01_confirm`:
+**Verification Checklist**:
 - [ ] Plan file created in `.pilot/plan/pending/`
-- [ ] User Requirements (Verbatim) section included
-- [ ] Requirements Coverage Check completed
-- [ ] All user requirements mapped to Success Criteria
+- [ ] User Requirements (Verbatim) + Coverage Check completed
+- [ ] All requirements mapped to Success Criteria
 - [ ] BLOCKING findings resolved (or --lenient used)
-- [ ] Plan content extracted from conversation
 - [ ] External Service Integration added (if applicable)
-- [ ] Vibe Coding Compliance added
 - [ ] Auto-review completed (or skipped with --no-review)
 - [ ] Execution NOT started
 

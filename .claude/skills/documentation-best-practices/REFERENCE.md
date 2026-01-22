@@ -22,7 +22,7 @@ description: Detailed Claude Code documentation patterns, examples, and external
 
 | Pattern | Good | Bad | Why |
 |---------|------|-----|-----|
-| Command size | 100 lines | 400 lines | Faster context processing |
+| Command size | 200 lines | 400 lines | Faster context processing |
 | Skill description | "Use when implementing TDD" | "About TDD methodology" | Trigger-rich for auto-discovery |
 | Cross-references | @.claude/skills/tdd/SKILL.md | See tdd skill | Clickable navigation |
 | Frontmatter | All skills have it | Missing on some | Auto-discovery fails |
@@ -76,7 +76,7 @@ description: Detailed Claude Code documentation patterns, examples, and external
 - Deep methodology explanations
 - Extensive tutorials
 
-### Command Structure (Target: ≤100 lines)
+### Command Structure (Target: ≤200 lines)
 
 **Key Principles**:
 - Keep workflow steps clear

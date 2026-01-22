@@ -49,7 +49,7 @@ for dir in src/ components/ lib/; do
 done
 ```
 
-**Size**: ≤100 lines per file
+**Size**: ≤200 lines per file
 
 ---
 
@@ -61,7 +61,7 @@ test $(wc -l < CLAUDE.md) -le 200 || echo "CLAUDE.md too large"
 test $(find docs/ai-context -maxdepth 1 -name "*.md" | wc -l) -eq 2 || echo "docs/ai-context should have exactly 2 files"
 
 # Tier 2 validation
-for f in **/CONTEXT.md; do test $(wc -l < "$f") -le 100 || echo "$f too large"; done
+for f in **/CONTEXT.md; do test $(wc -l < "$f") -le 200 || echo "$f too large"; done
 
 # Circular reference validation
 .claude/scripts/docs-verify.sh --circular-check

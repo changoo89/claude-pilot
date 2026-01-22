@@ -16,6 +16,12 @@ _Execute plan using Ralph Loop TDD pattern. Single source of truth: plan file dr
 - Execute Step 1 → 2 → 3 in sequence, then launch parallel/sequential coder agents
 - Only stop on ERROR or when all SCs are blocked
 
+### 🚫 PROHIBITED Actions
+- **NEVER move plan to done/** - Only `/03_close` has this authority
+- Do NOT call close-plan skill automatically
+- Do NOT archive the plan file
+- Plan MUST remain in `.pilot/plan/in_progress/` after execution completes
+
 ---
 
 ## Step 1: Plan Detection
@@ -209,6 +215,11 @@ echo "📦 Next Step: Close Plan"
 echo "   Run /03_close to finalize and commit the plan"
 echo "   - Documentation sync runs automatically during close"
 ```
+
+**🛑 STOP HERE**:
+- Do NOT proceed to /03_close automatically
+- Do NOT move plan to done/
+- Wait for user to explicitly run `/03_close`
 
 ---
 

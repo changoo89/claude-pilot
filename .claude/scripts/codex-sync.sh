@@ -3,11 +3,13 @@
 # Full procedures: @.claude/skills/gpt-delegation/SKILL.md
 # Usage: codex-sync.sh <mode> <prompt> [working_dir]
 
-# Source common environment library
-# shellcheck source=../lib/env.sh
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -f "$SCRIPT_DIR/../lib/env.sh" ]]; then
-    source "$SCRIPT_DIR/../lib/env.sh"
+# Set PROJECT_DIR (self-contained, no external dependency)
+if [[ -z "${PROJECT_DIR:-}" ]]; then
+    if [[ -n "${CLAUDE_PROJECT_DIR:-}" ]]; then
+        PROJECT_DIR="$CLAUDE_PROJECT_DIR"
+    else
+        PROJECT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+    fi
 fi
 
 set -eo pipefail

@@ -83,10 +83,21 @@ else
     echo "Large plan detected ($SC_COUNT SCs) - delegating to GPT Plan Reviewer..."
 
     # Delegate to GPT Plan Reviewer using codex-sync.sh
-    "$PROJECT_ROOT/.claude/scripts/codex-sync.sh" \
-      --expert "plan-reviewer" \
-      --mode "workspace-write" \
-      --plan "$PLAN_FILE"
+    PLAN_CONTENT=$(cat "$PLAN_FILE")
+    REVIEWER_PROMPT="You are a Plan Reviewer analyzing a large implementation plan.
+PLAN CONTENT:
+$PLAN_CONTENT
+
+REVIEW CRITERIA:
+- Clarity: Are requirements clear?
+- Completeness: Are all SCs measurable?
+- Feasibility: Is approach realistic?
+- Dependencies: Are they identified?
+- Risks: Are they mitigated?
+
+OUTPUT: Quality score (1-10), issues found, recommendations"
+
+    "$PROJECT_ROOT/.claude/scripts/codex-sync.sh" "read-only" "$REVIEWER_PROMPT" "."
 
     echo "GPT Plan Reviewer analysis complete"
   fi

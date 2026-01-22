@@ -8,21 +8,33 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 
 | Skill | Purpose | Trigger Keywords |
 |-------|---------|-----------------|
-| `tdd` | Test-Driven Development | "implementing features", "test coverage", "TDD" |
-| `ralph-loop` | Autonomous completion | "until tests pass", "quality gates", "iteration" |
-| `vibe-coding` | Code quality standards | "refactor", "code quality", "clean code" |
-| `git-master` | Version control workflow | "commit", "branch", "PR", "git" |
-| `documentation-best-practices` | Documentation standards | "documentation", "docs", "CLAUDE.md" |
-| `frontend-design` | Production-grade frontend design | "UI design", "frontend styling", "landing page" |
-| `confirm-plan` | Plan confirmation workflow | "confirm plan", "plan review", "requirements verification" |
-| `execute-plan` | Plan execution workflow | "execute plan", "implement SC", "parallel execution" |
-| `release` | Plugin release workflow | "release version", "bump version", "git tag", "GitHub release" |
-| `rapid-fix` | Rapid bug fix workflow | "fix bug", "quick fix", "one-line fix" |
+| `claude-pilot-standards` | Plugin development standards | "plugin standards", "command format", "skill format" |
+| `close-plan` | Plan closure workflow | "close plan", "finalize", "mark complete" |
 | `code-cleanup` | Dead code detection and removal | "cleanup", "remove unused code", "dead code" |
+| `code-quality-gates` | Quality validation gates | "quality gates", "validation", "checks" |
+| `coding-standards` | TypeScript/React/API standards | "coding standards", "best practices", "conventions" |
+| `confirm-plan` | Plan confirmation workflow | "confirm plan", "plan review", "requirements verification" |
+| `documentation-best-practices` | Documentation standards | "documentation", "docs", "CLAUDE.md" |
+| `execute-plan` | Plan execution workflow | "execute plan", "implement SC", "parallel execution" |
+| `frontend-design` | Production-grade frontend design | "UI design", "frontend styling", "landing page" |
+| `git-master` | Version control workflow | "commit", "branch", "PR", "git" |
+| `git-operations` | Safe git push/pull/merge | "git push", "git pull", "retry", "error handling" |
 | `gpt-delegation` | Intelligent Codex/GPT consultation | "GPT delegation", "Codex CLI", "escalate" |
+| `parallel-subagents` | Parallel agent execution | "parallel agents", "concurrent execution", "independent SCs" |
 | `quality-gates` | Pre-commit quality validation | "pre-commit", "quality check", "validate" |
+| `ralph-loop` | Autonomous completion | "until tests pass", "quality gates", "iteration" |
+| `rapid-fix` | Rapid bug fix workflow | "fix bug", "quick fix", "one-line fix" |
+| `release` | Plugin release workflow | "release version", "bump version", "git tag", "GitHub release" |
+| `review` | Multi-angle code review | "code review", "quality review", "parallel review" |
+| `safe-file-ops` | Safe file operations | "file operations", "safe edit", "pre-flight checks" |
+| `spec-driven-workflow` | SPEC-first development | "SPEC-first", "planning", "requirements" |
+| `tdd` | Test-Driven Development | "implementing features", "test coverage", "TDD" |
+| `test-driven-development` | Advanced TDD patterns | "TDD patterns", "testing strategies", "test design" |
+| `three-tier-docs` | 3-tier documentation hierarchy | "documentation tiers", "CLAUDE.md", "CONTEXT.md" |
+| `using-git-worktrees` | Parallel development with worktrees | "worktrees", "parallel development", "isolated workspace" |
+| `vibe-coding` | Code quality standards | "refactor", "code quality", "clean code" |
 
-**Total**: 13 skills, each with SKILL.md (~100 lines) and REFERENCE.md (~300 lines)
+**Total**: 25 skills, each with SKILL.md (~100-150 lines) and REFERENCE.md (~300 lines)
 
 ## Common Tasks
 
@@ -141,9 +153,6 @@ description: {trigger-rich description}
 
 **Command specifications**:
 - @.claude/commands/CONTEXT.md - Command workflow and usage
-
-**Guide specifications**:
-- @.claude/guides/CONTEXT.md - Methodology guides
 
 **Agent specifications**:
 - @.claude/agents/CONTEXT.md - Agent capabilities and model allocation

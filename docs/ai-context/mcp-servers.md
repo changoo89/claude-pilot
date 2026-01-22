@@ -7,12 +7,19 @@
 
 ## Recommended Servers
 
+### Core Servers (Installed by Default)
+
 | Server | Purpose | Package |
 |--------|---------|---------|
 | **context7** | Documentation navigation and context | `@upstash/context7-mcp` |
 | **filesystem** | Local file operations and grep search | `@modelcontextprotocol/server-filesystem` |
 | **sequential-thinking** | Step-by-step reasoning for complex problems | `@modelcontextprotocol/server-sequential-thinking` |
-| **grep-app** | GitHub public repository search | `@modelcontextprotocol/server-grep-app` |
+
+### Optional Servers
+
+| Server | Purpose | Package | Note |
+|--------|---------|---------|------|
+| **grep-app** | GitHub public repository search | `@modelcontextprotocol/server-grep-app` | OPTIONAL - Not included by default. Add manually if needed for GitHub code search. |
 
 ---
 
@@ -91,15 +98,33 @@
 
 **Source**: [github.com/modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking)
 
-### grep-app
+### grep-app (OPTIONAL)
 
 **Package**: `@modelcontextprotocol/server-grep-app`
 **Purpose**: GitHub public repository code search
 
+**Status**: OPTIONAL - Not included by default in `/pilot:setup`. Add manually if needed.
+
 **Use When**:
-- Searching open-source code
-- Finding implementation examples
-- Learning from GitHub projects
+- Searching open-source code for implementation examples
+- Finding reference code from GitHub projects
+- Learning from public repositories
+
+**Manual Setup**:
+```json
+{
+  "projects": {
+    "/your/project/path": {
+      "mcpServers": {
+        "grep-app": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-grep-app"]
+        }
+      }
+    }
+  }
+}
+```
 
 **Source**: [github.com/modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers/tree/main/src/grep-app)
 

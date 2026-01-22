@@ -159,7 +159,7 @@ User Request
 3. **How**: Implementation strategy
 4. **Success Criteria**: Measurable outcomes
 
-**Full methodology**: @.claude/guides/prp-framework.md
+**Full methodology**: @.claude/skills/spec-driven-workflow/SKILL.md
 
 ### TDD Cycle
 
@@ -195,9 +195,9 @@ User Request
 
 **Recommended Servers**:
 - **context7**: Documentation navigation
-- **serena**: Code operations
-- **grep-app**: Fast code search
+- **filesystem**: Local file operations and grep search
 - **sequential-thinking**: Complex reasoning
+- **grep-app**: OPTIONAL - GitHub code search (add manually if needed)
 - **codex**: GPT delegation
 
 **Configuration**: `mcp.json`
@@ -238,7 +238,6 @@ Before marking work complete:
 
 **Command Documentation**:
 - @.claude/commands/CONTEXT.md - Command workflow and file list
-- @.claude/guides/CONTEXT.md - Guide usage and methodology
 
 **Skill Documentation**:
 - @.claude/skills/CONTEXT.md - Skill list and auto-discovery
@@ -246,8 +245,8 @@ Before marking work complete:
 - @.claude/skills/ralph-loop/SKILL.md - Autonomous iteration
 
 **Quality Standards**:
-- @.claude/guides/vibe-coding/SKILL.md - Code quality standards
-- @.claude/guides/claude-code-standards.md - Official Claude Code standards
+- @.claude/skills/vibe-coding/SKILL.md - Code quality standards
+- @.claude/skills/coding-standards/SKILL.md - TypeScript, React, API, testing standards
 
 ---
 

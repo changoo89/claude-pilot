@@ -11,13 +11,13 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 | **explorer** | haiku | 60 | Glob, Grep, Read | Fast codebase exploration | `/00_plan` - Find files, search patterns |
 | **researcher** | haiku | 67 | WebSearch, WebFetch, query-docs | External docs research | `/00_plan` - Find external docs |
 | **coder** | sonnet | 280 | Read, Write, Edit, Bash | TDD implementation | `/02_execute` - Red-Green-Refactor, Ralph Loop |
-| **tester** | sonnet | 148 | Read, Write, Bash | Test writing and execution | `/review` - Test coverage, debug |
-| **validator** | haiku | 181 | Bash, Read | Type check, lint, coverage | `/review` - Quality verification |
+| **tester** | sonnet | 302 | Read, Write, Bash | Test writing and execution | `/review` - Test coverage, debug |
+| **validator** | haiku | 335 | Bash, Read | Type check, lint, coverage | `/review` - Quality verification |
 | **plan-reviewer** | sonnet | 128 | Read, Glob, Grep | Plan analysis and gaps | `/01_confirm` - Gap detection |
 | **code-reviewer** | opus | 122 | Read, Glob, Grep, Bash | Deep code review | `/review` - Async bugs, memory leaks |
-| **documenter** | haiku | 197 | Read, Write | Documentation generation | `/document` - Sync docs |
+| **documenter** | haiku | 351 | Read, Write | Documentation generation | `/document` - Sync docs |
 
-**Total**: 8 agents, 1183 lines (average: 148 lines per agent)
+**Total**: 8 agents, 1645 lines (average: 206 lines per agent)
 
 ## Agent Categories
 

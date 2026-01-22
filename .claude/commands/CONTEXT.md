@@ -6,6 +6,7 @@ Slash commands for SPEC-First development workflow.
 
 | Command | Purpose | Phase |
 |----------|---------|-------|
+| `/setup` | Configure MCP servers | Setup |
 | `/00_plan` | Create SPEC-First plan | Planning |
 | `/01_confirm` | Confirm plan + gap detection | Planning |
 | `/02_execute` | Execute with TDD + Ralph Loop | Execution |

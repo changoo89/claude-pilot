@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-21 (Updated: Skill-Only Worktree & Continuation Removal v4.4.0)
+> **Last Updated**: 2026-01-22 (Updated: Command Filenames and Line Counts v4.4.11)
 
 ---
 
@@ -33,16 +33,15 @@ claude-pilot/
 ├── .claude/
 │   ├── commands/           # Slash commands (11)
 │   │   ├── CONTEXT.md      # Command folder context
-│   │   ├── 000_pilot_setup.md  # Setup command (NEW v4.1.0)
+│   │   ├── setup.md        # Setup command (NEW v4.1.0)
 │   │   ├── 00_plan.md      # Create SPEC-First plan
 │   │   ├── 01_confirm.md   # Confirm plan (with Step 1.5 extraction)
 │   │   ├── 02_execute.md   # Execute with TDD
 │   │   ├── 03_close.md     # Close & archive
 │   │   ├── 04_fix.md       # Rapid bug fix workflow (NEW v4.2.0)
 │   │   ├── 05_cleanup.md   # Dead code cleanup (NEW v4.3.1)
-│   │   ├── 90_review.md    # Review code
-│   │   ├── 91_document.md  # Update docs
-│   │   ├── 92_init.md      # Initialize 3-Tier docs
+│   │   ├── review.md       # Review code
+│   │   ├── document.md     # Update docs
 │   │   └── 999_release.md  # Bump version + git tag + GitHub release (v4.1.1+)
 │   ├── guides/             # Methodology guides (17)
 │   │   ├── CONTEXT.md      # Guide folder context
@@ -123,27 +122,13 @@ claude-pilot/
 │   │   ├── done/           # Completed plans
 │   │   └── active/         # Branch pointers
 │   └── tests/              # Integration tests (v4.0.5)
-│       ├── test_00_plan_delegation.test.sh
-│       ├── test_01_confirm_delegation.test.sh
-│       ├── test_91_document_delegation.test.sh
-│       ├── test_graceful_fallback.test.sh
-│       ├── test_no_delegation.test.sh
-│       ├── test_codex_detection.test.sh    # Codex CLI detection tests (v4.1.0)
-│       ├── test_path_init.test.sh          # PATH initialization tests (v4.1.0)
-│       ├── test_debug_mode.test.sh         # DEBUG mode tests (v4.1.0)
-│       ├── test_sc5_integration.test.sh    # Integration tests (NEW v4.2.0)
-│       ├── test_github_workflow.sh         # GitHub Actions workflow tests (NEW v4.1.8)
-│       ├── test_999_skip_gh.sh             # 999_release skip-gh tests (NEW v4.1.8)
-│       ├── cleanup-auto.test.sh            # Auto-apply low-risk items (NEW v4.3.1)
-│       ├── cleanup-confirm.test.sh         # Interactive confirmation for high-risk (NEW v4.3.1)
-│       ├── cleanup-dryrun.test.sh          # Explicit dry-run mode (NEW v4.3.1)
-│       ├── cleanup-apply.test.sh           # Force apply mode (NEW v4.3.1)
-│       ├── cleanup-conflict.test.sh        # Both flags conflict (NEW v4.3.1)
-│       ├── cleanup-verify.test.sh          # Verification after batch (NEW v4.3.1)
-│       ├── cleanup-rollback.test.sh        # Rollback on failure (NEW v4.3.1)
-│       ├── cleanup-preflight.test.sh       # Pre-flight safety check (NEW v4.3.1)
-│       ├── cleanup-ci.test.sh              # Non-interactive default (NEW v4.3.1)
-│       └── cleanup-ci-apply.test.sh        # Non-interactive with apply (NEW v4.3.1)
+│       ├── commands/
+│       │   ├── test_00_plan_dialogue.sh       # Plan dialogue checkpoints (NEW v4.4.6)
+│       │   └── test_02_execute_error.sh       # Execute error handling
+│       ├── test_env.sh                        # Environment setup tests
+│       ├── test_parallel_agents_integration.sh # Parallel agent execution (NEW v4.4.6)
+│       ├── test_sc1_gpt_delegation_trigger.sh # GPT delegation triggers (NEW v4.4.11)
+│       └── test-cleanup-docs.sh               # Documentation cleanup tests
 ├── docs/                   # Project documentation
 │   ├── ai-context/         # 3-Tier detailed docs
 │   │   ├── system-integration.md
@@ -165,13 +150,17 @@ claude-pilot/
 
 | File | Purpose | Lines | Agent Pattern |
 |------|---------|-------|---------------|
-| `.claude/commands/000_pilot_setup.md` | MCP server configuration with merge strategy, GitHub star prompt | ~150 | N/A (setup command) |
-| `.claude/commands/00_plan.md` | Generate SPEC-First plan with PRP analysis, Phase Boundary Protection (Level 3) | 156 | **MANDATORY**: Parallel Explorer + Researcher (Step 0) |
-| `.claude/commands/01_confirm.md` | Extract plan, create file, auto-review with Interactive Recovery | 318 | **MANDATORY**: Plan-Reviewer (Step 4) |
-| `.claude/commands/02_execute.md` | Atomic plan move (Step 1), SC dependency analysis (Step 2.1), parallel Coder invocation (Step 2.2), implement with TDD + Ralph Loop | 456 | **MANDATORY**: SC Dependency Analysis (Step 2.1), Parallel Coders (Step 2.2), Auto-Delegation (Step 3.2), Parallel Verification (Step 3.5) |
-| `.claude/commands/03_close.md` | Archive plan, commit changes | 247 | **MANDATORY**: Documenter (Step 5) |
-| `.claude/commands/review.md` | Review code or plans with optional parallel multi-angle review | 376 | **MANDATORY**: Plan-Reviewer (single or parallel multi-angle for complex plans) |
-| `.claude/commands/document.md` | Update documentation | 266 | **OPTIONAL**: Documenter |
+| `.claude/commands/setup.md` | MCP server configuration with merge strategy, GitHub star prompt | 94 | N/A (setup command) |
+| `.claude/commands/00_plan.md` | Generate SPEC-First plan with PRP analysis, Phase Boundary Protection (Level 3) | 143 | **MANDATORY**: Parallel Explorer + Researcher (Step 0) |
+| `.claude/commands/01_confirm.md` | Extract plan, create file, auto-review with Interactive Recovery | 142 | **MANDATORY**: Plan-Reviewer (Step 4) |
+| `.claude/commands/02_execute.md` | Atomic plan move (Step 1), SC dependency analysis (Step 2.1), parallel Coder invocation (Step 2.2), implement with TDD + Ralph Loop | 199 | **MANDATORY**: SC Dependency Analysis (Step 2.1), Parallel Coders (Step 2.2), Auto-Delegation (Step 3.2), Parallel Verification (Step 3.5) |
+| `.claude/commands/03_close.md` | Archive plan, commit changes | 104 | **MANDATORY**: Documenter (Step 5) |
+| `.claude/commands/04_fix.md` | Rapid bug fix workflow | 111 | **MANDATORY**: Coder (TDD + Ralph Loop) |
+| `.claude/commands/05_cleanup.md` | Dead code cleanup with auto-apply | 100 | **MANDATORY**: Explorer + Validator |
+| `.claude/commands/999_release.md` | Bump version, git tag, GitHub release | 464 | N/A (release command) |
+| `.claude/commands/review.md` | Review code or plans with optional parallel multi-angle review | 119 | **MANDATORY**: Plan-Reviewer (single or parallel multi-angle for complex plans) |
+| `.claude/commands/document.md` | Update documentation | 66 | **OPTIONAL**: Documenter |
+| `.claude/commands/CONTEXT.md` | Command folder context | 42 | N/A (documentation) |
 
 ### Documentation
 
@@ -476,6 +465,66 @@ claude-pilot update --apply-statusline
 
 ## Version History
 
+### v4.4.11 (2026-01-22)
+
+**GPT Auto-Delegation Triggers and Command Gate**: Explicit command gate for phase transitions
+- **Auto-delegation triggers**: Architecture decisions, 2+ failures, security issues, large plans
+- **Explicit command gate**: Phase transition requires explicit user command (no auto-execution)
+- **Absolute paths**: Plan file paths now use absolute paths throughout
+- **Updated files**: `.claude/commands/00_plan.md`, `.claude/commands/01_confirm.md`, `.claude/commands/02_execute.md`
+- **New test**: `test_sc1_gpt_delegation_trigger.sh` for GPT delegation trigger verification
+- **Verification**: All success criteria met
+
+### v4.4.10 (2026-01-22)
+
+**Setup Always Copies Statusline**: Ensure latest statusline.sh version
+- **Setup improvement**: `/plugin:setup` always copies statusline.sh from plugin
+- **Version guarantee**: Users always get latest statusline.sh script
+- **Updated file**: `.claude/commands/setup.md`
+- **Verification**: All success criteria met
+
+### v4.4.9 (2026-01-22)
+
+**Scripts Self-Contained**: Remove env.sh dependency, simplify statusline.sh
+- **Self-contained scripts**: All scripts now self-contained (no env.sh dependency)
+- **Simplified statusline**: statusline.sh simplified to single script block
+- **Updated files**: `.claude/scripts/statusline.sh`, various command files
+- **Verification**: All success criteria met
+
+### v4.4.8 (2026-01-22)
+
+**Unify Statusline Configuration**: Single script block
+- **Unified configuration**: statusline.sh now uses single unified script block
+- **Simplified maintenance**: Easier to maintain and update
+- **Updated file**: `.claude/scripts/statusline.sh`
+- **Verification**: All success criteria met
+
+### v4.4.7 (2026-01-22)
+
+**Refactor Setup Command**: Statusline auto-configuration
+- **Setup refactor**: Improved setup command for statusline auto-configuration
+- **Auto-configuration**: Statusline automatically configured on setup
+- **Updated file**: `.claude/commands/setup.md`
+- **Verification**: All success criteria met
+
+### v4.4.6 (2026-01-21)
+
+**Mandatory Dialogue Checkpoints**: Execution directive and parallel agent execution
+- **Dialogue checkpoints**: Added mandatory dialogue checkpoints to `/00_plan`
+- **Execution directive**: EXECUTION DIRECTIVE section for explicit phase gate
+- **Parallel agents**: Parallel agent execution support
+- **New test**: `test_00_plan_dialogue.sh`, `test_parallel_agents_integration.sh`
+- **Verification**: All success criteria met
+
+### v4.4.0 (2026-01-21)
+
+**Skill-Only Worktree and Continuation Removal**: Simplified worktree mode
+- **Skill-only worktree**: Worktree mode now skills-only (no command duplication)
+- **Continuation removal**: Removed continuation.json system (Sisyphus system deprecated)
+- **Simplified workflow**: Cleaner worktree setup and execution
+- **Updated files**: Multiple worktree-related files
+- **Verification**: All success criteria met
+
 ### v4.3.2 (2026-01-20)
 
 **Plan Detection Fix and Statusline Enhancement**: Glob-safe plan detection and draft count display
@@ -558,7 +607,7 @@ claude-pilot update --apply-statusline
 
 - **Pure Plugin Migration**: Breaking change - PyPI distribution removed
   - Plugin manifests: `.claude-plugin/marketplace.json`, `.claude-plugin/plugin.json`
-  - Setup command: `.claude/commands/000_pilot_setup.md` (MCP merge + GitHub star)
+  - Setup command: `.claude/commands/setup.md` (MCP merge + GitHub star)
   - Hooks configuration: `.claude/hooks.json`
   - Updated README: Plugin-only installation (3-line)
   - Updated CLAUDE.md: Plugin distribution references
@@ -580,11 +629,11 @@ claude-pilot update --apply-statusline
 - **Parallel Execution Improvement**: Enhanced parallel execution for independent tasks
   - SC dependency analysis algorithm (Step 2.1 in 02_execute.md)
   - Parallel Coder invocation for independent SCs (Step 2.2)
-  - Optional parallel multi-angle review (Step 9.5 in 90_review.md)
+  - Optional parallel multi-angle review (Step 9.5 in review.md)
   - Result integration pattern and partial failure handling
   - Todo management pattern for parallel groups
   - New file: `parallel-execution-REFERENCE.md` (deep reference)
-  - Updated: `02_execute.md` (SC dependency analysis, parallel coders), `90_review.md` (parallel multi-angle review)
+  - Updated: `02_execute.md` (SC dependency analysis, parallel coders), `review.md` (parallel multi-angle review)
   - Updated: `codex-sync.sh` (PATH initialization, multi-layered command detection)
   - Updated documentation: `system-integration.md`, `project-structure.md`
   - Verification: All 7 success criteria met (SC-1 through SC-7)
@@ -706,7 +755,7 @@ claude-pilot update --apply-statusline
 - **Applied atomic pattern to Worktree mode** for consistency
 - Updated system-integration.md with `/02_execute` workflow details
 
-### v3.2.0 (Current)
+### v3.2.0
 
 - Fixed agent YAML format for Claude Code CLI recognition
 - Converted tools/skills from YAML arrays to comma-separated strings

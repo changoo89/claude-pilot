@@ -1,6 +1,6 @@
 # Agent Ecosystem
 
-> **Last Updated**: 2026-01-18
+> **Last Updated**: 2026-01-22
 > **Purpose**: Agent model mappings and parallel execution patterns
 
 ---
@@ -89,8 +89,7 @@
 
 ## See Also
 
-- **@.claude/guides/parallel-execution.md** - Parallel execution orchestration
-- **@.claude/guides/parallel-execution-REFERENCE.md** - Detailed patterns
-- **@.claude/guides/intelligent-delegation.md** - GPT delegation triggers
+- **@.claude/skills/parallel-subagents/SKILL.md** - Parallel execution orchestration
+- **@docs/ai-context/codex-integration.md** - GPT delegation triggers
 - **@.claude/agents/CONTEXT.md** - Agent-specific rules
 - **@CLAUDE.md** - Project standards (Tier 1)

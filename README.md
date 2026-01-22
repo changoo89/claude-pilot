@@ -26,7 +26,7 @@ Claude Code is powerful, but unstructured. **claude-pilot adds discipline:**
 **Key Benefits**:
 - ✅ **SPEC-First**: Requirements before code
 - 🤖 **Autonomous**: Ralph Loop runs until tests pass
-- 🔄 **Continuous**: Resume across sessions with Sisyphus
+- 🔄 **Persistent**: Plan state saved to `.pilot/` directories
 - 📚 **Documented**: Auto-sync 3-tier documentation
 - 🧠 **Intelligent**: GPT Codex delegation for complex problems
 
@@ -96,7 +96,7 @@ export CODEX_REASONING_EFFORT="medium"  # low | medium | high | xhigh
 |---------|--------------|---------------------|
 | **SPEC-First Planning** | ✅ PRP format, success criteria | ❌ Ad-hoc planning |
 | **TDD Automation** | ✅ Ralph Loop autonomous | ❌ Manual test-run cycle |
-| **Session Persistence** | ✅ Sisyphus continuation | ❌ Context lost on exit |
+| **Session Persistence** | ✅ Plan file persistence | ❌ Context lost on exit |
 | **Documentation Sync** | ✅ 3-tier auto-update | ❌ Manual docs only |
 | **Quality Gates** | ✅ Type check, lint, coverage | ❌ No enforcement |
 | **GPT Delegation** | ✅ Intelligent escalation | ❌ Manual delegation |
@@ -181,8 +181,8 @@ claude-pilot/
 
 - **11 Slash Commands**: Plan, Confirm, Execute, Close, Review, Document, Init, Setup, Release, Cleanup, Continue
 - **8 Agents**: Coder, Tester, Validator, Documenter, Explorer, Researcher, Plan Reviewer, Code Reviewer
-- **31 Skills**: TDD, Ralph Loop, Vibe Coding, Git Master, and 27 more
-- **MCP Servers**: context7, filesystem, grep-app (configured via `/pilot:setup`)
+- **25 Skills**: TDD, Ralph Loop, Vibe Coding, Git Master, and 21 more
+- **MCP Servers**: context7, filesystem, sequential-thinking (configured via `/pilot:setup`)
 - **Hooks**: Pre-commit hook for JSON validation and markdown link check
 
 ---
@@ -196,8 +196,8 @@ Run `/pilot:setup` to configure recommended MCPs:
 | MCP | Purpose |
 |-----|---------|
 | context7 | Latest library documentation |
-| filesystem | Local file operations + grep search |
-| grep-app | GitHub public repository search |
+| filesystem | Local file operations |
+| sequential-thinking | Step-by-step reasoning for complex problems |
 
 The setup command uses a merge strategy:
 - Preserves existing `.mcp.json` configurations

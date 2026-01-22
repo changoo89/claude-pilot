@@ -2,7 +2,7 @@
 
 > **Purpose**: Reusable templates for component creation
 > **Main Skill**: @.claude/skills/claude-pilot-standards/SKILL.md
-> **Last Updated**: 2026-01-20
+> **Last Updated**: 2026-01-22
 
 ---
 
@@ -24,20 +24,15 @@ description: {trigger-rich description with action verbs and use cases}
 | Concept | Description |
 |---------|-------------|
 | {Key concept 1} | {Brief description} |
-| {Key concept 2} | {Brief description} |
 
 ## Core Concepts
 
 ### {Concept 1}
 {Explanation}
 
-### {Concept 2}
-{Explanation}
-
 ## When to Use This Skill
 
 - {Use case 1}
-- {Use case 2}
 
 ## Further Reading
 
@@ -64,17 +59,10 @@ _{Brief tagline}
 ## Core Philosophy
 
 - **{Principle 1}**: {Explanation}
-- **{Principle 2}**: {Explanation}
 
 > **⚠️ CRITICAL**: {Critical note}
 
 **Full methodology**: @.claude/skills/{skill}/SKILL.md
-
----
-
-## Step 0: {Setup Phase}
-
-{Setup instructions}
 
 ---
 
@@ -93,14 +81,12 @@ _{Brief tagline}
 ## Success Criteria
 
 - [ ] {Criteria 1}
-- [ ] {Criteria 2}
 
 ---
 
 ## Related Documentation
 
 **Methodology**: @.claude/skills/{skill}/SKILL.md
-**Skill**: @.claude/skills/{skill}/SKILL.md
 ```
 
 ---
@@ -120,7 +106,6 @@ _{Brief tagline}
 | Component | Purpose | Key Pattern |
 |-----------|---------|-------------|
 | {Item 1} | {Purpose} | {Pattern} |
-| {Item 2} | {Purpose} | {Pattern} |
 
 ---
 
@@ -129,16 +114,12 @@ _{Brief tagline}
 ### {Concept 1}
 {Explanation}
 
-### {Concept 2}
-{Explanation}
-
 ---
 
 ## Best Practices
 
 ### For {Component Type}
 - {Practice 1}
-- {Practice 2}
 
 ---
 
@@ -148,10 +129,7 @@ _{Brief tagline}
 
 **Description**: {What it does}
 
-**Example**:
-```markdown
-{Code or text example}
-```
+**Example**: {Brief example or reference}
 
 ---
 
@@ -178,7 +156,6 @@ You are the {Agent} Agent. Your mission is {specific mission}.
 ## Core Principles
 
 - **{Principle 1}**: {Explanation}
-- **{Principle 2}**: {Explanation}
 
 ## Workflow
 
@@ -186,10 +163,7 @@ You are the {Agent} Agent. Your mission is {specific mission}.
 
 > **Methodology**: @.claude/skills/{skill}/SKILL.md
 
-{Workflow steps}
-
 1. {Step 1}
-2. {Step 2}
 
 ### Phase 2: {Phase Name}
 
@@ -204,7 +178,6 @@ You are the {Agent} Agent. Your mission is {specific mission}.
 ## Important Notes
 
 - {Note 1}
-- {Note 2}
 
 ---
 
@@ -230,7 +203,6 @@ You are the {Agent} Agent. Your mission is {specific mission}.
 | File | Purpose | Usage |
 |------|---------|-------|
 | {file 1} | {purpose} | {when to use} |
-| {file 2} | {purpose} | {when to use} |
 
 ## Common Tasks
 
@@ -240,18 +212,13 @@ You are the {Agent} Agent. Your mission is {specific mission}.
 - **File**: @.claude/{path}/{file}
 - **Usage**: {when to use}
 
-{Details}
-
 ## Patterns
 
 ### {Pattern Name}
 
 {description}
 
-**Example**:
-```markdown
-{example}
-```
+**Example**: See @.claude/{path}/{example}
 
 ## See Also
 
@@ -282,7 +249,6 @@ You are the {Agent} Agent. Your mission is {specific mission}.
 
 ### Best Practices
 - {practice 1}
-- {practice 2}
 
 ### Common Patterns
 {patterns}
@@ -311,33 +277,19 @@ You are the {Agent} Agent. Your mission is {specific mission}.
 1. Copy the appropriate template
 2. Replace `{placeholders}` with actual content
 3. Remove placeholder comments
-4. Verify size limits (wc -l)
-5. Test auto-discovery (for skills)
+4. Verify size limits: `wc -l {file}`
+5. Test auto-discovery (for skills): Check frontmatter
 
 ---
 
 ## Verification Checklist
 
-### For SKILL.md
-- [ ] `name` present (kebab-case)
-- [ ] `description` has trigger keywords
-- [ ] Quick reference table present
-- [ ] ≤100 lines
-- [ ] Links to REFERENCE.md
-
-### For COMMAND.md
-- [ ] `description` has action verbs
-- [ ] Core philosophy section
-- [ ] MANDATORY ACTION markers
-- [ ] Success criteria listed
-- [ ] ≤150 lines
-
-### For AGENT.md
-- [ ] `name`, `description`, `model`, `tools` present
-- [ ] Mission statement clear
-- [ ] Workflow phases numbered
-- [ ] Completion marker specified
-- [ ] ≤200 lines
+| Type | Required Elements | Size |
+|------|------------------|------|
+| **SKILL.md** | `name` (kebab-case), `description` (trigger keywords), Quick Reference table, REFERENCE.md link | ≤200 lines |
+| **COMMAND.md** | `description` (action verbs), Core Philosophy, MANDATORY ACTION markers, Success Criteria | ≤200 lines |
+| **AGENT.md** | `name`, `description`, `model`, `tools`, Mission statement, Workflow phases, Completion marker | ≤200 lines |
+| **REFERENCE.md** | When to Use, Best Practices, Examples sections, links to main file | ≤300 lines |
 
 ---
 

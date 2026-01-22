@@ -72,40 +72,18 @@ fi
 
 ### Iteration Pattern
 
-```
-┌─────────────────────────────────────────────────────┐
-│  Make Code Change                                   │
-└─────────────────┬───────────────────────────────────┘
-                  ▼
-         ┌────────────────┐
-         │ Run All Checks │
-         └───────┬────────┘
-                 │
-         ┌───────┴────────┐
-         │                │
-    All Pass         Any Fail
-         │                │
-         ▼                ▼
-  ┌──────────┐   ┌──────────────────┐
-  │ Complete │   │ Fix Failures     │
-  │ Exit     │   │ iteration++      │
-  └──────────┘   └────────┬─────────┘
-                          │
-                  ┌───────▼────────┐
-                  │ iteration < 7? │
-                  └───────┬────────┘
-                          │
-              ┌───────────┴───────────┐
-              │                       │
-            Yes                      No
-              │                       │
-              ▼                       ▼
-      ┌──────────────┐       ┌──────────────┐
-      │ Re-run Checks│       │ <BLOCKED>    │
-      └──────────────┘       │ Escalate to  │
-                             │ GPT Architect│
-                             └──────────────┘
-```
+| Iteration | Action | Success | Failure |
+|-----------|--------|---------|---------|
+| 1-6 | Run checks → Fix → Retry | Exit with `<CODER_COMPLETE>` | Continue to next iteration |
+| 7 (max) | Run checks → Fix | Exit with `<CODER_COMPLETE>` | Exit with `<CODER_BLOCKED>`, escalate to GPT Architect |
+
+**Flow**:
+1. Make code change
+2. Run all checks (tests, coverage, type-check, lint)
+3. If all pass → `<CODER_COMPLETE>`
+4. If any fail → Fix failures, increment iteration
+5. If iteration < 7 → Repeat from step 2
+6. If iteration = 7 → `<CODER_BLOCKED>`, delegate to GPT Architect
 
 ---
 
@@ -114,37 +92,19 @@ fi
 ### Verification Function
 ```bash
 run_all_checks() {
-  local project_root="$1"
+  # Tests
+  npm test || return 1
 
-  # Run tests
-  if ! npm test > /tmp/test.log 2>&1; then
-    echo "❌ Tests failed"
-    cat /tmp/test.log
-    return 1
-  fi
-
-  # Check coverage
-  local coverage=$(npm test -- --coverage 2>&1 | grep -oP 'Lines\s+:\s+\K[\d.]+')
-  if (( $(echo "$coverage < 80" | bc -l) )); then
-    echo "⚠️  Coverage ${coverage}% < 80%"
-    return 1
-  fi
+  # Coverage (≥80%)
+  coverage=$(npm test -- --coverage 2>&1 | grep -oP 'Lines\s+:\s+\K[\d.]+')
+  (( $(echo "$coverage < 80" | bc -l) )) && return 1
 
   # Type-check
-  if ! npm run type-check > /tmp/typecheck.log 2>&1; then
-    echo "❌ Type-check failed"
-    cat /tmp/typecheck.log
-    return 1
-  fi
+  npm run type-check || return 1
 
   # Lint
-  if ! npm run lint > /tmp/lint.log 2>&1; then
-    echo "⚠️  Lint violations found"
-    cat /tmp/lint.log
-    return 1
-  fi
+  npm run lint || return 1
 
-  echo "✓ All quality gates passed"
   return 0
 }
 ```
@@ -152,25 +112,10 @@ run_all_checks() {
 ### Fix Function
 ```bash
 fix_failures() {
-  local project_root="$1"
-
-  # Fix test failures
-  if ! npm test; then
-    echo "Fixing test failures..."
-    # Coder applies fixes
-  fi
-
-  # Fix type errors
-  if ! npm run type-check; then
-    echo "Fixing type errors..."
-    # Coder applies fixes
-  fi
-
-  # Fix lint violations
-  if ! npm run lint; then
-    echo "Fixing lint violations..."
-    # Coder applies fixes
-  fi
+  # Priority: tests → type-check → lint → coverage
+  npm test || { echo "Fixing test failures..."; }
+  npm run type-check || { echo "Fixing type errors..."; }
+  npm run lint || { echo "Fixing lint violations..."; }
 }
 ```
 
@@ -203,11 +148,8 @@ echo "Last error: $(last_error)"
 ### Update Loop State
 ```bash
 update_ralph_state() {
-  local sc="$1"
-  local iteration="$2"
-
-  jq --arg sc "$sc" --argjson iter "$iteration" \
-    '.todos |= map(if .id == $sc then .iteration = $iter else . end) | .iteration_count += 1' \
+  jq --arg sc "$1" --argjson iter "$2" \
+    '.todos |= map(if .id == $sc then .iteration = $iter else . end)' \
     .pilot/state/continuation.json > .pilot/state/continuation.json.tmp
   mv .pilot/state/continuation.json.tmp .pilot/state/continuation.json
 }
@@ -216,42 +158,10 @@ update_ralph_state() {
 ### Check Loop State
 ```bash
 should_continue_loop() {
-  local incomplete=$(jq '[.todos[] | select(.status != "completed")] | length' .pilot/state/continuation.json)
-  local iterations=$(jq '.iteration_count' .pilot/state/continuation.json)
+  incomplete=$(jq '[.todos[] | select(.status != "completed")] | length' .pilot/state/continuation.json)
+  iterations=$(jq '.iteration_count' .pilot/state/continuation.json)
   [ "$incomplete" -gt 0 ] && [ "$iterations" -lt 7 ]
 }
-```
-
----
-
-## Verification
-
-### Test Ralph Loop
-```bash
-# Simulate Ralph Loop
-iteration=0
-max_iterations=7
-
-while [ $iteration -lt $max_iterations ]; do
-  echo "Iteration $((iteration + 1))"
-
-  # Run checks (will fail initially)
-  if run_all_checks; then
-    echo "✓ All gates passed"
-    break
-  fi
-
-  # Fix and retry
-  fix_failures
-  ((iteration++))
-done
-
-# Verify exit condition
-if [ $iteration -lt $max_iterations ]; then
-  echo "<CODER_COMPLETE>"
-else
-  echo "<CODER_BLOCKED>"
-fi
 ```
 
 ---
@@ -259,8 +169,16 @@ fi
 ## Related Skills
 
 - **test-driven-development**: Red-Green-Refactor cycle
-- **gpt-delegation`: Escalation when blocked
+- **gpt-delegation**: Escalation when blocked
 
 ---
 
-**Version**: claude-pilot 4.2.0
+## Further Reading
+
+**Internal**: @.claude/skills/ralph-loop/REFERENCE.md - Advanced patterns, state machine details | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle | @.claude/skills/gpt-delegation/SKILL.md - GPT escalation patterns
+
+**External**: [The Pragmatic Programmer](https://www.amazon.com/Pragmatic-Programmer-journey-mastery-Anniversary/dp/0135957052) | [Working Effectively with Legacy Code](https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052)
+
+---
+
+**Version**: claude-pilot 4.4.11

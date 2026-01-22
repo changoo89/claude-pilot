@@ -34,7 +34,7 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `using-git-worktrees` | Parallel development with worktrees | "worktrees", "parallel development", "isolated workspace" |
 | `vibe-coding` | Code quality standards | "refactor", "code quality", "clean code" |
 
-**Total**: 25 skills, each with SKILL.md (~100-150 lines) and REFERENCE.md (~300 lines)
+**Total**: 25 skills, each with SKILL.md (≤200 lines) and REFERENCE.md (≤300 lines)
 
 ## Common Tasks
 
@@ -91,7 +91,7 @@ description: {trigger-rich description for auto-discovery}
 
 ### File Pair Pattern
 Each skill has two files:
-- **SKILL.md** (100-150 lines): Quick start, core concepts, further reading
+- **SKILL.md** (≤200 lines): Quick start, core concepts, further reading
 - **REFERENCE.md** (~300 lines): Detailed examples, patterns, external resources
 
 ### Skill-Workflow Integration
@@ -129,7 +129,7 @@ Skills are integrated into agent workflows via cross-references:
 
 ## Size Guidelines
 
-**SKILL.md**: ≤150 lines (updated from 100)
+**SKILL.md**: ≤200 lines
 - Quick start (when to use)
 - Core concepts (essential patterns)
 - Further reading (links)

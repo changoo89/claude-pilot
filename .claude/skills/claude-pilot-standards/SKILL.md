@@ -12,7 +12,7 @@ description: Author reference for claude-pilot components. Skills, commands, age
 
 | Component | Location | Purpose | Size Limit |
 |-----------|----------|---------|------------|
-| **Skills** | `.claude/skills/{name}/` | Auto-discoverable capabilities | SKILL: 100, REF: 300 |
+| **Skills** | `.claude/skills/{name}/` | Auto-discoverable capabilities | SKILL: 200, REF: 300 |
 | **Commands** | `.claude/commands/` | Slash commands | 150 lines |
 | **Agents** | `.claude/agents/` | Specialized configs | 200 lines |
 | **Rules** | `.claude/rules/` | Delegation patterns | 200 lines |
@@ -20,7 +20,7 @@ description: Author reference for claude-pilot components. Skills, commands, age
 ## Component Taxonomy
 
 ### Skills
-**Structure**: `{name}/SKILL.md` (≤100) + `REFERENCE.md` (≤300)
+**Structure**: `{name}/SKILL.md` (≤200) + `REFERENCE.md` (≤300)
 
 **Required**: `name`, `description` with trigger keywords
 

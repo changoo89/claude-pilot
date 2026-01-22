@@ -10,7 +10,7 @@
 ### Structure
 ```
 .claude/skills/{name}/
-├── SKILL.md (≤100 lines)
+├── SKILL.md (≤200 lines)
 └── REFERENCE.md (≤300 lines)
 ```
 
@@ -180,7 +180,7 @@ wc -l .claude/agents/*.md
 ### Limits Reference
 | Type | Target | Max |
 |------|--------|-----|
-| SKILL.md | 80 | 100 |
+| SKILL.md | 150 | 200 |
 | REFERENCE.md | 250 | 300 |
 | Command | 100 | 150 |
 | Agent | 150 | 200 |

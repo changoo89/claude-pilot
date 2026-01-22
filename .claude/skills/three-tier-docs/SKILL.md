@@ -25,10 +25,10 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 # - docs/ai-context/project-structure.md
 # - docs/ai-context/docs-overview.md
 
-# Tier 2: Component CONTEXT.md (≤100 lines)
+# Tier 2: Component CONTEXT.md (≤200 lines)
 # - Purpose, key files, patterns
 
-# Tier 3: Feature CONTEXT.md (≤150 lines)
+# Tier 3: Feature CONTEXT.md (≤200 lines)
 # - Implementation details
 ```
 
@@ -61,13 +61,13 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 **Tier 2: CONTEXT.md** (Component Directory)
 - **Purpose**: Component context
 - **Content**: Purpose, key files, patterns
-- **Size**: ≤100 lines per file
+- **Size**: ≤200 lines per file
 - **Scope**: Component-level context
 
 **Tier 3: CONTEXT.md** (Feature Directory)
 - **Purpose**: Feature implementation details
 - **Content**: Implementation details, deep-dive
-- **Size**: ≤150 lines per file
+- **Size**: ≤200 lines per file
 - **Scope**: Feature-level context
 
 ### Content Organization
@@ -109,7 +109,7 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ## Verification Failure Recovery
 
-**Line count violations**: CLAUDE.md >200 lines → Extract to docs/ai-context/ | CONTEXT.md >100 lines → Move examples or simplify
+**Line count violations**: CLAUDE.md >200 lines → Extract to docs/ai-context/ | CONTEXT.md >200 lines → Move examples or simplify
 
 **Broken cross-references**: Check file exists with `test -f {path}` | Use absolute paths (e.g., `@.claude/skills/...`)
 

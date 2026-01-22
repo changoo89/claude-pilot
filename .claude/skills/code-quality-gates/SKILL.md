@@ -14,209 +14,87 @@ description: Use automatically before and after code changes. Ensures documentat
 
 ### When to Use This Skill
 - Before creating any .md files (documentation gate)
-- After writing code (formatting, type check, linting)
+- After writing code (formatting, type check)
 - Before completing work (final audit)
 
 ### Quick Reference
 ```bash
-# PreToolUse: Block .md file creation
-block_md_creation() {
-  local file="$1"
-  if [[ "$file" == *.md ]]; then
-    echo "Error: .md file creation blocked. Use Write tool instead." >&2
-    return 1
-  fi
-}
+# PreToolUse: Block .md creation
+[[ "$file" == *.md ]] && echo "Use Write tool for .md" && return 1
 
-# PostToolUse: Auto-format
-auto_format() {
-  local file="$1"
-  prettier --write "$file" 2>/dev/null || true
-  npx prettier --write "$file" 2>/dev/null || true
-}
-
-# PostToolUse: Type check
-type_check() {
-  npx tsc --noEmit 2>/dev/null || true
-}
+# PostToolUse: Auto-format + type check
+prettier --write "$file" && npx tsc --noEmit
 
 # Stop: Console.log audit
-audit_console_logs() {
-  grep -rn "console.log" src/ | grep -v "console.log handled" || true
-}
+grep -rn "console.log" src/ || true
 ```
 
 ---
 
 ## Quality Gates
 
-### 1. Documentation Gate (PreToolUse)
+### Gate 1: Documentation (PreToolUse)
 
-**Purpose**: Block creation of .md files via Bash tool
+**Purpose**: Block .md file creation via Bash
 
-**Logic**:
+**Apply**: Before Bash commands
 ```bash
-# Check if Bash tool is creating .md file
-check_md_creation() {
-  local command="$1"
-  if echo "$command" | grep -qiE '\.md|markdown'; then
-    echo "⚠️  Use Write tool for .md files, not Bash echo/cat" >&2
-    return 1
-  fi
-}
+echo "$command" | grep -qiE '\.md' && echo "Use Write tool for .md" && return 1
 ```
 
-**When to apply**: Before any Bash tool invocation that might create .md files
+### Gate 2: Formatting (PostToolUse)
 
-### 2. Formatting Gate (PostToolUse)
+**Purpose**: Auto-format after code changes
 
-**Purpose**: Auto-format code after changes
-
-**Logic**:
+**Apply**: After Edit/Write
 ```bash
-# Apply formatting based on file type
 format_code() {
-  local file="$1"
-  local ext="${file##*.}"
-
-  case "$ext" in
-    js|jsx|ts|tsx|json|css|scss|html|md)
-      if command -v prettier &> /dev/null; then
-        prettier --write "$file"
-      elif command -v npx &> /dev/null; then
-        npx prettier --write "$file"
-      fi
-      ;;
-    py)
-      if command -v black &> /dev/null; then
-        black "$file"
-      fi
-      ;;
+  case "${1##*.}" in
+    js|ts|tsx|json|css|md) prettier --write "$1" ;;
+    py) black "$1" ;;
   esac
 }
 ```
 
-**When to apply**: After Edit, Write tool invocations
+### Gate 3: Type Safety (PostToolUse)
 
-### 3. Type Safety Gate (PostToolUse)
+**Purpose**: Verify TypeScript type correctness
 
-**Purpose**: Verify type correctness for TypeScript files
-
-**Logic**:
+**Apply**: After .ts file changes
 ```bash
-# Run type check for TypeScript projects
-check_types() {
-  local project_root="$1"
-
-  if [ -f "$project_root/tsconfig.json" ]; then
-    if command -v npx &> /dev/null; then
-      npx tsc --noEmit 2>&1 | head -20
-    fi
-  fi
-}
+[ -f tsconfig.json ] && npx tsc --noEmit
 ```
 
-**When to apply**: After editing TypeScript files
+### Gate 4: Console Audit (Stop)
 
-### 4. Console.log Audit (Stop)
+**Purpose**: Flag console.log before completion
 
-**Purpose**: Flag console.log statements before completion
-
-**Logic**:
+**Apply**: Before work completion
 ```bash
-# Find and report console.log statements
-audit_logs() {
-  local search_dir="${1:-src}"
-
-  echo "🔍 Checking for console.log statements..."
-  local logs=$(find "$search_dir" -name "*.ts" -o -name "*.js" | xargs grep -l "console.log" 2>/dev/null || true)
-
-  if [ -n "$logs" ]; then
-    echo "⚠️  console.log found in:"
-    echo "$logs" | while read file; do
-      grep -n "console.log" "$file" | head -5
-    done
-    echo "  Consider using proper logging library."
-  fi
-}
+find src -name "*.ts" -o -name "*.js" | xargs grep -n "console.log"
 ```
-
-**When to apply**: Before marking work complete
 
 ---
 
 ## Integration Points
 
-### Agent Usage
-
-**Coder Agent**:
-- Apply PreToolUse check before Bash commands
-- Apply PostToolUse formatting after Edit/Write
-- Apply PostToolUse type check for .ts files
-- Apply Stop audit before completion marker
-
-**All Agents**:
-- Respect documentation gate (no .md via Bash)
-
-### Command Integration
-
-**Triggered by**: Hooks.json → Now skill invocation
-
-| Hook Type | Skill Function | Trigger |
-|-----------|---------------|---------|
-| PreToolUse | check_md_creation | Before Bash |
-| PostToolUse | format_code | After Edit/Write |
-| PostToolUse | check_types | After .ts file changes |
-| Stop | audit_logs | Before completion |
+| Hook | Function | Agent | Trigger |
+|------|----------|-------|---------|
+| PreToolUse | Documentation gate | All | Before Bash |
+| PostToolUse | Formatting | Coder | After Edit/Write |
+| PostToolUse | Type check | Coder | After .ts changes |
+| Stop | Console audit | Coder | Before completion |
 
 ---
 
 ## Verification
 
-### Test Quality Gates
 ```bash
-# Test documentation gate
-echo "# Test" > test.md 2>&1 | grep -q "Use Write tool"
-
-# Test formatting
-echo "const x=1;" > test.js
-format_code test.js
-grep -q "const x = 1;" test.js  # Should be formatted
-
-# Test type check
-echo "const x: string = 1;" > test.ts
-check_types .  # Should report type error
-
-# Test console.log audit
-echo "console.log('debug');" > src/test.ts
-audit_logs src  # Should find console.log
-```
-
----
-
-## Configuration
-
-### Disable Specific Gates
-
-```bash
-# Skip formatting for specific file
-export SKIP_FORMAT=1
-
-# Skip type check
-export SKIP_TYPECHECK=1
-
-# Skip console.log audit
-export SKIP_CONSOLE_AUDIT=1
-```
-
-### Customize Formatters
-
-```bash
-# Use specific formatter
-export FORMAT_COMMAND="biome format --write"
-
-# Custom type check command
-export TYPECHECK_COMMAND="vue-tsc --noEmit"
+# Test all gates
+echo "# Test" > test.md  # Should warn
+echo "const x=1;" > test.js && prettier --write test.js  # Should format
+echo "const x: string = 1;" > test.ts && npx tsc --noEmit  # Should error
+grep -rn "console.log" src/  # Should find logs
 ```
 
 ---

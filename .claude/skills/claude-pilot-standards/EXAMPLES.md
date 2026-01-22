@@ -12,33 +12,17 @@
 
 ### Good Patterns
 
-**✅ Progressive Disclosure**: Quick reference table for fast lookup
+**✅ Quick Reference Table**
 ```markdown
-## Quick Reference
-
 | Target | Limit | Action |
-|--------|-------|--------|
 | **Function** | ≤50 lines | Split functions |
-| **File** | ≤200 lines | Extract modules |
-| **Nesting** | ≤3 levels | Early return |
 ```
 
-**✅ Concise Principles**: Bullet points for core concepts
-```markdown
-## Principles
+**✅ Concise Principles**: SRP, DRY, KISS, Early Return
 
-- **SRP**: One function = one responsibility
-- **DRY**: No duplicate code blocks, extract common logic
-- **KISS**: Simplest solution that works, avoid over-engineering
-- **Early Return**: Return early to reduce nesting, keep happy path at top
-```
+**✅ Cross-Reference**: @.claude/skills/vibe-coding/REFERENCE.md
 
-**✅ Cross-Reference Link**: Points to detailed reference
-```markdown
-**Internal**: @.claude/skills/vibe-coding/REFERENCE.md - SOLID principles, refactoring patterns
-```
-
-**Size**: 40 lines (well under 100-line limit)
+**Size**: 40 lines ✅
 
 ---
 
@@ -48,29 +32,9 @@
 
 ### Good Patterns
 
-**✅ Clear Purpose Statement**
-```markdown
-> **Purpose**: Execute TDD Red-Green-Refactor cycle for feature implementation
-> **Target**: Coder Agent implementing features with test-first methodology
-```
-
-**✅ Quick Start Section**
-```markdown
-## Quick Start
-
-### When to Use This Skill
-- Implement new feature with test coverage
-- Fix bug with regression tests
-```
-
-**✅ Code Examples**: Inline examples for each phase
-```python
-def test_add_two_numbers():
-    result = calculator.add(2, 3)
-    assert result == 5
-```
-
-**Size**: 78 lines (within 100-line limit)
+**✅ Purpose**: Execute TDD Red-Green-Refactor cycle
+**✅ Quick Start**: When to use + code examples
+**✅ Size**: 78 lines ✅
 
 ---
 
@@ -80,40 +44,11 @@ def test_add_two_numbers():
 
 ### Good Patterns
 
-**✅ Description Frontmatter with Action Verbs**
-```yaml
----
-description: Analyze codebase and create SPEC-First execution plan through dialogue (read-only)
----
-```
-
-**✅ Phase Boundary Protection**
-```markdown
-## Phase Boundary Protection
-
-**Planning Phase Rules**:
-- **CAN DO**: Read, Search, Analyze, Discuss, Plan, Ask questions
-- **CANNOT DO**: Edit files, Write files, Create code, Implement
-```
-
-**✅ MANDATORY ACTION Marker**
-```markdown
-> **🚨 MANDATORY**: At plan completion, you MUST call `AskUserQuestion`
-```
-
-**✅ Methodology Extraction**
-```markdown
-**Full methodology**: @.claude/skills/spec-driven-workflow/SKILL.md
-```
-
-**✅ GPT Delegation Trigger Check**
-```markdown
-## Step 0.5: GPT Delegation Trigger Check (MANDATORY)
-
-| Trigger | Signal | Action |
-|---------|--------|--------|
-| Architecture decision | Keywords: "tradeoffs", "design" | Delegate to GPT Architect |
-```
+**✅ Frontmatter**: Action verbs, constraints
+**✅ Phase Protection**: CAN/CANNOT DO lists
+**✅ MANDATORY Marker**: Call AskUserQuestion
+**✅ Methodology Link**: @.claude/skills/spec-driven-workflow/SKILL.md
+**✅ GPT Delegation**: Trigger check table
 
 ---
 
@@ -123,36 +58,10 @@ description: Analyze codebase and create SPEC-First execution plan through dialo
 
 ### Good Patterns
 
-**✅ Complete Frontmatter**
-```yaml
----
-name: coder
-description: Implementation agent using TDD + Ralph Loop...
-model: sonnet
-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
-skills: tdd, ralph-loop, vibe-coding, git-master
----
-```
-
-**✅ Clear Mission Statement**
-```markdown
-You are the Coder Agent. Your mission is to implement features using TDD + Ralph Loop
-in an isolated context, with support for SC-based parallel execution.
-```
-
-**✅ Methodology Links**
-```markdown
-### Phase 2: TDD Cycle
-> **Methodology**: @.claude/skills/tdd/SKILL.md
-
-### Phase 3: Ralph Loop
-> **Methodology**: @.claude/skills/ralph-loop/SKILL.md
-```
-
-**✅ Completion Markers**
-```markdown
-**Output**: Return `<CODER_COMPLETE>` or `<CODER_BLOCKED>`
-```
+**✅ Frontmatter**: name, description, model, tools, skills
+**✅ Mission**: TDD + Ralph Loop, isolated context
+**✅ Methodology Links**: Phase references to SKILL.md
+**✅ Completion**: `<CODER_COMPLETE>` or `<CODER_BLOCKED>`
 
 ---
 
@@ -160,156 +69,69 @@ in an isolated context, with support for SC-based parallel execution.
 
 ### Good Patterns
 
-**✅ Absolute Paths**
-```markdown
-> **Methodology**: @.claude/skills/tdd/SKILL.md
-```
-
-**✅ Descriptive Text**
-```markdown
-**Full methodology**: @.claude/skills/spec-driven-workflow/SKILL.md
-```
-
-**✅ Multiple Links**
-```markdown
-**Internal**: @.claude/skills/tdd/SKILL.md | @.claude/skills/ralph-loop/SKILL.md
-
-**External**: [Claude Code Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
-```
+**✅ Absolute**: @.claude/skills/tdd/SKILL.md
+**✅ Descriptive**: Full methodology + link
+**✅ Multiple**: Internal | External pipes
 
 ### Bad Patterns
 
-**❌ Relative Paths**
-```markdown
-See ../skills/tdd/SKILL.md (breaks when moved)
-```
-
-**❌ Non-Clickable**
-```markdown
-See the TDD skill for methodology (not clickable)
-```
+**❌ Relative**: ../skills/tdd/SKILL.md
+**❌ Non-Clickable**: "See TDD skill"
 
 ---
 
 ## Size Limit Compliance Examples
 
-### Within Limits (Good)
-
 | File | Lines | Limit | Status |
 |------|-------|-------|--------|
 | `vibe-coding/SKILL.md` | 40 | 100 | ✅ |
 | `tdd/SKILL.md` | 78 | 100 | ✅ |
-| `explorer.md` (agent) | 60 | 200 | ✅ |
 
-### Extraction Pattern (When Over Limit)
-
-**BEFORE** (in command):
-```markdown
-## TDD Methodology (200 lines)
-[Full TDD explanation]
-```
-
-**AFTER** (extracted to skill):
-```markdown
-> **Methodology**: @.claude/skills/tdd/SKILL.md
-```
-
-**Result**: Command stays concise, methodology centralized
+**Extraction**: Move oversized sections to REFERENCE.md, link back
 
 ---
 
 ## Frontmatter Examples
 
-### Skill Frontmatter (Good)
+### Skill
 ```yaml
----
 name: vibe-coding
-description: LLM-readable code standards. Functions ≤50 lines, files ≤200 lines, nesting ≤3 levels. SRP, DRY, KISS, Early Return.
----
+description: LLM-readable code standards. Functions ≤50 lines, files ≤200 lines, nesting ≤3 levels.
 ```
+**Keys**: kebab-case, trigger keywords, size limits
 
-**Why It Works**:
-- `name` is kebab-case
-- `description` has trigger keywords ("LLM-readable", "code standards")
-- Size limits clearly stated
-- Principles mentioned for auto-discovery
-
-### Command Frontmatter (Good)
+### Command
 ```yaml
----
-description: Analyze codebase and create SPEC-First execution plan through dialogue (read-only)
-argument-hint: "[task_description] - required description of the work"
-allowed-tools: Read, Glob, Grep, Bash(git:*), WebSearch
----
+description: Analyze codebase and create SPEC-First execution plan (read-only)
+argument-hint: "[task_description]"
+allowed-tools: Read, Glob, Grep, Bash(git:*)
 ```
+**Keys**: Action verbs, constraints, tool restrictions
 
-**Why It Works**:
-- Action verbs: "Analyze", "create"
-- Scenarios: "SPEC-First execution plan"
-- Constraint: "(read-only)"
-- Argument hint clear
-
-### Agent Frontmatter (Good)
+### Agent
 ```yaml
----
 name: coder
-description: Implementation agent using TDD + Ralph Loop for feature development. Use proactively for implementation tasks.
+description: Implementation agent using TDD + Ralph Loop. Use proactively.
 model: sonnet
-tools: Read, Write, Edit, Glob, Grep, Bash, TodoWrite
-skills: tdd, ralph-loop, vibe-coding, git-master
----
+tools: Read, Write, Edit, Glob, Grep, Bash
+skills: tdd, ralph-loop, vibe-coding
 ```
-
-**Why It Works**:
-- All required fields present
-- `description` has "use proactively" (Claude Code official pattern)
-- `model` specified
-- `tools` appropriate for role
-- `skills` listed
+**Keys**: All fields, "use proactively", skills listed
 
 ---
 
 ## MANDATORY ACTION Marker Examples
 
-### Good Usage
-
-**✅ Clear and Specific**
-```markdown
-> **⚠️ MANDATORY ACTION**: YOU MUST invoke {Agent} Agent NOW
-```
-
-**✅ Contextual**
-```markdown
-> **🚨 MANDATORY**: At plan completion, you MUST call `AskUserQuestion` before ANY phase transition
-```
-
-**✅ Multi-Option**
-```markdown
-AskUserQuestion:
-  What would you like to do next?
-  A) Continue refining the plan
-  B) Explore alternative approaches
-  C) Run /01_confirm (save plan)
-  D) Run /02_execute (start implementation)
-```
+**✅ Clear**: `⚠️ MANDATORY ACTION: YOU MUST invoke {Agent} NOW`
+**✅ Contextual**: `🚨 MANDATORY: At completion, call AskUserQuestion`
+**✅ Multi-Option**: A/B/C/D choices for user
 
 ---
 
 ## Completion Marker Examples
 
-### Coder Agent
-```markdown
-**Output**:
-- `<CODER_COMPLETE>`: All SC met, quality gates pass
-- `<CODER_BLOCKED>`: Max iterations reached, needs intervention
-```
-
-### Plan-Reviewer Agent
-```markdown
-**Output**:
-- `<PLAN_COMPLETE>`: Plan approved, no gaps
-- `<PLAN_BLOCKED>`: BLOCKING gaps found
-```
+**Coder**: `<CODER_COMPLETE>` (all pass) | `<CODER_BLOCKED>` (max iterations)
+**Plan-Reviewer**: `<PLAN_COMPLETE>` (approved) | `<PLAN_BLOCKED>` (gaps)
 
 ---
 

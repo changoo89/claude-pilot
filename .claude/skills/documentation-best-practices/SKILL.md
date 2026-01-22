@@ -21,7 +21,7 @@ description: Claude Code documentation standards for CLAUDE.md, commands, skills
 
 | File Type | Target | Max | Action When Exceeded |
 |-----------|--------|-----|----------------------|
-| **SKILL.md** | 120 | **150** | >300 → Create REFERENCE.md |
+| **SKILL.md** | 150 | **200** | >300 → Create REFERENCE.md |
 | **Agent** | 250 | **300** | >450 → Simplify required |
 | **Command** | 150 | **200** | >300 → Extract to guide |
 | **CONTEXT.md** | 150 | **200** | >300 → Simplify required |
@@ -46,7 +46,7 @@ description: Claude Code documentation standards for CLAUDE.md, commands, skills
 
 > "The context window is a public good. Skills share the context window with everything else Claude needs."
 
-**Baseline**: SKILL.md <500 words (~100-150 lines)
+**Baseline**: SKILL.md <600 words (~150-200 lines)
 
 ### Frontmatter Standards
 
@@ -78,7 +78,7 @@ skills: [skill list]
 
 ### SKILL.md/REFERENCE.md Pattern
 
-**SKILL.md** (≤150 lines):
+**SKILL.md** (≤200 lines):
 - Quick Start (when to use, quick reference)
 - Core Concepts (essential patterns)
 - Further Reading (link to REFERENCE.md)
@@ -141,7 +141,7 @@ skills: [skill list]
 - [ ] **Duplicate content**: Same info appears in CLAUDE.md and CONTEXT.md
 - [ ] **Wrong tier**: Implementation details in CLAUDE.md instead of docs/ai-context/
 - [ ] **Missing examples**: Abstract concepts without concrete usage examples
-- [ ] **Over-sized files**: SKILL.md >150 lines without split to REFERENCE.md
+- [ ] **Over-sized files**: SKILL.md >200 lines without split to REFERENCE.md
 
 ### Recovery Actions
 - **Before commit**: Run `bash .claude/scripts/docs-verify.sh`

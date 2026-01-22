@@ -6,186 +6,58 @@
 
 ## Detailed Step Implementation
 
-### Step 1: Scope Validation (Detailed)
+### Step 1: Scope Validation
 
-> **Purpose**: Reject complex tasks before plan generation
-> **Algorithm**: Complexity score calculation (0.0-1.0 scale)
+**Purpose**: Reject complex tasks before plan generation
 
-#### Complexity Score Components
+**Complexity Score Algorithm** (0.0-1.0 scale):
 
-**1. Input Length Check** (Weight: 0.3)
-- Threshold: >200 characters
-- Rationale: Long descriptions often indicate complex multi-faceted issues
-- Example: "Fix authentication bug and add user profile page" (>200 chars)
+| Component | Weight | Threshold | Rationale |
+|-----------|--------|-----------|-----------|
+| Input length | 0.3 | >200 chars | Long descriptions indicate multi-faceted issues |
+| Keywords | 0.3 | architecture terms | `refactor`, `redesign`, `architecture`, `tradeoffs`, `design`, `system` |
+| File count | 0.2 | >3 files | More files = larger blast radius |
+| Multiple tasks | 0.2 | `and`, `then`, `also` | Indicates sequential/parallel tasks |
 
-**2. Keyword Detection** (Weight: 0.3)
-- Keywords: `refactor`, `redesign`, `architecture`, `tradeoffs`, `design`, `system`
-- Rationale: Architecture keywords indicate design decisions, not simple fixes
-- Example: "Redesign authentication flow" → triggers architecture keyword
+**Rejection threshold**: Score ≥0.5
 
-**3. File Count Detection** (Weight: 0.2)
-- Threshold: >3 unique file paths
-- Rationale: More files = larger blast radius
-- Detection: `grep -oE '\w+\.\w+' | sort -u | wc -l`
-- Example: "Fix bug in auth.ts, user.ts, and profile.ts" → 3 files (at threshold)
-
-**4. Multiple Tasks Detection** (Weight: 0.2)
-- Keywords: `and`, `then`, `also` (case-insensitive, with word boundaries)
-- Rationale: Indicates sequential or parallel tasks
-- Example: "Fix bug AND add tests" → multiple tasks
-
-#### Rejection Output Format
-
-When complexity score ≥0.5:
-
+**Rejection output**:
 ```
 ⚠️  Task too complex for /04_fix
-
-This task appears to require multiple steps (estimated 4+ success criteria).
 
 Reasons:
 - Input length: 247 chars (>200 threshold)
 - Keywords detected: architecture-related keywords
 - Files mentioned: 5 files (>3 threshold)
-- Multiple tasks detected
 
-Use /00_plan instead for:
-- Complex bug fixes
-- Multi-file refactoring
-- Architecture decisions
-- Feature development
-
-Example: /00_plan "Fix authentication bug and add user profile page"
+Use /00_plan instead for complex bug fixes, multi-file refactoring, architecture decisions.
 ```
 
-#### When to Override
+---
 
-The complexity score is a guideline, not a hard rule. Override if:
-- Task appears complex but is actually simple (false positive)
-- User confirms they understand the scope
-- Task has clear success criteria and minimal blast radius
+### Step 2: Auto-Generate Minimal Plan
 
-**Override method**: Use `/00_plan` directly, bypassing `/04_fix`
+**Plan sections**: User Requirements, PRP Analysis (What/Why/How), Success Criteria (SC-1/SC-2/SC-3), Test Plan, Execution Plan
+
+**Success Criteria template**:
+- SC-1: Analyze bug and identify root cause (5 min)
+- SC-2: Implement fix with test coverage (10 min)
+- SC-3: Verify fix and close with commit (5 min)
 
 ---
 
-### Step 2: Auto-Generate Minimal Plan (Detailed)
+### Step 5: Execute Plan with TDD + Ralph Loop
 
-> **Purpose**: Create focused plan with 1-3 SCs for simple fixes
+**Why call `/02_execute` directly?**
 
-#### Plan Template Structure
+| Benefit | Description |
+|---------|-------------|
+| Unified execution | All plans execute through `/02_execute` |
+| State management | Leverages existing continuation state system |
+| Ralph Loop integration | Automatic iteration until quality gates pass |
+| Resumption support | Compatible with `/continue` for incomplete work |
 
-The auto-generated plan follows this structure:
-
-```markdown
-# Fix: [BUG_DESCRIPTION]
-
-> **Generated**: [TIMESTAMP] | **Work**: [PLAN_TITLE]
-
----
-
-## User Requirements (Verbatim)
-
-| ID | Timestamp | User Input (Original) | Summary |
-|----|-----------|----------------------|---------|
-| UR-1 | [TIME] | [BUG_DESCRIPTION] | Bug fix request |
-
----
-
-## PRP Analysis
-
-### What (Functionality)
-
-**Objective**: Fix the reported bug
-
-**Scope**:
-- **In Scope**: Bug fix as described
-- **Out of Scope**: Feature additions, refactoring
-
-### Why (Context)
-
-**Current Problem**: Bug reported in user input
-
-**Business Value**: Fix critical bug affecting functionality
-
-### How (Approach)
-
-**Implementation Strategy**:
-1. Analyze the bug
-2. Implement fix with TDD
-3. Verify with tests
-4. Close with commit
-
-### Success Criteria
-
-- [ ] **SC-1**: Analyze bug and identify root cause
-- [ ] **SC-2**: Implement fix with test coverage
-- [ ] **SC-3**: Verify fix and close with commit
-
----
-
-## Test Plan
-
-| ID | Scenario | Expected | Type |
-|----|----------|----------|------|
-| TS-1 | Fix resolves bug | Bug no longer occurs | Integration |
-| TS-2 | No regressions | Existing tests pass | Regression |
-
----
-
-## Execution Plan
-
-1. **SC-1**: Analyze bug (coder, 5 min)
-2. **SC-2**: Implement fix (coder, 10 min)
-3. **SC-3**: Verify and close (validator, 5 min)
-
----
-
-**Plan Version**: 1.0
-**Status**: Pending
-```
-
-#### Time Estimation Rationale
-
-**SC-1**: Analyze bug (5 min)
-- Bug analysis requires code examination
-- Root cause identification
-- Test case creation
-
-**SC-2**: Implement fix (10 min)
-- Red-Green-Refactor cycle
-- Test coverage
-- Code quality checks
-
-**SC-3**: Verify and close (5 min)
-- Integration test execution
-- Git commit creation
-- Plan archival
-
-Total estimated time: 20 minutes
-
----
-
-### Step 5: Execute Plan with TDD + Ralph Loop (Detailed)
-
-> **Purpose**: Auto-execute by calling /02_execute with generated plan
-
-#### Why Call `/02_execute` Directly?
-
-**Consistency Benefits**:
-1. **Unified execution behavior**: All plans execute through `/02_execute`
-2. **State management**: Leverages existing continuation state system
-3. **Ralph Loop integration**: Automatic iteration until quality gates pass
-4. **Resumption support**: Compatible with `/continue` for incomplete work
-
-**State Management Details**:
-- **State file**: `.pilot/state/continuation.json`
-- **Updated**: Automatically on each Ralph Loop iteration
-- **Includes**: session_id, branch, plan_file, todos, iteration_count, max_iterations
-- **Resumption**: `/continue` reads state and continues from last checkpoint
-
-#### Execution Flow
-
+**Execution flow**:
 ```
 /04_fix generates plan
        ↓
@@ -193,45 +65,18 @@ Sets PILOT_FIX_MODE=1
        ↓
 Invokes /02_execute
        ↓
-/02_execute:
-  1. Reads plan from $PLAN_PATH
-  2. Creates/updates continuation state
-  3. Executes SCs with TDD + Ralph Loop
-  4. Updates state on each iteration
-  5. Returns when complete or max iterations reached
+/02_execute executes SCs with TDD + Ralph Loop
        ↓
-/04_fix checks completion
+Updates state on each iteration
        ↓
-Prompts user for confirmation
-       ↓
-Calls /03_close if confirmed
+Returns when complete or max iterations reached
 ```
 
-#### Environment Variables
+**Environment variables**:
+- `PILOT_FIX_MODE=1`: Indicates execution from `/04_fix`
+- `PILOT_FIX_PLAN=$PLAN_PATH`: Absolute path to generated plan
 
-**PILOT_FIX_MODE=1**:
-- Indicates execution initiated from `/04_fix`
-- Enables special handling in `/02_execute`
-- Skips plan detection (plan already generated)
-
-**PILOT_FIX_PLAN=$PLAN_PATH**:
-- Absolute path to generated fix plan
-- Used by `/02_execute` to read plan
-- Ensures correct plan is executed
-
-#### Integration with Ralph Loop
-
-The `/02_execute` command runs Ralph Loop:
-1. **Iteration 1**: Coder implements fix
-2. **Verification**: Tests, type-check, lint
-3. **If failures**: Coder fixes issues
-4. **State update**: After each iteration, update continuation.json
-5. **Max iterations**: 7 (configurable via MAX_ITERATIONS)
-6. **Completion**: When all quality gates pass or max iterations reached
-
-#### Continuation State Management
-
-**State File Format** (`continuation.json`):
+**Continuation state format** (`continuation.json`):
 ```json
 {
   "version": "1.0",
@@ -248,243 +93,75 @@ The `/02_execute` command runs Ralph Loop:
 }
 ```
 
-**State Update Lifecycle**:
-1. **Initial**: Created by `/02_execute` on first execution
-2. **Iteration**: After each Ralph Loop iteration
-3. **Completion**: When all todos complete
-4. **Cleanup**: Deleted by `/03_close` after commit
+**State lifecycle**:
+1. Created by `/02_execute` on first execution
+2. Updated after each Ralph Loop iteration
+3. Deleted by `/03_close` after commit
 
 ---
 
-### Step 6: Verify Completion (Detailed)
+### Step 6: Verify Completion
 
-> **Purpose**: Check if all SCs completed before auto-close
-
-#### Completion Check Algorithm
-
-**1. Read State File**:
+**Completion check algorithm**:
 ```bash
+# 1. Read state file
 STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
-```
 
-**2. Extract Incomplete Todos**:
-```bash
+# 2. Extract incomplete todos
 INCOMPLETE_TODOS="$(cat "$STATE_FILE" | jq -r '.todos[] | select(.status != "complete") | .id')"
 INCOMPLETE_COUNT="$(echo "$INCOMPLETE_TODOS" | grep -c '^' || echo 0)"
-```
 
-**3. Branch Logic**:
-- **If INCOMPLETE_COUNT > 0**: Show warning, suggest `/continue`, exit 0
-- **If INCOMPLETE_COUNT = 0**: Show success message, proceed to Step 7
-
-#### Incomplete State Output
-
-```
-⚠️  Work incomplete: 2 todos remaining
-
-→ Use /continue to resume work
-```
-
-#### Complete State Output
-
-```
-✅ All todos complete
+# 3. Branch logic
+if [ $INCOMPLETE_COUNT -gt 0 ]; then
+  echo "⚠️  Work incomplete: $INCOMPLETE_COUNT todos remaining"
+  echo "→ Use /continue to resume work"
+  exit 0
+else
+  echo "✅ All todos complete"
+fi
 ```
 
 ---
 
-### Step 7: User Confirmation Before Auto-Close (Detailed)
+### Step 7: User Confirmation Before Auto-Close
 
-> **Purpose**: User must approve changes before commit (SC-4)
+**Flow**: Show `git diff HEAD` → Prompt (y/n) → If yes: commit and close, If no: preserve plan
 
-#### Confirmation Flow
-
-**1. Show Diff**:
-```bash
-git diff HEAD
-```
-
-This shows all changes made during fix:
-- Modified files
-- Added lines (green)
-- Removed lines (red)
-- Context around changes
-
-**2. Display Header**:
-```
-════════════════════════════════════════════════════════════
-📋 Review Changes Before Commit
-════════════════════════════════════════════════════════════
-
-[git diff output]
-
-════════════════════════════════════════════════════════════
-
-Commit these changes? (y/n)
-
-Options:
-  y) Yes - commit changes and close plan
-  n) No - keep changes but don't commit
-
-→ If 'n': Use /continue to resume, or /03_close --no-commit to skip commit
-```
-
-**3. Default Behavior**:
-- **COMMIT_CONFIRM=false** (default): Requires explicit confirmation
-- **COMMIT_CONFIRM=true**: Proceed with commit automatically
-
-**Setting Confirmation**:
-```bash
-export COMMIT_CONFIRM=true
-```
-
-Or in command:
-```bash
-COMMIT_CONFIRM=true /04_fix "Fix null pointer in auth.ts"
-```
-
-#### If User Aborts (COMMIT_CONFIRM=false)
-
-```
-ℹ️  Commit confirmation required
-   Set COMMIT_CONFIRM=true to proceed with commit
-
-→ Plan complete but not closed. Run:
-   COMMIT_CONFIRM=true /03_close
-```
-
-**State**: Plan remains in `.pilot/plan/in_progress/`, continuation state preserved
+**Environment variable**:
+- `COMMIT_CONFIRM=false` (default): Requires explicit confirmation
+- `COMMIT_CONFIRM=true`: Auto-commit without prompt
 
 ---
 
-### Step 8: Auto-Close on Success (Detailed)
+### Step 8: Auto-Close on Success
 
-> **Purpose**: Archive plan and create commit (if user confirmed)
-
-#### Close Process (When COMMIT_CONFIRM=true)
-
-**1. Move Plan to Done**:
-```bash
-mkdir -p "$PROJECT_ROOT/.pilot/plan/done"
-DONE_PATH="$PROJECT_ROOT/.pilot/plan/done/$(basename "$PLAN_PATH")"
-mv "$PLAN_PATH" "$DONE_PATH"
-```
-
-**2. Clear Active Pointer**:
-```bash
-rm -f "$PROJECT_ROOT/.pilot/plan/active/${KEY}.txt"
-```
-
-**3. Generate Commit Message**:
-```bash
-TITLE="Fix: $(echo "$BUG_DESCRIPTION" | head -c 50)"
-COMMIT_MSG="${TITLE}
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-```
-
-**Commit Message Format**:
-- **Title**: First 50 chars of bug description
-- **Co-Authored-By**: Standard attribution
-- **No body**: Single-commit fix (description is enough)
-
-**4. Create Git Commit**:
-```bash
-cd "$PROJECT_ROOT" || exit 1
-git add -A
-git commit -m "$COMMIT_MSG"
-```
-
-**5. Cleanup**:
-```bash
-rm -f "$STATE_FILE"
-```
-
-Deletes continuation state file since work is complete.
-
-**6. Success Output**:
-```
-→ Closing plan...
-✓ Plan archived: .pilot/plan/done/fix_20260118_235333.md
-✓ Git commit created
-✓ Continuation state cleaned up
-
-✅ Fix complete!
-```
-
-#### If Not Confirmed (COMMIT_CONFIRM=false)
-
-```
-→ Plan not closed (awaiting confirmation)
-```
-
-**State**: Plan remains in `.pilot/plan/in_progress/`, continuation state preserved
+**Steps** (when `COMMIT_CONFIRM=true`):
+1. Move plan to `.pilot/plan/done/`
+2. Clear active pointer
+3. Generate commit message: "Fix: [first 50 chars]\n\nCo-Authored-By: Claude <noreply@anthropic.com>"
+4. Create git commit: `git add -A && git commit -m "$COMMIT_MSG"`
+5. Cleanup state file
 
 ---
 
 ## Continuation Support
 
-### When Work is Incomplete
+**Triggers**: Ralph Loop max iterations (7), user interrupt, system error
 
-**Triggers**:
-- Ralph Loop reached max iterations (7)
-- User interrupted execution
-- System error during execution
+**Resume**: `/continue` reads `.pilot/state/continuation.json`, continues from last checkpoint
 
-**Continuation State**:
-- **Preserved in**: `.pilot/state/continuation.json`
-- **Contains**: session_id, branch, plan_file, todos, iteration_count, max_iterations
-- **Resumable**: Via `/continue` command
-
-### Resume Workflow
-
-**User Command**:
-```bash
-/continue
-```
-
-**What Happens**:
-1. Reads continuation state from `.pilot/state/continuation.json`
-2. Loads incomplete plan
-3. Continues from last checkpoint (iteration_count)
-4. Executes remaining todos
-5. Updates state on each iteration
-
-**Max Iterations Safety**:
-- **Default**: 7 Ralph Loop iterations
-- **Override**: `export MAX_ITERATIONS=10`
-- **Manual intervention**: After max iterations, human review required
+**Max iterations**: Default 7, override with `export MAX_ITERATIONS=10`
 
 ---
 
 ## Error Handling
 
-### Scope Validation Failures
-
-**Error**: Task too complex (complexity ≥0.5)
-**Action**: Reject with suggestion to use `/00_plan`
-**Exit code**: 1
-
-### Plan Creation Failures
-
-**Error**: Plan file cannot be created
-**Causes**: Permission denied, disk full, invalid path
-**Action**: Report error and exit gracefully
-**Exit code**: 1
-
-### Execution Failures
-
-**Error**: `/02_execute` returns non-zero
-**Causes**: Coder blocked, max iterations, system error
-**Action**: Preserve state, suggest `/continue`
-**Exit code**: 0 (state preserved for resumption)
-
-### Commit Failures
-
-**Error**: Git commit fails
-**Causes**: Merge conflict, hook failure, permission denied
-**Action**: Report error, preserve plan and state
-**Exit code**: 1
+| Error Type | Cause | Action | Exit Code |
+|-----------|-------|--------|-----------|
+| Scope validation | Task too complex (≥0.5) | Reject with `/00_plan` suggestion | 1 |
+| Plan creation | Permission denied, disk full | Report error and exit | 1 |
+| Execution | Coder blocked, max iterations | Preserve state, suggest `/continue` | 0 |
+| Commit | Merge conflict, hook failure | Preserve plan and state | 1 |
 
 ---
 
@@ -492,74 +169,30 @@ Deletes continuation state file since work is complete.
 
 ### When to Use /04_fix
 
-**Good Candidates**:
-- One-line fixes: "Fix typo in README.md"
-- Simple validation: "Add email validation to registration form"
-- Minor bug fixes: "Fix null pointer in auth.ts:45"
-- Typos: "Fix spelling error in error message"
-
-**Poor Candidates** (use `/00_plan` instead):
-- Feature additions: "Add user profile page"
-- Refactoring: "Refactor authentication system"
-- Architecture changes: "Switch to Redis for caching"
-- Multi-file changes: "Update auth, user, and profile modules"
+| Category | Good (use /04_fix) | Poor (use /00_plan) |
+|----------|-------------------|---------------------|
+| Scope | "Fix typo in README.md" | "Add user profile page" |
+| Complexity | "Fix null pointer in auth.ts:45" | "Refactor authentication system" |
+| Files | Single file changes | "Update auth, user, profile modules" |
 
 ### Scope Validation Tips
 
-**Keep Input Concise**:
-- ✅ "Fix null pointer in auth.ts:45"
-- ❌ "Fix authentication bug where null pointer causes crash when user logs in with invalid credentials"
-
-**Avoid Architecture Keywords**:
-- ✅ "Fix input validation bug"
-- ❌ "Redesign authentication flow"
-
-**Focus on Single Bug**:
-- ✅ "Fix logout not working"
-- ❌ "Fix logout and add session timeout AND update login page"
-
-### Commit Message Guidelines
-
-**Good Commit Messages**:
-- "Fix: Null pointer in auth.ts on invalid user input"
-- "Fix: Logout button redirects to wrong page"
-- "Fix: Email validation rejects valid addresses"
-
-**Bad Commit Messages** (auto-generated, trimmed to 50 chars):
-- "Fix: Update authentication and user prof..." (too vague)
-- "Fix: Various bug fixes" (not specific)
+| Guideline | Good | Bad |
+|-----------|------|-----|
+| Concise | "Fix null pointer in auth.ts:45" | "Fix authentication bug where null pointer causes crash..." |
+| No architecture | "Fix input validation bug" | "Redesign authentication flow" |
+| Single bug | "Fix logout not working" | "Fix logout AND add timeout AND update login" |
 
 ---
 
 ## Testing /04_fix
 
-### Manual Testing
+**Test simple fix**: `/04_fix "Fix typo in README.md"` (should succeed)
+**Test complex task**: `/04_fix "Refactor authentication system"` (should reject)
 
-**Test Simple Fix**:
-```bash
-/04_fix "Fix typo in README.md"
-```
-Expected: Creates plan, executes, confirms, commits
-
-**Test Complex Task**:
-```bash
-/04_fix "Refactor authentication system"
-```
-Expected: Rejects with suggestion to use `/00_plan`
-
-### Verification Checklist
-
-After running `/04_fix`:
-- [ ] Plan created in `.pilot/plan/pending/`
-- [ ] Plan moved to `.pilot/plan/in_progress/`
-- [ ] `/02_execute` invoked with correct plan
-- [ ] Continuation state created/updated
-- [ ] User confirmation prompt shown
-- [ ] If confirmed: Plan archived, commit created
-- [ ] If not confirmed: Plan preserved for resumption
-- [ ] Continuation state cleaned up on success
+**Verification checklist**: Plan created → moved to in_progress → `/02_execute` invoked → state created/updated → confirmation prompt → if yes: plan archived + commit created → state cleaned up
 
 ---
 
-**Reference Version**: claude-pilot 4.2.0
-**Last Updated**: 2026-01-19
+**Reference Version**: claude-pilot 4.4.11
+**Last Updated**: 2026-01-22

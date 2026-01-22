@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.9] - 2026-01-22
+
+### Changed
+- Make scripts self-contained (remove env.sh external dependency)
+- Move worktree-create.sh from .claude/lib/ to .claude/scripts/
+- Simplify statusline.sh (remove unused worktree-utils.sh reference)
+
+### Removed
+- Dead code: test-agent-names.sh, env.sh (2 locations), .claude/lib/ directory
+- Outdated hooks references from plugin-architecture.md
+
+### Documentation
+- Update CONTEXT.md with current script inventory
+- Update plugin-architecture.md to reflect current architecture
+
 ## [4.4.8] - 2026-01-22
 
 ### Fixed

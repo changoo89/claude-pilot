@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.12 | **Last Updated**: 2026-01-23
+> **Version**: 4.4.13 | **Last Updated**: 2026-01-23
 
 ---
 
@@ -147,7 +147,7 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.12 (Documentation integration + 3-Tier restructure)
+**Plugin Version**: 4.4.13 (Cleanup refactor with knip + 4-level risk)
 **Distribution**: GitHub Marketplace (pure plugin)
 
 **Release Process**: `@.claude/commands/999_release.md`
@@ -159,6 +159,9 @@ Response Handling (synthesize, apply, verify)
 ---
 
 ## Version History
+
+### v4.4.13 (2026-01-23)
+Cleanup refactor with knip integration, parallel detection, 4-level risk classification
 
 ### v4.4.12 (2026-01-23)
 Integrate /document into /03_close, 3-Tier documentation restructure, dual-source verification

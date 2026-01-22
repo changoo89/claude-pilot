@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.13] - 2026-01-23
+
+### Added
+- Refactor /05_cleanup with knip integration for dead code detection
+- Parallel detection support in cleanup workflow
+- 4-level risk classification system (Low, Medium, High, Critical)
+
 ## [4.4.12] - 2026-01-23
 
 ### Added

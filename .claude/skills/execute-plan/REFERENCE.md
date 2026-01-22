@@ -253,16 +253,13 @@ if [ "$WORKTREE_MODE" = true ]; then
     WT_BRANCH="wt/$(date +%s)"
     echo "Creating worktree branch: $WT_BRANCH"
 
-    # Call worktree creation script
-    WORKTREE_CREATE_SCRIPT=".claude/scripts/worktree-create.sh"
+    # Create worktree using git commands directly (skill-based approach)
+    WORKTREE_DIR="../.worktrees"
+    WORKTREE_PATH="$WORKTREE_DIR/$WT_BRANCH"
+    mkdir -p "$WORKTREE_DIR"
 
-    if [ ! -f "$WORKTREE_CREATE_SCRIPT" ]; then
-        echo "❌ Error: worktree-create.sh not found" >&2
-        exit 1
-    fi
-
-    # Call worktree creation script
-    WORKTREE_OUTPUT="$(bash "$WORKTREE_CREATE_SCRIPT" "$WT_BRANCH" "$MAIN_BRANCH")"
+    # Create worktree with new branch
+    git worktree add -b "$WT_BRANCH" "$WORKTREE_PATH" "$MAIN_BRANCH"
     WORKTREE_EXIT_CODE=$?
 
     if [ $WORKTREE_EXIT_CODE -ne 0 ]; then
@@ -270,8 +267,8 @@ if [ "$WORKTREE_MODE" = true ]; then
         exit 1
     fi
 
-    # Extract worktree path from output
-    WORKTREE_PATH="$(echo "$WORKTREE_OUTPUT" | grep "^WORKTREE_PATH=" | cut -d'=' -f2)"
+    # Get absolute path
+    WORKTREE_PATH="$(cd "$WORKTREE_PATH" && pwd)"
 
     if [ -z "$WORKTREE_PATH" ] || [ ! -d "$WORKTREE_PATH" ]; then
         echo "❌ Failed to determine worktree path" >&2

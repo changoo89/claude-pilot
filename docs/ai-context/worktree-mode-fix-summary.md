@@ -63,9 +63,9 @@ fi
 PLAN_SEARCH_ROOT="${WORKTREE_ROOT:-$PROJECT_ROOT}"
 ```
 
-#### 2. `.claude/scripts/worktree-create.sh`
+#### 2. Worktree Creation (Skill-Based)
 
-**Status**: Already existed, verified working
+**Status**: Converted to skill-based git commands (direct `git worktree add`)
 
 #### 3. Test Files Created
 

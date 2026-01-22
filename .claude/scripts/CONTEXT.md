@@ -12,7 +12,6 @@ Following obra/superpowers philosophy: skills as the product, scripts as optiona
 | `codex-sync.sh` | Codex CLI thin wrapper | 103 | GPT expert consultation adapter |
 | `statusline.sh` | Plan state count display | 70 | Show draft/pending/in-progress counts |
 | `cleanup.sh` | Dead code cleanup | 452 | ESLint/TypeScript-based cleanup |
-| `worktree-create.sh` | Worktree creation | 120 | Initialize isolated worktree |
 
 ### hooks/ Directory
 
@@ -26,11 +25,6 @@ Following obra/superpowers philosophy: skills as the product, scripts as optiona
 - **Script**: @.claude/scripts/codex-sync.sh
 - **Process**: Check Codex CLI → Initialize PATH → Construct prompt → Execute codex command
 - **Modes**: `read-only` (advisory), `workspace-write` (implementation)
-
-### Create Worktree
-- **Script**: @.claude/scripts/worktree-create.sh
-- **Process**: Parse arguments → Create unique worktree → Create Git worktree
-- **Cleanup**: Worktree removed by `/03_close` after completion
 
 ### Display Status Line
 - **Script**: @.claude/scripts/statusline.sh
@@ -63,7 +57,6 @@ fi
 ## Script Categories
 
 - **Delegation**: codex-sync.sh
-- **Worktree**: worktree-create.sh
 - **Status Display**: statusline.sh
 - **Cleanup**: cleanup.sh
 - **Hooks**: pre-commit.sh
@@ -71,7 +64,7 @@ fi
 ## Integration Points
 
 ### Command Integration
-- `/02_execute`: codex-sync.sh, worktree-create.sh (with --wt flag)
+- `/02_execute`: codex-sync.sh (for GPT delegation)
 - `/05_cleanup`: cleanup.sh
 
 ### Setup Integration

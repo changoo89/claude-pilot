@@ -17,15 +17,11 @@
 #   0 on success, 1 on failure
 #
 
-# Source common environment library
-# shellcheck source=../lib/env.sh
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -f "$SCRIPT_DIR/../lib/env.sh" ]]; then
-    source "$SCRIPT_DIR/../lib/env.sh"
-fi
-
 set -o nounset
 set -o pipefail
+
+# Script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Colors for output
 RED='\033[0;31m'

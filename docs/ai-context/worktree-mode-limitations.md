@@ -125,9 +125,12 @@ PLAN_PATH="$(ls -1t "$PLAN_ROOT/.pilot/plan/in_progress"/*.md 2>/dev/null | head
 ### Test 1: Verify Worktree Path Persistence
 
 ```bash
-# Create worktree
-bash .claude/scripts/worktree-create.sh "wt/test" "main"
-WT_PATH="/path/to/worktree"
+# Create worktree using git commands (skill-based approach)
+WORKTREE_DIR="../.worktrees"
+WT_BRANCH="wt/test"
+mkdir -p "$WORKTREE_DIR"
+git worktree add -b "$WT_BRANCH" "$WORKTREE_DIR/$WT_BRANCH" main
+WT_PATH="$(cd "$WORKTREE_DIR/$WT_BRANCH" && pwd)"
 
 # Store path
 echo "$WT_PATH" > .pilot/worktree_active_path.txt

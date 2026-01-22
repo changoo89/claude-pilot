@@ -14,22 +14,6 @@
 
 ---
 
-## Two-Layer Documentation
-
-**Plugin Layer (CLAUDE.md)**: Plugin architecture, features, distribution - **This file**
-**Project Layer (CLAUDE.local.md)**: Your project-specific configuration, structure, standards
-
-**Why Two Layers?**
-- Plugin docs stay clean and focused
-- Your customizations stay private (gitignored)
-- Plugin updates won't affect your local docs
-
-**Create Project Template**: Run `/pilot:setup` after installation
-
-**Template Location**: `.claude/templates/CLAUDE.local.template.md`
-
----
-
 ## Plugin Architecture
 
 **Pure Plugin**: No Python dependency, native Claude Code integration
@@ -159,7 +143,7 @@ Response Handling (synthesize, apply, verify)
 
 ---
 
-**Line Count**: 175 lines (Target: ≤200 lines) ✅
+**Line Count**: 191 lines (Target: ≤200 lines) ✅
 
 ---
 

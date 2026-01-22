@@ -113,12 +113,6 @@ check_dependencies() {
 
 # Detect verification command based on project type
 detect_verification_command() {
-  # Check for custom verification command in CLAUDE.local.md
-  if [ -f "CLAUDE.local.md" ] && grep -q "verification_command:" CLAUDE.local.md 2>/dev/null; then
-    grep "verification_command:" CLAUDE.local.md | sed 's/.*verification_command:[[:space:]]*//' | head -1
-    return
-  fi
-
   # Check for monorepo (package.json with workspaces)
   if [ -f "package.json" ]; then
     if grep -q '"workspaces"' package.json 2>/dev/null; then

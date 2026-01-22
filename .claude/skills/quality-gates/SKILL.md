@@ -100,10 +100,11 @@ git config --global receive.denyDeleteCurrent warn
 ### Pre-commit Hook Setup
 
 ```bash
-# Create symlinks
-ln -s .claude/scripts/hooks/typecheck.sh .git/hooks/pre-commit-typecheck
-ln -s .claude/scripts/hooks/lint.sh .git/hooks/pre-commit-lint
+# Simple pre-commit hook (JSON syntax, markdown links)
+ln -s ../../.claude/scripts/hooks/pre-commit.sh .git/hooks/pre-commit
 ```
+
+**Note**: Complex validation hooks were removed in v4.3.4 due to over-engineering.
 
 ### CI/CD Integration
 

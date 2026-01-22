@@ -46,5 +46,3 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .claude.backup.*
-CLAUDE.local.md
-.claude/*.local.md

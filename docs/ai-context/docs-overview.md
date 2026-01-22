@@ -76,7 +76,6 @@ Detailed documentation that supplements Tier 1 when it exceeds size limits. Cont
 |------|---------|-------------------|
 | **system-integration.md** | Component interactions, workflows, integration points | Understanding how commands work together |
 | **project-structure.md** | Technology stack, directory layout, key files | Understanding codebase organization |
-| **continuation-system.md** | Sisyphus continuation system for agent persistence | Understanding agent continuation across sessions |
 | **cicd-integration.md** | GitHub Actions CI/CD workflow for automated releases | Understanding release automation |
 | **codex-integration.md** | GPT delegation via Codex CLI for complex tasks | Understanding intelligent delegation |
 | **testing-quality.md** | Testing standards, coverage targets, quality gates | Understanding quality requirements |
@@ -221,11 +220,6 @@ See **@docs/ai-context/system-integration.md** for:
 - Ralph Loop logic
 - Interactive Recovery flow
 
-See **@docs/ai-context/continuation-system.md** for:
-- Agent continuation across sessions
-- State persistence and recovery
-- Sisyphus continuation system
-
 See **@docs/ai-context/codex-integration.md** for:
 - GPT delegation triggers and patterns
 - Codex CLI integration
@@ -358,5 +352,5 @@ Automatically compresses documentation that exceeds thresholds:
 
 ---
 
-**Last Updated**: 2026-01-18
-**Version**: 4.2.0 (Documentation Refactoring - Tier 2 Expansion)
+**Last Updated**: 2026-01-22
+**Version**: 4.4.11 (Documentation Consistency Audit)

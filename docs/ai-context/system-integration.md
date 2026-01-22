@@ -13,7 +13,6 @@
 | **Plugin Architecture** | @plugin-architecture.md | Plugin manifests, setup, hooks |
 | **CI/CD Integration** | @cicd-integration.md | GitHub Actions, releases |
 | **Codex Delegation** | @codex-integration.md | GPT expert consultation |
-| **Continuation System** | @continuation-system.md | Agent persistence across sessions |
 | **Project Structure** | @project-structure.md | Directory layout, key files |
 | **Agent Ecosystem** | @agent-ecosystem.md | Agent configurations |
 | **MCP Servers** | @mcp-servers.md | Recommended MCP servers |
@@ -93,14 +92,6 @@ User Request
 - Large plans (5+ SCs)
 
 **Full details**: @codex-integration.md
-
-### Continuation System
-
-**Purpose**: Agent persistence across sessions until completion
-
-**State File**: `.pilot/state/continuation.json`
-
-**Full details**: @continuation-system.md
 
 ### CI/CD Integration
 

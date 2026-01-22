@@ -93,13 +93,6 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ---
 
-## Two-Layer Documentation
-
-**Plugin Layer** (CLAUDE.md): Architecture, features, distribution
-**Project Layer** (CLAUDE.local.md): Project-specific config, structure
-
----
-
 ## Plugin Architecture
 
 **Core Features**:

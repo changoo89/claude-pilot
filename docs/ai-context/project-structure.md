@@ -11,7 +11,7 @@
 Framework: Claude Code Plugin
 Language: Markdown + JSON (no code runtime)
 Package Manager: Claude Code Plugin System
-Version: 4.3.0
+Version: 4.4.11
 Deployment: GitHub Marketplace (plugin distribution)
 ```
 
@@ -94,12 +94,8 @@ claude-pilot/
 │   │   ├── code-reviewer.md
 │   │   └── documenter.md
 │   ├── scripts/
-│   │   ├── hooks/          # Git/workflow hooks (5) (UPDATED v4.3.0)
-│   │   │   ├── quality-dispatch.sh  # O(1) dispatcher with caching (NEW)
-│   │   │   ├── cache.sh             # Cache utilities (NEW)
-│   │   │   ├── typecheck.sh         # TypeScript validation (optimized)
-│   │   │   ├── lint.sh              # Multi-language lint (optimized)
-│   │   │   └── branch-guard.sh      # Protected branch warnings
+│   │   ├── hooks/          # Git/workflow hooks (UPDATED v4.3.4)
+│   │   │   └── pre-commit.sh        # Simple pre-commit validation (JSON syntax, markdown links)
 │   │   ├── codex-sync.sh   # GPT expert delegation
 │   │   └── worktree-utils.sh  # Worktree utilities (lock, cleanup)
 │   ├── hooks.json          # Hook definitions (NEW v4.1.0)
@@ -389,37 +385,19 @@ You are the Coder Agent. Implement features using TDD...
 
 `.claude/scripts/hooks/`
 
-### Performance Optimization (v4.3.0)
+### Hook Scripts (v4.3.4)
 
-**Dispatcher Pattern**: Single entry point with O(1) project type detection
-- **P95 latency**: 20ms (target: <100ms)
-- **Cache hit rate**: 100%
-- **External process reduction**: 75-100%
+**Simplified Hook System**: Over-engineered hooks removed in v4.3.4
 
-**Gate vs Validator Separation**:
-- **Gates** (PreToolUse): Safety checks that MUST block operations (e.g., branch-guard)
-- **Validators** (Stop): Quality checks that can be deferred (e.g., typecheck, lint)
+| Script | Purpose |
+|--------|---------|
+| `pre-commit.sh` | Simple pre-commit validation (JSON syntax, markdown links) |
 
-**Profile System**: User-configurable modes
-- **off**: All validators disabled
-- **stop**: Batch validation on session stop (default)
-- **strict**: Per-operation validation (old behavior)
-
-### Hook Scripts
-
-| Script | Purpose | Optimized (v4.3.0) |
-|--------|---------|-------------------|
-| `quality-dispatch.sh` | O(1) dispatcher with caching | NEW |
-| `cache.sh` | Cache utilities (hash-based invalidation) | NEW |
-| `typecheck.sh` | TypeScript validation (`tsc --noEmit`) | Yes (early exit + cache) |
-| `lint.sh` | ESLint/Pylint/gofmt validation | Yes (early exit + cache) |
-| `branch-guard.sh` | Protected branch warnings | No (already fast) |
-
-**Note**: Todo validation moved to `/03_close` command (skill-only architecture)
-
-### Migration Guide
-
-See `@docs/migration-guide.md` for detailed migration instructions.
+**Changes in v4.3.4**:
+- Removed: Complex dispatcher and validation hooks (944+ lines)
+- Reason: Bash commands were being blocked by over-engineered hooks
+- Current: Simple 40-line pre-commit hook for fast JSON/markdown validation
+- No Claude Code hooks (Stop/PreToolUse) to avoid performance overhead
 
 ---
 
@@ -529,18 +507,15 @@ claude-pilot update --apply-statusline
 
 ### v4.3.0 (2026-01-19)
 
-**Hooks Performance Optimization**: Dispatcher pattern with caching and profile system
+**Hooks Performance Optimization**: Dispatcher pattern with caching and profile system (removed in v4.3.4)
 - **Dispatcher pattern**: O(1) project type detection with P95 latency of 20ms
 - **Smart caching**: Config hash-based cache invalidation prevents redundant checks
 - **Gate vs Validator separation**: Safety checks (PreToolUse) vs quality checks (Stop)
 - **Profile system**: User-configurable modes (off/stop/strict) for quality checks
-- **New files**: `quality-dispatch.sh` (247 lines), `cache.sh` (256 lines), `settings.json.example` (60 lines), `quality-profile.json.template` (50 lines), `migration-guide.md` (889 lines)
-- **Optimized files**: `typecheck.sh`, `lint.sh` (early exit + caching)
+- **New files**: Hook scripts with dispatcher/cache/validation (944+ lines total), `settings.json.example` (60 lines), `quality-profile.json.template` (50 lines), `migration-guide.md` (889 lines)
 - **Performance impact**: 99.4-99.8% reduction in hook overhead (10-25s → 30-60ms for 100 edits)
 - **Test results**: 7/8 test suites passing (87.5%), 100% cache hit rate, 75-100% external process reduction
-- **New tests**: 8 test files for dispatcher, cache, debounce, profiles, backward compatibility
-- **Critical fixes**: Race condition (flock), input validation (mode validation), cleanup handlers (trap)
-- **Backward compatible**: Auto-detection for existing settings.json
+- **Note**: These hook scripts were removed in v4.3.4 due to over-engineering
 - Verification: All 7 success criteria met (SC-1 through SC-7)
 
 ### v4.2.1 (2026-01-18)
@@ -789,44 +764,5 @@ claude-pilot update --apply-statusline
 
 ---
 
-**Last Updated**: 2026-01-19 (Two-Layer Documentation v4.2.0)
-**Version**: 4.2.0
-
----
-
-## Local Configuration (NEW v4.2.0)
-
-### Two-Layer Documentation Strategy
-
-claude-pilot uses a two-layer approach to separate plugin documentation from project-specific configuration:
-
-**Plugin Layer (CLAUDE.md)**:
-- Plugin architecture and features
-- Distribution and installation
-- Core feature documentation
-- Plugin-specific components
-
-**Project Layer (CLAUDE.local.md)**:
-- Your project structure
-- Your testing strategy
-- Your quality standards
-- Your MCP server configuration
-- Your documentation conventions
-
-### Creating CLAUDE.local.md
-
-After plugin installation, run `/pilot:setup` to create `CLAUDE.local.md`:
-
-**Template Location**: `.claude/templates/CLAUDE.local.template.md`
-
-**What to Include**:
-- Project structure and organization
-- Testing framework and coverage targets
-- Quality standards and pre-commit hooks
-- MCP server configuration
-- Documentation conventions
-- Common use case examples
-
-**Gitignore Behavior**: `CLAUDE.local.md` and `.claude/*.local.md` are automatically gitignored
-
-**Full Guide**: See `@CLAUDE.md` → "Project Template" section
+**Last Updated**: 2026-01-22 (Docs Consistency Audit)
+**Version**: 4.4.11

@@ -19,12 +19,67 @@
 
 ---
 
-### Step 1: Extract Plan from Conversation
+### Step 1: Dual-Source Extraction
 
-> **Purpose**: Extract plan content from /00_plan conversation
+> **Purpose**: Extract from both draft decisions file AND conversation to prevent omissions
 > **PRP Framework**: See @.claude/skills/spec-driven-workflow/SKILL.md
 
-**Extraction Checklist**:
+#### Step 1.1: Load Draft Decisions File
+
+```bash
+PROJECT_ROOT="$(pwd)"
+DECISIONS_FILE="$(find "$PROJECT_ROOT/.pilot/plan/draft" -name "*_decisions.md" -type f 2>/dev/null | sort -r | head -1)"
+
+if [ -n "$DECISIONS_FILE" ]; then
+    echo "✓ Found decisions file: $DECISIONS_FILE"
+    # Parse Decisions table (D-1, D-2, ...)
+else
+    echo "⚠️ No decisions file found - proceeding with conversation-only extraction"
+fi
+```
+
+#### Step 1.2: Scan Conversation (LLM Context)
+
+LLM scans entire `/00_plan` conversation to extract:
+- User Requirements (Verbatim) with IDs (UR-1, UR-2, ...)
+- All decisions and agreements made
+- Scope confirmations (in/out)
+- Approach selections
+- Constraints specified
+
+#### Step 1.3: Cross-Check
+
+Compare draft decisions with conversation scan:
+
+```markdown
+### Cross-Check Results
+
+| Source | Item | In Draft? | In Conversation? | Status |
+|--------|------|-----------|------------------|--------|
+| Draft | D-1: [decision] | ✅ | ✅ | OK |
+| Draft | D-2: [decision] | ✅ | ✅ | OK |
+| Conversation | [requirement] | ❌ | ✅ | ⚠️ MISSING |
+```
+
+#### Step 1.4: Resolve Omissions
+
+If MISSING items found, use AskUserQuestion (multi-select):
+
+```markdown
+AskUserQuestion:
+  question: "Items found in conversation but not in decisions log. Select items to include:"
+  header: "Omissions"
+  multiSelect: true
+  options:
+    - label: "[Item 1]"
+      description: "Include in plan"
+    - label: "[Item 2]"
+      description: "Include in plan"
+    - label: "Mark all as out of scope"
+      description: "Exclude all missing items"
+```
+
+**Extraction Checklist** (after resolution):
 - [ ] User Requirements (Verbatim)
 - [ ] PRP Analysis (What, Why, How, Success Criteria, Constraints)
 - [ ] Execution Plan
@@ -280,5 +335,6 @@ After running `/01_confirm`:
 
 ---
 
-**Reference Version**: claude-pilot 4.4.11
+**Reference Version**: claude-pilot 4.4.12
 **Last Updated**: 2026-01-22
+**Change**: Added Dual-Source Extraction (Step 1.1-1.4) for omission prevention

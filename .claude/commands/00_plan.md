@@ -1,7 +1,7 @@
 ---
 description: Analyze codebase and create SPEC-First execution plan through dialogue (read-only)
 argument-hint: "[task_description] - required description of the work"
-allowed-tools: Read, Glob, Grep, Bash(git:*), WebSearch, AskUserQuestion, mcp__plugin_serena_serena__*, mcp__plugin_context7_context7__*
+allowed-tools: Read, Glob, Grep, Write, Bash(git:*), WebSearch, AskUserQuestion, mcp__plugin_serena_serena__*, mcp__plugin_context7_context7__*
 ---
 
 # /00_plan
@@ -191,6 +191,54 @@ Ask user to choose next step:
 - D) Run /02_execute (start implementation)
 
 **IMPORTANT**: Only run /01_confirm or /02_execute when user explicitly selects option C or D.
+
+---
+
+## Decision Tracking (Real-time)
+
+**Purpose**: Record decisions as they happen to prevent omissions in /01_confirm
+
+### When to Record
+Record a decision when user:
+- Selects an option from AskUserQuestion
+- Confirms scope (in/out)
+- Agrees on approach
+- Specifies constraints or requirements
+
+### How to Record
+
+**First Decision**: Create draft file
+```bash
+PROJECT_ROOT="$(pwd)"
+TS="$(date +%Y%m%d_%H%M%S)"
+DECISIONS_FILE="$PROJECT_ROOT/.pilot/plan/draft/${TS}_decisions.md"
+mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
+```
+
+Write initial file with header:
+```markdown
+# Decisions Log
+
+> **Session**: {timestamp}
+> **Task**: {task description from arguments}
+
+## Decisions
+
+| ID | Time | Decision | Context |
+|----|------|----------|---------|
+```
+
+**Subsequent Decisions**: Append to existing file
+- Find latest `*_decisions.md` in `.pilot/plan/draft/`
+- Append new row to Decisions table
+- Decision content MUST be in English
+
+### Decision Format
+
+| ID | Time | Decision | Context |
+|----|------|----------|---------|
+| D-1 | HH:MM | User selected approach B: Use real-time tracking | User chose between A) Post-hoc scan, B) Real-time tracking |
+| D-2 | HH:MM | Scope includes: error handling | User confirmed error handling is in scope |
 
 ---
 

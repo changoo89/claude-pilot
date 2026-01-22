@@ -40,7 +40,8 @@ resolve_blocking_findings "$PLAN_FILE"
 ## What This Skill Covers
 
 ### In Scope
-- Plan extraction from `/00_plan` conversation
+- **Dual-source extraction**: Load decisions from draft file + scan conversation
+- **Cross-check verification**: Compare draft vs conversation, detect omissions
 - Plan file creation with full template structure
 - Requirements verification (100% coverage required)
 - Conversation highlights extraction (code examples, diagrams)
@@ -55,6 +56,27 @@ resolve_blocking_findings "$PLAN_FILE"
 ---
 
 ## Core Concepts
+
+### Dual-Source Extraction (NEW)
+
+**Step 1**: Extract from two sources to prevent omissions
+
+**Step 1.1: Load Draft Decisions File**
+- Find `*_decisions.md` in `.pilot/plan/draft/`
+- Parse Decisions table (D-1, D-2, ...)
+- If no file exists, proceed with conversation-only
+
+**Step 1.2: Scan Conversation (LLM Context)**
+- LLM reviews entire `/00_plan` conversation
+- Extract requirements, decisions, scope, constraints
+
+**Step 1.3: Cross-Check**
+- Compare draft items with conversation items
+- Flag MISSING items (in conversation but not in draft)
+
+**Step 1.4: Resolve Omissions**
+- Use AskUserQuestion (multi-select) for MISSING items
+- Options: Include, Out of scope, Already covered
 
 ### Requirements Verification (BLOCKING)
 

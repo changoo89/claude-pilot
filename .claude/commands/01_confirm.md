@@ -24,13 +24,52 @@ _Extract plan from conversation, create file, auto-review (non-BLOCKING), move t
 
 ---
 
-## Step 1: Extract Plan from Conversation
+## Step 1: Dual-Source Extraction
 
-**User Requirements (Verbatim)**: Capture all user input with IDs (UR-1, UR-2, ...)
+### Step 1.1: Load Draft Decisions File
 
-**Success Criteria**: Extract all SC items with verify commands
+```bash
+PROJECT_ROOT="$(pwd)"
+DECISIONS_FILE="$(find "$PROJECT_ROOT/.pilot/plan/draft" -name "*_decisions.md" -type f 2>/dev/null | sort -r | head -1)"
 
-**PRP Analysis**: What (Functionality), Why (Context), How (Approach)
+if [ -n "$DECISIONS_FILE" ]; then
+    echo "✓ Found decisions file: $DECISIONS_FILE"
+else
+    echo "⚠️ No decisions file found - proceeding with conversation-only extraction"
+fi
+```
+
+Parse Decisions table if file exists (extract D-1, D-2, etc.).
+
+### Step 1.2: Scan Conversation (LLM Context)
+
+LLM scans entire `/00_plan` conversation to extract:
+- User Requirements (Verbatim) with IDs (UR-1, UR-2, ...)
+- Decisions, scope confirmations, approach selections, constraints
+
+### Step 1.3: Cross-Check
+
+Compare draft vs conversation. Flag MISSING items (in conversation but not in draft).
+
+### Step 1.4: Resolve Omissions
+
+If MISSING items found, use AskUserQuestion (multi-select) to resolve:
+
+```markdown
+AskUserQuestion:
+  question: "The following items were found in conversation but not in decisions log. Select items to include:"
+  header: "Omissions"
+  multiSelect: true
+  options:
+    - label: "[Item 1]"
+      description: "Include in plan"
+    - label: "[Item 2]"
+      description: "Include in plan"
+    - label: "Mark all as out of scope"
+      description: "Exclude all missing items"
+```
+
+After resolution, proceed to Step 2.
 
 ---
 

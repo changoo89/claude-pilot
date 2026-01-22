@@ -1,341 +1,146 @@
 # Documentation Overview
 
-> **Purpose**: Navigation guide for all CONTEXT.md files and project documentation
-> **Last Updated**: 2026-01-18
+> **Purpose**: Navigation guide for 3-Tier documentation system
+> **Last Updated**: 2026-01-23
 
 ---
 
 ## 3-Tier Documentation System
 
-This project uses a hierarchical documentation system optimized for token usage and context management.
+Hierarchical documentation system optimized for token usage and context management.
 
 ### Tier Structure
 
 ```
 CLAUDE.md (Tier 1 - Project)
-    ├── Quick reference (30-second context)
-    ├── Links to detailed docs
-    └── Standards and workflows
+    ├── Quick reference, links, standards
+    └── ≤200 lines
             ↓
-docs/ai-context/ (Tier 1 - Detailed Reference)
-    ├── project-structure.md
-    └── docs-overview.md (this file)
+docs/ai-context/ (Tier 1 - Detailed)
+    ├── project-structure.md (≤200 lines)
+    └── docs-overview.md (≤200 lines)
             ↓
-{component}/CONTEXT.md (Tier 2 - Component)
-    ├── .claude/commands/CONTEXT.md
-    ├── .claude/agents/CONTEXT.md
-    └── .claude/skills/CONTEXT.md
+{component}/CONTEXT.md (Tier 2)
+    └── ≤200 lines per file
             ↓
-{feature}/CONTEXT.md (Tier 3 - Feature)
-    └── Implementation details
+{feature}/CONTEXT.md (Tier 3)
+    └── ≤200 lines per file
 ```
 
 ---
 
-## Tier 1: CLAUDE.md
+## Tier 1: Entry Points (3 Files Only)
 
-### Purpose
+| File | Purpose | Size Limit |
+|------|---------|------------|
+| `CLAUDE.md` | Project overview, standards, workflows | ≤200 lines |
+| `docs/ai-context/project-structure.md` | Tech stack, directory layout | ≤200 lines |
+| `docs/ai-context/docs-overview.md` | Documentation navigation (this file) | ≤200 lines |
 
-Project-level documentation containing standards, architecture, and workflows that apply to the entire project.
+**Required**: CLAUDE.md must reference both ai-context files at the top.
 
-### Location
-
-`/CLAUDE.md` (project root)
-
-### Contents
-
-- **Project Overview**: One-line description, tech stack, status
-- **Quick Start**: Installation, common commands
-- **Project Structure**: Directory layout, key files
-- **Development Workflow**: SPEC-First, TDD, Ralph Loop
-- **3-Tier Documentation**: Links to Tier 2/3 CONTEXT.md files
-- **Quality Standards**: Testing, linting, coverage targets
-
-### Size Limits
-
-- **Max Lines**: 300
-- **Max Tokens**: ~3000
-- **Action When Exceeded**: Move detailed sections to `docs/ai-context/`
-
----
-
-## docs/ai-context/ (Detailed Reference)
-
-### Purpose
-
-Detailed documentation that supplements Tier 1 when it exceeds size limits. Contains comprehensive information about project structure, system integration, and workflows.
-
-### Location
-
-`/docs/ai-context/`
-
-### Files
-
-| File | Purpose | When to Reference |
-|------|---------|-------------------|
-| **project-structure.md** | Technology stack, directory layout, key files | Understanding codebase organization |
-| **docs-overview.md** | This file: Navigation for all documentation | Finding specific documentation |
-
-**Note**: Other detailed documentation is in each component's CONTEXT.md or REFERENCE.md:
-- Workflows: `@.claude/commands/CONTEXT.md`
-- GPT delegation: `@.claude/skills/gpt-delegation/REFERENCE.md`
-- Agents: `@.claude/agents/CONTEXT.md`
-- MCP servers: `@.claude/commands/setup.md`
-- CI/CD: `@.claude/commands/999_release.md`
-
-### Size Limits
-
-- **Max Lines per File**: 500
-- **Action When Exceeded**: Split into topic-specific files
+**Validation**: `docs-verify.sh --strict` enforces line limits.
 
 ---
 
 ## Tier 2: Component CONTEXT.md
 
 ### Purpose
-
-Component-level architecture documentation for major modules, libraries, or feature groups.
+Component-level architecture for major modules.
 
 ### Folder Patterns
 
-| Pattern | Example | Criteria |
-|---------|---------|----------|
-| `.claude/commands/` | Command workflows | 6+ command files |
-| `.claude/skills/` | Reusable skills | 4+ skill modules |
-| `.claude/agents/` | Specialized agents | 4+ agent configs |
-| `src/*/`, `lib/*/` | Source components | 3+ files |
-| `pages/api/`, `hooks/`, `utils/` | Utility folders | 3+ files |
+| Pattern | Criteria |
+|---------|----------|
+| `.claude/commands/` | 6+ command files |
+| `.claude/skills/` | 4+ skill modules |
+| `.claude/agents/` | 4+ agent configs |
+| `src/*/`, `lib/*/` | 3+ files |
 
-### Template
+### Current Files
 
-```markdown
-# {Component Name} - Component Context (Tier 2)
-> Purpose: Component-level architecture | Tier: 2
+| Location | Notes |
+|----------|-------|
+| `@.claude/commands/CONTEXT.md` | Command workflows |
+| `@.claude/skills/CONTEXT.md` | Skill modules |
+| `@.claude/agents/CONTEXT.md` | Agent configs |
 
-## Purpose
-{Component responsibility}
-
-## Key Component Structure
-{Directory layout, key files}
-
-## Implementation Highlights
-{Core patterns, architectural decisions}
-
-## Integration Points
-{Dependencies, dependents}
-
-## Development Guidelines
-{When to work here, constraints}
-```
-
-### Size Limits
-
-- **Max Lines**: 200
-- **Max Tokens**: ~2000
-- **Action When Exceeded**: Archive historical decisions to `{component}/HISTORY.md`
+**Template**: `@.claude/templates/CONTEXT-tier2.md.template`
 
 ---
 
 ## Tier 3: Feature CONTEXT.md
 
 ### Purpose
-
-Feature-level implementation details for specific features or deeply nested implementations.
+Feature-level implementation details.
 
 ### Folder Patterns
 
-| Pattern | Example | Criteria |
-|---------|---------|----------|
-| `features/*/` | `features/auth/` | Feature implementations |
-| Deep nested (`*/*/*/`) | `src/components/auth/forms/` | Specific features |
-| High iteration files | Frequently changed files | Implementation details |
+| Pattern | Criteria |
+|---------|----------|
+| `features/*/` | Feature implementations |
+| Deep nested (`*/*/*/`) | Specific features |
 
-### Template
-
-```markdown
-# {Feature Name} - Feature Context (Tier 3)
-> Purpose: Feature-level implementation | Tier: 3
-
-## Architecture & Patterns
-{Design patterns, data flow, state}
-
-## Integration & Performance
-{Dependencies, performance}
-
-## Implementation Decisions
-{Decision log, trade-offs}
-
-## Code Examples
-{Common usage, edge cases}
-```
-
-### Size Limits
-
-- **Max Lines**: 150
-- **Max Tokens**: ~1500
-- **Action When Exceeded**: Compress or split by feature
-
----
-
-## Current CONTEXT.md Files
-
-### Existing Tier 2 Files
-
-| Location | Status | Notes |
-|----------|--------|-------|
-| `.claude/commands/CONTEXT.md` | Created | Documents 8 command files |
-| `.claude/skills/CONTEXT.md` | Created | Documents 5 skill modules (tdd, ralph-loop, vibe-coding, git-master, documentation-best-practices) |
-| `.claude/agents/CONTEXT.md` | Created | Documents 8 agent configs |
-
-### To Create
-
-Use `/document {folder_name}` to create CONTEXT.md for any folder:
-
-```bash
-/document .claude/commands
-/document .claude/skills
-/document .claude/agents
-```
+**Template**: `@.claude/templates/CONTEXT-tier3.md.template`
 
 ---
 
 ## Navigation Guide
 
-### For Quick Reference
+### Quick Start
+→ **CLAUDE.md**: Installation, common commands, project overview
 
-Start with **Tier 1 (CLAUDE.md)** for:
-- Installation instructions
-- Common commands
-- Project overview
+### Workflows
+→ **@.claude/commands/CONTEXT.md**: Command workflows, phase boundaries
+→ **@.claude/skills/gpt-delegation/REFERENCE.md**: GPT delegation, Codex CLI
 
-### For Workflow Details
+### Structure
+→ **@docs/ai-context/project-structure.md**: Directory layout, key files
 
-See **@.claude/commands/CONTEXT.md** for:
-- Command workflows
-- Integration points
-- Phase boundary protection
+### Agents
+→ **@.claude/agents/CONTEXT.md**: 8 agents, model selection, parallel execution
 
-See **@.claude/skills/gpt-delegation/REFERENCE.md** for:
-- GPT delegation triggers and patterns
-- Codex CLI integration
-- Intelligent escalation
-
-See **@.claude/commands/999_release.md** for:
-- Hybrid release model (local + CI/CD)
-- Version validation
-- GitHub Actions workflow
-
-### For Codebase Structure
-
-See **@docs/ai-context/project-structure.md** for:
-- Directory layout
-- Key files by purpose
-- Technology stack
-
-### For Agent Configuration
-
-See **@.claude/agents/CONTEXT.md** for:
-- 8 specialized agent configurations
-- Model selection (Haiku, Sonnet, Opus)
-- Parallel execution patterns
-
-### For MCP Servers
-
-See **@.claude/commands/setup.md** for:
-- Recommended MCP servers
-- Context enhancement tools
-
-### For Component Details
-
-See **Tier 2 CONTEXT.md** files for:
-- Component architecture
-- Key files and patterns
-- Integration points
-
-### For Implementation Details
-
-See **Tier 3 CONTEXT.md** files for:
-- Implementation decisions
-- Code examples
-- Performance characteristics
+### MCP & Release
+→ **@.claude/commands/setup.md**: MCP servers
+→ **@.claude/commands/999_release.md**: CI/CD, version management
 
 ---
 
-## Maintenance Commands
+## Commands
 
-### Initialize 3-Tier System
-
-```bash
-/setup
-```
-
-Creates full 3-Tier from scratch:
-- Tier 1: CLAUDE.md with detected tech stack
-- docs/ai-context/: docs-overview.md, project-structure.md
-- Tier 2: CONTEXT.md for selected folders
-
-### Auto-Sync After Implementation
-
-```bash
-/document auto-sync from {RUN_ID}
-```
-
-Updates:
-- Tier 1: CLAUDE.md (last-updated, new sections)
-- docs/ai-context/: project-structure.md, docs-overview.md
-- Tier 2/3: CONTEXT.md files
-- Archives: test-scenarios.md, coverage-report.txt, ralph-loop-log.md
-
-### Update Specific Folder
-
-```bash
-/document {folder_name}
-```
-
-Creates or updates CONTEXT.md for specific folder.
-
-### Full Project Sync
-
-```bash
-/document
-```
-
-Updates all tiers for entire project.
+| Command | Purpose |
+|---------|---------|
+| `/setup` | Initialize 3-Tier system |
+| `/document` | Auto-sync all tiers |
+| `/document {folder}` | Update specific folder CONTEXT.md |
 
 ---
 
-## Document Size Management
+## Size Limits
 
-### Check Sizes
+| Tier | Location | Max Lines |
+|------|----------|-----------|
+| 1 | CLAUDE.md, ai-context/*.md | 200 |
+| 2 | {component}/CONTEXT.md | 200 |
+| 3 | {feature}/CONTEXT.md | 200 |
 
-```bash
-# Count lines in CLAUDE.md
-wc -l CLAUDE.md
-
-# Count lines in all CONTEXT.md files
-find . -name "CONTEXT.md" -exec wc -l {} \;
-```
-
-### Auto-Compress
-
-```bash
-/document auto-compress
-```
-
-Automatically compresses documentation that exceeds thresholds:
-- Tier 1: Moves detailed sections to docs/ai-context/
-- Tier 2: Archives historical decisions to HISTORY.md
-- Tier 3: Splits by feature area
+**When Exceeded**:
+- Tier 1: Extract to Tier 2 CONTEXT.md
+- Tier 2: Archive to HISTORY.md or split
+- Tier 3: Split by feature area
 
 ---
 
-## Related Documentation
+## Validation
 
-- `CLAUDE.md` - Tier 1: Project documentation
-- `.claude/templates/CONTEXT-tier2.md.template` - Component template
-- `.claude/templates/CONTEXT-tier3.md.template` - Feature template
+```bash
+# Verify all documentation
+.claude/scripts/docs-verify.sh --strict
+
+# Check specific file
+wc -l CLAUDE.md  # Must be ≤200
+```
 
 ---
 
-**Last Updated**: 2026-01-22
-**Version**: 4.4.11 (Documentation Consistency Audit)
+**Version**: 4.4.11

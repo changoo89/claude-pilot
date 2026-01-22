@@ -55,17 +55,26 @@ done
 
 ## Step 3: Verify Compliance
 
+Run `docs-verify.sh --strict` for comprehensive validation:
+
 ```bash
-# Tier 1 validation
-test $(wc -l < CLAUDE.md) -le 200 || echo "CLAUDE.md too large"
-test $(find docs/ai-context -maxdepth 1 -name "*.md" | wc -l) -eq 2 || echo "docs/ai-context should have exactly 2 files"
+# Run full documentation verification with strict mode
+# - Tier 1 line limits (≤200 lines): CLAUDE.md, project-structure.md, docs-overview.md
+# - ai-context file count (exactly 2 files)
+# - Cross-reference validation
+# - Circular reference detection
 
-# Tier 2 validation
-for f in **/CONTEXT.md; do test $(wc -l < "$f") -le 200 || echo "$f too large"; done
+.claude/scripts/docs-verify.sh --strict
 
-# Circular reference validation
-.claude/scripts/docs-verify.sh --circular-check
+# On failure: Script exits with error code and prints refactoring instructions
+# Fix violations before proceeding
 ```
+
+**Validation includes**:
+- All 3 Tier 1 docs ≤200 lines (FAIL on violation, not warn)
+- docs/ai-context/ contains exactly 2 files
+- No broken cross-references
+- No circular references
 
 ---
 

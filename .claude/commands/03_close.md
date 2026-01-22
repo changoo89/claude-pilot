@@ -62,31 +62,28 @@ echo "✓ All Success Criteria complete"
 
 ## Step 3: Auto Documentation Sync
 
-Run documentation sync automatically (equivalent to `/document`):
+Run `/document` skill for comprehensive documentation sync and validation:
 
 ```bash
-echo "📚 Auto-syncing documentation..."
+echo "📚 Running documentation sync (three-tier-docs skill)..."
 
-# Sync CONTEXT.md for modified directories
-for dir in src/ components/ lib/ .claude/commands/ .claude/skills/ .claude/agents/; do
-    [ -d "$dir" ] || continue
-    if [ -f "$dir/CONTEXT.md" ]; then
-        echo "   ✓ $dir/CONTEXT.md exists"
-    fi
-done
+# Run docs-verify.sh with --strict mode
+# Validates: Tier 1 line limits, ai-context file count, cross-references
+.claude/scripts/docs-verify.sh --strict
 
-# Verify CLAUDE.md size compliance
-if [ -f "CLAUDE.md" ]; then
-    LINES=$(wc -l < CLAUDE.md | tr -d ' ')
-    if [ "$LINES" -le 200 ]; then
-        echo "   ✓ CLAUDE.md: $LINES lines (≤200)"
-    else
-        echo "   ⚠️ CLAUDE.md: $LINES lines (exceeds 200)"
-    fi
+if [ $? -eq 0 ]; then
+    echo "✓ Documentation validation passed"
+else
+    echo "⚠️ Documentation validation failed - fix issues before closing"
+    exit 1
 fi
-
-echo "✓ Documentation sync complete"
 ```
+
+**Validation includes** (via docs-verify.sh --strict):
+- All 3 Tier 1 docs ≤200 lines (CLAUDE.md, project-structure.md, docs-overview.md)
+- docs/ai-context/ contains exactly 2 files
+- No broken cross-references
+- No circular references
 
 ---
 
@@ -127,7 +124,7 @@ fi
 
 ## Related Skills
 
-**git-master**: Commit creation | **parallel-subagents**: Parallel verification patterns
+**three-tier-docs**: Documentation sync and validation | **git-master**: Commit creation
 
 ---
 

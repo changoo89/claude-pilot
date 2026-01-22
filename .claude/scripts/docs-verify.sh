@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Documentation verification script
-# Validates: skill count, cross-references, line counts, version sync
+# Validates: skill count, cross-references, line counts, version sync, Tier 1 limits
 # Requirements: Bash 3.2+ (no associative arrays used for macOS compatibility)
 
 set -euo pipefail
@@ -15,11 +15,25 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
+# Parse arguments
+STRICT_MODE=false
+for arg in "$@"; do
+    case "$arg" in
+        --strict) STRICT_MODE=true ;;
+    esac
+done
+
+# Tier 1 configuration
+TIER1_LIMIT=200
+
 # Track errors
 ERRORS=0
 WARNINGS=0
 
 echo "🔍 Documentation Verification"
+if [ "$STRICT_MODE" = true ]; then
+    echo "   Mode: STRICT (line violations = errors)"
+fi
 echo "================================"
 
 # 1. Skill count validation
@@ -147,7 +161,50 @@ else
     WARNINGS=$((WARNINGS + 1))
 fi
 
-# 5. Circular reference detection (self-references in REFERENCE.md are allowed as examples)
+# 5. Tier 1 line limit validation
+echo ""
+echo "📏 Tier 1 line limit validation (≤$TIER1_LIMIT lines)..."
+
+TIER1_LINE_ERRORS=0
+TIER1_FILES=(
+    "$PROJECT_ROOT/CLAUDE.md"
+    "$PROJECT_ROOT/docs/ai-context/project-structure.md"
+    "$PROJECT_ROOT/docs/ai-context/docs-overview.md"
+)
+
+for tier1_file in "${TIER1_FILES[@]}"; do
+    if [ -f "$tier1_file" ]; then
+        LINE_COUNT=$(wc -l < "$tier1_file" | tr -d ' ')
+        FILENAME="${tier1_file#$PROJECT_ROOT/}"
+
+        if [ "$LINE_COUNT" -le "$TIER1_LIMIT" ]; then
+            echo -e "${GREEN}✓ $FILENAME: $LINE_COUNT lines${NC}"
+        else
+            OVER=$((LINE_COUNT - TIER1_LIMIT))
+            if [ "$STRICT_MODE" = true ]; then
+                echo -e "${RED}✗ $FILENAME: $LINE_COUNT lines (exceeds limit by $OVER lines - REFACTOR REQUIRED)${NC}"
+                echo "  → Extract content to Tier 2 CONTEXT.md files"
+                TIER1_LINE_ERRORS=$((TIER1_LINE_ERRORS + 1))
+            else
+                echo -e "${YELLOW}⚠ $FILENAME: $LINE_COUNT lines (exceeds limit by $OVER lines)${NC}"
+                WARNINGS=$((WARNINGS + 1))
+            fi
+        fi
+    else
+        echo -e "${YELLOW}⚠ $tier1_file not found${NC}"
+        WARNINGS=$((WARNINGS + 1))
+    fi
+done
+
+if [ "$TIER1_LINE_ERRORS" -gt 0 ]; then
+    ERRORS=$((ERRORS + TIER1_LINE_ERRORS))
+    echo ""
+    echo -e "${RED}⚠️  REFACTORING REQUIRED:${NC}"
+    echo "  Tier 1 documents must be ≤$TIER1_LIMIT lines."
+    echo "  Extract detailed content to Tier 2 CONTEXT.md files."
+fi
+
+# 6. Circular reference detection (self-references in REFERENCE.md are allowed as examples)
 echo ""
 echo "🔄 Circular reference detection..."
 

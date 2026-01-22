@@ -52,11 +52,12 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ### 3-Tier Hierarchy
 
-**Tier 1: Entry Points** (3 files)
+**Tier 1: Entry Points** (3 files only)
 - `CLAUDE.md` - Architecture, features, Quick Start (≤200 lines)
-- `docs/ai-context/project-structure.md` - Tech stack, file tree
-- `docs/ai-context/docs-overview.md` - Documentation navigation, Tier mapping
+- `docs/ai-context/project-structure.md` - Tech stack, file tree (≤200 lines)
+- `docs/ai-context/docs-overview.md` - Documentation navigation, Tier mapping (≤200 lines)
 - **Required**: CLAUDE.md top section must reference the other 2 files
+- **Constraint**: docs/ai-context/ folder must contain exactly 2 files
 
 **Tier 2: CONTEXT.md** (Component Directory)
 - **Purpose**: Component context
@@ -96,13 +97,13 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 3. **Verify tier compliance**:
    ```bash
-   # Tier 1
-   test $(wc -l < CLAUDE.md) -le 200
+   # Run docs-verify.sh with --strict mode
+   .claude/scripts/docs-verify.sh --strict
 
-   # Tier 2
-   for f in **/CONTEXT.md; do
-     test $(wc -l < "$f") -le 100
-   done
+   # Validates:
+   # - All 3 Tier 1 docs ≤200 lines
+   # - docs/ai-context/ has exactly 2 files
+   # - Tier 2/3 CONTEXT.md files ≤200 lines
    ```
 
 ---

@@ -276,6 +276,10 @@ Write initial file with header:
 
 ## PROHIBITED Actions
 
+### ⛔ TOOL RESTRICTIONS (ABSOLUTE)
+- Edit tool: FORBIDDEN on any file
+- Write tool: ONLY `.pilot/plan/draft/*.md`
+
 - Creating plan files without user approval
 - Running /01_confirm automatically
 - Running /02_execute automatically
@@ -289,6 +293,49 @@ Write initial file with header:
 - To move to /02_execute: User must type exactly `/02_execute`
 - NO natural language expression can trigger phase transition
 - When in doubt, ASK: "Should I continue refining the plan, or run /01_confirm?"
+
+---
+
+### ⛔ NATURAL LANGUAGE INTERPRETATION (CRITICAL)
+
+**Korean Examples**:
+- "진행해" (continue/proceed)
+- "해결해줘" (fix it/solve it)
+- "고쳐줘" (fix it)
+- "수정해줘" (modify/fix it)
+- "그렇게 해" (do that)
+
+**English Examples**:
+- "proceed"
+- "go ahead"
+- "fix it"
+- "solve it"
+- "do it"
+- "sounds good"
+- "yes, let's do it"
+
+**ALL mean "continue planning", NOT "implement"**
+
+**IF USER SAYS these phrases:**
+→ Respond: "I'll continue refining the plan. [continue planning with more details]"
+
+**IF USER ASKS TO IMPLEMENT:**
+→ Respond: "This is a planning phase. I'll include this in the plan. Run `/01_confirm` → `/02_execute` to implement."
+
+**Response Template**:
+```
+I understand you want me to [action]. During this planning phase (/00_plan), I'll:
+
+1. Continue refining the plan with [requested changes/details]
+2. Document this in the draft plan
+3. Present the complete plan for your review
+
+To start implementation, you'll need to:
+- Run `/01_confirm` to save and review the plan
+- Run `/02_execute` to begin implementation
+
+Shall I continue planning with [specific detail]?
+```
 
 ---
 

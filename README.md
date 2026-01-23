@@ -35,8 +35,13 @@ Claude Code is powerful, but unstructured. **claude-pilot adds discipline:**
 ## Quick Start
 
 ```bash
-/plugin marketplace add changoo89/claude-pilot
+# Add marketplace (use #release branch)
+/plugin marketplace add changoo89/claude-pilot#release
+
+# Install plugin
 /plugin install claude-pilot
+
+# Initial setup
 /pilot:setup
 ```
 

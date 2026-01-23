@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.30] - 2026-01-23
+
+### Changed
+- **Internal command exclusion**: `999_release.md` and `release/` skill excluded from distribution
+- Updated README.md and CLAUDE.md with `#release` branch installation instructions
+- Documented dual-branch strategy (main for dev, release for distribution)
+
 ## [4.4.29] - 2026-01-23
 
 ### Fixed

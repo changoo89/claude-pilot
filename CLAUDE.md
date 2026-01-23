@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.15 | **Last Updated**: 2026-01-23
+> **Version**: 4.4.30 | **Last Updated**: 2026-01-23
 
 ---
 
@@ -18,7 +18,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 ## Quick Start
 
 ```bash
-/plugin marketplace add changoo89/claude-pilot
+/plugin marketplace add changoo89/claude-pilot#release
 /plugin install claude-pilot
 /pilot:setup
 ```
@@ -151,10 +151,20 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.15 (Superpowers-style command refactoring - all commands invoke skills)
-**Distribution**: GitHub Marketplace (pure plugin)
+**Plugin Version**: 4.4.30
+**Distribution**: GitHub Marketplace via `#release` branch
 
-**Release Process**: `@.claude/commands/999_release.md`
+**Branch Structure**:
+- `main`: Development (`.claude/` structure, agent calls without prefix)
+- `release`: Distribution (`plugins/claude-pilot/` structure, `claude-pilot:` prefix)
+
+**Build Process** (GitHub Actions on tag push):
+1. Copy `.claude/` → `plugins/claude-pilot/`
+2. Add `claude-pilot:` prefix to agent references
+3. Exclude internal commands (`999_release.md`, `release/` skill)
+4. Generate `marketplace.json` with source `./plugins/claude-pilot`
+
+**Release Process**: `@.claude/commands/999_release.md` (internal only)
 
 ---
 
@@ -163,6 +173,9 @@ Response Handling (synthesize, apply, verify)
 ---
 
 ## Version History
+
+### v4.4.30 (2026-01-23)
+Plugin distribution restructure - dual-branch strategy (main for dev, release for distribution), build-time agent prefix transformation, internal command exclusion from distribution
 
 ### v4.4.15 (2026-01-23)
 Superpowers-style command refactoring - all 10 commands simplified to ~10 lines (invoke skill pattern), all execution logic moved to skills (single source of truth), git push with retry added to /03_close

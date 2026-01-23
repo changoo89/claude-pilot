@@ -30,9 +30,13 @@ rm -rf "$OUT_DIR"
 mkdir -p "$PLUGIN_DIR"
 
 # Copy plugin contents to plugins/claude-pilot/
+# Exclude internal-only files (999_release, release skill)
 for dir in agents commands skills; do
   mkdir -p "$PLUGIN_DIR/$dir"
-  rsync -a --delete "$ROOT_DIR/.claude/$dir/" "$PLUGIN_DIR/$dir/"
+  rsync -a --delete \
+    --exclude='999_release.md' \
+    --exclude='release/' \
+    "$ROOT_DIR/.claude/$dir/" "$PLUGIN_DIR/$dir/"
 done
 
 # Add claude-pilot: prefix to agent references in skills (required for plugin installation)

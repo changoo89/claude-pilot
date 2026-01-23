@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "claude-pilot",
+  "name": "claude-pilot-marketplace",
   "version": "4.4.22",
   "description": "SPEC-First development workflow with TDD, Ralph Loop, autonomous agents, and intelligent GPT Codex delegation for Claude Code",
   "owner": {
@@ -21,9 +21,8 @@
         "email": "changoo89@users.noreply.github.com"
       },
       "source": {
-        "source": "github",
-        "repo": "changoo89/claude-pilot",
-        "ref": "release"
+        "source": "url",
+        "url": "https://github.com/changoo89/claude-pilot.git#release"
       },
       "category": "development",
       "homepage": "https://github.com/changoo89/claude-pilot",

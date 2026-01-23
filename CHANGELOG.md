@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [4.4.36] - 2026-01-24
+
+### Fixed
+- include scripts directory in plugin distribution (1dfc9f7)
+- remove unused state/archive directory (03ae259)
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

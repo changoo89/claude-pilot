@@ -102,7 +102,7 @@ Execute ALL steps in sequence.
 ```bash
 # Task 1.1a: Codebase Exploration
 # Invoke parallel-subagents skill with:
-subagent_type: explorer
+subagent_type: claude-pilot:explorer
 prompt: |
   Explore codebase for {task_description}
   - Find relevant TypeScript/JavaScript files in src/
@@ -111,7 +111,7 @@ prompt: |
   Output: File list with brief descriptions
 
 # Task 1.1b: External Research
-subagent_type: researcher
+subagent_type: claude-pilot:researcher
 prompt: |
   Research external documentation for {task_description}
   - Search for official docs and API references

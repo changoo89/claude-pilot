@@ -90,7 +90,7 @@ update_state "SC-3" "completed" 1
 
 ### Task 1.1a: Codebase Exploration
 Task:
-  subagent_type: explorer
+  subagent_type: claude-pilot:explorer
   prompt: |
     Find relevant files for {task}
     - Search for TypeScript/JavaScript files in src/
@@ -100,7 +100,7 @@ Task:
 
 ### Task 1.1b: External Research
 Task:
-  subagent_type: researcher
+  subagent_type: claude-pilot:researcher
   prompt: |
     Research external documentation for {task}
     - Search for official docs, best practices
@@ -118,12 +118,12 @@ Task:
 ## Step 3.2a: Parallel Execution (Independent SCs)
 ### Task 3.2a-1: Coder for SC-1
 Task:
-  subagent_type: coder
+  subagent_type: claude-pilot:coder
   prompt: Execute SC-1 from $PLAN_PATH
 
 ### Task 3.2a-2: Coder for SC-2
 Task:
-  subagent_type: coder
+  subagent_type: claude-pilot:coder
   prompt: Execute SC-2 from $PLAN_PATH
 
 ## Step 3.2b: Sequential Execution (Dependent SCs)
@@ -140,7 +140,7 @@ Task:
 
 ### Task 2.1: Test Coverage Review
 Task:
-  subagent_type: tester
+  subagent_type: claude-pilot:tester
   prompt: |
     Review plan: $PLAN_PATH
     Evaluate test coverage and verification:
@@ -151,14 +151,14 @@ Task:
 
 ### Task 2.2: Type Safety & Lint Review
 Task:
-  subagent_type: validator
+  subagent_type: claude-pilot:validator
   prompt: |
     Review plan: $PLAN_PATH
     Evaluate type safety and code quality
 
 ### Task 2.3: Code Quality Review
 Task:
-  subagent_type: code-reviewer
+  subagent_type: claude-pilot:code-reviewer
   prompt: |
     Review plan: $PLAN_PATH
     Evaluate code quality and design

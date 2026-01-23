@@ -146,7 +146,7 @@ echo "✓ Plan created: $PLAN_FILE"
 Invoke Coder agent with:
 
 Task:
-  subagent_type: coder
+  subagent_type: claude-pilot:coder
   prompt: |
     Execute rapid fix from plan: $PLAN_FILE
 

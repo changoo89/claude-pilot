@@ -144,7 +144,7 @@ skills: [skill list]
 - [ ] **Over-sized files**: SKILL.md >200 lines without split to REFERENCE.md
 
 ### Recovery Actions
-- **Before commit**: Run `bash .claude/scripts/docs-verify.sh`
+- **Before commit**: Invoke docs-verify skill
 - **On verification failure**: Check error message, locate file, apply fix, re-verify
 - **For line count violations**: Extract content to REFERENCE.md or docs/ai-context/
 - **For broken links**: Verify file exists with `test -f {path}`, use absolute paths

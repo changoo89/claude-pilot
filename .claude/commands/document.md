@@ -55,22 +55,18 @@ done
 
 ## Step 3: Verify Compliance
 
-Run `docs-verify.sh --strict` for comprehensive validation:
+Invoke the `docs-verify` skill for comprehensive validation:
 
 ```bash
-# Run full documentation verification with strict mode
+echo "Invoking docs-verify skill for documentation compliance..."
+# The skill validates:
 # - Tier 1 line limits (≤200 lines): CLAUDE.md, project-structure.md, docs-overview.md
 # - ai-context file count (exactly 2 files)
 # - Cross-reference validation
 # - Circular reference detection
-
-.claude/scripts/docs-verify.sh --strict
-
-# On failure: Script exits with error code and prints refactoring instructions
-# Fix violations before proceeding
 ```
 
-**Validation includes**:
+**Validation includes** (via docs-verify skill):
 - All 3 Tier 1 docs ≤200 lines (FAIL on violation, not warn)
 - docs/ai-context/ contains exactly 2 files
 - No broken cross-references

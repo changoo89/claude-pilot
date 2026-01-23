@@ -28,8 +28,8 @@ if ! command -v codex &> /dev/null; then
   return 0
 fi
 
-# Delegate to GPT Architect
-.claude/scripts/codex-sync.sh "workspace-write" "You are a software architect...
+# Delegate to GPT Architect (direct codex CLI format)
+codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "You are a software architect...
 TASK: [One sentence atomic goal]
 EXPECTED OUTCOME: [What success looks like]
 CONTEXT:
@@ -62,16 +62,20 @@ fi
 - Return success (exit 0) to allow continuation
 - Continue with Claude agents
 
-### NEVER Direct Call (CRITICAL)
+### Direct Codex CLI Format (CRITICAL)
 
-**Claude MUST NEVER call codex CLI directly**. Always use `codex-sync.sh` wrapper.
+**Claude MUST use the correct direct codex CLI format**:
 
-**Wrong** (will fail):
-- `codex --sandbox read-only --quiet "prompt"` (--quiet doesn't exist)
-- `codex --sandbox read-only "prompt"` (missing exec subcommand)
+**Correct format**:
+- `codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "PROMPT"`
+- `codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "PROMPT"`
 
-**Correct** (use wrapper):
-- `.claude/scripts/codex-sync.sh "read-only" "prompt"`
+**Parameters**:
+- `-m gpt-5.2`: Use GPT-5.2 model
+- `-s workspace-write`: Write mode (implementation) or `-s read-only`: Read-only mode (advisory)
+- `-c reasoning_effort=medium`: Set reasoning effort to medium
+- `--json`: Output JSON format
+- `"PROMPT"`: The delegation prompt text
 
 ### Delegation Triggers
 
@@ -116,7 +120,7 @@ if [ $iteration -ge 2 ] && [ $TEST_RESULT -ne 0 ]; then
   PROMPT="TASK: Fix failing test ${TEST_NAME}
   EXPECTED OUTCOME: All tests pass
   CONTEXT: Previous attempts: ${ATTEMPT_SUMMARY}, Errors: $(cat /tmp/test.log | tail -20)"
-  .claude/scripts/codex-sync.sh "workspace-write" "$PROMPT"
+  codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "$PROMPT"
 fi
 ```
 
@@ -126,7 +130,7 @@ fi
 # Large plan review
 if [ $(echo "$PLAN" | grep -c "SC-") -ge 5 ]; then
   PROMPT="Review plan: $PLAN (Clarity, Completeness, Feasibility, Dependencies, Risks)"
-  .claude/scripts/codex-sync.sh "read-only" "$PROMPT"
+  codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "$PROMPT"
 fi
 ```
 

@@ -193,35 +193,9 @@ move_to_trash() {
 
 ### Custom Cleanup Script
 
-**`.claude/skills/safe-file-ops/scripts/cleanup.sh`**:
+**Note**: The cleanup.sh script was removed in v4.4.14 as part of skill-based architecture migration. Use the /05_cleanup command with knip directly instead.
 
-```bash
-#!/bin/bash
-set -euo pipefail
-
-TRASH_DIR=".trash/$(date +%Y-%m-%d)"
-mkdir -p "$TRASH_DIR"
-
-process_files() {
-    local git_count=0 trash_count=0
-
-    while IFS= read -r file; do
-        [ ! -e "$file" ] && echo "⚠️  Not found: $file" && continue
-
-        if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
-            git rm -rf "$file" && ((git_count++))
-        else
-            mv "$file" "$TRASH_DIR/" && ((trash_count++))
-        fi
-    done < .cleanup-list.txt
-
-    echo "✅ Complete: Git $git_count, Trash $trash_count"
-}
-
-[ -f ".cleanup-list.txt" ] && process_files || { echo "❌ .cleanup-list.txt not found"; exit 1; }
-```
-
-**Usage**: Create `.cleanup-list.txt` with file paths, then `bash .claude/skills/safe-file-ops/scripts/cleanup.sh`
+**Usage**: Create `.cleanup-list.txt` with file paths, then use `/05_cleanup mode=files` command
 
 ### .trash Cleanup Automation
 

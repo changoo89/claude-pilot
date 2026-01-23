@@ -11,7 +11,7 @@
 Framework: Claude Code Plugin
 Language: Markdown + JSON (no code runtime)
 Package Manager: Claude Code Plugin System
-Version: 4.4.11
+Version: 4.4.14
 Deployment: GitHub Marketplace (plugin distribution)
 ```
 
@@ -50,6 +50,7 @@ claude-pilot/
 │   │   ├── vibe-coding/    # Code quality standards
 │   │   ├── git-master/     # Git operations
 │   │   ├── gpt-delegation/ # GPT expert delegation
+│   │   ├── docs-verify/    # Documentation verification
 │   │   └── frontend-design/# UI/UX design skill
 │   ├── agents/             # Specialized agent configs (8)
 │   │   ├── CONTEXT.md      # Agent folder context
@@ -62,11 +63,7 @@ claude-pilot/
 │   │   ├── code-reviewer.md # Deep code review (opus)
 │   │   └── documenter.md   # Documentation sync (haiku)
 │   ├── scripts/
-│   │   ├── hooks/          # Git hooks
-│   │   │   └── pre-commit.sh
-│   │   ├── codex-sync.sh   # GPT expert delegation
-│   │   ├── statusline.sh   # Statusline display
-│   │   └── docs-verify.sh  # Documentation verification
+│   │   └── statusline.sh   # Statusline display (copied to user project)
 │   └── rules/              # Core rules
 ├── .pilot/                 # Plan management
 │   ├── plan/
@@ -111,6 +108,7 @@ claude-pilot/
 | `vibe-coding` | LLM-readable code standards |
 | `git-master` | Git operations |
 | `gpt-delegation` | GPT expert delegation |
+| `docs-verify` | Documentation verification |
 
 **Details**: See `@.claude/skills/CONTEXT.md`
 
@@ -156,4 +154,4 @@ For detailed information about each component, see the corresponding CONTEXT.md:
 
 ---
 
-**Line Count**: ~180 lines (Target: ≤300 lines) ✅
+**Line Count**: ~160 lines (Target: ≤300 lines) ✅

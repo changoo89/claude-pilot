@@ -121,7 +121,7 @@ else
   if [ "$SC_COUNT" -ge 5 ]; then
     echo "Large plan detected ($SC_COUNT SCs) - delegating to GPT Plan Reviewer..."
 
-    # Delegate to GPT Plan Reviewer using codex-sync.sh
+    # Delegate to GPT Plan Reviewer using direct codex CLI
     PLAN_CONTENT=$(cat "$PLAN_FILE")
     REVIEWER_PROMPT="You are a Plan Reviewer analyzing a large implementation plan.
 PLAN CONTENT:
@@ -136,7 +136,7 @@ REVIEW CRITERIA:
 
 OUTPUT: Quality score (1-10), issues found, recommendations"
 
-    "$PROJECT_ROOT/.claude/scripts/codex-sync.sh" "read-only" "$REVIEWER_PROMPT" "."
+    codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "$REVIEWER_PROMPT"
 
     echo "GPT Plan Reviewer analysis complete"
   fi

@@ -171,15 +171,7 @@ rm -rf .claude/commands  # Backup first if needed
 
 ### Stop Hook Permission Denied
 
-**Symptoms**: `Stop hook error: Permission denied`
-
-**Solution**: Run `/pilot:setup` to fix permissions automatically
-
-**Manual fix**:
-```bash
-chmod +x .claude/scripts/hooks/*.sh
-ls -la .claude/scripts/hooks/*.sh  # Verify: -rwxr-xr-x
-```
+**Note**: Pre-commit hooks were removed in v4.4.14 as part of skill-based architecture migration. This issue no longer applies.
 
 ---
 

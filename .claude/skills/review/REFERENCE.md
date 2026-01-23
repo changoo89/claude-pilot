@@ -15,7 +15,7 @@
 
 **Graceful Fallback**: If Codex CLI not installed → Use Claude plan-reviewer agent
 
-**Implementation**: See `.claude/scripts/codex-sync.sh` and `.claude/rules/delegator/prompts/`
+**Implementation**: See @.claude/skills/gpt-delegation/SKILL.md for direct codex CLI format
 
 ---
 
@@ -180,7 +180,7 @@
 | **Large plan validation** | Plan Reviewer | 5+ success criteria, complex dependencies | `prompts/plan-reviewer.md` |
 | **Scope ambiguity** | Scope Analyst | Unclear requirements, multiple interpretations | `prompts/scope-analyst.md` |
 
-**Implementation**: See `.claude/scripts/codex-sync.sh` and `.claude/rules/delegator/prompts/`
+**Implementation**: See @.claude/skills/gpt-delegation/SKILL.md for direct codex CLI format
 
 **Cost Awareness**: GPT calls cost money (~$0.10-$0.50 per call), use for high-value analysis only
 

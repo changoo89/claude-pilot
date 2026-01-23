@@ -99,12 +99,7 @@ git config --global receive.denyDeleteCurrent warn
 
 ### Pre-commit Hook Setup
 
-```bash
-# Simple pre-commit hook (JSON syntax, markdown links)
-ln -s ../../.claude/scripts/hooks/pre-commit.sh .git/hooks/pre-commit
-```
-
-**Note**: Complex validation hooks were removed in v4.3.4 due to over-engineering.
+**Note**: Pre-commit hooks were removed in v4.4.14 as part of skill-based architecture migration. Use the docs-verify skill for documentation validation instead.
 
 ### CI/CD Integration
 

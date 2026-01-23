@@ -177,7 +177,7 @@ if [ "$BLOCKED_COUNT" -gt 0 ]; then
         # Continue with Claude - not an error
     else
         # Delegate to GPT Architect (workspace-write mode)
-        # Reference: .claude/skills/gpt-delegation/REFERENCE.md
+        # Reference: .claude/skills/gpt-delegation/SKILL.md
         ARCHITECT_PROMPT="You are a software architect analyzing a blocked implementation.
 TASK: Analyze why coder agents are blocked and provide fresh approach
 PLAN FILE: $PLAN_PATH
@@ -187,7 +187,7 @@ MUST DO:
 - Propose alternative implementation approach
 - Report recommended changes"
 
-        .claude/scripts/codex-sync.sh "workspace-write" "$ARCHITECT_PROMPT" "."
+        codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "$ARCHITECT_PROMPT"
 
         # Re-invoke coder with GPT recommendations
         echo "✓ GPT Architect recommendations applied - retrying implementation"

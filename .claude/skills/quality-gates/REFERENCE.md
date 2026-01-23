@@ -1,14 +1,16 @@
 # REFERENCE: Quality Gates
 
-> **Detailed procedures, hook scripts, and troubleshooting for quality validation**
+> **Detailed procedures and troubleshooting for quality validation**
 
 ## Complete Hook Scripts
+
+**Note**: Pre-commit hooks were removed in v4.4.14 as part of skill-based architecture migration. The following hook scripts are kept as reference for manual quality validation procedures.
 
 ### Type Check Hook
 
 ```bash
 #!/bin/bash
-# .claude/scripts/hooks/typecheck.sh
+# Quality validation: Type check
 
 # Auto-detect project type
 if [ -f "tsconfig.json" ]; then
@@ -27,7 +29,7 @@ fi
 
 ```bash
 #!/bin/bash
-# .claude/scripts/hooks/lint.sh
+# Quality validation: Lint
 
 # Auto-detect linter
 if [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ]; then
@@ -117,14 +119,7 @@ npx eslint . --fix
 
 ## Pre-commit Hook Installation
 
-```bash
-# Symlink hooks
-ln -s ../../.claude/scripts/hooks/typecheck.sh .git/hooks/pre-commit-typecheck
-ln -s ../../.claude/scripts/hooks/lint.sh .git/hooks/pre-commit-lint
-
-# Add to git config
-git config --local core.hooksPath .git/hooks
-```
+**Note**: Pre-commit hooks were removed in v4.4.14 as part of skill-based architecture migration. Use docs-verify skill for documentation validation instead.
 
 ## Further Reading
 

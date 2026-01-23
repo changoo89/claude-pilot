@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.13 | **Last Updated**: 2026-01-23
+> **Version**: 4.4.14 | **Last Updated**: 2026-01-23
 
 ---
 
@@ -73,7 +73,7 @@ Trigger Detection (explicit, semantic, description-based)
       ↓
 Expert Selection (Architect, Security Analyst, Code Reviewer, Plan Reviewer, Scope Analyst)
       ↓
-Delegation (codex-sync.sh with 7-section prompt)
+Delegation (direct codex CLI: codex exec -m gpt-5.2 -s MODE -c reasoning_effort=medium)
       ↓
 Response Handling (synthesize, apply, verify)
 ```
@@ -116,13 +116,12 @@ Response Handling (synthesize, apply, verify)
 
 ---
 
-## Quality & Hooks
+## Quality & Skills
 
-**Pre-commit Hook** (`.claude/scripts/hooks/pre-commit.sh`):
-- Fast JSON syntax validation
-- Markdown link sanity check
-- Runs only on staged files
-- Symlinked to `.git/hooks/pre-commit`
+**Skill-Based Architecture**: Documentation validation via `docs-verify` skill
+- Tier 1 line limit validation (≤200 lines)
+- Cross-reference validation
+- File count validation (ai-context exactly 2 files)
 
 **No Claude Code Hooks**: Plugin doesn't use Stop/PreToolUse hooks to avoid performance overhead
 
@@ -147,18 +146,21 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.13 (Cleanup refactor with knip + 4-level risk)
+**Plugin Version**: 4.4.14 (Skill-based architecture - scripts removed, direct codex CLI)
 **Distribution**: GitHub Marketplace (pure plugin)
 
 **Release Process**: `@.claude/commands/999_release.md`
 
 ---
 
-**Line Count**: 191 lines (Target: ≤200 lines) ✅
+**Line Count**: 182 lines (Target: ≤200 lines) ✅
 
 ---
 
 ## Version History
+
+### v4.4.14 (2026-01-23)
+Skill-based architecture migration - removed shell scripts (docs-verify.sh, cleanup.sh, codex-sync.sh, hooks/), direct codex CLI format (gpt-5.2 with reasoning_effort=medium), docs-verify skill for documentation validation
 
 ### v4.4.13 (2026-01-23)
 Cleanup refactor with knip integration, parallel detection, 4-level risk classification

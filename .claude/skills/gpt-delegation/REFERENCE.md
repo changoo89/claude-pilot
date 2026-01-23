@@ -87,7 +87,7 @@ OUTPUT FORMAT:
 |-------|---------|----------|
 | **Codex CLI Missing** | Warning about CLI not installed | Expected behavior. Gracefully falls back to Claude-only analysis. |
 | **Delegation Not Triggering** | GPT Architect not called after 2 failures | Check: (1) iteration count `echo $iteration`, (2) skill loaded `grep gpt-delegation .claude/skills/`, (3) Codex CLI `command -v codex` |
-| **Direct codex call fails** | Claude calls `codex --sandbox` directly with wrong options | NEVER call codex CLI directly. Always use `.claude/scripts/codex-sync.sh` wrapper. Correct format: `codex exec -m MODEL -s MODE --json "PROMPT"` |
+| **Direct codex call fails** | Claude calls `codex --sandbox` directly with wrong options | Always use correct format: `codex exec -m MODEL -s MODE -c reasoning_effort=medium --json "PROMPT"` |
 | **GPT Returns Same Approach** | Same solution already failed | Document previous attempts clearly in prompt with errors and code snippets |
 
 ## Integration Examples
@@ -96,7 +96,7 @@ OUTPUT FORMAT:
 ```bash
 # After 2nd failure in Ralph Loop
 [ $iteration -ge 2 ] && [ $TEST_RESULT -ne 0 ] && {
-  .claude/scripts/codex-sync.sh "workspace-write" "$(build_architect_prompt)"
+  codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "$(build_architect_prompt)"
   npm test
 }
 ```
@@ -105,7 +105,7 @@ OUTPUT FORMAT:
 ```bash
 # After generating plan with 5+ SCs
 [ $(echo "$PLAN" | grep -c "SC-") -ge 5 ] && {
-  .claude/scripts/codex-sync.sh "read-only" "$(build_plan_reviewer_prompt)"
+  codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "$(build_plan_reviewer_prompt)"
 }
 ```
 

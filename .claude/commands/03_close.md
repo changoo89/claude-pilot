@@ -65,22 +65,12 @@ echo "✓ All Success Criteria complete"
 Run `/document` skill for comprehensive documentation sync and validation:
 
 ```bash
-echo "📚 Running documentation sync (three-tier-docs skill)..."
-
-# Run docs-verify.sh with --strict mode
-# Validates: Tier 1 line limits, ai-context file count, cross-references
-.claude/scripts/docs-verify.sh --strict
-
-if [ $? -eq 0 ]; then
-    echo "✓ Documentation validation passed"
-else
-    echo "⚠️ Documentation validation failed - fix issues before closing"
-    exit 1
-fi
+echo "📚 Running documentation sync (docs-verify skill)..."
+echo "Invoke the docs-verify skill to validate documentation compliance."
 ```
 
-**Validation includes** (via docs-verify.sh --strict):
-- All 3 Tier 1 docs ≤200 lines (CLAUDE.md, project-structure.md, docs-overview.md)
+**Validation includes** (via docs-verify skill):
+- Tier 1 line limits (≤200 lines): CLAUDE.md, project-structure.md, docs-overview.md
 - docs/ai-context/ contains exactly 2 files
 - No broken cross-references
 - No circular references

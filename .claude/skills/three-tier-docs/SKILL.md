@@ -43,7 +43,7 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ### Out of Scope
 - Detailed templates → @.claude/skills/three-tier-docs/REFERENCE.md
-- Verification scripts → docs-verify.sh
+- Verification skills → docs-verify
 - Git documentation workflow → @.claude/skills/git-master/SKILL.md
 
 ---
@@ -97,9 +97,7 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 3. **Verify tier compliance**:
    ```bash
-   # Run docs-verify.sh with --strict mode
-   .claude/scripts/docs-verify.sh --strict
-
+   # Invoke the docs-verify skill
    # Validates:
    # - All 3 Tier 1 docs ≤200 lines
    # - docs/ai-context/ has exactly 2 files
@@ -116,7 +114,7 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 **Missing frontmatter**: Add required fields (name, description) | Validate with `yamllint {file}`
 
-**Recovery Steps**: Read error from docs-verify.sh → Find violating file → Apply fix from REFERENCE.md → Re-verify
+**Recovery Steps**: Invoke docs-verify skill → Find violating file → Apply fix from REFERENCE.md → Re-verify
 
 ---
 

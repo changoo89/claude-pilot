@@ -3,6 +3,12 @@
 # Full procedures: @.claude/skills/gpt-delegation/SKILL.md
 # Usage: codex-sync.sh <mode> <prompt> [working_dir]
 
+# CRITICAL: Claude agents MUST use this wrapper script ONLY.
+# NEVER call codex CLI directly with options like:
+#   - codex --sandbox read-only --quiet (--quiet doesn't exist)
+#   - codex --sandbox read-only (missing exec subcommand)
+# Correct format is handled by this script: codex exec -m MODEL -s MODE --json "PROMPT"
+
 # Set PROJECT_DIR (self-contained, no external dependency)
 if [[ -z "${PROJECT_DIR:-}" ]]; then
     if [[ -n "${CLAUDE_PROJECT_DIR:-}" ]]; then

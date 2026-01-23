@@ -87,6 +87,7 @@ OUTPUT FORMAT:
 |-------|---------|----------|
 | **Codex CLI Missing** | Warning about CLI not installed | Expected behavior. Gracefully falls back to Claude-only analysis. |
 | **Delegation Not Triggering** | GPT Architect not called after 2 failures | Check: (1) iteration count `echo $iteration`, (2) skill loaded `grep gpt-delegation .claude/skills/`, (3) Codex CLI `command -v codex` |
+| **Direct codex call fails** | Claude calls `codex --sandbox` directly with wrong options | NEVER call codex CLI directly. Always use `.claude/scripts/codex-sync.sh` wrapper. Correct format: `codex exec -m MODEL -s MODE --json "PROMPT"` |
 | **GPT Returns Same Approach** | Same solution already failed | Document previous attempts clearly in prompt with errors and code snippets |
 
 ## Integration Examples

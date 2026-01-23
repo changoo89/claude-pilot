@@ -62,6 +62,17 @@ fi
 - Return success (exit 0) to allow continuation
 - Continue with Claude agents
 
+### NEVER Direct Call (CRITICAL)
+
+**Claude MUST NEVER call codex CLI directly**. Always use `codex-sync.sh` wrapper.
+
+**Wrong** (will fail):
+- `codex --sandbox read-only --quiet "prompt"` (--quiet doesn't exist)
+- `codex --sandbox read-only "prompt"` (missing exec subcommand)
+
+**Correct** (use wrapper):
+- `.claude/scripts/codex-sync.sh "read-only" "prompt"`
+
 ### Delegation Triggers
 
 | Trigger | Expert | Mode | When to Delegate |

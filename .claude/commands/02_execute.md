@@ -187,6 +187,10 @@ MUST DO:
 - Propose alternative implementation approach
 - Report recommended changes"
 
+        # ⚠️ CRITICAL: Use EXACTLY these parameters
+        # - Model: gpt-5.2 (NEVER change)
+        # - Sandbox: workspace-write (for implementation - NEVER use read-only, workspace-read, or any variation)
+        # - Reasoning: reasoning_effort=medium (MUST be medium - NEVER use high/low)
         codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "$ARCHITECT_PROMPT"
 
         # Re-invoke coder with GPT recommendations

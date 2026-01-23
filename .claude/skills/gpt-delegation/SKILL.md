@@ -62,19 +62,46 @@ fi
 - Return success (exit 0) to allow continuation
 - Continue with Claude agents
 
-### Direct Codex CLI Format (CRITICAL)
+### CRITICAL WARNING: Codex CLI Parameters (READ CAREFULLY)
 
-**Claude MUST use the correct direct codex CLI format**:
+**MANDATORY: Use EXACT values below - NO variations allowed**
 
-**Correct format**:
-- `codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "PROMPT"`
-- `codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "PROMPT"`
+#### Sandbox Mode (-s flag)
 
-**Parameters**:
-- `-m gpt-5.2`: Use GPT-5.2 model
-- `-s workspace-write`: Write mode (implementation) or `-s read-only`: Read-only mode (advisory)
-- `-c reasoning_effort=medium`: Set reasoning effort to medium
-- `--json`: Output JSON format
+**Valid sandbox modes ONLY**:
+- `read-only` - Advisory mode, no file modifications
+- `workspace-write` - Implementation mode, can modify files
+- `danger-full-access` - Full system access (use with extreme caution)
+
+**FORBIDDEN - NEVER use these values**:
+- `workspace-read` - INVALID (Claude often creates this by combining terms - DO NOT USE)
+- `read-write` - INVALID
+- `write` - INVALID
+- Any other variation not in the valid list above
+
+#### Reasoning Effort (-c flag)
+
+**Valid value ONLY**:
+- `reasoning_effort=medium` - MANDATORY, use this EXACT value
+
+**FORBIDDEN - NEVER use these values**:
+- `reasoning_effort=high` - INVALID (Claude may try this for "better results" - DO NOT USE)
+- `reasoning_effort=low` - INVALID
+- Any other reasoning effort value
+
+#### Correct Command Format
+
+```bash
+# Write mode (implementation)
+codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "PROMPT"
+
+# Read-only mode (advisory)
+codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "PROMPT"
+```
+
+#### Other Parameters
+- `-m gpt-5.2`: Use GPT-5.2 model (REQUIRED)
+- `--json`: Output JSON format (REQUIRED)
 - `"PROMPT"`: The delegation prompt text
 
 ### Delegation Triggers

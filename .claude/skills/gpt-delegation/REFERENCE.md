@@ -87,7 +87,7 @@ OUTPUT FORMAT:
 |-------|---------|----------|
 | **Codex CLI Missing** | Warning about CLI not installed | Expected behavior. Gracefully falls back to Claude-only analysis. |
 | **Delegation Not Triggering** | GPT Architect not called after 2 failures | Check: (1) iteration count `echo $iteration`, (2) skill loaded `grep gpt-delegation .claude/skills/`, (3) Codex CLI `command -v codex` |
-| **Direct codex call fails** | Claude calls `codex --sandbox` directly with wrong options | Always use correct format: `codex exec -m MODEL -s MODE -c reasoning_effort=medium --json "PROMPT"` |
+| **Direct codex call fails** | Claude calls `codex --sandbox` directly with wrong options | Always use correct format: `codex exec -m MODEL -s MODE -c reasoning_effort=medium --json "PROMPT"` <br><br>⚠️ **FORBIDDEN VALUES**: <br>- **NEVER use**: `workspace-read`, `read-write`, or any variation <br>- **NEVER use**: `reasoning_effort=high` or `reasoning_effort=low` <br>- **ONLY valid**: `-s read-only` or `-s workspace-write` <br>- **ONLY valid**: `-c reasoning_effort=medium` |
 | **GPT Returns Same Approach** | Same solution already failed | Document previous attempts clearly in prompt with errors and code snippets |
 
 ## Integration Examples
@@ -96,6 +96,9 @@ OUTPUT FORMAT:
 ```bash
 # After 2nd failure in Ralph Loop
 [ $iteration -ge 2 ] && [ $TEST_RESULT -ne 0 ] && {
+  # ⚠️ CRITICAL: Use EXACTLY these values:
+  #   -s workspace-write (NOT "read-only" or any variation)
+  #   -c reasoning_effort=medium (NEVER use "high" or "low")
   codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "$(build_architect_prompt)"
   npm test
 }
@@ -105,6 +108,9 @@ OUTPUT FORMAT:
 ```bash
 # After generating plan with 5+ SCs
 [ $(echo "$PLAN" | grep -c "SC-") -ge 5 ] && {
+  # ⚠️ CRITICAL: Use EXACTLY these values:
+  #   -s read-only (NOT "workspace-write" or any variation)
+  #   -c reasoning_effort=medium (NEVER use "high" or "low")
   codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "$(build_plan_reviewer_prompt)"
 }
 ```
@@ -116,7 +122,7 @@ OUTPUT FORMAT:
 | Graceful fallback | Codex CLI may not be installed |
 | Document previous attempts | Include errors, stack traces, code snippets |
 | Specify expected outcome | Clarify what success looks like |
-| Use appropriate mode | workspace-write for code changes, read-only for analysis |
+| Use appropriate mode | workspace-write for code changes, read-only for analysis <br><br>⚠️ **EXACT VALUES ONLY**: <br>- `-s workspace-write` (NOT "read-only", "workspace-read", etc.) <br>- `-s read-only` (NOT "workspace-write", "read-write", etc.) |
 | Parse output carefully | GPT output format may vary |
 | Verify suggestions | Don't blindly apply recommendations |
 

@@ -168,6 +168,10 @@ REVIEW CRITERIA:
 
 OUTPUT: Quality score (1-10), issues found, recommendations"
 
+    # ⚠️ CRITICAL: Use EXACTLY these parameters
+    # - Model: gpt-5.2 (NEVER change)
+    # - Sandbox: read-only (for advisory mode - NEVER use workspace-write, workspace-read, or any variation)
+    # - Reasoning: reasoning_effort=medium (MUST be medium - NEVER use high/low)
     codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "$REVIEWER_PROMPT"
 
     echo "GPT Plan Reviewer analysis complete"

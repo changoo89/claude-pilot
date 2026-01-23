@@ -23,7 +23,7 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 # Full workflow
 /03_close [RUN_ID|plan_path] [no-commit] [no-push]
 
-# Steps: Load → Verify SCs → Docs → Evidence → Move → Commit → Push
+# Steps: Load → Verify SCs → Docs → Evidence → Move → Commit → Push → Worktree Auto-Merge
 ```
 
 ---
@@ -241,6 +241,73 @@ echo "✓ Pushed to origin/$CURRENT_BRANCH"
 
 ---
 
+### Step 8: Worktree Auto-Merge (Optional)
+
+**Purpose**: Merge feature branch to main when in worktree mode
+
+**Trigger Condition**: One of the following:
+1. `[ -f "$PROJECT_ROOT/.pilot/state/worktree.json" ]`
+2. `$(git worktree list | wc -l) -gt 1`
+3. Current branch starts with `wt/`, `fix/`, or `feat/` prefix
+
+```bash
+# Check if worktree mode
+IS_WORKTREE="false"
+if [ -f "$PROJECT_ROOT/.pilot/state/worktree.json" ]; then
+    IS_WORKTREE="true"
+elif [ "$(git worktree list | wc -l)" -gt 1 ]; then
+    IS_WORKTREE="true"
+elif [[ "$CURRENT_BRANCH" =~ ^(wt/|fix/|feat/) ]]; then
+    IS_WORKTREE="true"
+fi
+
+if [ "$IS_WORKTREE" = "true" ]; then
+    FEATURE_BRANCH="$CURRENT_BRANCH"
+
+    # Dynamic main branch detection
+    MAIN_BRANCH="$(git remote show origin 2>/dev/null | grep 'HEAD branch' | awk '{print $NF}')"
+    MAIN_BRANCH="${MAIN_BRANCH:-main}"
+
+    echo "🔀 Worktree mode detected - merging to $MAIN_BRANCH..."
+
+    # Get worktree path before switching branches
+    WORKTREE_PATH="$(jq -r '.path // empty' "$PROJECT_ROOT/.pilot/state/worktree.json" 2>/dev/null)"
+
+    # Switch to main branch
+    git checkout "$MAIN_BRANCH" || { echo "❌ Failed to checkout $MAIN_BRANCH"; exit 1; }
+
+    # Merge feature branch (fast-forward preferred)
+    if git merge --ff-only "$FEATURE_BRANCH" 2>/dev/null; then
+        echo "✓ Fast-forward merge successful"
+    elif git merge "$FEATURE_BRANCH" --no-edit; then
+        echo "✓ Merge commit created"
+    else
+        echo "❌ Merge failed - resolve conflicts manually"
+        git merge --abort 2>/dev/null || true
+        exit 1
+    fi
+
+    # Push main branch
+    if ! git_push_with_retry "origin" "$MAIN_BRANCH"; then
+        echo "❌ Failed to push $MAIN_BRANCH"
+        exit 1
+    fi
+
+    echo "✓ Merged and pushed $FEATURE_BRANCH → $MAIN_BRANCH"
+
+    # Auto cleanup worktree and branch
+    if [ -n "$WORKTREE_PATH" ] && [ -d "$WORKTREE_PATH" ]; then
+        echo "🧹 Cleaning up worktree..."
+        git worktree remove "$WORKTREE_PATH" --force 2>/dev/null || true
+        git branch -d "$FEATURE_BRANCH" 2>/dev/null || git branch -D "$FEATURE_BRANCH" 2>/dev/null || true
+        rm -f "$PROJECT_ROOT/.pilot/state/worktree.json"
+        echo "✓ Worktree and branch cleaned up"
+    fi
+fi
+```
+
+---
+
 ## What This Skill Covers
 
 ### In Scope
@@ -251,6 +318,7 @@ echo "✓ Pushed to origin/$CURRENT_BRANCH"
 - Plan archival to done/
 - Git commit with Co-Authored-By
 - Git push with retry (3 attempts, exponential backoff)
+- Worktree auto-merge to main branch with cleanup
 
 ### Out of Scope
 - Documentation updates → @.claude/skills/three-tier-docs/SKILL.md
@@ -260,6 +328,6 @@ echo "✓ Pushed to origin/$CURRENT_BRANCH"
 
 ## Further Reading
 
-**Internal**: @.claude/skills/close-plan/REFERENCE.md - Full implementation details | @.claude/skills/git-operations/SKILL.md - Git push retry system | @.claude/skills/git-master/SKILL.md - Version control workflow | @.claude/skills/three-tier-docs/SKILL.md - Documentation synchronization
+**Internal**: @.claude/skills/close-plan/REFERENCE.md - Full implementation details | @.claude/skills/git-operations/SKILL.md - Git push retry system | @.claude/skills/git-master/SKILL.md - Version control workflow | @.claude/skills/three-tier-docs/SKILL.md - Documentation synchronization | @.claude/skills/using-git-worktrees/SKILL.md - Worktree management
 
 **External**: [Conventional Commits](https://www.conventionalcommits.org/) | [GitHub CLI](https://cli.github.com/manual/gh_pr_create)

@@ -200,7 +200,7 @@ Ask user to choose next step:
 
 **Purpose**: Record decisions as they happen to prevent omissions in /01_confirm
 
-> **NOTE**: `decisions.md` is NOT a plan file. It is a temporary working draft stored in `.pilot/plan/draft/` and is exempt from the "Creating plan files without user approval" PROHIBITED rule above.
+> **NOTE**: `*_draft.md` is NOT a plan file. It is a temporary working draft stored in `.pilot/plan/draft/` and is exempt from the "Creating plan files without user approval" PROHIBITED rule above.
 
 ### When to Record
 Record a decision when user:
@@ -215,25 +215,30 @@ Record a decision when user:
 ```bash
 PROJECT_ROOT="$(pwd)"
 TS="$(date +%Y%m%d_%H%M%S)"
-DECISIONS_FILE="$PROJECT_ROOT/.pilot/plan/draft/${TS}_decisions.md"
+DRAFT_FILE="$PROJECT_ROOT/.pilot/plan/draft/${TS}_draft.md"
 mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 ```
 
 Write initial file with header:
 ```markdown
-# Decisions Log
+# {Work Title}
 
 > **Session**: {timestamp}
 > **Task**: {task description from arguments}
 
-## Decisions
+## User Requirements (Verbatim)
+
+| ID | Timestamp | User Input (Original) | Summary |
+|----|-----------|----------------------|---------|
+
+## Decisions Log
 
 | ID | Time | Decision | Context |
 |----|------|----------|---------|
 ```
 
 **Subsequent Decisions**: Append to existing file
-- Find latest `*_decisions.md` in `.pilot/plan/draft/`
+- Find latest `*_draft.md` in `.pilot/plan/draft/`
 - Append new row to Decisions table
 - Decision content MUST be in English
 
@@ -243,6 +248,8 @@ Write initial file with header:
 |----|------|----------|---------|
 | D-1 | HH:MM | User selected approach B: Use real-time tracking | User chose between A) Post-hoc scan, B) Real-time tracking |
 | D-2 | HH:MM | Scope includes: error handling | User confirmed error handling is in scope |
+
+**Note**: The draft file includes both User Requirements and Decisions Log sections for easy reference during /01_confirm.
 
 ---
 

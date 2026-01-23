@@ -26,20 +26,39 @@ _Extract plan from conversation, create file, auto-review (non-BLOCKING), move t
 
 ## Step 1: Dual-Source Extraction
 
-### Step 1.1: Load Draft Decisions File
+### Step 1.1: Load Draft File
+
+**Strategy**: Reuse draft from /00_plan when available, create new if not found.
 
 ```bash
 PROJECT_ROOT="$(pwd)"
-DECISIONS_FILE="$(find "$PROJECT_ROOT/.pilot/plan/draft" -name "*_decisions.md" -type f 2>/dev/null | sort -r | head -1)"
 
-if [ -n "$DECISIONS_FILE" ]; then
-    echo "✓ Found decisions file: $DECISIONS_FILE"
+# First, look for *_draft.md (new naming)
+DRAFT_FILE="$(find "$PROJECT_ROOT/.pilot/plan/draft" -name "*_draft.md" -type f 2>/dev/null | sort -r | head -1)"
+
+# Backward compatibility: if no draft.md found, look for *_decisions.md (old naming)
+if [ -z "$DRAFT_FILE" ]; then
+    DECISIONS_FILE="$(find "$PROJECT_ROOT/.pilot/plan/draft" -name "*_decisions.md" -type f 2>/dev/null | sort -r | head -1)"
+    if [ -n "$DECISIONS_FILE" ]; then
+        echo "⚠️ Found legacy *_decisions.md file: $DECISIONS_FILE"
+        echo "   Will rename to *_draft.md for backward compatibility"
+        DRAFT_FILE="$DECISIONS_FILE"
+    fi
+fi
+
+if [ -n "$DRAFT_FILE" ]; then
+    echo "✓ Found draft file: $DRAFT_FILE"
+    DRAFT_EXISTS=true
 else
-    echo "⚠️ No decisions file found - proceeding with conversation-only extraction"
+    echo "⚠️ No draft file found - will create new draft file"
+    DRAFT_EXISTS=false
 fi
 ```
 
-Parse Decisions table if file exists (extract D-1, D-2, etc.).
+**Parse Draft Content** if file exists:
+- Extract Decisions table (D-1, D-2, etc.)
+- Extract User Requirements table (UR-1, UR-2, etc.)
+- Preserve existing content for merging
 
 ### Step 1.2: Scan Conversation (LLM Context)
 
@@ -73,17 +92,30 @@ After resolution, proceed to Step 2.
 
 ---
 
-## Step 2: Create Plan File in draft/
+## Step 2: Create or Update Plan File in draft/
 
 **⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
 
+### If Draft Exists (reuse and update)
+
 ```bash
-# PROJECT_ROOT = Claude Code execution directory (absolute path required)
-PROJECT_ROOT="$(pwd)"
-TS="$(date +%Y%m%d_%H%M%S)"
-PLAN_FILE="$PROJECT_ROOT/.pilot/plan/draft/${TS}_${work_name}.md"
+# Use the existing DRAFT_FILE from Step 1.1
+if [ "$DRAFT_EXISTS" = true ]; then
+    PLAN_FILE="$DRAFT_FILE"
+    echo "✓ Reusing existing draft: $PLAN_FILE"
+else
+    # Create new draft file
+    TS="$(date +%Y%m%d_%H%M%S)"
+    PLAN_FILE="$PROJECT_ROOT/.pilot/plan/draft/${TS}_draft.md"
+    echo "✓ Creating new draft: $PLAN_FILE"
+fi
 mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 ```
+
+**Strategy**:
+- **If draft exists**: Reuse and update existing file with complete plan content (merge draft + conversation extraction)
+- **If not found**: Create new draft file with complete plan content
+- **Backward compatibility**: If `*_decisions.md` found, rename to `*_draft.md` before updating
 
 **Note**: Do NOT use relative paths. The plan must always be created in the project where Claude Code was launched, not in any subdirectory being explored.
 

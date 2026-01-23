@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.35] - 2026-01-24
+
+### Fixed
+- **setup skill name collision**: Renamed skill from `setup` to `setup-workflow` to prevent infinite loop when command and skill have same name (1df0365)
+- Reverted path transformation approach in favor of proper naming
+
 ## [4.4.34] - 2026-01-24
 
 ### Fixed

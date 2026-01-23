@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.26] - 2026-01-23
+
+### Fixed
+- **Plugin source path**: Changed from `"."` to `"./plugins/claude-pilot"` (matches official anthropic pattern)
+- Plugin now placed in `plugins/claude-pilot/` subdirectory on release branch
+- Fixes "Invalid schema: plugins.0.source" validation error
+
 ## [4.4.25] - 2026-01-23
 
 ### Fixed

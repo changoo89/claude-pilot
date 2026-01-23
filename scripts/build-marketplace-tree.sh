@@ -3,6 +3,7 @@ set -euo pipefail
 
 OUT_DIR="${1:-dist}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PLUGIN_DIR="$OUT_DIR/plugins/claude-pilot"
 
 die() {
   echo "Error: $*" >&2
@@ -26,18 +27,21 @@ require_file "$ROOT_DIR/LICENSE"
 require_file "$ROOT_DIR/CHANGELOG.md"
 
 rm -rf "$OUT_DIR"
-mkdir -p "$OUT_DIR"
+mkdir -p "$PLUGIN_DIR"
 
+# Copy plugin contents to plugins/claude-pilot/
 for dir in agents commands skills; do
-  mkdir -p "$OUT_DIR/$dir"
-  rsync -a --delete "$ROOT_DIR/.claude/$dir/" "$OUT_DIR/$dir/"
+  mkdir -p "$PLUGIN_DIR/$dir"
+  rsync -a --delete "$ROOT_DIR/.claude/$dir/" "$PLUGIN_DIR/$dir/"
 done
 
-mkdir -p "$OUT_DIR/.claude-plugin"
-cp "$ROOT_DIR/.claude-plugin/plugin.json" "$OUT_DIR/.claude-plugin/plugin.json"
+mkdir -p "$PLUGIN_DIR/.claude-plugin"
+cp "$ROOT_DIR/.claude-plugin/plugin.json" "$PLUGIN_DIR/.claude-plugin/plugin.json"
+cp "$ROOT_DIR/README.md" "$PLUGIN_DIR/README.md"
 
-# Generate marketplace.json for release branch (with local source ".")
+# Generate marketplace.json at root (source points to ./plugins/claude-pilot)
 VERSION=$(jq -r '.version' "$ROOT_DIR/.claude-plugin/plugin.json")
+mkdir -p "$OUT_DIR/.claude-plugin"
 cat > "$OUT_DIR/.claude-plugin/marketplace.json" << EOF
 {
   "\$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
@@ -57,25 +61,29 @@ cat > "$OUT_DIR/.claude-plugin/marketplace.json" << EOF
         "name": "changoo89",
         "email": "changoo89@users.noreply.github.com"
       },
-      "source": ".",
+      "source": "./plugins/claude-pilot",
       "category": "development"
     }
   ]
 }
 EOF
 
+# Copy root-level files
 cp "$ROOT_DIR/README.md" "$OUT_DIR/README.md"
 cp "$ROOT_DIR/LICENSE" "$OUT_DIR/LICENSE"
 cp "$ROOT_DIR/CHANGELOG.md" "$OUT_DIR/CHANGELOG.md"
 
+# Validation
 if find "$OUT_DIR" -type d -name ".claude" | grep -q .; then
   die "Output contains a .claude/ directory; marketplace tree must not include it"
 fi
 
-require_dir "$OUT_DIR/agents"
-require_dir "$OUT_DIR/commands"
-require_dir "$OUT_DIR/skills"
-require_file "$OUT_DIR/.claude-plugin/plugin.json"
+require_dir "$PLUGIN_DIR/agents"
+require_dir "$PLUGIN_DIR/commands"
+require_dir "$PLUGIN_DIR/skills"
+require_file "$PLUGIN_DIR/.claude-plugin/plugin.json"
 require_file "$OUT_DIR/.claude-plugin/marketplace.json"
 
 echo "Built marketplace tree at: $OUT_DIR"
+echo "  - Marketplace: $OUT_DIR/.claude-plugin/marketplace.json"
+echo "  - Plugin: $PLUGIN_DIR/"

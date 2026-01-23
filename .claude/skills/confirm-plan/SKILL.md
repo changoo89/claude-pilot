@@ -288,6 +288,11 @@ mv "$PLAN_FILE" "$PROJECT_ROOT/.pilot/plan/pending/$(basename "$PLAN_FILE")"
 echo "✓ Plan ready for execution: /02_execute"
 ```
 
+**🛑 STOP HERE**:
+- Do NOT proceed to /02_execute automatically
+- Do NOT execute the plan
+- Wait for user to explicitly run `/02_execute`
+
 ---
 
 ## GPT Delegation

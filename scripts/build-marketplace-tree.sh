@@ -52,6 +52,11 @@ find "$PLUGIN_DIR/skills" -name "*.md" -exec sed -i '' \
   -e 's/subagent_type: code-reviewer/subagent_type: claude-pilot:code-reviewer/g' \
   {} \;
 
+# Transform skill path references in commands (.claude/skills/ -> skills/)
+find "$PLUGIN_DIR/commands" -name "*.md" -exec sed -i '' \
+  -e 's|@\.claude/skills/|@skills/|g' \
+  {} \;
+
 mkdir -p "$PLUGIN_DIR/.claude-plugin"
 cp "$ROOT_DIR/.claude-plugin/plugin.json" "$PLUGIN_DIR/.claude-plugin/plugin.json"
 cp "$ROOT_DIR/README.md" "$PLUGIN_DIR/README.md"

@@ -6,57 +6,6 @@
 
 ---
 
-## Continuation Verification System
-
-### State File Check (Step 3.5)
-
-**Purpose**: Verify ALL todos complete before archiving plan (Sisyphus enforcement)
-
-**State file**: `.pilot/state/continuation.json`
-
-**Check logic**:
-```bash
-STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
-
-if [ -f "$STATE_FILE" ]; then
-    INCOMPLETE_COUNT="$(jq -r '[.todos[] | select(.status != "complete")] | length' "$STATE_FILE")"
-
-    if [ "$INCOMPLETE_COUNT" -gt 0 ]; then
-        echo "⚠️  WARNING: $INCOMPLETE_COUNT incomplete todos detected"
-        echo "Options:"
-        echo "  1) /continue - Resume work"
-        echo "  2) CLOSE_INCOMPLETE=true /03_close - Force close"
-        echo "  3) Cancel closure"
-
-        if [ "$CLOSE_INCOMPLETE" != "true" ]; then
-            exit 1
-        fi
-    fi
-fi
-```
-
-### State File Preservation
-
-**CRITICAL**: Continuation state file is PRESERVED even after plan closure for recovery purposes
-
-**Archive to done/ folder**:
-```bash
-if [ -f "$STATE_FILE" ]; then
-    STATE_ARCHIVE="$PROJECT_ROOT/.pilot/plan/done/${RUN_ID}_continuation_state.json"
-    cp "$STATE_FILE" "$STATE_ARCHIVE"
-fi
-```
-
-**Delete after confirmation**:
-```bash
-if [ "$DELETE_STATE" = "true" ]; then
-    cp "$STATE_FILE" "$STATE_FILE.final.backup"
-    rm -f "$STATE_FILE"
-fi
-```
-
----
-
 ## Worktree Cleanup
 
 ### Worktree Context (Step 1)
@@ -166,7 +115,6 @@ fi
 | Component | Integration | Data Flow |
 |-----------|-------------|-----------|
 | `/03_close` | Invokes skill | → Archive plan, commit changes |
-| Continuation state | Verification | → Check todos before closing |
 | Git operations | Commit + push | → Create commit, verify push |
 | Worktree cleanup | Remove worktree | → Cleanup if --wt flag used |
 | Documenter Agent | Update docs | → Sync documentation |

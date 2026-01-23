@@ -131,10 +131,5 @@
       "command": "rust-analyzer",
       "scopes": ["rust"]
     }
-  },
-  "continuation": {
-    "level": "normal",
-    "maxIterations": 7,
-    "escapeHatch": ["/cancel", "/stop", "/done"]
   }
 }

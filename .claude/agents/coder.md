@@ -97,27 +97,6 @@ if [ $ITERATION -gt $MAX_ITERATIONS ]; then
 fi
 ```
 
-## Continuation Check (Sisyphus System)
-
-**CRITICAL**: Before stopping, check continuation state to prevent premature exit
-
-```bash
-if [ -f ".pilot/state/continuation.json" ]; then
-    STATE=$(cat .pilot/state/continuation.json)
-    INCOMPLETE=$(echo "$STATE" | jq '[.todos[] | select(.status != "complete")] | length')
-    ITERATION_COUNT=$(echo "$STATE" | jq '.iteration_count // 0')
-    MAX_ITERATIONS=$(echo "$STATE" | jq '.max_iterations // 7')
-fi
-
-if [ "$INCOMPLETE" -gt 0 ] && [ $ITERATION_COUNT -lt $MAX_ITERATIONS ]; then
-    # Continue with next todo - DO NOT STOP
-    NEXT_TODO=$(echo "$STATE" | jq -r '.todos[] | select(.status == "pending") | .id' | head -1)
-    # Update state and continue
-fi
-```
-
-**Escape Hatch**: If user types `/cancel`, `/stop`, or `/done` → Stop immediately
-
 ## Output Format (MANDATORY)
 
 **MANDATORY Fields**: Test Files, Test Results, Coverage, Ralph Loop

@@ -1,11 +1,11 @@
 ---
 name: execute-plan
-description: Plan execution workflow - continuation system, parallel SC implementation, worktree mode, verification patterns, GPT delegation. Use for executing plans with TDD + Ralph Loop.
+description: Plan execution workflow - parallel SC implementation, worktree mode, verification patterns, GPT delegation. Use for executing plans with TDD + Ralph Loop.
 ---
 
 # SKILL: Execute Plan (Plan Execution Workflow)
 
-> **Purpose**: Execute plans using TDD + Ralph Loop with continuation system and parallel execution
+> **Purpose**: Execute plans using TDD + Ralph Loop with parallel execution
 > **Target**: Coder Agent implementing Success Criteria from plans
 
 ---
@@ -23,10 +23,6 @@ description: Plan execution workflow - continuation system, parallel SC implemen
 # Plan detection (MANDATORY FIRST ACTION)
 ls -la .pilot/plan/pending/*.md .pilot/plan/in_progress/*.md 2>/dev/null
 
-# Continuation state check
-STATE_FILE=".pilot/state/continuation.json"
-[ -f "$STATE_FILE" ] && echo "🔄 Resuming from state"
-
 # Parallel Coder invocation (Group 1 - Independent SCs)
 Task: subagent_type: coder, prompt: "Execute SC-1: {DESCRIPTION}..."
 
@@ -41,7 +37,6 @@ Task: subagent_type: code-reviewer, prompt: "Review code"
 ## What This Skill Covers
 
 ### In Scope
-- Continuation state system (Sisyphus)
 - Plan detection and state transition
 - SC dependency analysis and parallel execution
 - Worktree mode setup and management
@@ -273,61 +268,6 @@ echo "   - Documentation sync runs automatically during close"
 - Do NOT proceed to /03_close automatically
 - Do NOT move plan to done/
 - Wait for user to explicitly run `/03_close`
-
----
-
-## Continuation State System (Sisyphus)
-
-### State File Structure
-
-**Path**: `.pilot/state/continuation.json`
-
-**Schema**:
-```json
-{
-  "plan_path": "/absolute/path/to/plan.md",
-  "iteration_count": 0,
-  "max_iterations": 7,
-  "todos": [
-    {
-      "id": "SC-1",
-      "description": "Implement feature X",
-      "status": "pending",
-      "iteration": 0
-    }
-  ]
-}
-```
-
-### Agent Behavior
-
-**Principle**: "The boulder never stops" - agents continue until all todos complete or max iterations (7) reached
-
-1. Complete current task
-2. Check continuation state BEFORE stopping
-3. If incomplete todos exist → Continue to next todo
-4. Else if all todos complete → Return completion marker
-
-### State Management Functions
-
-```bash
-# Update todo status
-update_todo_status() {
-    local sc_id="$1"
-    local status="$2"
-    jq --arg sc "$sc_id" --arg st "$status" \
-        '.todos |= map(if .id == $sc then .status = $st else . end)' \
-        .pilot/state/continuation.json > .pilot/state/continuation.json.tmp
-    mv .pilot/state/continuation.json.tmp .pilot/state/continuation.json
-}
-
-# Check if should continue
-should_continue() {
-    local incomplete=$(jq '[.todos[] | select(.status != "completed")] | length' .pilot/state/continuation.json)
-    local iterations=$(jq '.iteration_count' .pilot/state/continuation.json)
-    [ "$incomplete" -gt 0 ] && [ "$iterations" -lt 7 ]
-}
-```
 
 ---
 

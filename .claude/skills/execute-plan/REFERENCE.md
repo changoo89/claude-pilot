@@ -6,62 +6,6 @@
 
 ---
 
-## Continuation State System
-
-### State File Structure
-
-```json
-{
-  "version": "1.0",
-  "session_id": "uuid",
-  "branch": "main",
-  "plan_file": ".pilot/plan/in_progress/plan.md",
-  "todos": [
-    {"id": "SC-1", "status": "complete", "iteration": 1, "owner": "coder"},
-    {"id": "SC-2", "status": "in_progress", "iteration": 0, "owner": "coder"}
-  ],
-  "iteration_count": 1,
-  "max_iterations": 7,
-  "last_checkpoint": "2026-01-18T10:30:00Z",
-  "continuation_level": "normal"
-}
-```
-
-### State Lifecycle
-
-| Phase | Location | Action |
-|-------|----------|--------|
-| **Before plan detection** | `.pilot/state/continuation.json` | Check if STATE_FILE exists |
-| **Load existing** | Load JSON, extract session_id, plan_file, iteration_count | Display summary, ask resume/fresh |
-| **Resume** | Use plan path from state, find next incomplete todo | Continue work |
-| **Start fresh** | Delete state file | Proceed to plan detection |
-| **After plan detection** | Create new state | Extract todos from plan → Create state JSON |
-| **After todo completion** | Update state | Mark todo complete, check continuation |
-
-### State Update (Atomic)
-
-Use flock for atomic read-modify-write. Update todo status, iteration count, and timestamp. Lock file: `$STATE_FILE.lock`
-
-### Continuation Check
-
-After updating state, check if incomplete todos exist. If yes → Continue to next pending todo (Sisyphus mode).
-
-### Max Iteration Protection
-
-If `iteration_count >= max_iterations` (default: 7) → Pause continuation, request manual review.
-
-### User Escape Hatch
-
-| Command | Purpose | Effect |
-|---------|---------|--------|
-| `/cancel` | Cancel current work | Stops continuation, preserves state |
-| `/stop` | Stop execution | Stops continuation, preserves state |
-| `/done` | Mark as complete | Stops continuation, ready for /03_close |
-
-**Implementation**: Check `USER_INPUT` for `/cancel`, `/stop`, or `/done` → Stop immediately if matched.
-
----
-
 ## Worktree Mode Setup
 
 Full guide: **@.claude/skills/using-git-worktrees/SKILL.md**
@@ -176,19 +120,6 @@ Invoke three agents in parallel: **tester** (tests + coverage), **validator** (t
 
 ---
 
-## Micro-Cycle Compliance
-
-**Micro-Cycle Pattern**:
-1. Edit/Write code
-2. Mark test todo as `in_progress` → **UPDATE STATE**
-3. Run tests
-4. Fix failures or mark complete → **UPDATE STATE**
-5. Repeat
-
-**State Updates**: Every todo status change MUST update continuation state
-
----
-
 ## Related Guides
 
 - **TDD Methodology**: @.claude/skills/tdd/SKILL.md
@@ -197,4 +128,3 @@ Invoke three agents in parallel: **tester** (tests + coverage), **validator** (t
 - **Parallel Execution**: @.claude/skills/parallel-subagents/SKILL.md
 - **Worktree Setup**: @.claude/skills/using-git-worktrees/SKILL.md
 - **GPT Delegation**: @.claude/rules/delegator/orchestration.md
-- **Continuation System**: @.claude/skills/execute-plan/SKILL.md

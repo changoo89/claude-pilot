@@ -143,29 +143,6 @@ echo "Last error: $(last_error)"
 
 ---
 
-## State Management
-
-### Update Loop State
-```bash
-update_ralph_state() {
-  jq --arg sc "$1" --argjson iter "$2" \
-    '.todos |= map(if .id == $sc then .iteration = $iter else . end)' \
-    .pilot/state/continuation.json > .pilot/state/continuation.json.tmp
-  mv .pilot/state/continuation.json.tmp .pilot/state/continuation.json
-}
-```
-
-### Check Loop State
-```bash
-should_continue_loop() {
-  incomplete=$(jq '[.todos[] | select(.status != "completed")] | length' .pilot/state/continuation.json)
-  iterations=$(jq '.iteration_count' .pilot/state/continuation.json)
-  [ "$incomplete" -gt 0 ] && [ "$iterations" -lt 7 ]
-}
-```
-
----
-
 ## Related Skills
 
 - **test-driven-development**: Red-Green-Refactor cycle

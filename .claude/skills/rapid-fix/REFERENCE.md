@@ -53,9 +53,8 @@ Use /00_plan instead for complex bug fixes, multi-file refactoring, architecture
 | Benefit | Description |
 |---------|-------------|
 | Unified execution | All plans execute through `/02_execute` |
-| State management | Leverages existing continuation state system |
 | Ralph Loop integration | Automatic iteration until quality gates pass |
-| Resumption support | Compatible with `/continue` for incomplete work |
+| State tracking | Plan file location + checkboxes track progress |
 
 **Execution flow**:
 ```
@@ -67,7 +66,7 @@ Invokes /02_execute
        ↓
 /02_execute executes SCs with TDD + Ralph Loop
        ↓
-Updates state on each iteration
+Updates plan file checkboxes
        ↓
 Returns when complete or max iterations reached
 ```
@@ -76,45 +75,19 @@ Returns when complete or max iterations reached
 - `PILOT_FIX_MODE=1`: Indicates execution from `/04_fix`
 - `PILOT_FIX_PLAN=$PLAN_PATH`: Absolute path to generated plan
 
-**Continuation state format** (`continuation.json`):
-```json
-{
-  "version": "1.0",
-  "session_id": "uuid",
-  "branch": "main",
-  "plan_file": ".pilot/plan/in_progress/fix_20260118_235333.md",
-  "todos": [
-    {"id": "SC-1", "status": "complete", "iteration": 1},
-    {"id": "SC-2", "status": "in_progress", "iteration": 0}
-  ],
-  "iteration_count": 1,
-  "max_iterations": 7,
-  "last_checkpoint": "2026-01-18T10:30:00Z"
-}
-```
-
-**State lifecycle**:
-1. Created by `/02_execute` on first execution
-2. Updated after each Ralph Loop iteration
-3. Deleted by `/03_close` after commit
-
 ---
 
 ### Step 6: Verify Completion
 
 **Completion check algorithm**:
 ```bash
-# 1. Read state file
-STATE_FILE="$PROJECT_ROOT/.pilot/state/continuation.json"
+# 1. Check plan file for incomplete todos
+grep '\[ \]' "$PLAN_FILE" || echo "All todos complete"
 
-# 2. Extract incomplete todos
-INCOMPLETE_TODOS="$(cat "$STATE_FILE" | jq -r '.todos[] | select(.status != "complete") | .id')"
-INCOMPLETE_COUNT="$(echo "$INCOMPLETE_TODOS" | grep -c '^' || echo 0)"
-
-# 3. Branch logic
-if [ $INCOMPLETE_COUNT -gt 0 ]; then
-  echo "⚠️  Work incomplete: $INCOMPLETE_COUNT todos remaining"
-  echo "→ Use /continue to resume work"
+# 2. Branch logic
+if grep -q '\[ \]' "$PLAN_FILE"; then
+  echo "⚠️  Work incomplete: todos remaining"
+  echo "→ Re-run /02_execute to resume work"
   exit 0
 else
   echo "✅ All todos complete"
@@ -140,17 +113,6 @@ fi
 2. Clear active pointer
 3. Generate commit message: "Fix: [first 50 chars]\n\nCo-Authored-By: Claude <noreply@anthropic.com>"
 4. Create git commit: `git add -A && git commit -m "$COMMIT_MSG"`
-5. Cleanup state file
-
----
-
-## Continuation Support
-
-**Triggers**: Ralph Loop max iterations (7), user interrupt, system error
-
-**Resume**: `/continue` reads `.pilot/state/continuation.json`, continues from last checkpoint
-
-**Max iterations**: Default 7, override with `export MAX_ITERATIONS=10`
 
 ---
 
@@ -160,8 +122,8 @@ fi
 |-----------|-------|--------|-----------|
 | Scope validation | Task too complex (≥0.5) | Reject with `/00_plan` suggestion | 1 |
 | Plan creation | Permission denied, disk full | Report error and exit | 1 |
-| Execution | Coder blocked, max iterations | Preserve state, suggest `/continue` | 0 |
-| Commit | Merge conflict, hook failure | Preserve plan and state | 1 |
+| Execution | Coder blocked, max iterations | Preserve plan, suggest re-run | 0 |
+| Commit | Merge conflict, hook failure | Preserve plan | 1 |
 
 ---
 
@@ -190,7 +152,7 @@ fi
 **Test simple fix**: `/04_fix "Fix typo in README.md"` (should succeed)
 **Test complex task**: `/04_fix "Refactor authentication system"` (should reject)
 
-**Verification checklist**: Plan created → moved to in_progress → `/02_execute` invoked → state created/updated → confirmation prompt → if yes: plan archived + commit created → state cleaned up
+**Verification checklist**: Plan created → moved to in_progress → `/02_execute` invoked → plan file updated → confirmation prompt → if yes: plan archived + commit created
 
 ---
 

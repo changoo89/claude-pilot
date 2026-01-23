@@ -1,8 +1,9 @@
 ---
 description: Initial setup for claude-pilot plugin
 argument-hint: ""
+allowed-tools: Read, Bash(*), Write, AskUserQuestion
 ---
 
-Invoke the setup skill and follow it exactly as presented to you.
+Read the skill file at @.claude/skills/setup/SKILL.md and execute ALL steps exactly as written.
 
-Pass arguments: $ARGUMENTS
+Arguments: $ARGUMENTS

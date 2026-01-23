@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.21] - 2026-01-23
+
+### Added
+- **Release branch strategy** for marketplace deployment
+- Build and validation scripts for marketplace tree structure (`scripts/build-marketplace-tree.sh`, `scripts/validate-marketplace-tree.sh`)
+- GitHub Actions workflow for automatic release branch publishing (`.github/workflows/release-branch.yml`)
+- Integration tests for plugin deployment verification
+
+### Changed
+- **marketplace.json**: Updated source to GitHub ref format (source: github, repo: changoo89/claude-pilot, ref: release)
+- **plugin.json**: Cleaned to metadata only (removed commands, skills, mcpServers fields - auto-detected by Claude Code)
+- Plugin now uses standard marketplace structure (agents/, commands/, skills/ at root) for release branch
+
+### Fixed
+- Plugin deployment now correctly publishes to GitHub marketplace with standard directory structure
+- Agents auto-detection works correctly when installed from marketplace
+
 ## [4.4.18] - 2026-01-23
 
 ### Added

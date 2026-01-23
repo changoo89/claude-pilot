@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.16] - 2026-01-23
+
+### Fixed
+- **Plugin manifest validation**: Remove unsupported `agents` field from plugin.json
+- Plugin installation now works correctly with official Claude Code plugin format
+
+### Changed
+- plugin.json now uses minimal supported fields only
+- Agents are auto-detected from `agents/` directory by Claude Code
+
+
 ## [4.4.15] - 2026-01-23
 
 ### Changed

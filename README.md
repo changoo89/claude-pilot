@@ -182,7 +182,7 @@ claude-pilot/
 - **11 Slash Commands**: Plan, Confirm, Execute, Close, Review, Document, Init, Setup, Release, Cleanup, Continue
 - **8 Agents**: Coder, Tester, Validator, Documenter, Explorer, Researcher, Plan Reviewer, Code Reviewer
 - **25 Skills**: TDD, Ralph Loop, Vibe Coding, Git Master, and 21 more
-- **MCP Servers**: context7, filesystem, sequential-thinking (configured via `/pilot:setup`)
+- **MCP Servers**: context7, sequential-thinking (configured via `/pilot:setup`)
 - **Hooks**: Pre-commit hook for JSON validation and markdown link check
 
 ---
@@ -196,7 +196,6 @@ Run `/pilot:setup` to configure recommended MCPs:
 | MCP | Purpose |
 |-----|---------|
 | context7 | Latest library documentation |
-| filesystem | Local file operations |
 | sequential-thinking | Step-by-step reasoning for complex problems |
 
 The setup command uses a merge strategy:

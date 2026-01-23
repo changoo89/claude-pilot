@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.14] - 2026-01-23
+
+### Removed
+- filesystem MCP from plugin distribution (path placeholder not supported)
+- filesystem references from README.md and setup.md
+
+### Fixed
+- Documentation cleanup for MCP server recommendations
+
 ## [4.4.13] - 2026-01-23
 
 ### Added

@@ -33,16 +33,6 @@
       "description": "Query up-to-date documentation and code examples for any library",
       "instructions": "Use for looking up latest library APIs, finding up-to-date code examples, and version-specific documentation queries."
     },
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "<PROJECT_PATH>"
-      ],
-      "description": "Local file system operations (read/write/search)",
-      "instructions": "Use for local file read/write operations and searching code within local project."
-    },
     "sequential-thinking": {
       "command": "npx",
       "args": [

@@ -99,7 +99,7 @@ Response Handling (synthesize, apply, verify)
 
 ## MCP Servers
 
-**Plugin-Recommended**: context7, filesystem, sequential-thinking
+**Plugin-Recommended**: context7, sequential-thinking
 
 **Setup Guide**: `@.claude/commands/setup.md`
 

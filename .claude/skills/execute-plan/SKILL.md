@@ -26,12 +26,12 @@ PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan
 echo "Plan: $PLAN_PATH"
 
 # Parallel Coder invocation (Group 1 - Independent SCs)
-Task: subagent_type: claude-pilot:coder, prompt: "Execute SC-1: {DESCRIPTION}..."
+Task: subagent_type: coder, prompt: "Execute SC-1: {DESCRIPTION}..."
 
 # Verification (parallel)
-Task: subagent_type: claude-pilot:tester, prompt: "Run tests for {PLAN_PATH}"
-Task: subagent_type: claude-pilot:validator, prompt: "Type check + lint"
-Task: subagent_type: claude-pilot:code-reviewer, prompt: "Review code"
+Task: subagent_type: tester, prompt: "Run tests for {PLAN_PATH}"
+Task: subagent_type: validator, prompt: "Type check + lint"
+Task: subagent_type: code-reviewer, prompt: "Review code"
 ```
 
 ---
@@ -147,7 +147,7 @@ For independent SCs (no shared files, no dependencies), launch 4 parallel coders
 
 ```markdown
 Task:
-  subagent_type: claude-pilot:coder
+  subagent_type: coder
   prompt: |
     Execute SC-1 from $PLAN_PATH
     Use skills: tdd, ralph-loop, vibe-coding
@@ -155,7 +155,7 @@ Task:
     Output: <CODER_COMPLETE> or <CODER_BLOCKED>
 
 Task:
-  subagent_type: claude-pilot:coder
+  subagent_type: coder
   prompt: |
     Execute SC-2 from $PLAN_PATH
     Use skills: tdd, ralph-loop, vibe-coding
@@ -163,7 +163,7 @@ Task:
     Output: <CODER_COMPLETE> or <CODER_BLOCKED>
 
 Task:
-  subagent_type: claude-pilot:coder
+  subagent_type: coder
   prompt: |
     Execute SC-3 from $PLAN_PATH
     Use skills: tdd, ralph-loop, vibe-coding
@@ -171,7 +171,7 @@ Task:
     Output: <CODER_COMPLETE> or <CODER_BLOCKED>
 
 Task:
-  subagent_type: claude-pilot:coder
+  subagent_type: coder
   prompt: |
     Execute SC-4 from $PLAN_PATH
     Use skills: tdd, ralph-loop, vibe-coding
@@ -187,7 +187,7 @@ For SCs with dependencies, execute sequentially:
 
 ```markdown
 Task:
-  subagent_type: claude-pilot:coder
+  subagent_type: coder
   prompt: |
     Execute all SCs from $PLAN_PATH using tdd, ralph-loop
     SCs have dependencies - execute sequentially

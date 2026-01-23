@@ -35,6 +35,18 @@ for dir in agents commands skills; do
   rsync -a --delete "$ROOT_DIR/.claude/$dir/" "$PLUGIN_DIR/$dir/"
 done
 
+# Add claude-pilot: prefix to agent references in skills (required for plugin installation)
+find "$PLUGIN_DIR/skills" -name "*.md" -exec sed -i '' \
+  -e 's/subagent_type: coder/subagent_type: claude-pilot:coder/g' \
+  -e 's/subagent_type: tester/subagent_type: claude-pilot:tester/g' \
+  -e 's/subagent_type: validator/subagent_type: claude-pilot:validator/g' \
+  -e 's/subagent_type: explorer/subagent_type: claude-pilot:explorer/g' \
+  -e 's/subagent_type: researcher/subagent_type: claude-pilot:researcher/g' \
+  -e 's/subagent_type: documenter/subagent_type: claude-pilot:documenter/g' \
+  -e 's/subagent_type: plan-reviewer/subagent_type: claude-pilot:plan-reviewer/g' \
+  -e 's/subagent_type: code-reviewer/subagent_type: claude-pilot:code-reviewer/g' \
+  {} \;
+
 mkdir -p "$PLUGIN_DIR/.claude-plugin"
 cp "$ROOT_DIR/.claude-plugin/plugin.json" "$PLUGIN_DIR/.claude-plugin/plugin.json"
 cp "$ROOT_DIR/README.md" "$PLUGIN_DIR/README.md"

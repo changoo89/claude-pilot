@@ -21,15 +21,15 @@ description: Use when executing independent tasks concurrently. Launch multiple 
 ### Quick Reference
 ```markdown
 Task:
-  subagent_type: claude-pilot:coder
+  subagent_type: coder
   prompt: Implement SC-1: Create authentication service
 
 Task:
-  subagent_type: claude-pilot:coder
+  subagent_type: coder
   prompt: Implement SC-2: Create user service
 
 Task:
-  subagent_type: claude-pilot:coder
+  subagent_type: coder
   prompt: Implement SC-3: Create database migrations
 ```
 
@@ -39,22 +39,22 @@ Task:
 
 **Pattern 1: Independent SCs**
 ```markdown
-Task: subagent_type: claude-pilot:explorer, prompt: Search for auth patterns
-Task: subagent_type: claude-pilot:explorer, prompt: Search for database patterns
-Task: subagent_type: claude-pilot:explorer, prompt: Search for API patterns
+Task: subagent_type: explorer, prompt: Search for auth patterns
+Task: subagent_type: explorer, prompt: Search for database patterns
+Task: subagent_type: explorer, prompt: Search for API patterns
 ```
 
 **Pattern 2: Parallel Verification**
 ```markdown
-Task: subagent_type: claude-pilot:tester, prompt: Run tests and verify coverage
-Task: subagent_type: claude-pilot:validator, prompt: Run type check and lint
-Task: subagent_type: claude-pilot:code-reviewer, prompt: Review for async bugs
+Task: subagent_type: tester, prompt: Run tests and verify coverage
+Task: subagent_type: validator, prompt: Run type check and lint
+Task: subagent_type: code-reviewer, prompt: Review for async bugs
 ```
 
 **Pattern 3: Multi-Angle Review**
 ```markdown
-Task: subagent_type: claude-pilot:plan-reviewer, prompt: Review plan completeness
-Task: subagent_type: claude-pilot:code-reviewer, prompt: Review code quality
+Task: subagent_type: plan-reviewer, prompt: Review plan completeness
+Task: subagent_type: code-reviewer, prompt: Review code quality
 Task: subagent_type: security-analyst, prompt: Review security issues
 ```
 
@@ -86,9 +86,9 @@ Task: subagent_type: security-analyst, prompt: Review security issues
 
 ```bash
 # Launch 3 independent tasks
-Task: subagent_type: claude-pilot:explorer, prompt: Find TypeScript files
-Task: subagent_type: claude-pilot:explorer, prompt: Find test files
-Task: subagent_type: claude-pilot:explorer, prompt: Find config files
+Task: subagent_type: explorer, prompt: Find TypeScript files
+Task: subagent_type: explorer, prompt: Find test files
+Task: subagent_type: explorer, prompt: Find config files
 
 # Verify all complete, no conflicts
 ```

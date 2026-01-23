@@ -77,7 +77,7 @@ Launch 3 parallel agents for comprehensive review from different perspectives:
 
 ```markdown
 Task:
-  subagent_type: claude-pilot:tester
+  subagent_type: tester
   prompt: |
     Review plan: $PLAN_PATH
     Evaluate test coverage and verification:
@@ -92,7 +92,7 @@ Task:
 
 ```markdown
 Task:
-  subagent_type: claude-pilot:validator
+  subagent_type: validator
   prompt: |
     Review plan: $PLAN_PATH
     Evaluate type safety and code quality:
@@ -107,7 +107,7 @@ Task:
 
 ```markdown
 Task:
-  subagent_type: claude-pilot:code-reviewer
+  subagent_type: code-reviewer
   prompt: |
     Review plan: $PLAN_PATH
     Evaluate code quality and design:

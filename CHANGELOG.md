@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.18] - 2026-01-23
+
+### Added
+- **Read-only enforcement** for `/00_plan` command to prevent code modifications during planning
+- Tool restriction warnings (Edit tool FORBIDDEN, Write tool ONLY for draft files)
+- Natural language interpretation rules with Korean/English examples
+- Clarified that phrases like "진행해" and "proceed" mean continue planning, not implement
+
+### Changed
+- Enhanced `spec-driven-workflow/SKILL.md` with comprehensive tool restrictions
+- Added response templates for planning phase interactions
+
 ## [4.4.17] - 2026-01-23
 
 ### Fixed

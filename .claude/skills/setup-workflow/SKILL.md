@@ -1,5 +1,5 @@
 ---
-name: setup
+name: setup-workflow
 description: Initial setup workflow for claude-pilot plugin - directory creation, statusline configuration, documentation sync, GitHub star request
 ---
 

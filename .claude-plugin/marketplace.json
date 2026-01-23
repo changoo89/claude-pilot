@@ -9,8 +9,7 @@
   },
   "metadata": {
     "description": "SPEC-First development workflow with TDD, Ralph Loop, autonomous agents, and intelligent GPT Codex delegation for Claude Code",
-    "version": "4.4.21",
-    "pluginRoot": "./"
+    "version": "4.4.21"
   },
   "plugins": [
     {

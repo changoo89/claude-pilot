@@ -37,7 +37,7 @@ Execute ALL steps in sequence. Do NOT pause between steps unless explicitly mark
 
 ```bash
 mkdir -p .pilot/plan/{draft,pending,in_progress,done}
-mkdir -p .pilot/state/archive
+mkdir -p .pilot/state
 
 echo "✓ .pilot directories created"
 ```
@@ -48,7 +48,7 @@ test -d .pilot/plan/draft && echo "draft: ✓" || echo "draft: ✗"
 test -d .pilot/plan/pending && echo "pending: ✓" || echo "pending: ✗"
 test -d .pilot/plan/in_progress && echo "in_progress: ✓" || echo "in_progress: ✗"
 test -d .pilot/plan/done && echo "done: ✓" || echo "done: ✗"
-test -d .pilot/state/archive && echo "state/archive: ✓" || echo "state/archive: ✗"
+test -d .pilot/state && echo "state: ✓" || echo "state: ✗"
 ```
 
 ---

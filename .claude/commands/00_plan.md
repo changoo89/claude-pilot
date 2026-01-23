@@ -154,6 +154,7 @@ Task:
 - If user's intent is clear → proceed to Step 3
 - If business requirement is ambiguous → ask user to clarify intent (AskUserQuestion)
 - Technical approach → decide autonomously or consult GPT
+- **Record Decision**: After clarifying requirements, append to decisions.md (see Decision Tracking below)
 
 ---
 
@@ -177,6 +178,7 @@ Task:
 - **If technical trade-offs only**: Consult GPT, then decide autonomously
 
 **CRITICAL**: When user selects an approach → **continue planning with that approach** (NOT start implementation)
+- **Record Decision**: After approach selection, append to decisions.md (see Decision Tracking below)
 
 ---
 
@@ -197,6 +199,8 @@ Ask user to choose next step:
 ## Decision Tracking (Real-time)
 
 **Purpose**: Record decisions as they happen to prevent omissions in /01_confirm
+
+> **NOTE**: `decisions.md` is NOT a plan file. It is a temporary working draft stored in `.pilot/plan/draft/` and is exempt from the "Creating plan files without user approval" PROHIBITED rule above.
 
 ### When to Record
 Record a decision when user:

@@ -63,7 +63,8 @@ PLUGIN_PATH=$(jq -r '.plugins["claude-pilot@claude-pilot"][0].installPath // emp
 SOURCE=""
 
 # Always prefer plugin version to ensure latest
-[[ -n "$PLUGIN_PATH" && -f "$PLUGIN_PATH/.claude/scripts/statusline.sh" ]] && SOURCE="$PLUGIN_PATH/.claude/scripts/statusline.sh"
+# Note: In distributed plugin, scripts are at $PLUGIN_PATH/scripts/ (no .claude prefix)
+[[ -n "$PLUGIN_PATH" && -f "$PLUGIN_PATH/scripts/statusline.sh" ]] && SOURCE="$PLUGIN_PATH/scripts/statusline.sh"
 
 if [[ -n "$SOURCE" ]]; then
     # Copy statusline script

@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Create Release
@@ -54,3 +58,23 @@ jobs:
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+  publish_marketplace_branch:
+    name: Publish Marketplace Branch
+    runs-on: ubuntu-latest
+    needs: release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build marketplace tree
+        run: VERSION="${{ github.ref_name }}" bash scripts/build-marketplace-tree.sh dist-marketplace
+
+      - name: Force-push to release branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          RELEASE_BRANCH: release
+          COMMIT_MESSAGE: "Marketplace release ${{ github.ref_name }}"
+        run: bash scripts/publish-release-branch.sh dist-marketplace

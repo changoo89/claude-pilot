@@ -1,7 +1,7 @@
 {
   "name": "claude-pilot",
   "description": "SPEC-First development workflow with TDD, Ralph Loop, and autonomous agent coordination for Claude Code",
-  "version": "4.4.19",
+  "version": "4.4.20",
   "author": {
     "name": "changoo89",
     "url": "https://github.com/changoo89"
@@ -16,12 +16,5 @@
     "agents",
     "testing",
     "documentation"
-  ],
-  "commands": [
-    "./.claude/commands/"
-  ],
-  "skills": [
-    "./.claude/skills/"
-  ],
-  "mcpServers": "./.mcp.json"
+  ]
 }

@@ -21,7 +21,9 @@ description: Plan execution workflow - parallel SC implementation, worktree mode
 ### Quick Reference
 ```bash
 # Plan detection (MANDATORY FIRST ACTION)
-ls -la .pilot/plan/pending/*.md .pilot/plan/in_progress/*.md 2>/dev/null
+PROJECT_ROOT="$(pwd)"
+PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | sort | head -1)"
+echo "Plan: $PLAN_PATH"
 
 # Parallel Coder invocation (Group 1 - Independent SCs)
 Task: subagent_type: coder, prompt: "Execute SC-1: {DESCRIPTION}..."

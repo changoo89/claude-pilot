@@ -185,6 +185,58 @@ docs/ai-context/
 
 ---
 
+## Full Bash Scripts
+
+### Generate Component CONTEXT.md
+
+```bash
+# Generate CONTEXT.md for each component directory
+for dir in src/ components/ lib/ .claude/commands/ .claude/skills/ .claude/agents/; do
+  # Skip if directory doesn't exist
+  [ -d "$dir" ] || continue
+
+  # Skip if CONTEXT.md already exists and is non-empty
+  if [ -f "$dir/CONTEXT.md" ] && [ -s "$dir/CONTEXT.md" ]; then
+    echo "✓ $dir/CONTEXT.md already exists"
+    continue
+  fi
+
+  # Generate CONTEXT.md
+  echo "# $(basename "$dir") Context" > "$dir/CONTEXT.md"
+  echo "" >> "$dir/CONTEXT.md"
+  echo "> **Purpose**: [One-line description]" >> "$dir/CONTEXT.md"
+  echo "" >> "$dir/CONTEXT.md"
+  echo "---" >> "$dir/CONTEXT.md"
+  echo "" >> "$dir/CONTEXT.md"
+  echo "## Purpose" >> "$dir/CONTEXT.md"
+  echo "" >> "$dir/CONTEXT.md"
+  echo "[Detailed description]" >> "$dir/CONTEXT.md"
+  echo "" >> "$dir/CONTEXT.md"
+  echo "**Key Responsibilities**:" >> "$dir/CONTEXT.md"
+  echo "- Responsibility 1" >> "$dir/CONTEXT.md"
+  echo "- Responsibility 2" >> "$dir/CONTEXT.md"
+  echo "" >> "$dir/CONTEXT.md"
+  echo "---" >> "$dir/CONTEXT.md"
+  echo "" >> "$dir/CONTEXT.md"
+  echo "## Key Files" >> "$dir/CONTEXT.md"
+  echo "" >> "$dir/CONTEXT.md"
+
+  # List files in directory
+  if ls "$dir"*.{ts,js,md} 2>/dev/null | head -n 20 | while read f; do
+    echo "- **$(basename "$f")**: [Purpose]"
+  done >> "$dir/CONTEXT.md"; then
+    echo "✓ Generated $dir/CONTEXT.md"
+  fi
+
+  echo "" >> "$dir/CONTEXT.md"
+  echo "---" >> "$dir/CONTEXT.md"
+  echo "" >> "$dir/CONTEXT.md"
+  echo "**Line Count**: $(wc -l < "$dir/CONTEXT.md" | tr -d ' ') lines (Target: ≤200 lines)" >> "$dir/CONTEXT.md"
+done
+```
+
+---
+
 ## Verification Patterns
 
 ### Line Count Verification
@@ -297,4 +349,4 @@ CLAUDE.md:
 
 ---
 
-**Version**: claude-pilot 4.4.11
+**Version**: claude-pilot 4.4.15

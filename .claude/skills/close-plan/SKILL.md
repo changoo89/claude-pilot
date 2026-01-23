@@ -16,27 +16,227 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 - Finalize completed plans
 - Archive plan to done/ folder
 - Create git commit with Co-Authored-By attribution
-- Verify todos complete (Sisyphus enforcement)
+- Push to remote with retry logic
 
 ### Quick Reference
 ```bash
-# Verify completion (continuation state)
-STATE_FILE=".pilot/state/continuation.json"
-INCOMPLETE_COUNT=$(jq -r '[.todos[] | select(.status != "complete")] | length' "$STATE_FILE")
+# Full workflow
+/03_close [RUN_ID|plan_path] [no-commit] [no-push]
 
-# Archive plan to done/
-RUN_ID=$(basename "$ACTIVE_PLAN_PATH" .md)
-DONE_PATH=".pilot/plan/done/${RUN_ID}.md"
-mv "$ACTIVE_PLAN_PATH" "$DONE_PATH"
+# Steps: Load → Verify SCs → Docs → Evidence → Move → Commit → Push
+```
 
-# Git commit with Co-Authored-By
-git add -A
-git commit -m "$(grep -E '^# ' "$ACTIVE_PLAN_PATH" | head -1 | sed 's/^# //')
+---
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+## Execution Steps
 
-# Safe git push with retry
-git_push_with_retry "origin" "$BRANCH"
+Execute ALL steps in sequence. Do NOT pause between steps.
+
+### Step 1: Load Plan
+
+**Purpose**: Find active plan with absolute path detection
+
+```bash
+# PROJECT_ROOT = Claude Code execution directory (absolute path required)
+PROJECT_ROOT="$(pwd)"
+
+# Parse arguments
+PLAN_ARG="$1"
+NO_COMMIT_FLAG="$2"
+NO_PUSH_FLAG="$3"
+
+# Find plan path
+if [ -n "$PLAN_ARG" ] && [ -f "$PLAN_ARG" ]; then
+    PLAN_PATH="$PLAN_ARG"
+elif [ -n "$PLAN_ARG" ]; then
+    # RUN_ID provided
+    PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*${PLAN_ARG}*.md" -type f 2>/dev/null | head -1)"
+else
+    # Find any in-progress plan
+    PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | head -1)"
+fi
+
+if [ -z "$PLAN_PATH" ]; then
+    echo "❌ No plan in progress"
+    exit 1
+fi
+
+echo "✓ Plan: $PLAN_PATH"
+```
+
+---
+
+### Step 2: Verify All SCs Complete
+
+**Purpose**: Ensure all Success Criteria are checked off
+
+```bash
+INCOMPLETE_SC="$(grep -c "^- \[ \]" "$PLAN_PATH" 2>/dev/null || echo 0)"
+
+if [ "$INCOMPLETE_SC" -gt 0 ]; then
+    echo "⚠️  $INCOMPLETE_SC Success Criteria incomplete"
+    echo "   Continue with: /02_execute"
+    exit 1
+fi
+
+echo "✓ All Success Criteria complete"
+```
+
+---
+
+### Step 3: Auto Documentation Sync
+
+**Purpose**: Run docs-verify skill for comprehensive validation
+
+```bash
+echo "📚 Running documentation sync (docs-verify skill)..."
+echo "Invoke the docs-verify skill to validate documentation compliance."
+```
+
+**Validation includes** (via docs-verify skill):
+- Tier 1 line limits (≤200 lines): CLAUDE.md, project-structure.md, docs-overview.md
+- docs/ai-context/ contains exactly 2 files
+- No broken cross-references
+- No circular references
+
+---
+
+### Step 4: Verify Evidence
+
+**Purpose**: Run verification commands from Success Criteria
+
+```bash
+grep -A1 "Verify:" "$PLAN_PATH" | while read cmd; do
+    [[ "$cmd" =~ ^(test|grep|\[) ]] && eval "$cmd" 2>/dev/null || true
+done
+```
+
+---
+
+### Step 5: Move Plan to Done
+
+**Purpose**: Archive plan with timestamp organization
+
+```bash
+# Use same PROJECT_ROOT from Step 1
+TIMESTAMP="$(date +%Y%m%d)"
+DONE_DIR="$PROJECT_ROOT/.pilot/plan/done/${TIMESTAMP}"
+mkdir -p "$DONE_DIR"
+
+# Move plan to done
+mv "$PLAN_PATH" "$DONE_DIR/"
+DONE_PLAN_PATH="$DONE_DIR/$(basename "$PLAN_PATH")"
+
+echo "✓ Plan moved to: $DONE_PLAN_PATH"
+```
+
+---
+
+### Step 6: Git Commit
+
+**Purpose**: Create conventional commit with Co-Authored-By
+
+```bash
+# Skip if no-commit flag
+if [ "$NO_COMMIT_FLAG" = "no-commit" ]; then
+    echo "⚠️  Skipping git commit (no-commit flag)"
+    exit 0
+fi
+
+# Stage plan file
+git add "$DONE_DIR/"
+
+# Extract plan title for commit message
+PLAN_TITLE="$(basename "$PLAN_PATH" .md)"
+
+# Create commit
+git commit -m "close(plan): $PLAN_TITLE" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+
+echo "✓ Git commit created"
+```
+
+---
+
+### Step 7: Git Push with Retry
+
+**Purpose**: Push to remote with exponential backoff retry logic
+
+**Git Push**: Reference @.claude/skills/git-operations/SKILL.md for `git_push_with_retry` function
+
+```bash
+# Skip if no-push flag
+if [ "$NO_PUSH_FLAG" = "no-push" ]; then
+    echo "⚠️  Skipping git push (no-push flag)"
+    exit 0
+fi
+
+# Get current branch
+CURRENT_BRANCH="$(git branch --show-current)"
+
+# Source git-operations helpers
+source_git_helpers() {
+    # Inline git_push_with_retry for standalone execution
+    # See @.claude/skills/git-operations/SKILL.md for canonical version
+
+    git_push_with_retry() {
+        local remote="${1:-origin}"
+        local branch="${2:-$CURRENT_BRANCH}"
+        local max_attempts=3
+        local wait_times=(2 4 8)  # Exponential backoff
+
+        echo "🔄 Pushing to $remote/$branch..."
+
+        for attempt in $(seq 1 $max_attempts); do
+            # Attempt push
+            if git push "$remote" "$branch" 2>&1; then
+                echo "✓ Push successful"
+                return 0
+            fi
+
+            local exit_code=$?
+            local error_output="$(git push "$remote" "$branch" 2>&1 || true)"
+
+            # Classify error
+            if echo "$error_output" | grep -qiE "non-fast-forward|rejected|protected"; then
+                echo "❌ Push rejected (non-fast-forward or protected branch)"
+                echo "   Run: git pull --rebase && git push"
+                return 1
+            elif echo "$error_output" | grep -qiE "authentication|permission|credentials"; then
+                echo "❌ Authentication error"
+                echo "   Check git credentials: git config --list | grep credential"
+                return 1
+            fi
+
+            # Retry for network/transient errors
+            if [ $attempt -lt $max_attempts ]; then
+                local wait_time=${wait_times[$((attempt-1))]}
+                echo "⚠️  Push failed (attempt $attempt/$max_attempts), retrying in ${wait_time}s..."
+                sleep "$wait_time"
+            else
+                echo "❌ Push failed after $max_attempts attempts"
+                return 1
+            fi
+        done
+
+        return 1
+    }
+}
+
+# Execute push
+source_git_helpers
+
+if ! git_push_with_retry "origin" "$CURRENT_BRANCH"; then
+    # Check if remote exists
+    if ! git remote get-url origin >/dev/null 2>&1; then
+        echo "⚠️  No remote 'origin' configured - local commit preserved"
+        exit 0
+    fi
+
+    echo "❌ Push failed - plan closure blocked"
+    exit 1
+fi
+
+echo "✓ Pushed to origin/$CURRENT_BRANCH"
 ```
 
 ---
@@ -44,89 +244,22 @@ git_push_with_retry "origin" "$BRANCH"
 ## What This Skill Covers
 
 ### In Scope
-- Continuation state verification (Sisyphus)
-- Plan archival to done/ folder
-- Git commit creation with Co-Authored-By
-- Safe git push with retry logic (3 attempts)
-- Worktree cleanup (if --wt flag used)
-- Documenter Agent invocation (default)
+- Plan path detection (absolute paths)
+- Success Criteria verification
+- Documentation sync (docs-verify skill)
+- Evidence verification
+- Plan archival to done/
+- Git commit with Co-Authored-By
+- Git push with retry (3 attempts, exponential backoff)
 
 ### Out of Scope
-- Git operations → @.claude/skills/git-master/SKILL.md
 - Documentation updates → @.claude/skills/three-tier-docs/SKILL.md
-
----
-
-## Core Concepts
-
-### Continuation Verification (Sisyphus Enforcement)
-
-**State file**: `.pilot/state/continuation.json`
-
-**Principle**: Verify ALL todos complete before archiving plan
-
-**Check logic**:
-```bash
-if [ -f "$STATE_FILE" ]; then
-    INCOMPLETE_COUNT=$(jq -r '[.todos[] | select(.status != "complete")] | length' "$STATE_FILE")
-    if [ "$INCOMPLETE_COUNT" -gt 0 ]; then
-        echo "⚠️  WARNING: $INCOMPLETE_COUNT incomplete todos"
-        echo "Options: 1) /continue  2) CLOSE_INCOMPLETE=true /03_close  3) Cancel"
-        exit 1
-    fi
-fi
-```
-
-**Escalation options**:
-- Continue work: `/continue`
-- Force close: `CLOSE_INCOMPLETE=true /03_close`
-- Cancel closure: Keep plan in in_progress/
-
-### Safe Git Push with Retry
-
-**Helper functions** (Step 7.2.5):
-- `get_push_error_message()`: Simplify error messages
-- `git_push_with_retry()`: Retry logic (3 attempts, exponential backoff)
-- `print_push_summary()`: Display push failures
-
-**Retry logic**:
-```bash
-# Exit code 1: Don't retry (non-fast-forward, protected branch)
-# Exit code 128: Retry (network, auth, transient errors)
-# Wait times: 2s, 4s, 8s (exponential backoff)
-```
-
-**Blocking**: Plan closure blocks if push fails (exit 1)
-
-**Verification**: Compare local and remote SHA after push
-
-### Worktree Cleanup
-
-**Purpose**: Clean up isolated worktree after completion
-
-**Workflow**:
-1. Read worktree metadata from plan file
-2. Squash merge worktree branch to main
-3. Push squash merge to remote
-4. Remove worktree, branch, directory
-5. Remove lock file (error trap ensures cleanup)
-
-### Documenter Agent (Default)
-
-**Invocation**: Always after plan completion (skip with `--no-docs`)
-
-**Updates**:
-- CLAUDE.md (Tier 1) - if project-level changes
-- Component CONTEXT.md (Tier 2) - if component changes
-- docs/ai-context/ - always update project-structure.md, system-integration.md
-- Plan file - add execution summary
-
-**Archives**: test-scenarios.md, coverage-report.txt, ralph-loop-log.md
+- Advanced git workflows → @.claude/skills/git-master/SKILL.md
 
 ---
 
 ## Further Reading
 
-**Internal**: @.claude/skills/close-plan/REFERENCE.md - Full implementation details, state management, git push system, worktree cleanup | @.claude/skills/git-master/SKILL.md - Version control workflow | @.claude/skills/three-tier-docs/SKILL.md - Documentation synchronization
+**Internal**: @.claude/skills/close-plan/REFERENCE.md - Full implementation details | @.claude/skills/git-operations/SKILL.md - Git push retry system | @.claude/skills/git-master/SKILL.md - Version control workflow | @.claude/skills/three-tier-docs/SKILL.md - Documentation synchronization
 
 **External**: [Conventional Commits](https://www.conventionalcommits.org/) | [GitHub CLI](https://cli.github.com/manual/gh_pr_create)

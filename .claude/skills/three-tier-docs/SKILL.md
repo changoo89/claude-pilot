@@ -81,28 +81,69 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ---
 
-## Auto-Sync Pattern
+## Execution Steps
 
-### After Implementation
+### Step 1: Sync Tier 1 Documents
 
-1. **Check what changed**:
-   ```bash
-   git diff --name-only | grep -E '\.(ts|js|md)$'
-   ```
+**Tier 1 Structure** (3 files total):
+- `CLAUDE.md` - Project architecture, features, Quick Start (≤200 lines)
+- `docs/ai-context/project-structure.md` - Tech stack, file tree
+- `docs/ai-context/docs-overview.md` - Documentation navigation, Tier mapping
 
-2. **Update affected tiers**:
-   - Architecture change? → Tier 1 (CLAUDE.md)
-   - Component change? → Tier 2 (CONTEXT.md)
-   - New pattern? → Tier 3 (docs/)
+**Required**: CLAUDE.md must reference project-structure.md and docs-overview.md at the top
 
-3. **Verify tier compliance**:
-   ```bash
-   # Invoke the docs-verify skill
-   # Validates:
-   # - All 3 Tier 1 docs ≤200 lines
-   # - docs/ai-context/ has exactly 2 files
-   # - Tier 2/3 CONTEXT.md files ≤200 lines
-   ```
+**Verification**:
+```bash
+# Check Tier 1 files exist
+for file in "CLAUDE.md" "docs/ai-context/project-structure.md" "docs/ai-context/docs-overview.md"; do
+  if [ ! -f "$file" ]; then
+    echo "FAIL: Missing Tier 1 file: $file"
+    exit 1
+  fi
+done
+
+# Check CLAUDE.md references the other 2 files
+if ! grep -q "project-structure.md" CLAUDE.md || ! grep -q "docs-overview.md" CLAUDE.md; then
+  echo "FAIL: CLAUDE.md must reference project-structure.md and docs-overview.md"
+  exit 1
+fi
+
+echo "✓ Tier 1 documents verified"
+```
+
+---
+
+### Step 2: Generate Component CONTEXT.md Files
+
+**Target directories**: Any directory with code files (e.g., src/, components/, lib/)
+
+**Script**: See REFERENCE.md for full bash implementation
+
+```bash
+# Generate CONTEXT.md for key directories
+for dir in src/ components/ lib/ .claude/commands/ .claude/skills/ .claude/agents/; do
+  [ -d "$dir" ] || continue
+  [ -f "$dir/CONTEXT.md" ] && [ -s "$dir/CONTEXT.md" ] && continue
+  # Generate template (see REFERENCE.md for full script)
+  echo "✓ Generated $dir/CONTEXT.md"
+done
+```
+
+**Size Limit**: ≤200 lines per file
+
+---
+
+### Step 3: Verify Documentation Compliance
+
+Invoke the `docs-verify` skill for comprehensive validation.
+
+**Validation includes**:
+- Tier 1 line limits (≤200 lines): CLAUDE.md, project-structure.md, docs-overview.md
+- ai-context file count (exactly 2 files)
+- Cross-reference validation
+- Circular reference detection
+
+**Script**: See @.claude/skills/docs-verify/SKILL.md for full verification commands
 
 ---
 
@@ -126,4 +167,4 @@ description: Use after code changes. Syncs CLAUDE.md, CONTEXT.md, and docs/ai-co
 
 ---
 
-**Version**: claude-pilot 4.4.11
+**Version**: claude-pilot 4.4.15

@@ -40,25 +40,62 @@ git pull --ff-only || echo "Manual merge required"
 
 ### Push with Retry
 
-**Purpose**: Handle transient network failures (3 attempts, 2s delay)
+**Purpose**: Handle transient network failures with exponential backoff (3 attempts, 2s/4s/8s delay)
 
 ```bash
 git_push_with_retry() {
-  local branch="${1:-$(git rev-parse --abbrev-ref HEAD)}"
-  local remote="${2:-origin}"
+  local remote="${1:-origin}"
+  local branch="${2:-$(git rev-parse --abbrev-ref HEAD)}"
+  local max_attempts=3
+  local wait_times=(2 4 8)  # Exponential backoff
 
-  for attempt in {1..3}; do
-    git push "$remote" "$branch" 2>&1 && return 0
-    if git status 2>&1 | grep -qiE "network|connection|timeout"; then
-      echo "Network error, retrying ($attempt/3)..."
-      sleep 2
+  echo "🔄 Pushing to $remote/$branch..."
+
+  for attempt in $(seq 1 $max_attempts); do
+    # Attempt push
+    if git push "$remote" "$branch" 2>&1; then
+      echo "✓ Push successful"
+      return 0
+    fi
+
+    local exit_code=$?
+    local error_output="$(git push "$remote" "$branch" 2>&1 || true)"
+
+    # Classify error
+    if echo "$error_output" | grep -qiE "non-fast-forward|rejected|protected"; then
+      echo "❌ Push rejected (non-fast-forward or protected branch)"
+      echo "   Run: git pull --rebase && git push"
+      return 1
+    elif echo "$error_output" | grep -qiE "authentication|permission|credentials"; then
+      echo "❌ Authentication error"
+      echo "   Check git credentials: git config --list | grep credential"
+      return 1
+    fi
+
+    # Retry for network/transient errors
+    if [ $attempt -lt $max_attempts ]; then
+      local wait_time=${wait_times[$((attempt-1))]}
+      echo "⚠️  Push failed (attempt $attempt/$max_attempts), retrying in ${wait_time}s..."
+      sleep "$wait_time"
     else
-      echo "Non-retryable error" >&2 && return 1
+      echo "❌ Push failed after $max_attempts attempts"
+      return 1
     fi
   done
+
   return 1
 }
 ```
+
+**Error Classification**:
+- **Non-retryable** (return 1): non-fast-forward, rejected, protected branch, authentication
+- **Retryable** (continue loop): network errors, connection timeout, transient failures
+- **No remote** (handled by caller): Remote doesn't exist
+
+**Retry Strategy**:
+- Max attempts: 3
+- Wait times: 2s, 4s, 8s (exponential backoff)
+- Exit on non-retryable errors immediately
 
 ### Pull with Safety Checks
 

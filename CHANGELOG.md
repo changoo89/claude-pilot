@@ -7,9 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.4.15] - 2026-01-23
 
+### Changed
+- **Superpowers-style command refactoring**: All 10 commands simplified to ~10 lines
+- Commands now invoke skills directly (single source of truth pattern)
+- All execution logic moved from commands to skills
+- Git push with retry (exponential backoff) added to /03_close
+
+### Added
+- `setup/SKILL.md` - New skill for setup command
+- Git push retry with exponential backoff (2s, 4s, 8s) in git-operations skill
+- Command-skill contract documentation in plan files
+
 ### Fixed
+- /03_close now pushes to remote (previously only committed)
+- Duplicate logic between commands and skills eliminated
 - Decision tracking issue in /00_plan command
-- Removed scripts in skill-based cleanup workflow
+
+### Migration Notes
+- Commands reduced from 80-480 lines to ~10 lines each
+- Skills expanded to contain all execution logic (200-560 lines)
+- Pattern: `Invoke the [skill-name] skill and follow it exactly`
 
 ## [4.4.14] - 2026-01-23
 

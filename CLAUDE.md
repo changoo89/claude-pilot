@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.14 | **Last Updated**: 2026-01-23
+> **Version**: 4.4.15 | **Last Updated**: 2026-01-23
 
 ---
 
@@ -28,6 +28,11 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 ## Plugin Architecture
 
 **Pure Plugin**: No Python dependency, native Claude Code integration
+
+**Superpowers-Style Commands**: All commands invoke skills (single source of truth)
+- Commands: ~10 lines (frontmatter + skill invocation)
+- Skills: All execution logic (steps, bash scripts, verification)
+- Pattern: `Invoke the [skill-name] skill and follow it exactly`
 
 **Core Features**:
 - **SPEC-First Planning**: `/00_plan "task"`
@@ -146,7 +151,7 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.14 (Skill-based architecture - scripts removed, direct codex CLI)
+**Plugin Version**: 4.4.15 (Superpowers-style command refactoring - all commands invoke skills)
 **Distribution**: GitHub Marketplace (pure plugin)
 
 **Release Process**: `@.claude/commands/999_release.md`
@@ -158,6 +163,9 @@ Response Handling (synthesize, apply, verify)
 ---
 
 ## Version History
+
+### v4.4.15 (2026-01-23)
+Superpowers-style command refactoring - all 10 commands simplified to ~10 lines (invoke skill pattern), all execution logic moved to skills (single source of truth), git push with retry added to /03_close
 
 ### v4.4.14 (2026-01-23)
 Skill-based architecture migration - removed shell scripts (docs-verify.sh, cleanup.sh, codex-sync.sh, hooks/), direct codex CLI format (gpt-5.2 with reasoning_effort=medium), docs-verify skill for documentation validation

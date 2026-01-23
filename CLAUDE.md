@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.30 | **Last Updated**: 2026-01-23
+> **Version**: 4.4.31 | **Last Updated**: 2026-01-23
 
 ---
 
@@ -151,7 +151,7 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.30
+**Plugin Version**: 4.4.31
 **Distribution**: GitHub Marketplace via `#release` branch
 
 **Branch Structure**:
@@ -173,6 +173,9 @@ Response Handling (synthesize, apply, verify)
 ---
 
 ## Version History
+
+### v4.4.31 (2026-01-23)
+Internal documentation - deployment troubleshooting guide, docs/ directory excluded from distribution
 
 ### v4.4.30 (2026-01-23)
 Plugin distribution restructure - dual-branch strategy (main for dev, release for distribution), build-time agent prefix transformation, internal command exclusion from distribution

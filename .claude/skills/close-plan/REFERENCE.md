@@ -2,7 +2,39 @@
 
 > **Purpose**: Extended details for plan completion workflow
 > **Main Skill**: @.claude/skills/close-plan/SKILL.md
-> **Last Updated**: 2026-01-22
+> **Last Updated**: 2026-01-24
+
+---
+
+## Enhanced Step Tracking (v1.3.0)
+
+### Execution Directive
+
+**CRITICAL**: NEVER skip any step - agent MUST verify execution of each step before proceeding to the next. All steps MUST execute in order. Do NOT pause between steps.
+
+### Step Markers
+
+Each step now includes clear markers for execution flow:
+- `▶ STEP N`: Start of step
+- `✓ STEP N COMPLETE`: Successful completion
+- `[MANDATORY GATE]`: Critical validation points that must pass
+
+### Mandatory Gates
+
+Steps 3 and 4 are now mandatory gates that must complete successfully:
+- **Step 3**: Auto Documentation Sync with timestamp verification
+- **Step 4**: Verify Evidence with detailed command execution tracking
+
+### Step Tracking Implementation
+
+```bash
+# Pattern for all steps
+echo "▶ STEP N: [Step Name]"
+# ... step logic ...
+echo "✓ STEP N COMPLETE"
+```
+
+**Purpose**: Ensures no steps are skipped and provides clear execution feedback.
 
 ---
 
@@ -140,7 +172,7 @@ fi
 
 ## Documenter Agent Delegation
 
-### Documenter Agent Invocation (Step 5)
+### Documenter Agent Invocation (Step 3)
 
 **Full details**: @.claude/skills/three-tier-docs/SKILL.md
 
@@ -184,4 +216,4 @@ fi
 ---
 
 **Last Updated**: 2026-01-24
-**Version**: 1.2.0 (Close Plan Skill - Added Discovered Issues warning)
+**Version**: 1.3.0 (Close Plan Skill - Enhanced step tracking with mandatory gates)

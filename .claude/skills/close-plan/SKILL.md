@@ -28,6 +28,10 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 
 ---
 
+## Execution Directive
+
+**CRITICAL**: NEVER skip any step - agent MUST verify execution of each step before proceeding to the next. All steps MUST execute in order. Do NOT pause between steps.
+
 ## Execution Steps
 
 Execute ALL steps in sequence. Do NOT pause between steps.
@@ -37,6 +41,8 @@ Execute ALL steps in sequence. Do NOT pause between steps.
 **Purpose**: Find active plan with absolute path detection
 
 ```bash
+echo "▶ STEP 1: Load Plan"
+
 # PROJECT_ROOT = Claude Code execution directory (absolute path required)
 PROJECT_ROOT="$(pwd)"
 
@@ -62,6 +68,7 @@ if [ -z "$PLAN_PATH" ]; then
 fi
 
 echo "✓ Plan: $PLAN_PATH"
+echo "✓ STEP 1 COMPLETE"
 ```
 
 ---
@@ -71,6 +78,8 @@ echo "✓ Plan: $PLAN_PATH"
 **Purpose**: Ensure all Success Criteria are checked off
 
 ```bash
+echo "▶ STEP 2: Verify All SCs Complete"
+
 INCOMPLETE_SC="$(grep -c "^- \[ \]" "$PLAN_PATH" 2>/dev/null || echo 0)"
 
 if [ "$INCOMPLETE_SC" -gt 0 ]; then
@@ -80,6 +89,7 @@ if [ "$INCOMPLETE_SC" -gt 0 ]; then
 fi
 
 echo "✓ All Success Criteria complete"
+echo "✓ STEP 2 COMPLETE"
 ```
 
 ---
@@ -91,6 +101,8 @@ echo "✓ All Success Criteria complete"
 **Pattern**: "Offer, don't force" - Show warning but allow user to proceed
 
 ```bash
+echo "▶ STEP 2.5: Check Active Discovered Issues"
+
 # Check for active Discovered Issues
 ISSUES_STATE_FILE="$PROJECT_ROOT/.pilot/issues/state.json"
 
@@ -116,19 +128,34 @@ if [ -f "$ISSUES_STATE_FILE" ]; then
         fi
     fi
 fi
+
+echo "✓ STEP 2.5 COMPLETE"
 ```
 
 ---
 
-### Step 3: Auto Documentation Sync
+### [MANDATORY GATE] Step 3: Auto Documentation Sync
 
 **Purpose**: Update documentation based on session changes, then verify compliance
+
+**CRITICAL**: This step MUST complete successfully before proceeding to Step 4.
 
 #### Step 3.1: Documentation Update
 
 ```bash
+echo "▶ STEP 3: Auto Documentation Sync (MANDATORY GATE)"
+
+# Capture timestamp before documentation update
+DOC_UPDATE_BEFORE=$(stat -f "%m" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null || stat -c "%Y" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null || echo 0)
+
 echo "📚 Running documentation update (three-tier-docs skill)..."
-echo "Invoke the three-tier-docs skill to sync documentation with code changes."
+# Invoke the three-tier-docs skill to sync documentation with code changes.
+# Use Task tool to invoke documenter agent with three-tier-docs skill.
+#
+# Task invocation:
+# Task: "Invoke the three-tier-docs skill to sync documentation with code changes"
+# Target Agent: documenter
+# Expected Output: Updated Tier 1/2/3 documentation files
 ```
 
 **Updates**:
@@ -140,7 +167,25 @@ echo "Invoke the three-tier-docs skill to sync documentation with code changes."
 
 ```bash
 echo "✅ Running documentation verification (docs-verify skill)..."
-echo "Invoke the docs-verify skill to validate documentation compliance."
+# Invoke the docs-verify skill to validate documentation compliance.
+# Use Task tool to invoke documenter agent with docs-verify skill.
+#
+# Task invocation:
+# Task: "Invoke the docs-verify skill to validate documentation compliance"
+# Target Agent: documenter
+# Expected Output: Documentation validation results
+
+# Capture timestamp after documentation update
+DOC_UPDATE_AFTER=$(stat -f "%m" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null || stat -c "%Y" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null || echo 0)
+
+# Verify documentation was actually modified
+if [ "$DOC_UPDATE_AFTER" -le "$DOC_UPDATE_BEFORE" ] && [ "$DOC_UPDATE_BEFORE" -ne 0 ]; then
+    echo "⚠️  Warning: Documentation files may not have been updated (timestamp unchanged)"
+    echo "   Verify three-tier-docs skill executed successfully"
+fi
+
+echo "✓ Documentation sync complete"
+echo "✓ STEP 3 COMPLETE (MANDATORY GATE)"
 ```
 
 **Validation includes** (via docs-verify skill):
@@ -151,14 +196,52 @@ echo "Invoke the docs-verify skill to validate documentation compliance."
 
 ---
 
-### Step 4: Verify Evidence
+### [MANDATORY GATE] Step 4: Verify Evidence
 
 **Purpose**: Run verification commands from Success Criteria
 
+**CRITICAL**: This step MUST complete successfully before proceeding to Step 5. Distinguishes between "no verify commands" and "verify failed".
+
 ```bash
-grep -A1 "Verify:" "$PLAN_PATH" | while read cmd; do
-    [[ "$cmd" =~ ^(test|grep|\[) ]] && eval "$cmd" 2>/dev/null || true
-done
+echo "▶ STEP 4: Verify Evidence (MANDATORY GATE)"
+
+# Extract all verify commands from plan
+VERIFY_COMMANDS=$(grep -A1 "Verify:" "$PLAN_PATH" | grep -E "^\s*(test|grep|\[)" || true)
+
+# Check if any verify commands exist
+if [ -z "$VERIFY_COMMANDS" ]; then
+    echo "⚠️  Warning: No verify commands found in plan"
+    echo "   Continuing to Step 5 (no evidence to verify)"
+else
+    echo "🔍 Running verification commands..."
+
+    # Track if any verification failed
+    VERIFY_FAILED=0
+
+    # Execute each verify command
+    while IFS= read -r cmd; do
+        if [[ -n "$cmd" && "$cmd" =~ ^(test|grep|\[) ]]; then
+            echo "   Executing: $cmd"
+            if ! eval "$cmd" 2>/dev/null; then
+                echo "   ❌ Verification failed: $cmd"
+                VERIFY_FAILED=1
+            else
+                echo "   ✓ Verification passed: $cmd"
+            fi
+        fi
+    done <<< "$VERIFY_COMMANDS"
+
+    # Check if any verification failed
+    if [ $VERIFY_FAILED -eq 1 ]; then
+        echo "❌ Step 4 FAILED: One or more verification commands failed"
+        echo "   Fix failing verification before proceeding to Step 5"
+        exit 1
+    fi
+
+    echo "✓ All verification commands passed"
+fi
+
+echo "✓ STEP 4 COMPLETE (MANDATORY GATE)"
 ```
 
 ---
@@ -168,6 +251,8 @@ done
 **Purpose**: Archive plan with timestamp organization
 
 ```bash
+echo "▶ STEP 5: Move Plan to Done"
+
 # Use same PROJECT_ROOT from Step 1
 TIMESTAMP="$(date +%Y%m%d)"
 DONE_DIR="$PROJECT_ROOT/.pilot/plan/done/${TIMESTAMP}"
@@ -178,6 +263,7 @@ mv "$PLAN_PATH" "$DONE_DIR/"
 DONE_PLAN_PATH="$DONE_DIR/$(basename "$PLAN_PATH")"
 
 echo "✓ Plan moved to: $DONE_PLAN_PATH"
+echo "✓ STEP 5 COMPLETE"
 ```
 
 ---
@@ -187,6 +273,8 @@ echo "✓ Plan moved to: $DONE_PLAN_PATH"
 **Purpose**: Create conventional commit with Co-Authored-By
 
 ```bash
+echo "▶ STEP 6: Git Commit"
+
 # Skip if no-commit flag
 if [ "$NO_COMMIT_FLAG" = "no-commit" ]; then
     echo "⚠️  Skipping git commit (no-commit flag)"
@@ -203,6 +291,7 @@ PLAN_TITLE="$(basename "$PLAN_PATH" .md)"
 git commit -m "close(plan): $PLAN_TITLE" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
 
 echo "✓ Git commit created"
+echo "✓ STEP 6 COMPLETE"
 ```
 
 ---
@@ -214,6 +303,8 @@ echo "✓ Git commit created"
 **Git Push**: Reference @.claude/skills/git-operations/SKILL.md for `git_push_with_retry` function
 
 ```bash
+echo "▶ STEP 7: Git Push with Retry"
+
 # Skip if no-push flag
 if [ "$NO_PUSH_FLAG" = "no-push" ]; then
     echo "⚠️  Skipping git push (no-push flag)"
@@ -287,6 +378,7 @@ if ! git_push_with_retry "origin" "$CURRENT_BRANCH"; then
 fi
 
 echo "✓ Pushed to origin/$CURRENT_BRANCH"
+echo "✓ STEP 7 COMPLETE"
 ```
 
 ---
@@ -301,6 +393,8 @@ echo "✓ Pushed to origin/$CURRENT_BRANCH"
 3. Current branch starts with `wt/`, `fix/`, or `feat/` prefix
 
 ```bash
+echo "▶ STEP 8: Worktree Auto-Merge (Optional)"
+
 # Check if worktree mode
 IS_WORKTREE="false"
 if [ -f "$PROJECT_ROOT/.pilot/state/worktree.json" ]; then
@@ -353,6 +447,10 @@ if [ "$IS_WORKTREE" = "true" ]; then
         rm -f "$PROJECT_ROOT/.pilot/state/worktree.json"
         echo "✓ Worktree and branch cleaned up"
     fi
+
+    echo "✓ STEP 8 COMPLETE"
+else
+    echo "⚠️  Worktree mode not detected - skipping Step 8"
 fi
 ```
 

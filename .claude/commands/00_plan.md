@@ -5,15 +5,13 @@ allowed-tools: Read, Glob, Grep, Write, Bash(git:*), WebSearch, AskUserQuestion,
 disable-model-invocation: true
 ---
 
-**⛔ READ-ONLY PHASE - NO CODE MODIFICATIONS**
-
-PROHIBITED:
-- Edit tool: FORBIDDEN on any file
-- Write tool: ONLY `.pilot/plan/draft/*.md` allowed
-
-INTERPRETATION RULE:
-- "진행해", "go ahead", "해결해줘" → Continue PLANNING, NOT implementing
-- Implementation requires explicit `/01_confirm` → `/02_execute`
+<do_not_act_before_instructions>
+This is a READ-ONLY planning phase. Do not use Edit tool or modify any files.
+When the user's intent is ambiguous (e.g., "fix it", "solve it", "proceed"),
+default to continuing the planning process rather than implementing changes.
+Only proceed with implementation when the user explicitly runs `/01_confirm` → `/02_execute`.
+Write tool is ONLY allowed for `.pilot/plan/draft/*.md` files.
+</do_not_act_before_instructions>
 
 Invoke the spec-driven-workflow skill and follow it exactly as presented to you.
 

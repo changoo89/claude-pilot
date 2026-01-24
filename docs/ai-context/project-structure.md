@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-22
+> **Last Updated**: 2026-01-24
 
 ---
 
@@ -71,6 +71,9 @@ claude-pilot/
 │   │   ├── pending/        # Awaiting confirmation
 │   │   ├── in_progress/    # Currently executing
 │   │   └── done/           # Completed plans
+│   ├── issues/             # Discovered Issues tracking
+│   │   ├── log.jsonl       # Event log (append-only)
+│   │   └── state.json      # Materialized view
 │   ├── state/              # State management
 │   └── tests/              # Integration tests
 ├── .tmp/                   # Temporary files (gitignored)
@@ -140,7 +143,7 @@ claude-pilot/
 }
 ```
 
-**Statusline Output**: `[📋 PLAN] [🔄 PHASE] [✓ SC-N] [📝 TODO]`
+**Statusline Output**: `[📋 PLAN] [🔄 PHASE] [✓ SC-N] [🔴 DI:P0] [🟡 DI:P1]`
 
 ---
 

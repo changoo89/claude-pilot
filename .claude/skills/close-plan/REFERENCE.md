@@ -94,6 +94,50 @@ fi
 
 ---
 
+## Discovered Issues Warning
+
+### Active Issues Check (Step 2.5)
+
+**Purpose**: Warn about active Discovered Issues before closing plan
+
+**Pattern**: "Offer, don't force" - Show warning but allow user to proceed
+
+**Implementation**:
+```bash
+# Check for active Discovered Issues
+ISSUES_STATE_FILE="$PROJECT_ROOT/.pilot/issues/state.json"
+
+if [ -f "$ISSUES_STATE_FILE" ]; then
+    if command -v jq >/dev/null 2>&1; then
+        P0_COUNT=$(jq -r '.counts.P0 // 0' "$ISSUES_STATE_FILE" 2>/dev/null || echo 0)
+        P1_COUNT=$(jq -r '.counts.P1 // 0' "$ISSUES_STATE_FILE" 2>/dev/null || echo 0)
+        P2_COUNT=$(jq -r '.counts.P2 // 0' "$ISSUES_STATE_FILE" 2>/dev/null || echo 0)
+        TOTAL=$((P0_COUNT + P1_COUNT + P2_COUNT))
+
+        if [ "$TOTAL" -gt 0 ]; then
+            echo ""
+            echo "⚠️  Warning: $TOTAL active Discovered Issue(s)"
+            echo "   P0 (blocking): $P0_COUNT | P1 (follow-up): $P1_COUNT | P2 (backlog): $P2_COUNT"
+            echo ""
+            echo "   These issues will remain unresolved after closing this plan."
+            echo "   Press Ctrl+C to abort, or wait 3 seconds to continue..."
+            echo ""
+            sleep 3  # Non-blocking wait - user can press Ctrl+C to abort
+        fi
+    fi
+fi
+```
+
+**Behavior**:
+- **Non-blocking**: Warning shows but doesn't prevent closing
+- **User choice**: User can press Ctrl+C to abort or wait 3 seconds to continue
+- **Graceful degradation**: If jq or state.json missing, skip check silently
+- **Priority breakdown**: Shows counts by P0 (blocking), P1 (follow-up), P2 (backlog)
+
+**Related**: @.claude/scripts/pilot-issues - Discovered Issues CLI
+
+---
+
 ## Documenter Agent Delegation
 
 ### Documenter Agent Invocation (Step 5)
@@ -115,6 +159,7 @@ fi
 | Component | Integration | Data Flow |
 |-----------|-------------|-----------|
 | `/03_close` | Invokes skill | → Archive plan, commit changes |
+| Discovered Issues | Warning check | → Read state.json, show warning |
 | Git operations | Commit + push | → Create commit, verify push |
 | Worktree cleanup | Remove worktree | → Cleanup if --wt flag used |
 | Documenter Agent | Update docs | → Sync documentation |
@@ -138,5 +183,5 @@ fi
 
 ---
 
-**Last Updated**: 2026-01-22
-**Version**: 1.1.0 (Close Plan Skill - Reduced)
+**Last Updated**: 2026-01-24
+**Version**: 1.2.0 (Close Plan Skill - Added Discovered Issues warning)

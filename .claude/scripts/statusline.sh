@@ -65,6 +65,32 @@ else
     in_progress=0
 fi
 
-# Combine global output with plan counts
-# Format: "global_output | 📋 D:{draft} P:{pending} I:{in_progress}"
-echo "$global_output | 📋 D:$draft P:$pending I:$in_progress"
+# Discovered Issues segment (priority-based indicators)
+pilot_issues_segment() {
+    local state="${pilot_dir}/issues/state.json"
+    [ -f "$state" ] || return 0
+
+    local p0 p1
+    p0="$(jq -r '.counts.P0 // 0' "$state" 2>/dev/null || echo 0)"
+    p1="$(jq -r '.counts.P1 // 0' "$state" 2>/dev/null || echo 0)"
+
+    if [ "$p0" -gt 0 ]; then
+        echo "🔴 DI:$p0"
+    elif [ "$p1" -gt 0 ]; then
+        echo "🟡 DI:$p1"
+    fi
+}
+
+# Get discovered issues indicator
+issues_indicator=$(pilot_issues_segment)
+
+# Combine global output with plan counts and discovered issues
+# Format: "global_output | 📋 D:{draft} P:{pending} I:{in_progress} [issues]"
+output="$global_output | 📋 D:$draft P:$pending I:$in_progress"
+
+# Append issues indicator if present
+if [ -n "$issues_indicator" ]; then
+    output="$output | $issues_indicator"
+fi
+
+echo "$output"

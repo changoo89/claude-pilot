@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.31 | **Last Updated**: 2026-01-23
+> **Version**: 4.4.38 | **Last Updated**: 2026-01-24
 
 ---
 
@@ -151,7 +151,7 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.31
+**Plugin Version**: 4.4.38
 **Distribution**: GitHub Marketplace via `#release` branch
 
 **Branch Structure**:
@@ -173,6 +173,9 @@ Response Handling (synthesize, apply, verify)
 ---
 
 ## Version History
+
+### v4.4.38 (2026-01-24)
+Discovered Issues Feature - Track out-of-scope issues found after /01_confirm with statusline integration (P0=🔴, P1=🟡)
 
 ### v4.4.31 (2026-01-24)
 Scope Clarity Framework - Step 1.5 in spec-driven-workflow, Step 1.7 in confirm-plan, 4 mandatory triggers for scope validation

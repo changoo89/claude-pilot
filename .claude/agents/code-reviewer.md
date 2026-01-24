@@ -100,6 +100,81 @@ Report issues based on confidence:
 
 **Skip**: Nitpicks, personal preferences, low-impact issues
 
+## Discovered Issues Integration
+
+### Out-of-Scope Detection
+
+When reviewing code, classify issues as:
+- **In-scope**: Issues related to the current SC being implemented
+- **Out-of-scope**: Pre-existing issues, unrelated bugs, technical debt
+
+### Priority Classification
+
+| Priority | Severity | Description | Statusline |
+|----------|----------|-------------|------------|
+| **P0** | Blocking | Critical bugs, security issues, data loss | 🔴 Red |
+| **P1** | Follow-up | Important issues, bad patterns, performance | 🟡 Yellow |
+| **P2** | Backlog | Nice-to-haves, style, minor optimizations | Hidden |
+
+**Severity meanings**:
+- **Blocking** (blocking): Requires immediate fix, blocks deployment
+- **Follow-up** (follow-up): Should be addressed soon, affects quality
+- **Backlog** (backlog): Technical debt, nice-to-have improvements
+
+### "Offer, don't force" Pattern
+
+When an out-of-scope issue is found:
+
+```bash
+# 1. Classify severity
+PRIORITY="P0"  # or P1, P2
+
+# 2. Propose recording to user
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔔 Out-of-Scope Issue Found"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Priority: $PRIORITY"
+echo "Title: $TITLE"
+echo "Details: $DETAILS"
+echo ""
+echo "Add to Discovered Issues? [Y/n]"
+read -r response
+
+# 3. If user confirms, record via pilot-issues add
+if [[ "$response" =~ ^[Yy]?$ ]]; then
+  "$PROJECT_ROOT/.claude/scripts/pilot-issues" add \
+    --priority "$PRIORITY" \
+    --title "$TITLE" \
+    --phase "/02_execute" \
+    --details "$DETAILS"
+  echo "✅ Recorded: $ISSUE_ID"
+fi
+```
+
+### Phase Gating
+
+Discovered Issues can only be recorded after `/01_confirm` phase.
+- The `pilot-issues` CLI enforces this automatically
+- If plan is in `pending/` or `draft/`, add will fail with error
+- Issues found during `/00_plan` or `/01_confirm` should be added to the plan
+
+### Example Integration
+
+```markdown
+### Critical Issues 🚨
+
+**P0: SQL Injection in user search**
+- Location: `src/api/users.ts:45`
+- Details: User input not sanitized before query
+- Recommendation: Use parameterized queries
+```
+
+**Out-of-scope note**: This is a pre-existing security vulnerability.
+```bash
+Add to Discovered Issues? [Y/n] _
+```
+
 ## Important Notes
 
 - **Use Opus model**: For deep reasoning and catching subtle bugs

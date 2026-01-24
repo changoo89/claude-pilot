@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [4.4.41] - 2026-01-24
+
+### Changed
+- close(plan): self_contained_plan_enhancement_draft (a8b370e)
+
+
 ## [4.4.40] - 2026-01-24
 
 ### Fixed

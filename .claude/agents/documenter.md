@@ -76,15 +76,23 @@ Add new commands:
 - **New Pattern**: Description
 ```
 
-#### Update docs/ai-context/
+#### Update docs/ai-context/ (RESTRICTED - 2 FILES ONLY)
+
+⚠️ **CRITICAL RESTRICTION**: `docs/ai-context/` contains EXACTLY 2 files. NEVER create new files here.
+
+| Allowed File | Purpose |
+|--------------|---------|
+| `project-structure.md` | Directory layout, tech stack |
+| `docs-overview.md` | Documentation navigation |
+
+**FORBIDDEN**: Creating `navigation-system.md`, `system-integration.md`, or ANY other file.
+
 ```markdown
 ## project-structure.md
-
 Add new directories and key files.
 
-## system-integration.md
-
-Update component interactions.
+## docs-overview.md
+Update documentation navigation only.
 ```
 
 ### 4. Archive Implementation Artifacts
@@ -111,7 +119,7 @@ Add execution summary to plan:
 
 ### Updates Complete ✅
 - CLAUDE.md: Updated (Project Structure, 3-Tier Documentation links)
-- docs/ai-context/: Updated (project-structure.md, system-integration.md)
+- docs/ai-context/: Updated (project-structure.md, docs-overview.md) - 2 files only!
 - Tier 2 CONTEXT.md: Updated (src/components/CONTEXT.md)
 - Plan file: Updated with execution summary
 
@@ -132,12 +140,13 @@ Add execution summary to plan:
 ## Document Size Management
 
 ### Size Thresholds
-- **Tier 1 (CLAUDE.md)**: 300 lines max
+- **Tier 1 (CLAUDE.md, docs/ai-context/*.md)**: 200 lines max
 - **Tier 2 (CONTEXT.md)**: 200 lines max
-- **Tier 3 (CONTEXT.md)**: 150 lines max
+- **Tier 3 (CONTEXT.md)**: 200 lines max
 
 ### If Threshold Exceeded
-- **Tier 1**: Move detailed sections to `docs/ai-context/`
+- **Tier 1 (CLAUDE.md)**: Extract to Tier 2 CONTEXT.md (NOT to docs/ai-context/)
+- **Tier 1 (docs/ai-context/)**: Summarize content (NEVER add new files)
 - **Tier 2**: Archive historical decisions to `{component}/HISTORY.md`
 - **Tier 3**: Split by feature area
 
@@ -158,7 +167,7 @@ ls .claude/templates/CONTEXT-tier3.md.template
 - CLAUDE.md: Project structure, new commands, standards changes
 - Tier 2 CONTEXT.md: New files, deleted files, new patterns
 - Tier 3 CONTEXT.md: Implementation details, performance changes
-- docs/ai-context/: project-structure.md, system-integration.md
+- docs/ai-context/: ONLY `project-structure.md` and `docs-overview.md` (NO new files!)
 - Plan file: Execution summary
 
 ### What NOT to Update
@@ -192,7 +201,7 @@ Output `<DOCS_COMPLETE>` when:
 - [ ] All changed files reflected in documentation
 - [ ] CLAUDE.md updated (if needed)
 - [ ] Tier 2 CONTEXT.md updated (if needed)
-- [ ] docs/ai-context/ updated (if needed)
+- [ ] docs/ai-context/ updated (if needed) - ONLY existing 2 files, NO new files created
 - [ ] Artifacts archived
 - [ ] Plan file updated with execution summary
 

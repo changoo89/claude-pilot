@@ -168,40 +168,19 @@ Response Handling (synthesize, apply, verify)
 
 ---
 
-**Line Count**: 182 lines (Target: ≤200 lines) ✅
+**Line Count**: 177 lines (Target: ≤200 lines) ✅
 
 ---
 
 ## Version History
 
-### v4.4.31 (2026-01-23)
-Internal documentation - deployment troubleshooting guide, docs/ directory excluded from distribution
+### v4.4.31 (2026-01-24)
+Scope Clarity Framework - Step 1.5 in spec-driven-workflow, Step 1.7 in confirm-plan, 4 mandatory triggers for scope validation
 
 ### v4.4.30 (2026-01-23)
-Plugin distribution restructure - dual-branch strategy (main for dev, release for distribution), build-time agent prefix transformation, internal command exclusion from distribution
+Plugin distribution restructure - dual-branch strategy (main for dev, release for distribution)
 
 ### v4.4.15 (2026-01-23)
-Superpowers-style command refactoring - all 10 commands simplified to ~10 lines (invoke skill pattern), all execution logic moved to skills (single source of truth), git push with retry added to /03_close
-
-### v4.4.14 (2026-01-23)
-Skill-based architecture migration - removed shell scripts (docs-verify.sh, cleanup.sh, codex-sync.sh, hooks/), direct codex CLI format (gpt-5.2 with reasoning_effort=medium), docs-verify skill for documentation validation
-
-### v4.4.13 (2026-01-23)
-Cleanup refactor with knip integration, parallel detection, 4-level risk classification
-
-### v4.4.12 (2026-01-23)
-Integrate /document into /03_close, 3-Tier documentation restructure, dual-source verification
-
-### v4.4.11 (2026-01-22)
-GPT auto-delegation triggers, explicit command gate, absolute paths for plan files
-
-### v4.4.6 (2026-01-21)
-Mandatory dialogue checkpoints, EXECUTION DIRECTIVE, parallel agent execution
-
-### v4.3.4 (2026-01-21)
-Hooks simplification: Removed Stop hooks, simple pre-commit hook only
-
-### v4.3.1 (2026-01-20)
-Dead code cleanup command with risk-based confirmation
+Superpowers-style command refactoring - all 10 commands simplified to ~10 lines (invoke skill pattern)
 
 **Full History**: See `CHANGELOG.md`

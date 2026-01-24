@@ -161,6 +161,29 @@ Verify 100% requirements coverage before creating plan file:
 
 **⚠️ CRITICAL**: Do NOT proceed to Step 2 if BLOCKING findings exist.
 
+### Step 1.7: Scope Completeness Verification (NEW)
+
+**Purpose**: 계획이 확인된 범위를 모두 커버하는지 검증
+
+**Check:**
+
+1. **Scope vs SC Mapping**
+   - 사용자가 선택한 각 scope 영역에 대응하는 SC가 있는가?
+   - 예: scope에 "프론트엔드" 포함 → SC에 UI 관련 기준 있어야 함
+
+2. **Assumption Verification**
+   - Assumptions 테이블의 모든 항목이 ✅ Verified인가?
+   - ⚠️ 항목 있으면 BLOCKING
+
+3. **Layer Coverage**
+   - 탐색에서 발견된 레이어 중 계획에서 제외된 것이 있는가?
+   - 제외된 레이어가 있다면 사용자가 명시적으로 제외했는가?
+
+**BLOCKING if:**
+- Scope 영역 중 SC 매핑이 없는 것이 있음
+- Unverified assumptions 존재
+- 제외된 레이어에 대한 사용자 확인 없음
+
 ---
 
 ## Step 2: Create or Update Plan File in draft/
@@ -205,6 +228,12 @@ mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 
 ## Test Plan
 [Test scenarios]
+
+## Assumptions
+
+| ID | Assumption | Verified? |
+|----|------------|-----------|
+| A-1 | [가정 내용] | ✅ / ⚠️ |
 ```
 
 ---

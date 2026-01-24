@@ -126,6 +126,58 @@ prompt: |
 
 ---
 
+### Step 1.5: Scope Clarity Check (MANDATORY)
+
+**Purpose**: 범위에 대한 암묵적 가정 방지
+
+**Trigger Conditions** (하나라도 해당되면 범위 확인 필수):
+
+1. **Completeness Keywords**:
+   - Korean: "전체", "완전한", "모든", "다", "처음부터 끝까지"
+   - English: "full", "complete", "entire", "whole", "end-to-end", "from scratch"
+
+2. **Reference-Based Requests**:
+   - "이 프로젝트처럼", "레퍼런스 기반", "이거 보고", "똑같이"
+   - "like this project", "based on reference", "same as"
+
+3. **Ambiguous Scope**:
+   - 사용자가 명시적 범위 지정 없이 작업 요청
+   - "XX 만들어줘" (무엇이 "XX"의 전체인지 불명확)
+
+4. **Multi-Layer Architecture Detected**:
+   - 탐색 결과 2개 이상의 독립 레이어 발견
+   - 서로 다른 기술 스택이 공존 (예: Next.js + Express)
+
+**When Triggered:**
+
+1. Identify distinct layers from exploration:
+   - Independent modules/directories
+   - Different tech stacks
+   - Input/output boundaries
+
+2. Ask user to select scope:
+   ```
+   AskUserQuestion:
+     question: "프로젝트의 전체 범위를 확인합니다. 이번 계획에 포함할 영역을 선택해주세요:"
+     header: "Scope"
+     multiSelect: true
+     options:
+       - label: "[Layer 1 from exploration]"
+         description: "[Description]"
+       - label: "[Layer 2 from exploration]"
+         description: "[Description]"
+       - label: "단계적 구현"
+         description: "먼저 할 부분을 지정"
+   ```
+
+3. Document scope decision in draft file
+
+**CRITICAL**:
+- Do NOT assume "X first, Y later" without user confirmation
+- If plan only covers part of discovered architecture, get explicit confirmation
+
+---
+
 ### Step 2: Gather Requirements
 
 **Purpose**: Capture user requirements verbatim for plan foundation

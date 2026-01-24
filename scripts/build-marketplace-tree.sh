@@ -43,6 +43,7 @@ for dir in agents commands skills scripts; do
 done
 
 # Add claude-pilot: prefix to agent references in skills (required for plugin installation)
+# SC-1: All 13 agent literal transformations (8 existing + 5 new)
 find "$PLUGIN_DIR/skills" -name "*.md" -exec sed -i '' \
   -e 's/subagent_type: coder/subagent_type: claude-pilot:coder/g' \
   -e 's/subagent_type: tester/subagent_type: claude-pilot:tester/g' \
@@ -52,7 +53,46 @@ find "$PLUGIN_DIR/skills" -name "*.md" -exec sed -i '' \
   -e 's/subagent_type: documenter/subagent_type: claude-pilot:documenter/g' \
   -e 's/subagent_type: plan-reviewer/subagent_type: claude-pilot:plan-reviewer/g' \
   -e 's/subagent_type: code-reviewer/subagent_type: claude-pilot:code-reviewer/g' \
+  -e 's/subagent_type: frontend-engineer/subagent_type: claude-pilot:frontend-engineer/g' \
+  -e 's/subagent_type: backend-engineer/subagent_type: claude-pilot:backend-engineer/g' \
+  -e 's/subagent_type: security-analyst/subagent_type: claude-pilot:security-analyst/g' \
+  -e 's/subagent_type: build-error-resolver/subagent_type: claude-pilot:build-error-resolver/g' \
+  -e 's/subagent_type: design-reviewer/subagent_type: claude-pilot:design-reviewer/g' \
   {} \;
+
+# SC-2: Variable assignment pattern transformations (AGENT_TYPE="xxx")
+find "$PLUGIN_DIR/skills" -name "*.md" -exec sed -i '' \
+  -e 's/AGENT_TYPE="coder"/AGENT_TYPE="claude-pilot:coder"/g' \
+  -e 's/AGENT_TYPE="frontend-engineer"/AGENT_TYPE="claude-pilot:frontend-engineer"/g' \
+  -e 's/AGENT_TYPE="backend-engineer"/AGENT_TYPE="claude-pilot:backend-engineer"/g' \
+  {} \;
+
+# SC-3: Dynamic agent list-based validation logic
+# Build agent list dynamically from .claude/agents/ directory (excluding CONTEXT.md)
+AGENTS=$(ls "$ROOT_DIR/.claude/agents/" | grep -v "CONTEXT.md" | sed 's/\.md$//' | tr '\n' '|' | sed 's/|$//')
+
+echo "Validating agent prefix transformations..."
+echo "Agent list: $AGENTS"
+
+# Check for unprefixed subagent_type: references
+UNPREFIXED=$(grep -rE "subagent_type:\s*($AGENTS)([^:]|$)" "$PLUGIN_DIR/skills" | grep -v "claude-pilot:" || true)
+
+if [ -n "$UNPREFIXED" ]; then
+  echo "ERROR: Unprefixed agent references found:"
+  echo "$UNPREFIXED"
+  die "Build validation failed: unprefixed agents remain in subagent_type:"
+fi
+
+# Check for unprefixed AGENT_TYPE="xxx" assignments
+UNPREFIXED_VAR=$(grep -rE "AGENT_TYPE=\"($AGENTS)\"" "$PLUGIN_DIR/skills" | grep -v "claude-pilot:" || true)
+
+if [ -n "$UNPREFIXED_VAR" ]; then
+  echo "ERROR: Unprefixed AGENT_TYPE assignments found:"
+  echo "$UNPREFIXED_VAR"
+  die "Build validation failed: unprefixed AGENT_TYPE assignments remain"
+fi
+
+echo "OK: All agent references properly prefixed"
 
 mkdir -p "$PLUGIN_DIR/.claude-plugin"
 cp "$ROOT_DIR/.claude-plugin/plugin.json" "$PLUGIN_DIR/.claude-plugin/plugin.json"

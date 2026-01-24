@@ -86,10 +86,24 @@ echo "✓ All Success Criteria complete"
 
 ### Step 3: Auto Documentation Sync
 
-**Purpose**: Run docs-verify skill for comprehensive validation
+**Purpose**: Update documentation based on session changes, then verify compliance
+
+#### Step 3.1: Documentation Update
 
 ```bash
-echo "📚 Running documentation sync (docs-verify skill)..."
+echo "📚 Running documentation update (three-tier-docs skill)..."
+echo "Invoke the three-tier-docs skill to sync documentation with code changes."
+```
+
+**Updates**:
+- Tier 1: CLAUDE.md, project-structure.md, docs-overview.md
+- Tier 2: Component CONTEXT.md files
+- Tier 3: Feature CONTEXT.md files
+
+#### Step 3.2: Documentation Verification
+
+```bash
+echo "✅ Running documentation verification (docs-verify skill)..."
 echo "Invoke the docs-verify skill to validate documentation compliance."
 ```
 
@@ -313,7 +327,8 @@ fi
 ### In Scope
 - Plan path detection (absolute paths)
 - Success Criteria verification
-- Documentation sync (docs-verify skill)
+- Documentation update (three-tier-docs skill)
+- Documentation verification (docs-verify skill)
 - Evidence verification
 - Plan archival to done/
 - Git commit with Co-Authored-By
@@ -321,7 +336,6 @@ fi
 - Worktree auto-merge to main branch with cleanup
 
 ### Out of Scope
-- Documentation updates → @.claude/skills/three-tier-docs/SKILL.md
 - Advanced git workflows → @.claude/skills/git-master/SKILL.md
 
 ---

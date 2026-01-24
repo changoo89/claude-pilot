@@ -50,7 +50,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 |-----------|---------|----------|
 | Commands | Slash commands (11) | `.claude/commands/` |
 | Skills | TDD, Ralph Loop, Vibe Coding | `.claude/skills/` |
-| Agents | Specialized roles (8) | `.claude/agents/` |
+| Agents | Specialized roles (12) | `.claude/agents/` |
 
 **Plugin Directory**: `@docs/ai-context/project-structure.md`
 
@@ -94,8 +94,8 @@ Response Handling (synthesize, apply, verify)
 
 | Model | Agents | Purpose |
 |-------|--------|---------|
-| Haiku | explorer, researcher, validator, documenter | Fast, cost-efficient |
-| Sonnet | coder, tester, plan-reviewer | Balanced quality/speed |
+| Haiku | explorer, researcher, validator, documenter, build-error-resolver | Fast, cost-efficient |
+| Sonnet | coder, tester, plan-reviewer, frontend-engineer, backend-engineer, security-analyst | Balanced quality/speed |
 | Opus | code-reviewer | Deep reasoning |
 
 **Full Guide**: `@.claude/agents/CONTEXT.md`

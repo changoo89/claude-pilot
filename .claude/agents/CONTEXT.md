@@ -10,14 +10,18 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 |-------|-------|-------|-------|---------|-------|
 | **explorer** | haiku | 60 | Glob, Grep, Read | Fast codebase exploration | `/00_plan` - Find files, search patterns |
 | **researcher** | haiku | 67 | WebSearch, WebFetch, query-docs | External docs research | `/00_plan` - Find external docs |
-| **coder** | sonnet | 280 | Read, Write, Edit, Bash | TDD implementation | `/02_execute` - Red-Green-Refactor, Ralph Loop |
+| **frontend-engineer** | sonnet | 169 | Read, Write, Edit, Bash, Glob, Grep | Frontend UI/React implementation | `/02_execute` - Component, UI, styling |
+| **backend-engineer** | sonnet | 196 | Read, Write, Edit, Bash, Glob, Grep | Backend API/DB implementation | `/02_execute` - API, endpoint, server |
+| **coder** | sonnet | 280 | Read, Write, Edit, Bash | TDD implementation (general) | `/02_execute` - Red-Green-Refactor, Ralph Loop |
 | **tester** | sonnet | 302 | Read, Write, Bash | Test writing and execution | `/review` - Test coverage, debug |
 | **validator** | haiku | 335 | Bash, Read | Type check, lint, coverage | `/review` - Quality verification |
+| **security-analyst** | sonnet | 166 | Read, Grep, Glob, Bash | Security vulnerability analysis | `/review security` - OWASP Top 10 |
+| **build-error-resolver** | haiku | 272 | Bash, Read, Edit | Build/compilation error resolution | `/02_execute` - Build error recovery |
 | **plan-reviewer** | sonnet | 128 | Read, Glob, Grep | Plan analysis and gaps | `/01_confirm` - Gap detection |
 | **code-reviewer** | opus | 122 | Read, Glob, Grep, Bash | Deep code review | `/review` - Async bugs, memory leaks |
 | **documenter** | haiku | 351 | Read, Write | Documentation generation | `/document` - Sync docs |
 
-**Total**: 8 agents, 1645 lines (average: 206 lines per agent)
+**Total**: 12 agents (8 original + 4 new)
 
 ## Agent Categories
 
@@ -25,12 +29,16 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **explorer**: Codebase exploration
 - **researcher**: External docs research
 
-### Implementation Agents (Sonnet)
-- **coder**: TDD implementation
-- **tester**: Test writing and execution
+### Implementation Agents (Sonnet/Haiku)
+- **frontend-engineer** (sonnet): Frontend UI/React implementation
+- **backend-engineer** (sonnet): Backend API/DB implementation
+- **coder** (sonnet): General TDD implementation (fallback)
+- **tester** (sonnet): Test writing and execution
+- **build-error-resolver** (haiku): Build/compilation error resolution
 
 ### Verification Agents (Haiku/Sonnet/Opus)
 - **validator** (haiku): Quality checks
+- **security-analyst** (sonnet): Security vulnerability analysis
 - **plan-reviewer** (sonnet): Plan analysis
 - **code-reviewer** (opus): Deep review
 
@@ -47,11 +55,15 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **plan-reviewer** (sonnet): Gap detection review
 
 ### `/02_execute` (Execution)
-- **coder** (sonnet): TDD + Ralph Loop implementation
+- **frontend-engineer** (sonnet): Frontend implementation (component, UI, styling)
+- **backend-engineer** (sonnet): Backend implementation (API, endpoint, server)
+- **build-error-resolver** (haiku): Build error recovery
+- **coder** (sonnet): TDD + Ralph Loop implementation (general fallback)
 
 ### `/review` (Review)
 - **tester** (sonnet): Test coverage and quality
 - **validator** (haiku): Type check, lint, coverage
+- **security-analyst** (sonnet): Security vulnerability analysis (`/review security`)
 - **code-reviewer** (opus): Deep analysis
 
 ### `/document` (Documentation)
@@ -63,11 +75,15 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - explorer: Pattern matching (Glob, Grep, Read)
 - researcher: Information retrieval (WebSearch, WebFetch)
 - validator: Deterministic checks (type, lint, coverage)
+- build-error-resolver: Build error diagnosis (Bash, Read, Edit)
 - documenter: Template generation (Read, Write)
 
 **Sonnet** (balanced quality/speed):
-- coder: Implementation (TDD, Ralph Loop)
+- frontend-engineer: Frontend implementation (React, UI, CSS)
+- backend-engineer: Backend implementation (API, database, server)
+- coder: General implementation (TDD, Ralph Loop)
 - tester: Test strategy (generate, debug)
+- security-analyst: Security analysis (OWASP patterns)
 - plan-reviewer: Analysis (gap detection)
 
 **Opus** (deep reasoning):

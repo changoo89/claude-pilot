@@ -185,8 +185,8 @@ claude-pilot/
 ### What Gets Installed
 
 - **11 Slash Commands**: Plan, Confirm, Execute, Close, Review, Document, Init, Setup, Release, Cleanup, Continue
-- **8 Agents**: Coder, Tester, Validator, Documenter, Explorer, Researcher, Plan Reviewer, Code Reviewer
-- **25 Skills**: TDD, Ralph Loop, Vibe Coding, Git Master, and 21 more
+- **12 Agents**: Coder, Tester, Validator, Documenter, Explorer, Researcher, Plan Reviewer, Code Reviewer, Frontend Engineer, Backend Engineer, Security Analyst, Build Error Resolver
+- **30 Skills**: TDD, Ralph Loop, Vibe Coding, Git Master, and 26 more
 - **MCP Servers**: context7, sequential-thinking (configured via `/pilot:setup`)
 - **Hooks**: Pre-commit hook for JSON validation and markdown link check
 
@@ -313,6 +313,11 @@ A: No! The plugin is pure markdown/JSON - no Python required.
 claude-pilot synthesizes best practices from these projects:
 
 ### Core Methodology
+
+- **[Superpowers](https://github.com/obra/superpowers)**
+  - Superpowers-style command architecture (skill invocation pattern)
+  - RED-GREEN-REFACTOR TDD enforcement
+  - Git worktrees for parallel development
 
 - **[Claude-Code-Development-Kit](https://github.com/peterkrueck/Claude-Code-Development-Kit)**
   - 3-Tier Documentation System (Foundation/Component/Feature)

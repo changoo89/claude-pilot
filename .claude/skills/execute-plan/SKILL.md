@@ -118,6 +118,34 @@ echo "✓ Found $SC_COUNT Success Criteria"
 
 ---
 
+## Step 2.5: Agent Selection
+
+Select the appropriate agent based on task type:
+
+| Task Type | Agent | Detection Criteria |
+|-----------|-------|-------------------|
+| Frontend | frontend-engineer | component, UI, React, CSS, Tailwind, landing page |
+| Backend | backend-engineer | API, endpoint, database, server, backend, middleware |
+| Build Error | build-error-resolver | Build/type-check failures |
+| General | coder | All other implementations (fallback) |
+
+**Implementation**:
+```bash
+PLAN_CONTENT=$(cat "$PLAN_PATH")
+
+if echo "$PLAN_CONTENT" | grep -qiE "component|UI|React|CSS|Tailwind|landing page"; then
+  AGENT_TYPE="frontend-engineer"
+elif echo "$PLAN_CONTENT" | grep -qiE "API|endpoint|database|server|backend|middleware"; then
+  AGENT_TYPE="backend-engineer"
+else
+  AGENT_TYPE="coder"
+fi
+
+echo "Selected agent: $AGENT_TYPE"
+```
+
+---
+
 ## Step 3: Execute with Ralph Loop
 
 ### Step 3.1: Dependency Analysis

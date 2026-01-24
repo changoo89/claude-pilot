@@ -53,9 +53,16 @@ User Request
 
 Each command delegates to appropriate skills:
 - **spec-driven-workflow**: Plan creation
+- **execute-plan**: Agent selection and implementation orchestration
 - **tdd**: Test-driven development
 - **ralph-loop**: Autonomous iteration
 - **git-master**: Git operations
+
+## Agent Selection
+
+Commands invoke specialized agents based on task type:
+- `/02_execute`: Selects frontend-engineer, backend-engineer, build-error-resolver, or coder based on task keywords
+- `/review`: Invokes tester, validator, security-analyst, or code-reviewer based on review type
 
 ---
 

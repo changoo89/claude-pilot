@@ -26,7 +26,8 @@ PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan
 echo "Plan: $PLAN_PATH"
 
 # Parallel Coder invocation (Group 1 - Independent SCs)
-Task: subagent_type: coder, prompt: "Execute SC-1: {DESCRIPTION}..."
+# Use selected agent type from Step 2.5 (AGENT_TYPE)
+Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-1: {DESCRIPTION}..."
 
 # Verification (parallel)
 Task: subagent_type: tester, prompt: "Run tests for {PLAN_PATH}"
@@ -171,11 +172,11 @@ done
 
 ### Step 3.2a: Parallel Execution (Independent SCs)
 
-For independent SCs (no shared files, no dependencies), launch 4 parallel coders:
+For independent SCs (no shared files, no dependencies), launch 4 parallel agents using the selected agent type from Step 2.5:
 
 ```markdown
 Task:
-  subagent_type: coder
+  subagent_type: $AGENT_TYPE
   prompt: |
     Execute SC-1 from $PLAN_PATH
     Use skills: tdd, ralph-loop, vibe-coding
@@ -183,7 +184,7 @@ Task:
     Output: <CODER_COMPLETE> or <CODER_BLOCKED>
 
 Task:
-  subagent_type: coder
+  subagent_type: $AGENT_TYPE
   prompt: |
     Execute SC-2 from $PLAN_PATH
     Use skills: tdd, ralph-loop, vibe-coding
@@ -191,7 +192,7 @@ Task:
     Output: <CODER_COMPLETE> or <CODER_BLOCKED>
 
 Task:
-  subagent_type: coder
+  subagent_type: $AGENT_TYPE
   prompt: |
     Execute SC-3 from $PLAN_PATH
     Use skills: tdd, ralph-loop, vibe-coding
@@ -199,7 +200,7 @@ Task:
     Output: <CODER_COMPLETE> or <CODER_BLOCKED>
 
 Task:
-  subagent_type: coder
+  subagent_type: $AGENT_TYPE
   prompt: |
     Execute SC-4 from $PLAN_PATH
     Use skills: tdd, ralph-loop, vibe-coding
@@ -211,11 +212,11 @@ Task:
 
 ### Step 3.2b: Sequential Execution (Dependent SCs)
 
-For SCs with dependencies, execute sequentially:
+For SCs with dependencies, execute sequentially using the selected agent type from Step 2.5:
 
 ```markdown
 Task:
-  subagent_type: coder
+  subagent_type: $AGENT_TYPE
   prompt: |
     Execute all SCs from $PLAN_PATH using tdd, ralph-loop
     SCs have dependencies - execute sequentially

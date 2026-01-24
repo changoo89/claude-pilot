@@ -116,15 +116,17 @@ Task:
 [Analyze SC dependencies]
 
 ## Step 3.2a: Parallel Execution (Independent SCs)
-### Task 3.2a-1: Coder for SC-1
+### Task 3.2a-1: Selected Agent for SC-1
 Task:
-  subagent_type: coder
+  subagent_type: $AGENT_TYPE
   prompt: Execute SC-1 from $PLAN_PATH
 
-### Task 3.2a-2: Coder for SC-2
+### Task 3.2a-2: Selected Agent for SC-2
 Task:
-  subagent_type: coder
+  subagent_type: $AGENT_TYPE
   prompt: Execute SC-2 from $PLAN_PATH
+
+**Note**: `$AGENT_TYPE` is selected in execute-plan Step 2.5 based on task type (frontend-engineer, backend-engineer, coder, etc.)
 
 ## Step 3.2b: Sequential Execution (Dependent SCs)
 [For SCs with dependencies, execute sequentially]

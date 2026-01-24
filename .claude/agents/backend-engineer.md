@@ -79,7 +79,7 @@ while [ $ITERATION -le $MAX_ITERATIONS ]; do
     # Check completion
     if [ $TEST_RESULT -eq 0 ] && [ $TYPE_RESULT -eq 0 ] && \
        [ $LINT_RESULT -eq 0 ] && [ $COVERAGE -ge 80 ]; then
-        echo "<CODER_COMPLETE>"
+        echo "<BACKEND_COMPLETE>"
         break
     fi
 
@@ -108,7 +108,7 @@ done
 - Overall: 85% (target: 80%) | API: 92% (target: 90%)
 
 ### Ralph Loop (MANDATORY)
-- Total Iterations: 2 | Final Status: <CODER_COMPLETE>
+- Total Iterations: 2 | Final Status: <BACKEND_COMPLETE>
 
 ### Verification Results
 - Type Check: ✅ | Lint: ✅
@@ -170,7 +170,7 @@ $TEST_CMD
 
 ## Completion Markers
 
-### <CODER_COMPLETE>
+### <BACKEND_COMPLETE>
 All of:
 - All tests pass
 - Coverage 80%+ (core 90%+)
@@ -178,7 +178,7 @@ All of:
 - Lint clean
 - All todos completed
 
-### <CODER_BLOCKED>
+### <BACKEND_BLOCKED>
 Any of:
 - Max 7 iterations reached
 - Unrecoverable error
@@ -192,5 +192,5 @@ confidence = 0.8 - (failures * 0.2) - (ambiguity * 0.3) - (complexity * 0.1)
 ```
 
 **Thresholds**:
-- If confidence < 0.5: Return `<CODER_BLOCKED>` with delegation recommendation
-- If confidence >= 0.5: Continue with `<CODER_COMPLETE>` or proceed to next iteration
+- If confidence < 0.5: Return `<BACKEND_BLOCKED>` with delegation recommendation
+- If confidence >= 0.5: Continue with `<BACKEND_COMPLETE>` or proceed to next iteration

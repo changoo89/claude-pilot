@@ -143,10 +143,28 @@ echo "✓ Plan created: $PLAN_FILE"
 **Goal**: Invoke Coder agent with TDD + Ralph Loop
 
 ```markdown
-Invoke Coder agent with:
+Select appropriate agent based on bug type:
+
+BUG_TYPE_ANALYSIS=$(echo "$BUG_DESCRIPTION" | grep -qiE "(UI|component|frontend|CSS|styling|interface|render)" && echo "frontend" || \
+                    echo "$BUG_DESCRIPTION" | grep -qiE "(API|endpoint|database|server|backend|middleware|REST|GraphQL)" && echo "backend" || \
+                    echo "general")
+
+case "$BUG_TYPE_ANALYSIS" in
+  frontend)
+    AGENT_TYPE="frontend-engineer"
+    ;;
+  backend)
+    AGENT_TYPE="backend-engineer"
+    ;;
+  *)
+    AGENT_TYPE="coder"
+    ;;
+esac
+
+Invoke ${AGENT_TYPE} agent with:
 
 Task:
-  subagent_type: coder
+  subagent_type: ${AGENT_TYPE}
   prompt: |
     Execute rapid fix from plan: $PLAN_FILE
 
@@ -163,9 +181,14 @@ Task:
     Return summary when complete.
 ```
 
-**Wait for Coder agent to return** with `<CODER_COMPLETE>` or `<CODER_BLOCKED>`.
+**Wait for ${AGENT_TYPE} agent to return** with completion marker.
 
-**If `<CODER_BLOCKED>`**: Stop and report issue to user.
+Completion markers by agent type:
+- frontend-engineer: `<FRONTEND_COMPLETE>` or `<FRONTEND_BLOCKED>`
+- backend-engineer: `<BACKEND_COMPLETE>` or `<BACKEND_BLOCKED>`
+- coder: `<CODER_COMPLETE>` or `<CODER_BLOCKED>`
+
+**If BLOCKED**: Stop and report issue to user.
 
 ---
 

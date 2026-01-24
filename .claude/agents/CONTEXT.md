@@ -114,6 +114,26 @@ Agents output completion markers:
 - `<CODER_COMPLETE>`: All SC met, quality gates pass
 - `<CODER_BLOCKED>`: Max iterations reached, needs intervention
 
+**Frontend-Engineer Agent**:
+- `<FRONTEND_COMPLETE>`: Frontend implementation complete with design quality self-check
+- `<FRONTEND_BLOCKED>`: Build error, needs intervention or delegation
+
+**Backend-Engineer Agent**:
+- `<BACKEND_COMPLETE>`: Backend implementation complete, quality gates pass
+- `<BACKEND_BLOCKED>`: Max iterations reached, needs intervention
+
+**Build-Error-Resolver Agent**:
+- `<BUILD_RESOLVER_COMPLETE>`: Build errors resolved, build passes
+- `<BUILD_RESOLVER_BLOCKED>`: Cannot resolve build errors, needs escalation
+
+**Design-Reviewer Agent**:
+- `<DESIGN_REVIEW_COMPLETE>`: Design quality review passed, meets Awwwards standards
+- `<DESIGN_REVIEW_BLOCKED>`: Design quality issues found, needs fixes
+
+**Documenter Agent**:
+- `<DOCS_COMPLETE>`: Documentation synchronized across all 3 tiers
+- `<DOCS_BLOCKED>`: Documentation sync failed, needs manual intervention
+
 **Plan-Reviewer Agent**:
 - `<PLAN_COMPLETE>`: Plan approved, no gaps
 - `<PLAN_BLOCKED>`: BLOCKING gaps found

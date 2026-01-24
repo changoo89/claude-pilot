@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [4.4.40] - 2026-01-24
+
+### Fixed
+- Restrict docs/ai-context/ to exactly 2 files - Remove system-integration.md references, enforce project-structure.md and docs-overview.md only (9882450)
+
+### Changed
+- close(plan): close_parallelization workflow (ac5416c)
+
+
 ## [4.4.39] - 2026-01-24
 
 ### Fixed

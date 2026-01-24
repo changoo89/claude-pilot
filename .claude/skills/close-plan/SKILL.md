@@ -23,7 +23,7 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 # Full workflow
 /03_close [RUN_ID|plan_path] [no-commit] [no-push]
 
-# Steps: Load → Verify SCs → Check DI → Docs → Evidence → Move → Commit → Push → Worktree Auto-Merge
+# Steps: Load → Verify SCs → Check DI → Parallel(3.1a Docs ∥ 3.1b Evidence) → 3.2 Docs Verify → Move → Commit → Push → Worktree Auto-Merge
 ```
 
 ---
@@ -134,21 +134,24 @@ echo "✓ STEP 2.5 COMPLETE"
 
 ---
 
-### [MANDATORY GATE] Step 3: Auto Documentation Sync
+### [MANDATORY GATE] Step 3: Parallel Verification
 
-**Purpose**: Update documentation based on session changes, then verify compliance
+**Purpose**: Run Documentation Update and Evidence Verification in parallel for 40-50% time reduction
 
-**CRITICAL**: This step MUST complete successfully before proceeding to Step 4.
+**CRITICAL**: BOTH parallel tasks MUST complete successfully before proceeding to Step 4.
 
-#### Step 3.1: Documentation Update
+#### Step 3.1a & 3.1b: Parallel Tasks
 
+Launch BOTH agents simultaneously in a SINGLE message with multiple Task tool calls:
+
+**Step 3.1a: Documentation Update (Parallel)**
 ```bash
-echo "▶ STEP 3: Auto Documentation Sync (MANDATORY GATE)"
+echo "▶ STEP 3: Parallel Verification (MANDATORY GATE)"
+echo "   📚 Launching Step 3.1a: Documentation Update (parallel)"
 
 # Capture timestamp before documentation update
 DOC_UPDATE_BEFORE=$(stat -f "%m" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null || stat -c "%Y" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null || echo 0)
 
-echo "📚 Running documentation update (three-tier-docs skill)..."
 # Invoke the three-tier-docs skill to sync documentation with code changes.
 # Use Task tool to invoke documenter agent with three-tier-docs skill.
 #
@@ -158,15 +161,28 @@ echo "📚 Running documentation update (three-tier-docs skill)..."
 # Expected Output: Updated Tier 1/2/3 documentation files
 ```
 
-**Updates**:
-- Tier 1: CLAUDE.md, project-structure.md, docs-overview.md
-- Tier 2: Component CONTEXT.md files
-- Tier 3: Feature CONTEXT.md files
+**Step 3.1b: Evidence Verification (Parallel)**
+```bash
+echo "   🔍 Launching Step 3.1b: Evidence Verification (parallel)"
 
-#### Step 3.2: Documentation Verification
+# Extract all verify commands from plan
+VERIFY_COMMANDS=$(grep -A1 "Verify:" "$PLAN_PATH" | grep -E "^\s*(test|grep|\[)" || true)
+
+# Invoke the validator agent to run verification commands from Success Criteria.
+# Use Task tool to invoke validator agent.
+#
+# Task invocation:
+# Task: "Run verification commands from Success Criteria in plan: $PLAN_PATH"
+# Target Agent: validator
+# Expected Output: Pass/fail results for each verification command
+```
+
+**⚠️ WAIT**: BOTH tasks (3.1a AND 3.1b) MUST complete before proceeding to Step 3.2
+
+#### Step 3.2: Documentation Verification (Sequential - after 3.1a completes)
 
 ```bash
-echo "✅ Running documentation verification (docs-verify skill)..."
+echo "✅ Running Step 3.2: Documentation Verification (sequential)"
 # Invoke the docs-verify skill to validate documentation compliance.
 # Use Task tool to invoke documenter agent with docs-verify skill.
 #
@@ -188,70 +204,32 @@ echo "✓ Documentation sync complete"
 echo "✓ STEP 3 COMPLETE (MANDATORY GATE)"
 ```
 
-**Validation includes** (via docs-verify skill):
+**Documentation Updates** (Step 3.1a):
+- Tier 1: CLAUDE.md, project-structure.md, docs-overview.md
+- Tier 2: Component CONTEXT.md files
+- Tier 3: Feature CONTEXT.md files
+
+**Documentation Validation** (Step 3.2, via docs-verify skill):
 - Tier 1 line limits (≤200 lines): CLAUDE.md, project-structure.md, docs-overview.md
 - docs/ai-context/ contains exactly 2 files
 - No broken cross-references
 - No circular references
 
----
-
-### [MANDATORY GATE] Step 4: Verify Evidence
-
-**Purpose**: Run verification commands from Success Criteria
-
-**CRITICAL**: This step MUST complete successfully before proceeding to Step 5. Distinguishes between "no verify commands" and "verify failed".
-
-```bash
-echo "▶ STEP 4: Verify Evidence (MANDATORY GATE)"
-
-# Extract all verify commands from plan
-VERIFY_COMMANDS=$(grep -A1 "Verify:" "$PLAN_PATH" | grep -E "^\s*(test|grep|\[)" || true)
-
-# Check if any verify commands exist
-if [ -z "$VERIFY_COMMANDS" ]; then
-    echo "⚠️  Warning: No verify commands found in plan"
-    echo "   Continuing to Step 5 (no evidence to verify)"
-else
-    echo "🔍 Running verification commands..."
-
-    # Track if any verification failed
-    VERIFY_FAILED=0
-
-    # Execute each verify command
-    while IFS= read -r cmd; do
-        if [[ -n "$cmd" && "$cmd" =~ ^(test|grep|\[) ]]; then
-            echo "   Executing: $cmd"
-            if ! eval "$cmd" 2>/dev/null; then
-                echo "   ❌ Verification failed: $cmd"
-                VERIFY_FAILED=1
-            else
-                echo "   ✓ Verification passed: $cmd"
-            fi
-        fi
-    done <<< "$VERIFY_COMMANDS"
-
-    # Check if any verification failed
-    if [ $VERIFY_FAILED -eq 1 ]; then
-        echo "❌ Step 4 FAILED: One or more verification commands failed"
-        echo "   Fix failing verification before proceeding to Step 5"
-        exit 1
-    fi
-
-    echo "✓ All verification commands passed"
-fi
-
-echo "✓ STEP 4 COMPLETE (MANDATORY GATE)"
-```
+**Evidence Verification** (Step 3.1b):
+- Runs all verify commands from Success Criteria
+- Distinguishes between "no verify commands" and "verify failed"
+- Blocks Step 4 if any verification fails
 
 ---
 
-### Step 5: Move Plan to Done
+### [MANDATORY GATE] Step 4: Move Plan to Done
 
 **Purpose**: Archive plan with timestamp organization
 
+**CRITICAL**: This step MUST wait for BOTH Step 3.1a (Documentation Update) AND Step 3.1b (Evidence Verification) to complete successfully.
+
 ```bash
-echo "▶ STEP 5: Move Plan to Done"
+echo "▶ STEP 4: Move Plan to Done"
 
 # Use same PROJECT_ROOT from Step 1
 TIMESTAMP="$(date +%Y%m%d)"
@@ -263,17 +241,17 @@ mv "$PLAN_PATH" "$DONE_DIR/"
 DONE_PLAN_PATH="$DONE_DIR/$(basename "$PLAN_PATH")"
 
 echo "✓ Plan moved to: $DONE_PLAN_PATH"
-echo "✓ STEP 5 COMPLETE"
+echo "✓ STEP 4 COMPLETE"
 ```
 
 ---
 
-### Step 6: Git Commit
+### Step 5: Git Commit
 
 **Purpose**: Create conventional commit with Co-Authored-By
 
 ```bash
-echo "▶ STEP 6: Git Commit"
+echo "▶ STEP 5: Git Commit"
 
 # Skip if no-commit flag
 if [ "$NO_COMMIT_FLAG" = "no-commit" ]; then
@@ -291,19 +269,19 @@ PLAN_TITLE="$(basename "$PLAN_PATH" .md)"
 git commit -m "close(plan): $PLAN_TITLE" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
 
 echo "✓ Git commit created"
-echo "✓ STEP 6 COMPLETE"
+echo "✓ STEP 5 COMPLETE"
 ```
 
 ---
 
-### Step 7: Git Push with Retry
+### Step 6: Git Push with Retry
 
 **Purpose**: Push to remote with exponential backoff retry logic
 
 **Git Push**: Reference @.claude/skills/git-operations/SKILL.md for `git_push_with_retry` function
 
 ```bash
-echo "▶ STEP 7: Git Push with Retry"
+echo "▶ STEP 6: Git Push with Retry"
 
 # Skip if no-push flag
 if [ "$NO_PUSH_FLAG" = "no-push" ]; then
@@ -378,12 +356,12 @@ if ! git_push_with_retry "origin" "$CURRENT_BRANCH"; then
 fi
 
 echo "✓ Pushed to origin/$CURRENT_BRANCH"
-echo "✓ STEP 7 COMPLETE"
+echo "✓ STEP 6 COMPLETE"
 ```
 
 ---
 
-### Step 8: Worktree Auto-Merge (Optional)
+### Step 7: Worktree Auto-Merge (Optional)
 
 **Purpose**: Merge feature branch to main when in worktree mode
 
@@ -393,7 +371,7 @@ echo "✓ STEP 7 COMPLETE"
 3. Current branch starts with `wt/`, `fix/`, or `feat/` prefix
 
 ```bash
-echo "▶ STEP 8: Worktree Auto-Merge (Optional)"
+echo "▶ STEP 7: Worktree Auto-Merge (Optional)"
 
 # Check if worktree mode
 IS_WORKTREE="false"
@@ -448,9 +426,9 @@ if [ "$IS_WORKTREE" = "true" ]; then
         echo "✓ Worktree and branch cleaned up"
     fi
 
-    echo "✓ STEP 8 COMPLETE"
+    echo "✓ STEP 7 COMPLETE"
 else
-    echo "⚠️  Worktree mode not detected - skipping Step 8"
+    echo "⚠️  Worktree mode not detected - skipping Step 7"
 fi
 ```
 
@@ -462,9 +440,10 @@ fi
 - Plan path detection (absolute paths)
 - Success Criteria verification
 - Active Discovered Issues warning (non-blocking)
+- **Parallel verification**: Documentation update (Step 3.1a) AND Evidence verification (Step 3.1b) run simultaneously
 - Documentation update (three-tier-docs skill)
 - Documentation verification (docs-verify skill)
-- Evidence verification
+- Evidence verification (validator agent)
 - Plan archival to done/
 - Git commit with Co-Authored-By
 - Git push with retry (3 attempts, exponential backoff)

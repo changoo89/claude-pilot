@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [4.4.39] - 2026-01-24
+
+### Fixed
+- Prevent step skipping in Step 3/4 of close-plan workflow (1145731)
+
 ## [4.4.38] - 2026-01-24
 
 ### Added

@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [4.4.37] - 2026-01-24
+
+### Added
+- **Design Quality System**: Awwwards-level UI design quality system with aesthetic direction guidelines (10688b9)
+- **Scope Clarity Framework**: Added to plan/confirm workflow with 4 mandatory triggers for scope validation (9ba4c3b)
+
+### Fixed
+- **Spec-driven workflow**: Add Success Criteria section to draft template (25bf3f8)
+
+### Changed
+- **Plan closure**: Reference analysis and improvements (528667f, fb1da41)
+
 ## [4.4.36] - 2026-01-24
 
 ### Fixed

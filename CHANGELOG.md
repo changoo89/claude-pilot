@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [4.4.38] - 2026-01-24
+
+### Added
+- Discovered Issues tracking system - Track out-of-scope issues found after /01_confirm with statusline integration (P0=🔴, P1=🟡)
+
+### Fixed
+- Apply dynamic agent selection across execute-plan and related skills
+
+
 ## [4.4.37] - 2026-01-24
 
 ### Added

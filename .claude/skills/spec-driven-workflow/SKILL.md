@@ -229,6 +229,91 @@ landing|marketing|redesign|beautiful|modern|premium|hero|pricing|portfolio|homep
 
 ---
 
+### Step 1.8: External Context Detection (MANDATORY)
+
+**Purpose**: Detect ANY external context dependency for self-contained execution
+
+**Detection Patterns** (from GPT Architect):
+
+| Pattern | Examples | Context Type |
+|---------|----------|--------------|
+| "Like X / similar to Y" | "메타랩처럼", "Stripe style", "같은", "based on" | Design/Reference |
+| External links | URLs, Figma, Slack, docs, "see above" | Various |
+| "Use the API/docs/spec" | "Stripe API", "REST endpoint" | API |
+| "Use library X" | "using NextAuth", "with Prisma" | Library |
+| "Refactor to match" | "기존처럼", "like the example" | Refactor |
+| Implicit knowledge | "우리 브랜드", "standard", "best practice" | Domain |
+| Untestable requirement | No acceptance criteria | Scope |
+
+**When Detected**:
+
+1. **Identify Context Type**:
+   - Design: website, UI, visual reference
+   - API: endpoints, schemas, auth
+   - Library: packages, frameworks, tools
+   - Refactor: existing code patterns
+   - Domain: business rules, brand guidelines
+
+2. **Capture Workflow per Type**:
+
+   **Design Context**:
+   ```bash
+   # Screenshot + visual analysis
+   playwright: browser_navigate(url)
+   playwright: browser_take_screenshot(fullPage=true)
+   # Extract: colors, typography, layout, components, interactions
+   ```
+
+   **API Context**:
+   ```bash
+   # Documentation capture
+   webReader: webReader(docs_url)
+   # Extract: endpoints, schemas, auth, errors, examples
+   context7: query-docs(libraryId, "API reference")
+   ```
+
+   **Library Context**:
+   ```bash
+   # Version + config + examples
+   context7: resolve-library-id(libraryName)
+   context7: query-docs(libraryId, "setup configuration")
+   # Pin version, capture config, minimal examples
+   ```
+
+   **Refactor Context**:
+   ```bash
+   # Before/after patterns
+   # Capture: current code, target pattern, invariants to preserve
+   ```
+
+3. **Create Context Pack**:
+   ```markdown
+   ## Context Pack
+
+   ### Goal
+   [User-facing outcome - what success looks like]
+
+   ### Inputs (Embedded)
+   [Per context type - see formats below]
+
+   ### Derived Requirements
+   [Measurable bullets extracted from inputs - NOT references]
+
+   ### Assumptions & Unknowns
+   | Item | Status | Resolution |
+   |------|--------|------------|
+   | [Gap] | Unknown | Ask user / Use default |
+
+   ### Traceability Map
+   | Requirement | Source (Embedded) |
+   |-------------|-------------------|
+   | [Req-1] | Context Pack → Inputs → [excerpt] |
+   ```
+
+**CRITICAL**: Do NOT proceed to Step 2 if context capture incomplete.
+
+---
+
 ### Step 2: Gather Requirements
 
 **Purpose**: Capture user requirements verbatim for plan foundation

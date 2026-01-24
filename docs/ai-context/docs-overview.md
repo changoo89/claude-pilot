@@ -143,4 +143,4 @@ wc -l CLAUDE.md  # Must be ≤200
 
 ---
 
-**Version**: 4.4.11
+**Version**: 4.4.40

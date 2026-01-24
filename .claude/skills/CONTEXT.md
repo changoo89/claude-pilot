@@ -13,7 +13,7 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `code-cleanup` | Dead code detection and removal | "cleanup", "remove unused code", "dead code" |
 | `code-quality-gates` | Quality validation gates | "quality gates", "validation", "checks" |
 | `coding-standards` | TypeScript/React/API standards | "coding standards", "best practices", "conventions" |
-| `confirm-plan` | Plan confirmation workflow | "confirm plan", "plan review", "requirements verification" |
+| `confirm-plan` | Plan confirmation workflow | "confirm plan", "plan review", "requirements verification", "context pack", "self-contained verification" |
 | `documentation-best-practices` | Documentation standards | "documentation", "docs", "CLAUDE.md" |
 | `execute-plan` | Plan execution workflow | "execute plan", "implement SC", "parallel execution" |
 | `frontend-design` | Production-grade frontend design | "UI design", "frontend styling", "landing page" |
@@ -27,7 +27,7 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `release` | Plugin release workflow | "release version", "bump version", "git tag", "GitHub release" |
 | `review` | Multi-angle code review | "code review", "quality review", "parallel review" |
 | `safe-file-ops` | Safe file operations | "file operations", "safe edit", "pre-flight checks" |
-| `spec-driven-workflow` | SPEC-first development | "SPEC-first", "planning", "requirements" |
+| `spec-driven-workflow` | SPEC-first development | "SPEC-first", "planning", "requirements", "external context detection" |
 | `tdd` | Test-Driven Development | "implementing features", "test coverage", "TDD" |
 | `test-driven-development` | Advanced TDD patterns | "TDD patterns", "testing strategies", "test design" |
 | `three-tier-docs` | 3-tier documentation hierarchy | "documentation tiers", "CLAUDE.md", "CONTEXT.md" |

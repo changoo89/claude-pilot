@@ -277,6 +277,11 @@ Write initial file with header:
 
 | ID | Time | Decision | Context |
 |----|------|----------|---------|
+
+## Success Criteria
+
+- [ ] **SC-1**: [Measurable outcome]
+  - **Verify**: [test command or verification step]
 ```
 
 **Subsequent Decisions**: Append to existing file

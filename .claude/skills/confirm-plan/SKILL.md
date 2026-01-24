@@ -234,7 +234,15 @@ mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 | ID | Assumption | Verified? |
 |----|------------|-----------|
 | A-1 | [가정 내용] | ✅ / ⚠️ |
-```
+
+## Design Requirements
+
+| Property | Value | Source |
+|----------|-------|--------|
+| Aesthetic Direction | Minimal (default) | House style |
+| Color Palette | Off-white backgrounds, no purple-blue gradients | frontend-design skill |
+| Typography | Geist/Satoshi (never Inter) | frontend-design skill |
+| Component Style | Varied radii, subtle borders, proper states | frontend-design skill |
 
 ---
 

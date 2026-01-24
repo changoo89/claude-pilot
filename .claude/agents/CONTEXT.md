@@ -19,9 +19,10 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 | **build-error-resolver** | haiku | 272 | Bash, Read, Edit | Build/compilation error resolution | `/02_execute` - Build error recovery |
 | **plan-reviewer** | sonnet | 128 | Read, Glob, Grep | Plan analysis and gaps | `/01_confirm` - Gap detection |
 | **code-reviewer** | opus | 122 | Read, Glob, Grep, Bash | Deep code review | `/review` - Async bugs, memory leaks |
+| **design-reviewer** | sonnet | 170 | Read, Glob, Grep, Bash | Design quality review | `/review --design-review` - Landing pages, pricing, onboarding |
 | **documenter** | haiku | 351 | Read, Write | Documentation generation | `/document` - Sync docs |
 
-**Total**: 12 agents (8 original + 4 new)
+**Total**: 13 agents (8 original + 5 new)
 
 ## Agent Categories
 
@@ -41,6 +42,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **security-analyst** (sonnet): Security vulnerability analysis
 - **plan-reviewer** (sonnet): Plan analysis
 - **code-reviewer** (opus): Deep review
+- **design-reviewer** (sonnet): Design quality review for high-stakes UI surfaces
 
 ### Documentation Agents (Haiku)
 - **documenter**: Documentation generation
@@ -65,6 +67,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **validator** (haiku): Type check, lint, coverage
 - **security-analyst** (sonnet): Security vulnerability analysis (`/review security`)
 - **code-reviewer** (opus): Deep analysis
+- **design-reviewer** (sonnet): Design quality review (`/review --design-review`)
 
 ### `/document` (Documentation)
 - **documenter** (haiku): Sync documentation

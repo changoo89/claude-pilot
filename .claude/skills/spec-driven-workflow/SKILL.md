@@ -178,6 +178,57 @@ prompt: |
 
 ---
 
+### Step 1.6: Design Direction Check (SMART DETECTION)
+
+**Purpose**: Detect high-aesthetic-risk tasks and capture design direction early
+
+**Trigger Keywords** (high-aesthetic-risk):
+```
+landing|marketing|redesign|beautiful|modern|premium|hero|pricing|portfolio|homepage|brand|client-facing|polish|revamp
+```
+
+**When Triggered** (any keyword present in task description):
+
+1. Ask user for aesthetic direction:
+   ```
+   AskUserQuestion:
+     question: "What visual style should this UI follow?"
+     header: "Style"
+     multiSelect: false
+     options:
+       - label: "Minimal (Recommended)"
+         description: "Clean, sparse, purposeful - Stripe/Linear style"
+       - label: "Warm"
+         description: "Organic textures, soft edges - Notion/Gumroad style"
+       - label: "Bold"
+         description: "High contrast, strong typography - Modern/Experimental"
+   ```
+
+2. Store decision in draft plan:
+   ```markdown
+   | D-{N} | HH:MM | Aesthetic Direction: [Minimal/Warm/Bold] | User selected style for design implementation |
+   ```
+
+**When Not Triggered** (no keywords detected):
+
+1. Proceed with "house style" defaults (NO question asked)
+2. Store in draft plan:
+   ```markdown
+   | D-{N} | HH:MM | Aesthetic Direction: Minimal (house style default) | No design keywords detected, using defaults |
+   ```
+
+**Canonical Source**: All design defaults reference `@.claude/skills/frontend-design/SKILL.md`
+
+**House Style Defaults** (when no keywords detected):
+- **Direction**: Minimalist (clean, sparse, purposeful)
+- **Typography**: Geist/Satoshi (NOT Inter)
+- **Colors**: Off-white backgrounds, no purple-to-blue gradients
+- **Components**: Varied radii, subtle borders, proper states
+
+**Non-Blocking Rule**: If no response within 30 seconds, proceed with `aesthetic_direction: minimal`
+
+---
+
 ### Step 2: Gather Requirements
 
 **Purpose**: Capture user requirements verbatim for plan foundation

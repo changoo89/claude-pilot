@@ -124,7 +124,7 @@ Select the appropriate agent based on task type:
 
 | Task Type | Agent | Detection Criteria |
 |-----------|-------|-------------------|
-| Frontend | frontend-engineer | component, UI, React, CSS, Tailwind, landing page |
+| Frontend | frontend-engineer | component, UI, React, CSS, Tailwind, landing page, webpage, website, design, page, layout, form, button, card, modal, dashboard, hero, marketing, portfolio |
 | Backend | backend-engineer | API, endpoint, database, server, backend, middleware |
 | Build Error | build-error-resolver | Build/type-check failures |
 | General | coder | All other implementations (fallback) |
@@ -133,7 +133,7 @@ Select the appropriate agent based on task type:
 ```bash
 PLAN_CONTENT=$(cat "$PLAN_PATH")
 
-if echo "$PLAN_CONTENT" | grep -qiE "component|UI|React|CSS|Tailwind|landing page"; then
+if echo "$PLAN_CONTENT" | grep -qiE "component|UI|React|CSS|Tailwind|landing page|webpage|website|design|page|layout|form|button|card|modal|dashboard|hero|marketing|portfolio"; then
   AGENT_TYPE="frontend-engineer"
 elif echo "$PLAN_CONTENT" | grep -qiE "API|endpoint|database|server|backend|middleware"; then
   AGENT_TYPE="backend-engineer"

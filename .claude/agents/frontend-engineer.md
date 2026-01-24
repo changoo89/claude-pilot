@@ -148,12 +148,38 @@ Enforce during ALL code generation:
 - **ralph-loop**: @.claude/skills/ralph-loop/SKILL.md
 - **vibe-coding**: @.claude/skills/vibe-coding/SKILL.md
 
+## Design Quality Self-Check (MANDATORY Before <FRONTEND_COMPLETE>)
+
+**CRITICAL**: Run this rubric and FIX ALL issues before outputting <FRONTEND_COMPLETE>. This is a fix queue, not a report.
+
+### Checklist (Fix ALL before completion)
+
+**Typography**: Not Inter font (use Geist/Satoshi/System), clear hierarchy, proper line-height (1.5-1.6 body, 1.2-1.3 headings), letter-spacing
+
+**Spacing**: 8px grid scale (8/16/24/32/48/64), generous padding (min 16px, prefer 24px+), consistent margin rhythm, no magic numbers
+
+**Color**: NO purple-blue gradients, NO pure white backgrounds (use off-white #FAFAFA/#F5F5F5), WCAG AA contrast (4.5:1 body), intentional palette
+
+**Layout**: NOT perfectly centered (explore asymmetry), visual alignment (not just pixel), proximity grouping, consistent sizing
+
+**States**: NOT rounded-xl everywhere (vary radii: none/sm/md/lg/full), hover/focus/disabled/loading/active states defined
+
+**Responsive**: Mobile-first, breakpoints (sm:640/md:768/lg:1024/xl:1280), touch targets 44x44px min, graceful content flow
+
+**Polish**: Subtle borders/shadows (not heavy), texture/noise/patterns, empty/loading/error states handled
+
 ## Completion Markers
 
 Output these markers ONLY when all conditions are met:
 
 ### <FRONTEND_COMPLETE>
-All of: tests pass, coverage 80%+, type check clean, lint clean, todos completed
+All of:
+- Tests pass
+- Coverage 80%+
+- Type check clean
+- Lint clean
+- Todos completed
+- **Design Quality Self-Check: ALL items verified and fixed**
 
 ### <FRONTEND_BLOCKED>
 Any of: max 7 iterations reached, unrecoverable error, user intervention needed

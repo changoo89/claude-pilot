@@ -8,45 +8,26 @@ description: Plan execution workflow - parallel SC implementation, worktree mode
 > **Purpose**: Execute plans using TDD + Ralph Loop with parallel execution
 > **Target**: Coder Agent implementing Success Criteria from plans
 
----
+**When to Use**: Execute plans from `/01_confirm`, implement SCs with TDD, parallel execution of independent SCs, worktree mode for isolated development
 
-## Quick Start
-
-### When to Use This Skill
-- Execute plans from `/01_confirm`
-- Implement Success Criteria with TDD
-- Parallel execution of independent SCs
-- Worktree mode for isolated development
-
-### Quick Reference
+**Quick Reference**:
 ```bash
-# Plan detection & parallel execution
 PROJECT_ROOT="$(pwd)"
 PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | sort | head -1)"
 Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-1 from $PLAN_PATH"
 ```
 
----
-
-## What This Skill Covers
-
-**In Scope**: Plan detection, SC dependency analysis, parallel execution, worktree mode, parallel verification, GPT delegation
-
-**Out of Scope**: TDD methodology → @.claude/skills/tdd/SKILL.md | Ralph Loop → @.claude/skills/ralph-loop/SKILL.md | Code quality → @.claude/skills/vibe-coding/SKILL.md
+**Scope**: Plan detection, SC dependency analysis, parallel execution, worktree mode, GPT delegation. TDD/Ralph/Vibe → separate skills.
 
 ---
 
 ## Execution Steps
 
-### ⚠️ EXECUTION DIRECTIVE
-
-**IMPORTANT**: Execute ALL steps IMMEDIATELY and AUTOMATICALLY.
-
-**Prohibited**: NEVER move plan to done/ (only `/03_close` has this authority), do NOT call close-plan automatically, plan MUST remain in `.pilot/plan/in_progress/`
+**⚠️ EXECUTION DIRECTIVE**: Execute ALL steps IMMEDIATELY. NEVER move plan to done/ (only `/03_close` has this authority), do NOT call close-plan automatically, plan MUST remain in `.pilot/plan/in_progress/`
 
 ---
 
-## Step 1: Plan Detection
+## Step 1: Plan Detection & SC Extraction
 
 **⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
 
@@ -66,38 +47,52 @@ if echo "$PLAN_PATH" | grep -q "/pending/"; then
 fi
 
 echo "✓ Plan: $PLAN_PATH"
-```
 
----
+# Extract SCs (supports both header ### SC-N: and checkbox - [ ] **SC-N** formats)
+SC_LIST=$(grep -E "^### SC-[0-9]+:|^- \[ \] \*\*SC-[0-9]+\*\*" "$PLAN_PATH" | sed -E 's/.*SC-([0-9]+).*/SC-\1/')
+SC_COUNT=$(echo "$SC_LIST" | grep -c "SC-" || echo "0")
 
-## Step 2: Extract Success Criteria
+if [ "$SC_COUNT" -eq 0 ]; then
+    echo "❌ No Success Criteria found in plan"
+    exit 1
+fi
 
-```bash
-SC_LIST="$(grep -E "^- \[ \] \*\*SC-" "$PLAN_PATH" | sed 's/.*\*\*SC-\([0-9]*\)\*\*.*/SC-\1/')"
-SC_COUNT="$(echo "$SC_LIST" | wc -l | tr -d ' ')"
 echo "✓ Found $SC_COUNT Success Criteria"
+echo "$SC_LIST"
 ```
 
 ---
 
 ## Step 2.5: Agent Selection
 
-| Task Type | Agent | Detection Criteria |
-|-----------|-------|-------------------|
-| Frontend | frontend-engineer | component, UI, React, CSS, Tailwind |
-| Backend | backend-engineer | API, endpoint, database, server |
-| Build Error | build-error-resolver | Build/type-check failures |
-| General | coder | All other implementations |
+**Priority Order** (first match wins):
+1. `.claude/*` or `docs/*` → coder (plugin/documentation work)
+2. `src/components/*` + UI keywords → frontend-engineer
+3. `src/api/*` or `server/*` + API keywords → backend-engineer
+4. Default → coder
 
 ```bash
 PLAN_CONTENT=$(cat "$PLAN_PATH")
+FILES_TO_MODIFY=$(grep -E "^\| \`" "$PLAN_PATH" | sed 's/.*`\([^`]*\)`.*/\1/' || echo "")
 
-if echo "$PLAN_CONTENT" | grep -qiE "component|UI|React|CSS|Tailwind"; then
-  AGENT_TYPE="frontend-engineer"
-elif echo "$PLAN_CONTENT" | grep -qiE "API|endpoint|database|server|backend"; then
-  AGENT_TYPE="backend-engineer"
+# Priority 1: Plugin/Documentation work
+if echo "$FILES_TO_MODIFY" | grep -qE "^\.claude/|^docs/"; then
+    AGENT_TYPE="coder"
+    echo "Selected agent: coder (plugin/documentation work)"
+# Priority 2: Frontend (only for src/ paths)
+elif echo "$FILES_TO_MODIFY" | grep -qE "^src/components/|^src/ui/" && \
+     echo "$PLAN_CONTENT" | grep -qiE "component|UI|React|CSS|Tailwind"; then
+    AGENT_TYPE="frontend-engineer"
+    echo "Selected agent: frontend-engineer"
+# Priority 3: Backend (only for src/ paths)
+elif echo "$FILES_TO_MODIFY" | grep -qE "^src/api/|^src/server/|^server/" && \
+     echo "$PLAN_CONTENT" | grep -qiE "API|endpoint|database|server|backend"; then
+    AGENT_TYPE="backend-engineer"
+    echo "Selected agent: backend-engineer"
+# Default: coder
 else
-  AGENT_TYPE="coder"
+    AGENT_TYPE="coder"
+    echo "Selected agent: coder (default)"
 fi
 ```
 
@@ -105,11 +100,14 @@ fi
 
 ## Step 3: Execute with Ralph Loop
 
-### Step 3.1: Dependency Analysis
-
+**Dependency Analysis** (supports both `### SC-N:` and `- [ ] **SC-N**` formats):
 ```bash
 for SC in $SC_LIST; do
-    SC_CONTENT=$(sed -n "/\*\*${SC}\*\*/,/^\*- \[ \]/p" "$PLAN_PATH" | head -n -1)
+    SC_NUM=$(echo "$SC" | sed 's/SC-//')
+    SC_CONTENT=$(sed -n "/### SC-${SC_NUM}:/,/^###\|^- \[ \] \*\*SC-/p" "$PLAN_PATH" | tail -n +2 | head -n -1 2>/dev/null)
+    if [ -z "$SC_CONTENT" ]; then
+        SC_CONTENT=$(sed -n "/\*\*SC-${SC_NUM}\*\*/,/^\*- \[ \]/p" "$PLAN_PATH" | tail -n +2 | head -n -1 2>/dev/null)
+    fi
     if echo "$SC_CONTENT" | grep -qiE 'after|depends|requires|follows'; then
         echo "**SequentialGroup**: $SC"
     else
@@ -118,28 +116,11 @@ for SC in $SC_LIST; do
 done
 ```
 
-### Step 3.2: Execution Strategies
+**Execution Strategies**: Parallel (Independent SCs, 50-70% speedup): `Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-{N} from $PLAN_PATH. Skills: tdd, ralph-loop, vibe-coding. Output: <CODER_COMPLETE> or <CODER_BLOCKED>"` | Sequential (Dependent SCs): One agent with all SCs | Single Coder (1-2 SCs): Always delegate
 
-**Parallel** (Independent SCs): 50-70% speedup
-```markdown
-Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-{N} from $PLAN_PATH. Skills: tdd, ralph-loop, vibe-coding. Output: <CODER_COMPLETE> or <CODER_BLOCKED>"
-```
+**Process Results**: Check `<CODER_COMPLETE>`, run `npm test`, mark complete or retry. Quality Gates: Tests pass, Coverage ≥80%, Type-check clean, Lint clean.
 
-**Sequential** (Dependent SCs): Execute one agent with all SCs
-**Single Coder** (1-2 SCs): Always delegate for context protection
-
-### Step 3.3: Process Results
-
-1. Check for `<CODER_COMPLETE>` markers from all agents
-2. Run tests: `npm test`
-3. If tests pass: Mark all SCs as complete in plan
-4. If tests fail: Sequential retry of failed SCs
-
-**Quality Gates**: Tests pass, Coverage ≥80%, Type-check clean, Lint clean
-
-### Step 3.4: Handle CODER_BLOCKED
-
-When any coder agent returns `<CODER_BLOCKED>`, automatically delegate to GPT Architect:
+**Handle CODER_BLOCKED**: Delegate to GPT Architect (gpt-5.2, workspace-write, reasoning_effort=medium). Fallback: Continue with Claude.
 
 ```bash
 if grep -q "<CODER_BLOCKED>" /tmp/coder_output.log 2>/dev/null; then
@@ -149,51 +130,25 @@ if grep -q "<CODER_BLOCKED>" /tmp/coder_output.log 2>/dev/null; then
 fi
 ```
 
-**Critical Parameters**: Model: gpt-5.2 | Sandbox: workspace-write | Reasoning: medium
-
-**Fallback**: Continue with Claude if Codex CLI unavailable
-
 ---
 
-## Step 4.5: Project Type Detection
+## Step 4: Completion & E2E Verification
 
-**Purpose**: Auto-detect project type (web/CLI/library) for E2E verification.
-
-**Full Implementation**: @.claude/skills/execute-plan/REFERENCE.md#project-type-detection
-
----
-
-## Step 4: Completion Message
-
+**Completion**:
 ```bash
 echo "✅ All Success Criteria Complete"
 echo "📦 Next Step: Run Step 5 for E2E verification"
 ```
 
-**Proceed to Step 5**: Do NOT call /03_close yet.
-
----
-
-## Step 5: E2E Verification
-
-**Purpose**: Validate actual functionality, not just code changes.
-
-**Substeps**:
-1. Detect project type (web/CLI/library) - @REFERENCE.md#project-type-detection
-2. Web: Chrome in Claude (browser_navigate, browser_snapshot) - @REFERENCE.md#e2e-web
-3. CLI: Run command, check exit code and stdout - @REFERENCE.md#e2e-cli
-4. Library: Run tests, check exit code - @REFERENCE.md#e2e-library
-5. Retry on failure (max 3) - @REFERENCE.md#e2e-retry-loop
-
-**Retry Pattern**: MAX_E2E_RETRIES=3, then GPT delegation, then user.
+**E2E Verification**: Detect project type → Web: Chrome in Claude, CLI: check exit code/stdout, Library: run tests. Retry max 3, then GPT delegation, then user. Full: @REFERENCE.md
 
 ---
 
 ## Further Reading
 
-**Internal**: @.claude/skills/execute-plan/REFERENCE.md - Full implementation details, worktree setup, GPT delegation, verification patterns | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor | @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop | @.claude/skills/parallel-subagents/SKILL.md - Parallel execution | @.claude/skills/gpt-delegation/SKILL.md - GPT delegation
+**Internal**: @.claude/skills/execute-plan/REFERENCE.md | @.claude/skills/tdd/SKILL.md | @.claude/skills/ralph-loop/SKILL.md | @.claude/skills/gpt-delegation/SKILL.md
 
-**External**: [Test-Driven Development by Kent Beck](https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530) | [Working Effectively with Legacy Code by Michael Feathers](https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052)
+**External**: [Test-Driven Development](https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530) | [Working Effectively with Legacy Code](https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052)
 
 ---
 

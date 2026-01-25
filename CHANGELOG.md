@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [4.4.43] - 2026-01-25
+
+### Documentation
+- Add single agent delegation pattern documentation (738f905)
+
+### Changed
+- close(plan): single-subagent-delegation (7a6d40a)
+
+
 ## [4.4.42] - 2026-01-24
 
 
@@ -74,7 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.4.32] - 2026-01-24
 
 ### Fixed
-- **setup command**: Remove `disable-model-invocation` flag to allow `/claude-pilot:setup` execution from distributed plugin (37f27c5)
+- **setup command**: Remove `disable-model-invocation` flag to allow `/claude-pilot:setup` execution from distributed plugin (37f2755)
 
 ## [4.4.31] - 2026-01-23
 

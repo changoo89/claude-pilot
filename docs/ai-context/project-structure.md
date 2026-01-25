@@ -112,6 +112,7 @@ claude-pilot/
 | `git-master` | Git operations |
 | `gpt-delegation` | GPT expert delegation |
 | `docs-verify` | Documentation verification |
+| `parallel-subagents` | Concurrent agent execution with single delegation pattern |
 
 **Details**: See `@.claude/skills/CONTEXT.md`
 

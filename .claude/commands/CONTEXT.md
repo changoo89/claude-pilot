@@ -53,7 +53,10 @@ User Request
 
 Each command delegates to appropriate skills:
 - **spec-driven-workflow**: Plan creation
-- **execute-plan**: Agent selection and implementation orchestration
+- **execute-plan**: Agent selection and implementation with single coder delegation
+- **confirm-plan**: Plan verification with explicit task delegation
+- **close-plan**: Archive and commit with task delegation patterns
+- **parallel-subagents**: Agent execution with single delegation pattern
 - **tdd**: Test-driven development
 - **ralph-loop**: Autonomous iteration
 - **git-master**: Git operations

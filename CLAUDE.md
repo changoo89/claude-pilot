@@ -42,6 +42,9 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 **Workflow**: Plan (`/00_plan`) → Confirm (`/01_confirm`) → Execute (`/02_execute`) → Review (`/review`) → Document (`/document`) → Close (`/03_close`)
 
+### Context Protection Pattern
+**Single Agent Delegation**: Always delegate even single tasks to subagents to protect main orchestrator context (~50-80% context savings). Implement mandatory Task tool patterns in all workflow skills.
+
 ---
 
 ## Plugin Components
@@ -176,6 +179,9 @@ Response Handling (synthesize, apply, verify)
 
 ### v4.4.40 (2026-01-24)
 Self-Contained Planning Framework - External Context Detection, Context Pack Structure, Self-Contained Verification, Zero-Knowledge TODO format
+
+### v4.4.42 (2026-01-25)
+Single Agent Delegation Pattern - Context protection for main orchestrator, mandatory Task tool patterns in all workflow skills
 
 ### v4.4.31 (2026-01-24)
 Scope Clarity Framework - Step 1.5 in spec-driven-workflow, Step 1.7 in confirm-plan, 4 mandatory triggers for scope validation

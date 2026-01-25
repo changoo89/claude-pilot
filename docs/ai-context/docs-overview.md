@@ -39,7 +39,7 @@ docs/ai-context/ (Tier 1 - Detailed)
 
 **Required**: CLAUDE.md must reference both ai-context files at the top.
 
-**Validation**: `docs-verify.sh --strict` enforces line limits.
+**Validation**: Integrated verification in three-tier-docs enforces line limits, file counts, and cross-references.
 
 ---
 
@@ -93,6 +93,8 @@ Feature-level implementation details.
 ### Workflows
 → **@.claude/commands/CONTEXT.md**: Command workflows, phase boundaries
 → **@.claude/skills/gpt-delegation/REFERENCE.md**: GPT delegation, Codex CLI
+→ **@.claude/skills/execute-plan/REFERENCE.md**: E2E verification framework with Chrome in Claude integration and retry loop pattern
+→ **@.claude/skills/close-plan/SKILL.md**: OOM-optimized plan completion (5 steps, 2 agents)
 
 ### Structure
 → **@docs/ai-context/project-structure.md**: Directory layout, key files
@@ -134,13 +136,15 @@ Feature-level implementation details.
 ## Validation
 
 ```bash
-# Verify all documentation
-.claude/scripts/docs-verify.sh --strict
+# Verification integrated in three-tier-docs skill
+# Call via: invoke three-tier-docs skill
 
-# Check specific file
-wc -l CLAUDE.md  # Must be ≤200
+# Manual checks:
+wc -l CLAUDE.md docs/ai-context/*.md  # Must be ≤200 each
+find docs/ai-context -name "*.md" | wc -l  # Must be exactly 2
+grep -o '@[^[:space:]]+' CLAUDE.md | while read ref; do [ -e "${ref#@}" ] || echo "Broken: $ref"; done
 ```
 
 ---
 
-**Version**: 4.4.43
+**Version**: 4.4.43 (E2E Verification Framework with Chrome in Claude integration, retry loop pattern, and OOM-optimized close-plan workflow)

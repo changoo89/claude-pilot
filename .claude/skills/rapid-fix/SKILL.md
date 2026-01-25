@@ -10,16 +10,6 @@ description: Rapid bug fix workflow - auto-plan, execute, test, and close simple
 
 ---
 
-## ⚠️ EXECUTION DIRECTIVE
-
-**IMPORTANT**: Execute ALL steps below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
-- Do NOT pause between steps
-- Do NOT ask "should I continue?" or wait for "keep going"
-- Execute Step 1 → 2 → 3 → 4 → 5 in sequence
-- Only stop on ERROR or when requiring user approval (Step 4)
-
----
-
 ## Quick Start
 
 ### When to Use This Skill
@@ -53,203 +43,44 @@ description: Rapid bug fix workflow - auto-plan, execute, test, and close simple
 
 ---
 
-## Step 1: Validate Scope
+## Execution Steps
 
+### Step 1: Validate Scope
 **Goal**: Reject complex tasks that belong in `/00_plan`
 
-```bash
-# Parse arguments
-BUG_DESCRIPTION="$1"
+Check for complexity keywords: `feature`, `architecture`, `refactor`, `design`
+If detected → Reject with suggestion to use `/00_plan`
 
-if [ -z "$BUG_DESCRIPTION" ]; then
-    echo "❌ Error: Bug description required"
-    echo "   Usage: /04_fix \"bug description\""
-    exit 1
-fi
-
-# Check task complexity via keywords
-if echo "$BUG_DESCRIPTION" | grep -qiE "(feature|architecture|refactor|design)"; then
-    echo "⚠️  Complex task detected: $BUG_DESCRIPTION"
-    echo ""
-    echo "   This requires full planning workflow."
-    echo "   Use: /00_plan \"$BUG_DESCRIPTION\""
-    exit 1
-fi
-
-echo "✓ Scope validated: Simple fix"
-```
-
----
-
-## Step 2: Create Mini-Plan
-
+### Step 2: Create Mini-Plan
 **Goal**: Generate minimal plan (1-3 SCs) with absolute path
 
-**⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
+Create plan file at `.pilot/plan/draft/{TIMESTAMP}_rapid_fix.md` with:
+- Success Criteria (SC-1, SC-2, SC-3)
+- PRP Analysis (What/Why/How)
+- Test Plan
+- Quality Gates
 
-```bash
-# PROJECT_ROOT = Claude Code execution directory (absolute path required)
-PROJECT_ROOT="$(pwd)"
-
-# Create plan with timestamp
-TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
-PLAN_FILE="$PROJECT_ROOT/.pilot/plan/draft/${TIMESTAMP}_rapid_fix.md"
-
-# Ensure directory exists
-mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
-
-# Generate minimal plan
-cat > "$PLAN_FILE" << EOF
-# Rapid Fix: $BUG_DESCRIPTION
-
-> **Type**: Bug Fix (Rapid)
-> **Estimated**: 20 minutes
-> **Created**: $(date '+%Y-%m-%d %H:%M:%S')
-
-## Success Criteria
-
-- [ ] **SC-1**: Fix applied and verified
-- [ ] **SC-2**: Tests pass
-- [ ] **SC-3**: No regressions
-
-## PRP Analysis
-
-### What: Fix bug - $BUG_DESCRIPTION
-### Why: Resolves issue impacting functionality
-### How: Apply minimal change with test coverage
-
-## Test Plan
-
-1. Write failing test that reproduces bug
-2. Implement minimal fix
-3. Verify all tests pass (Ralph Loop)
-4. Confirm no regressions
-
-## Quality Gates
-
-- Tests: ALL PASS
-- Coverage: ≥80% overall
-- Type-check: CLEAN
-- Lint: CLEAN
-EOF
-
-echo "✓ Plan created: $PLAN_FILE"
-```
-
----
-
-## Step 3: Execute Fix
-
+### Step 3: Execute Fix
 **Goal**: Invoke Coder agent with TDD + Ralph Loop
 
-```markdown
-Select appropriate agent based on bug type:
+Analyze bug type (frontend/backend/general) and invoke appropriate agent with:
+- TDD cycle (Red-Green-Refactor)
+- Ralph Loop (autonomous iteration)
+- Quality gates (tests, type-check, lint, coverage ≥80%)
 
-BUG_TYPE_ANALYSIS=$(echo "$BUG_DESCRIPTION" | grep -qiE "(UI|component|frontend|CSS|styling|interface|render)" && echo "frontend" || \
-                    echo "$BUG_DESCRIPTION" | grep -qiE "(API|endpoint|database|server|backend|middleware|REST|GraphQL)" && echo "backend" || \
-                    echo "general")
+Wait for completion marker: `<CODER_COMPLETE>` or `<CODER_BLOCKED>`
 
-case "$BUG_TYPE_ANALYSIS" in
-  frontend)
-    AGENT_TYPE="frontend-engineer"
-    ;;
-  backend)
-    AGENT_TYPE="backend-engineer"
-    ;;
-  *)
-    AGENT_TYPE="coder"
-    ;;
-esac
-
-Invoke ${AGENT_TYPE} agent with:
-
-Task:
-  subagent_type: ${AGENT_TYPE}
-  prompt: |
-    Execute rapid fix from plan: $PLAN_FILE
-
-    Skills to load: tdd, ralph-loop, vibe-coding
-
-    Follow TDD cycle:
-    1. Red: Write failing test
-    2. Green: Minimal implementation
-    3. Refactor: Apply Vibe Coding standards
-
-    Enter Ralph Loop immediately after first code change.
-    Iterate until all quality gates pass.
-
-    Return summary when complete.
-```
-
-**Wait for ${AGENT_TYPE} agent to return** with completion marker.
-
-Completion markers by agent type:
-- frontend-engineer: `<FRONTEND_COMPLETE>` or `<FRONTEND_BLOCKED>`
-- backend-engineer: `<BACKEND_COMPLETE>` or `<BACKEND_BLOCKED>`
-- coder: `<CODER_COMPLETE>` or `<CODER_BLOCKED>`
-
-**If BLOCKED**: Stop and report issue to user.
-
----
-
-## Step 4: Show Diff & Confirm
-
+### Step 4: Show Diff & Confirm
 **Goal**: Show user the changes and get approval
 
-```bash
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📋 Changes made:"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-git diff
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
+Display `git diff` and prompt user (y/N):
+- If approved → Proceed to Step 5
+- If not approved → Preserve plan and changes
 
-# Ask user for approval
-read -p "Approve fix and commit? [y/N]: " APPROVAL
-
-if [ "$APPROVAL" != "y" ] && [ "$APPROVAL" != "Y" ]; then
-    echo "❌ Fix not approved - changes preserved"
-    echo "   Plan available at: $PLAN_FILE"
-    exit 0
-fi
-
-echo "✓ Fix approved"
-```
-
----
-
-## Step 5: Commit Changes
-
+### Step 5: Commit Changes
 **Goal**: Commit with conventional commit message and Co-Authored-By
 
-```bash
-# Stage all changes
-git add -A
-
-# Create commit with Co-Authored-By
-git commit -m "$(cat <<'EOF'
-fix: $BUG_DESCRIPTION
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-EOF
-)"
-
-if [ $? -eq 0 ]; then
-    echo "✓ Changes committed"
-    git log -1 --oneline
-else
-    echo "❌ Commit failed"
-    exit 1
-fi
-
-echo ""
-echo "🎉 Rapid fix complete!"
-echo ""
-echo "📊 Summary:"
-echo "   Plan: $PLAN_FILE"
-echo "   Commit: $(git log -1 --format='%h - %s')"
-```
+Create commit: `fix: {BUG_DESCRIPTION}\n\nCo-Authored-By: Claude <noreply@anthropic.com>`
 
 ---
 
@@ -257,9 +88,7 @@ echo "   Commit: $(git log -1 --format='%h - %s')"
 
 ### Scope Validation Algorithm
 
-**Complexity Keywords**:
-- `feature`, `architecture`, `refactor`, `design`
-- Any of these → Reject with `/00_plan` suggestion
+**Complexity Keywords**: `feature`, `architecture`, `refactor`, `design`
 
 **Rationale**: Rapid fix is for simple bugs (≤3 SCs, ≤20 minutes)
 
@@ -274,10 +103,7 @@ echo "   Commit: $(git log -1 --format='%h - %s')"
 
 ### Execution Integration
 
-**Invokes Coder agent directly** with:
-- TDD cycle (Red-Green-Refactor)
-- Ralph Loop (autonomous iteration)
-- Quality gates (tests, type-check, lint, coverage ≥80%)
+**Invokes Coder agent directly** with TDD + Ralph Loop
 
 ### User Confirmation Flow
 

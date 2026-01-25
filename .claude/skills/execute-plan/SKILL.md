@@ -20,36 +20,19 @@ description: Plan execution workflow - parallel SC implementation, worktree mode
 
 ### Quick Reference
 ```bash
-# Plan detection (MANDATORY FIRST ACTION)
+# Plan detection & parallel execution
 PROJECT_ROOT="$(pwd)"
 PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | sort | head -1)"
-echo "Plan: $PLAN_PATH"
-
-# Parallel Coder invocation (Group 1 - Independent SCs)
-# Use selected agent type from Step 2.5 (AGENT_TYPE)
-Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-1: {DESCRIPTION}..."
-
-# Verification (parallel)
-Task: subagent_type: tester, prompt: "Run tests for {PLAN_PATH}"
-Task: subagent_type: validator, prompt: "Type check + lint"
-Task: subagent_type: code-reviewer, prompt: "Review code"
+Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-1 from $PLAN_PATH"
 ```
 
 ---
 
 ## What This Skill Covers
 
-### In Scope
-- Plan detection and state transition
-- SC dependency analysis and parallel execution
-- Worktree mode setup and management
-- Parallel verification (tester + validator + code-reviewer)
-- GPT delegation triggers and auto-escalation
+**In Scope**: Plan detection, SC dependency analysis, parallel execution, worktree mode, parallel verification, GPT delegation
 
-### Out of Scope
-- TDD methodology → @.claude/skills/tdd/SKILL.md
-- Ralph Loop iteration → @.claude/skills/ralph-loop/SKILL.md
-- Code quality standards → @.claude/skills/vibe-coding/SKILL.md
+**Out of Scope**: TDD methodology → @.claude/skills/tdd/SKILL.md | Ralph Loop → @.claude/skills/ralph-loop/SKILL.md | Code quality → @.claude/skills/vibe-coding/SKILL.md
 
 ---
 
@@ -57,17 +40,9 @@ Task: subagent_type: code-reviewer, prompt: "Review code"
 
 ### ⚠️ EXECUTION DIRECTIVE
 
-**IMPORTANT**: Execute ALL steps below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
-- Do NOT pause between steps
-- Do NOT ask "should I continue?" or wait for "keep going"
-- Execute Step 1 → 2 → 3 in sequence, then launch parallel/sequential coder agents
-- Only stop on ERROR or when all SCs are blocked
+**IMPORTANT**: Execute ALL steps IMMEDIATELY and AUTOMATICALLY.
 
-### 🚫 PROHIBITED Actions
-- **NEVER move plan to done/** - Only `/03_close` has this authority
-- Do NOT call close-plan skill automatically
-- Do NOT archive the plan file
-- Plan MUST remain in `.pilot/plan/in_progress/` after execution completes
+**Prohibited**: NEVER move plan to done/ (only `/03_close` has this authority), do NOT call close-plan automatically, plan MUST remain in `.pilot/plan/in_progress/`
 
 ---
 
@@ -76,17 +51,10 @@ Task: subagent_type: code-reviewer, prompt: "Review code"
 **⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
 
 ```bash
-# PROJECT_ROOT = Claude Code execution directory (absolute path required)
 PROJECT_ROOT="$(pwd)"
-
-# Find plan in pending/ or in_progress/
 PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | sort | head -1)"
 
-if [ -z "$PLAN_PATH" ]; then
-    echo "❌ No plan found"
-    echo "   Create plan first: /00_plan \"describe your task\""
-    exit 1
-fi
+[ -z "$PLAN_PATH" ] && { echo "❌ No plan found"; exit 1; }
 
 # Move from pending/ to in_progress/
 if echo "$PLAN_PATH" | grep -q "/pending/"; then
@@ -105,14 +73,7 @@ echo "✓ Plan: $PLAN_PATH"
 ## Step 2: Extract Success Criteria
 
 ```bash
-# Extract all SCs from plan
 SC_LIST="$(grep -E "^- \[ \] \*\*SC-" "$PLAN_PATH" | sed 's/.*\*\*SC-\([0-9]*\)\*\*.*/SC-\1/')"
-
-if [ -z "$SC_LIST" ]; then
-    echo "❌ No Success Criteria found in plan"
-    exit 1
-fi
-
 SC_COUNT="$(echo "$SC_LIST" | wc -l | tr -d ' ')"
 echo "✓ Found $SC_COUNT Success Criteria"
 ```
@@ -121,28 +82,23 @@ echo "✓ Found $SC_COUNT Success Criteria"
 
 ## Step 2.5: Agent Selection
 
-Select the appropriate agent based on task type:
-
 | Task Type | Agent | Detection Criteria |
 |-----------|-------|-------------------|
-| Frontend | frontend-engineer | component, UI, React, CSS, Tailwind, landing page, webpage, website, design, page, layout, form, button, card, modal, dashboard, hero, marketing, portfolio |
-| Backend | backend-engineer | API, endpoint, database, server, backend, middleware |
+| Frontend | frontend-engineer | component, UI, React, CSS, Tailwind |
+| Backend | backend-engineer | API, endpoint, database, server |
 | Build Error | build-error-resolver | Build/type-check failures |
-| General | coder | All other implementations (fallback) |
+| General | coder | All other implementations |
 
-**Implementation**:
 ```bash
 PLAN_CONTENT=$(cat "$PLAN_PATH")
 
-if echo "$PLAN_CONTENT" | grep -qiE "component|UI|React|CSS|Tailwind|landing page|webpage|website|design|page|layout|form|button|card|modal|dashboard|hero|marketing|portfolio"; then
+if echo "$PLAN_CONTENT" | grep -qiE "component|UI|React|CSS|Tailwind"; then
   AGENT_TYPE="frontend-engineer"
-elif echo "$PLAN_CONTENT" | grep -qiE "API|endpoint|database|server|backend|middleware"; then
+elif echo "$PLAN_CONTENT" | grep -qiE "API|endpoint|database|server|backend"; then
   AGENT_TYPE="backend-engineer"
 else
   AGENT_TYPE="coder"
 fi
-
-echo "Selected agent: $AGENT_TYPE"
 ```
 
 ---
@@ -151,111 +107,31 @@ echo "Selected agent: $AGENT_TYPE"
 
 ### Step 3.1: Dependency Analysis
 
-Analyze SC dependencies to determine parallel vs sequential execution:
-
 ```bash
-# Extract SC list from plan
-SC_LIST="$(grep -E "^- \[ \] \*\*SC-" "$PLAN_PATH" | sed 's/.*\*\*SC-\([0-9]*\)\*\*.*/SC-\1/')"
-
-# Analyze dependencies
 for SC in $SC_LIST; do
     SC_CONTENT=$(sed -n "/\*\*${SC}\*\*/,/^\*- \[ \]/p" "$PLAN_PATH" | head -n -1)
-
-    # Check for dependency keywords
     if echo "$SC_CONTENT" | grep -qiE 'after|depends|requires|follows'; then
-        echo "**SequentialGroup**: $SC (has dependencies)"
+        echo "**SequentialGroup**: $SC"
     else
-        echo "**ParallelGroup**: $SC (independent)"
+        echo "**ParallelGroup**: $SC"
     fi
 done
 ```
 
-### Step 3.2a: Parallel Execution (Independent SCs)
+### Step 3.2: Execution Strategies
 
-For independent SCs (no shared files, no dependencies), launch 4 parallel agents using the selected agent type from Step 2.5:
-
+**Parallel** (Independent SCs): 50-70% speedup
 ```markdown
-Task:
-  subagent_type: $AGENT_TYPE
-  prompt: |
-    Execute SC-1 from $PLAN_PATH
-    Use skills: tdd, ralph-loop, vibe-coding
-    Focus only on SC-1: {description from plan}
-    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
-
-Task:
-  subagent_type: $AGENT_TYPE
-  prompt: |
-    Execute SC-2 from $PLAN_PATH
-    Use skills: tdd, ralph-loop, vibe-coding
-    Focus only on SC-2: {description from plan}
-    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
-
-Task:
-  subagent_type: $AGENT_TYPE
-  prompt: |
-    Execute SC-3 from $PLAN_PATH
-    Use skills: tdd, ralph-loop, vibe-coding
-    Focus only on SC-3: {description from plan}
-    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
-
-Task:
-  subagent_type: $AGENT_TYPE
-  prompt: |
-    Execute SC-4 from $PLAN_PATH
-    Use skills: tdd, ralph-loop, vibe-coding
-    Focus only on SC-4: {description from plan}
-    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
+Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-{N} from $PLAN_PATH. Skills: tdd, ralph-loop, vibe-coding. Output: <CODER_COMPLETE> or <CODER_BLOCKED>"
 ```
 
-**Expected Speedup**: 50-70% (4 SCs in ~1.5x time, not 4x)
-
-### Step 3.2b: Sequential Execution (Dependent SCs)
-
-For SCs with dependencies, execute sequentially using the selected agent type from Step 2.5:
-
-```markdown
-Task:
-  subagent_type: $AGENT_TYPE
-  prompt: |
-    Execute all SCs from $PLAN_PATH using tdd, ralph-loop
-    SCs have dependencies - execute sequentially
-    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
-```
-
-### Step 3.2c: Single Coder Delegation (MANDATORY for 1-2 SCs)
-
-When plan has 1-2 SCs, delegate to single coder agent (DO NOT execute directly):
-
-**Context Protection**: Main orchestrator maintains clean context by delegating even single tasks.
-
-```markdown
-Task:
-  subagent_type: $AGENT_TYPE
-  prompt: |
-    Execute all SCs from $PLAN_PATH
-    Skills to use: tdd, ralph-loop, vibe-coding
-
-    Success Criteria from plan:
-    [SC-1]: {description}
-    [SC-2]: {description} (if exists)
-
-    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
-```
-
-**CRITICAL**: Never execute implementation directly in main orchestrator context.
-- Subagent runs in isolated context (~80K tokens internally)
-- Returns concise summary (~1K tokens) to orchestrator
-- Orchestrator maintains clean context for coordination
-
-**Reference**: @.claude/skills/parallel-subagents/SKILL.md - Single Agent Delegation Pattern
+**Sequential** (Dependent SCs): Execute one agent with all SCs
+**Single Coder** (1-2 SCs): Always delegate for context protection
 
 ### Step 3.3: Process Results
 
-After parallel execution completes:
-
 1. Check for `<CODER_COMPLETE>` markers from all agents
-2. Run tests: `npm test` (or project-specific test command)
+2. Run tests: `npm test`
 3. If tests pass: Mark all SCs as complete in plan
 4. If tests fail: Sequential retry of failed SCs
 
@@ -266,151 +142,59 @@ After parallel execution completes:
 When any coder agent returns `<CODER_BLOCKED>`, automatically delegate to GPT Architect:
 
 ```bash
-# Check for CODER_BLOCKED markers
-BLOCKED_COUNT=$(grep -c "<CODER_BLOCKED>" /tmp/coder_output.log 2>/dev/null || echo 0)
-
-if [ "$BLOCKED_COUNT" -gt 0 ]; then
-    echo "⚠️  $BLOCKED_COUNT coder(s) blocked - delegating to GPT Architect"
-
-    # Graceful fallback if Codex CLI not installed
-    if ! command -v codex &> /dev/null; then
-        echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
-        echo "Consider installing Codex CLI for GPT-4 architectural guidance"
-        # Continue with Claude - not an error
-    else
-        # Delegate to GPT Architect (workspace-write mode)
-        # Reference: .claude/skills/gpt-delegation/SKILL.md
-        ARCHITECT_PROMPT="You are a software architect analyzing a blocked implementation.
-TASK: Analyze why coder agents are blocked and provide fresh approach
-PLAN FILE: $PLAN_PATH
-ITERATION: $ITERATION_COUNT
-MUST DO:
-- Identify root cause of blockage
-- Propose alternative implementation approach
-- Report recommended changes"
-
-        # ⚠️ CRITICAL: Use EXACTLY these parameters
-        # - Model: gpt-5.2 (NEVER change)
-        # - Sandbox: workspace-write (for implementation - NEVER use read-only, workspace-read, or any variation)
-        # - Reasoning: reasoning_effort=medium (MUST be medium - NEVER use high/low)
+if grep -q "<CODER_BLOCKED>" /tmp/coder_output.log 2>/dev/null; then
+    if command -v codex &> /dev/null; then
         codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "$ARCHITECT_PROMPT"
-
-        # Re-invoke coder with GPT recommendations
-        echo "✓ GPT Architect recommendations applied - retrying implementation"
     fi
 fi
 ```
 
-**Delegation Conditions**:
-- Any `<CODER_BLOCKED>` marker detected in agent output
-- Max iterations (7) reached without completion
-- Critical errors preventing progress
+**Critical Parameters**: Model: gpt-5.2 | Sandbox: workspace-write | Reasoning: medium
 
-**Fallback Behavior**: Continue with Claude if Codex CLI unavailable
+**Fallback**: Continue with Claude if Codex CLI unavailable
+
+---
+
+## Step 4.5: Project Type Detection
+
+**Purpose**: Auto-detect project type (web/CLI/library) for E2E verification.
+
+**Full Implementation**: @.claude/skills/execute-plan/REFERENCE.md#project-type-detection
 
 ---
 
 ## Step 4: Completion Message
 
-After all SCs are complete:
-
 ```bash
 echo "✅ All Success Criteria Complete"
-echo ""
-echo "📦 Next Step: Close Plan"
-echo "   Run /03_close to finalize and commit the plan"
-echo "   - Documentation sync runs automatically during close"
+echo "📦 Next Step: Run Step 5 for E2E verification"
 ```
 
-**🛑 STOP HERE**:
-- Do NOT proceed to /03_close automatically
-- Do NOT move plan to done/
-- Wait for user to explicitly run `/03_close`
+**Proceed to Step 5**: Do NOT call /03_close yet.
 
 ---
 
-## Parallel Execution Patterns
+## Step 5: E2E Verification
 
-### SC Dependency Analysis
+**Purpose**: Validate actual functionality, not just code changes.
 
-**Rules**:
-- **Sequential**: One `in_progress` at a time
-- **Parallel**: Mark ALL parallel items as `in_progress` simultaneously
-- **File conflicts**: If 2+ SCs modify same file → Different groups
+**Substeps**:
+1. Detect project type (web/CLI/library) - @REFERENCE.md#project-type-detection
+2. Web: Chrome in Claude (browser_navigate, browser_snapshot) - @REFERENCE.md#e2e-web
+3. CLI: Run command, check exit code and stdout - @REFERENCE.md#e2e-cli
+4. Library: Run tests, check exit code - @REFERENCE.md#e2e-library
+5. Retry on failure (max 3) - @REFERENCE.md#e2e-retry-loop
 
-**Detection**:
-1. Extract all Success Criteria from plan
-2. Parse file paths mentioned in each SC
-3. Check for file overlaps (conflicts)
-4. Check for dependency keywords ("requires", "depends on")
-5. Group SCs by parallel execution capability
-
----
-
-## Worktree Mode
-
-### Purpose
-Create isolated worktree for parallel plan execution
-
-### Workflow
-1. Parse `--wt` flag from `$ARGUMENTS`
-2. Create worktree branch (`wt/{timestamp}`)
-3. Store metadata in `.pilot/state/worktree.json`
-4. Restore context across Bash calls
-
-### Commands
-```bash
-# Create worktree
-git worktree add ../claude-pilot-wt wt/$(date +%s)
-
-# Store metadata
-echo '{"path": "../claude-pilot-wt", "branch": "wt/1234567890"}' > .pilot/state/worktree.json
-
-# Cleanup after execution
-git worktree remove ../claude-pilot-wt
-```
-
----
-
-## GPT Delegation Patterns
-
-### Auto-Delegation Triggers
-
-1. **Coder Blocked**: When Coder returns `<CODER_BLOCKED>` → Immediately delegate to GPT Architect
-2. **2+ Failed Attempts**: After 2nd failure (not first) → GPT Architect
-3. **Architecture Decisions**: Explicit request in plan → GPT Architect
-4. **Security Concerns**: Security-related SCs → GPT Security Analyst
-
-### Delegation Flow
-
-```
-Trigger Detection (explicit, semantic, description-based)
-      ↓
-Expert Selection (Architect, Security Analyst, Code Reviewer, Plan Reviewer, Scope Analyst)
-      ↓
-Delegation (direct codex CLI: codex exec -m gpt-5.2 -s MODE -c reasoning_effort=medium)
-      ↓
-Response Handling (synthesize, apply, verify)
-```
-
-### Expert Mapping
-
-- **Architect**: System design, component interaction, scalability
-- **Security Analyst**: Vulnerabilities, authentication, authorization
-- **Plan Reviewer**: Plan validation, completeness, clarity
-- **Code Reviewer**: Code quality, best practices, maintainability
-- **Scope Analyst**: Requirements analysis, feature scoping
+**Retry Pattern**: MAX_E2E_RETRIES=3, then GPT delegation, then user.
 
 ---
 
 ## Further Reading
 
-**Internal**: @.claude/skills/execute-plan/REFERENCE.md - Full implementation details, state management, worktree setup, verification patterns | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle | @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop | @.claude/skills/parallel-subagents/SKILL.md - Parallel execution orchestration | @.claude/skills/gpt-delegation/SKILL.md - GPT delegation patterns
+**Internal**: @.claude/skills/execute-plan/REFERENCE.md - Full implementation details, worktree setup, GPT delegation, verification patterns | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor | @.claude/skills/ralph-loop/SKILL.md - Autonomous completion loop | @.claude/skills/parallel-subagents/SKILL.md - Parallel execution | @.claude/skills/gpt-delegation/SKILL.md - GPT delegation
 
 **External**: [Test-Driven Development by Kent Beck](https://www.amazon.com/Test-Driven-Development-Kent-Beck/dp/0321146530) | [Working Effectively with Legacy Code by Michael Feathers](https://www.amazon.com/Working-Effectively-Legacy-Michael-Feathers/dp/0131177052)
 
 ---
-
-**Related Skills**: ralph-loop | tdd | parallel-subagents | spec-driven-workflow | gpt-delegation
 
 **Version**: claude-pilot 4.4.14

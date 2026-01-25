@@ -42,6 +42,19 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 **Workflow**: Plan (`/00_plan`) → Confirm (`/01_confirm`) → Execute (`/02_execute`) → Review (`/review`) → Document (`/document`) → Close (`/03_close`)
 
+### OOM Optimization (v4.4.43)
+- **Reduced Agent Calls**: `/03_close` now uses 2 agents instead of 3 (33% reduction)
+- **Merged Verification**: Documentation sync and verification combined in single agent call
+- **No External Dependencies**: Pure bash link checking (removed npx markdown-link-check)
+- **Streamlined Steps**: 9 steps → 5 steps (44% reduction)
+
+### E2E Verification Framework (v4.4.43)
+- **Mandatory Verification**: Added Step 5 to `/02_execute` for actual functionality validation
+- **Project Type Detection**: Auto-detect web/CLI/library projects for appropriate verification
+- **Chrome in Claude Integration**: MCP tools for web project visual/functional testing
+- **Retry Loop Pattern**: Max 3 attempts with GPT Architect escalation on persistent failures
+- **Graceful Fallback**: Skip browser tests with warning when Chrome extension unavailable
+
 ### Context Protection Pattern
 **Single Agent Delegation**: Always delegate even single tasks to subagents to protect main orchestrator context (~50-80% context savings). Implement mandatory Task tool patterns in all workflow skills.
 
@@ -62,29 +75,8 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 ## Key Features
 
 ### Codex Integration (v4.2.0)
-**Intelligent GPT Delegation**: Context-aware, autonomous delegation to GPT experts
-
-**Key Features**:
-- **Delegation Triggers**: Architecture decisions, 2+ failures, security issues, large plans
-- **Expert Mapping**: Architect (system design), Security Analyst (vulnerabilities), Plan Reviewer (validation), Code Reviewer (quality), Scope Analyst (requirements)
-- **Progressive Escalation**: After 2nd failure (not first) → GPT Architect
-- **Auto-Delegation**: Coder blocked → Immediate GPT Architect call
-- **Graceful Fallback**: Falls back to Claude if Codex CLI not installed
-
-**Configuration**: `export CODEX_REASONING_EFFORT="medium"` (default)
-
+**Intelligent GPT Delegation**: Context-aware delegation to GPT experts
 **Full Guide**: `@.claude/skills/gpt-delegation/REFERENCE.md`
-
-**Delegation Flow**:
-```
-Trigger Detection (explicit, semantic, description-based)
-      ↓
-Expert Selection (Architect, Security Analyst, Code Reviewer, Plan Reviewer, Scope Analyst)
-      ↓
-Delegation (direct codex CLI: codex exec -m gpt-5.2 -s MODE -c reasoning_effort=medium)
-      ↓
-Response Handling (synthesize, apply, verify)
-```
 
 ### CI/CD Integration
 **GitHub Actions**: Automated release on git tag push
@@ -123,6 +115,8 @@ Response Handling (synthesize, apply, verify)
 **Frontend Design**: `@.claude/skills/frontend-design/SKILL.md` - UI/UX design thinking
 **Spec-Driven Workflow**: `@.claude/skills/spec-driven-workflow/SKILL.md` - Enhanced with Context Manifest and Quick Sufficiency Test
 **Multi-Angle Review**: `@.claude/skills/review/SKILL.md` - Comprehensive review with enhanced code-reviewer integration
+**E2E Verification**: `@.claude/skills/execute-plan/REFERENCE.md` - End-to-end testing with Chrome in Claude integration
+**OOM-Optimized Close**: `@.claude/skills/close-plan/SKILL.md` - Streamlined plan completion (5 steps, 2 agents)
 
 ---
 
@@ -183,15 +177,9 @@ Response Handling (synthesize, apply, verify)
 Self-Contained Planning Framework - External Context Detection, Context Pack Structure, Self-Contained Verification, Zero-Knowledge TODO format
 
 ### v4.4.43 (2026-01-25)
-QA/QC Enhancement Framework - Enhanced code-reviewer agent with Risk Areas, Assumptions tracking, Context Manifest format, Quick Sufficiency Test
+E2E Verification Framework - Added mandatory E2E verification to /02_execute final stage with project type detection, Chrome in Claude integration for web projects, and retry loop pattern (max 3 attempts), Enhanced QA/QC Framework - Enhanced code-reviewer agent with Risk Areas, Assumptions tracking, Context Manifest format, Quick Sufficiency Test, Documentation Refactoring - 9 SKILL.md and 2 agent files refactored to ≤200 lines, 2 companion docs (TROUBLESHOOTING.md, EXAMPLES.md) created, OOM Optimization - Reduced agent calls in /03_close from 3 to 2, merged verification steps, pure bash link checking
 
 ### v4.4.31 (2026-01-24)
 Scope Clarity Framework - Step 1.5 in spec-driven-workflow, Step 1.7 in confirm-plan, 4 mandatory triggers for scope validation
-
-### v4.4.30 (2026-01-23)
-Plugin distribution restructure - dual-branch strategy (main for dev, release for distribution)
-
-### v4.4.15 (2026-01-23)
-Superpowers-style command refactoring - all 10 commands simplified to ~10 lines (invoke skill pattern)
 
 **Full History**: See `CHANGELOG.md`

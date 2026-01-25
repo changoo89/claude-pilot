@@ -9,12 +9,12 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | Skill | Purpose | Trigger Keywords |
 |-------|---------|-----------------|
 | `claude-pilot-standards` | Plugin development standards | "plugin standards", "command format", "skill format" |
-| `close-plan` | Plan closure workflow | "close plan", "finalize", "mark complete" |
+| `close-plan` | OOM-optimized plan closure (5 steps, 2 agents) | "close plan", "finalize", "mark complete" |
 | `code-cleanup` | Dead code detection and removal | "cleanup", "remove unused code", "dead code" |
 | `code-quality-gates` | Quality validation gates | "quality gates", "validation", "checks" |
 | `coding-standards` | TypeScript/React/API standards | "coding standards", "best practices", "conventions" |
 | `confirm-plan` | Plan confirmation workflow | "confirm plan", "plan review", "requirements verification", "context pack", "self-contained verification" |
-| `documentation-best-practices` | Documentation standards | "documentation", "docs", "CLAUDE.md" |
+| `documentation-best-practices` | Documentation standards | "documentation", "docs", "CLAUDE.md" (200+ lines) |
 | `execute-plan` | Plan execution workflow | "execute plan", "implement SC", "parallel execution" |
 | `frontend-design` | Production-grade frontend design | "UI design", "frontend styling", "landing page" |
 | `git-master` | Version control workflow | "commit", "branch", "PR", "git" |
@@ -30,11 +30,11 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `spec-driven-workflow` | SPEC-first development | "SPEC-first", "planning", "requirements", "external context detection" |
 | `tdd` | Test-Driven Development | "implementing features", "test coverage", "TDD" |
 | `test-driven-development` | Advanced TDD patterns | "TDD patterns", "testing strategies", "test design" |
-| `three-tier-docs` | 3-tier documentation hierarchy | "documentation tiers", "CLAUDE.md", "CONTEXT.md" |
+| `three-tier-docs` | 3-tier documentation hierarchy with integrated verification | "documentation tiers", "CLAUDE.md", "CONTEXT.md", "line limits" |
 | `using-git-worktrees` | Parallel development with worktrees | "worktrees", "parallel development", "isolated workspace" |
 | `vibe-coding` | Code quality standards | "refactor", "code quality", "clean code" |
 
-**Total**: 25 skills, each with SKILL.md (≤200 lines) and REFERENCE.md (≤300 lines)
+**Total**: 25 skills, each with SKILL.md (≤200 lines) and REFERENCE.md (variable length), all refactored for compliance and enhanced functionality
 
 ## Common Tasks
 
@@ -76,7 +76,7 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 - **Skill**: @.claude/skills/execute-plan/SKILL.md
 - **Agent**: Coder (sonnet)
 - **Usage**: `/02_execute` command
-- **Workflow**: Detect plan → Analyze dependencies → Implement with TDD → Iterate
+- **Workflow**: Detect plan → Analyze dependencies → Implement with TDD → E2E verification (Step 5) → Iterate
 
 ## Patterns
 

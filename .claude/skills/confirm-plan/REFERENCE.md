@@ -6,68 +6,62 @@
 
 ## Detailed Step Implementation
 
-### Step 0.5: GPT Delegation Trigger Check
-
-> **Full details**: See @.claude/skills/gpt-delegation/REFERENCE.md
-> **Purpose**: Determine if GPT expert review is needed before plan confirmation
-
-**Trigger Detection**:
-- Large plan (5+ success criteria)
-- User explicitly requests ("ask GPT", "consult GPT", "review this plan")
-
-**Action**: Delegate to GPT Plan Reviewer via `codex-sync.sh`
-
----
-
-### Step 1: Dual-Source Extraction
+### Step 1: Dual-Source Extraction (Full Details)
 
 > **Purpose**: Extract from both draft decisions file AND conversation to prevent omissions
 > **PRP Framework**: See @.claude/skills/spec-driven-workflow/SKILL.md
 
-#### Step 1.1: Load Draft Decisions File
+#### Step 1.1: Load Draft File
+
+**Strategy**: Reuse draft from /00_plan when available, create new if not found.
 
 ```bash
 PROJECT_ROOT="$(pwd)"
-DECISIONS_FILE="$(find "$PROJECT_ROOT/.pilot/plan/draft" -name "*_decisions.md" -type f 2>/dev/null | sort -r | head -1)"
 
-if [ -n "$DECISIONS_FILE" ]; then
-    echo "✓ Found decisions file: $DECISIONS_FILE"
-    # Parse Decisions table (D-1, D-2, ...)
+# First, look for *_draft.md (new naming)
+DRAFT_FILE="$(find "$PROJECT_ROOT/.pilot/plan/draft" -name "*_draft.md" -type f 2>/dev/null | sort -r | head -1)"
+
+# Backward compatibility: if no draft.md found, look for *_decisions.md (old naming)
+if [ -z "$DRAFT_FILE" ]; then
+    DECISIONS_FILE="$(find "$PROJECT_ROOT/.pilot/plan/draft" -name "*_decisions.md" -type f 2>/dev/null | sort -r | head -1)"
+    if [ -n "$DECISIONS_FILE" ]; then
+        echo "⚠️ Found legacy *_decisions.md file: $DECISIONS_FILE"
+        echo "   Will rename to *_draft.md for backward compatibility"
+        DRAFT_FILE="$DECISIONS_FILE"
+    fi
+fi
+
+if [ -n "$DRAFT_FILE" ]; then
+    echo "✓ Found draft file: $DRAFT_FILE"
+    DRAFT_EXISTS=true
 else
-    echo "⚠️ No decisions file found - proceeding with conversation-only extraction"
+    echo "⚠️ No draft file found - will create new draft file"
+    DRAFT_EXISTS=false
 fi
 ```
+
+**Parse Draft Content** if file exists:
+- Extract Decisions table (D-1, D-2, etc.)
+- Extract User Requirements table (UR-1, UR-2, etc.)
+- Preserve existing content for merging
 
 #### Step 1.2: Scan Conversation (LLM Context)
 
 LLM scans entire `/00_plan` conversation to extract:
 - User Requirements (Verbatim) with IDs (UR-1, UR-2, ...)
-- All decisions and agreements made
-- Scope confirmations (in/out)
-- Approach selections
-- Constraints specified
+- Decisions, scope confirmations, approach selections, constraints
 
 #### Step 1.3: Cross-Check
 
-Compare draft decisions with conversation scan:
-
-```markdown
-### Cross-Check Results
-
-| Source | Item | In Draft? | In Conversation? | Status |
-|--------|------|-----------|------------------|--------|
-| Draft | D-1: [decision] | ✅ | ✅ | OK |
-| Draft | D-2: [decision] | ✅ | ✅ | OK |
-| Conversation | [requirement] | ❌ | ✅ | ⚠️ MISSING |
-```
+Compare draft vs conversation. Flag MISSING items (in conversation but not in draft).
 
 #### Step 1.4: Resolve Omissions
 
-If MISSING items found, use AskUserQuestion (multi-select):
+If MISSING items found, use AskUserQuestion (multi-select) to resolve:
 
 ```markdown
 AskUserQuestion:
-  question: "Items found in conversation but not in decisions log. Select items to include:"
+  question: "The following items were found in conversation but not in decisions log. Select items to include:"
   header: "Omissions"
   multiSelect: true
   options:
@@ -79,206 +73,260 @@ AskUserQuestion:
       description: "Exclude all missing items"
 ```
 
-**Extraction Checklist** (after resolution):
-- [ ] User Requirements (Verbatim)
-- [ ] PRP Analysis (What, Why, How, Success Criteria, Constraints)
-- [ ] Execution Plan
-- [ ] Acceptance Criteria
-- [ ] Test Plan
-- [ ] Risks & Mitigations
-- [ ] Open Questions
+After resolution, proceed to Step 2.
 
-**Validation**: If any required section missing, inform user and ask to proceed
+#### Step 1.5: Conversation Highlights Extraction
 
----
+**Purpose**: Capture implementation details from `/00_plan` conversation
 
-### Step 1.5: Conversation Highlights Extraction
+**Scan For**:
+- Code blocks (```language, ```)
+- CLI commands with specific flags
+- API invocation examples
+- Architecture diagrams (ASCII/Mermaid)
 
-> **Purpose**: Ensure executor has concrete "how to implement" guidance
+**Output Format**: Mark with `> **FROM CONVERSATION:**` prefix in plan file
 
-**Scan Conversation For**:
-- Code Examples (fenced blocks, inline snippets)
-- Syntax Patterns (CLI commands, API calls, configurations)
-- Architecture Diagrams (ASCII art, Mermaid charts)
+#### Step 1.6: Requirements Verification (BLOCKING)
 
-**Output Format**:
-```markdown
-### Implementation Patterns (FROM CONVERSATION)
+Verify 100% requirements coverage before creating plan file:
 
-#### Code Examples
-> **FROM CONVERSATION:**
-> ```typescript
-> function validateUser(user: User): boolean {
->   return user.email.endsWith('@example.com');
-> }
-> ```
-
-#### Syntax Patterns
-> **FROM CONVERSATION:**
-> ```bash
-> npm install --save-dev typescript
-> ```
-
-#### Architecture Diagrams
-> **FROM CONVERSATION:**
-> ```mermaid
-> graph TD
->   A[User] --> B[Login]
->   B --> C[Dashboard]
-> ```
-```
-
-**If No Highlights Found**: Add note "No implementation highlights found in conversation"
-
----
-
-### Step 1.7: Requirements Verification
-
-> **Full methodology**: See section below
-
-**Quick Process**:
 1. Extract User Requirements (Verbatim) table (UR-1, UR-2, ...)
-2. Extract Success Criteria from PRP Analysis (SC-1, SC-2, ...)
+2. Extract Success Criteria (SC-1, SC-2, ...)
 3. Verify 1:1 mapping (UR → SC)
 4. BLOCKING if any requirement missing
-5. Update plan with Requirements Coverage Check
+5. Use AskUserQuestion to resolve before proceeding
 
-**Requirements Coverage Table**:
+**⚠️ CRITICAL**: Do NOT proceed to Step 2 if BLOCKING findings exist.
+
+#### Step 1.7: Scope Completeness Verification
+
+**Purpose**: Verify plan covers all confirmed scopes
+
+**Check:**
+
+1. **Scope vs SC Mapping**
+   - Does each selected scope area have a corresponding SC?
+   - Example: scope includes "frontend" → SC should have UI-related criteria
+
+2. **Assumption Verification**
+   - Are all items in Assumptions table ✅ Verified?
+   - Any ⚠️ item is BLOCKING
+
+3. **Layer Coverage**
+   - Were any discovered layers excluded from plan?
+   - If yes, did user explicitly exclude them?
+
+**BLOCKING if:**
+- Scope area without SC mapping exists
+- Unverified assumptions exist
+- Excluded layer without user confirmation exists
+
+#### Step 1.9: Self-Contained Verification (MANDATORY)
+
+**Purpose**: Ensure plan is executable without external access
+
+**9-Point Verification Checklist**:
+
+1. **References Embedded**: Every "reference" is embedded or replaced by measurable rules
+2. **Executor Clarity**: New executor can answer "what exactly should I build?"
+3. **Dependencies Pinned**: Versions, configs, environment assumptions included
+4. **Testable Acceptance**: Criteria testable from repo + embedded artifacts
+5. **Unknowns Enumerated**: Gaps listed with resolution policy
+6. **Verification Commands**: Map directly to acceptance criteria
+7. **Concrete Examples**: Provided for ambiguous areas
+8. **Conversation Deleted Test**: Plan still determines implementation
+9. **Zero-Knowledge TODO Test**: Each TODO executable without thinking
+
+**BLOCKING if**: Any check fails
+
+**Resolution per check**:
 ```markdown
-### Requirements Coverage Check
-
-| Requirement | In Scope? | Success Criteria | Status |
-|-------------|-----------|------------------|--------|
-| UR-1 | ✅ | SC-1 | Mapped |
-| UR-2 | ✅ | SC-2 | Mapped |
-| UR-3 | ✅ | SC-3 | Mapped |
-| **Coverage** | 100% | All requirements mapped | ✅ |
-```
-
-**BLOCKING Resolution**: Use AskUserQuestion if any requirement unmapped
-
----
-
-### Step 2: Generate Plan File Name
-
-```bash
-# Project root detection
-PROJECT_ROOT="${PROJECT_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-
-# Create pending directory
-mkdir -p "$PROJECT_ROOT/.pilot/plan/pending"
-
-# Extract work name from arguments
-WORK_NAME="$(echo "$ARGUMENTS" | sed 's/--no-review//g' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g' | head -c 50 | xargs)"
-[ -z "$WORK_NAME" ] && WORK_NAME="plan"
-
-# Generate timestamp
-TS="$(date +%Y%m%d_%H%M%S)"
-
-# Create plan file path
-PLAN_FILE="$PROJECT_ROOT/.pilot/plan/pending/${TS}_${WORK_NAME}.md"
-```
-
-**Filename format**: `YYYYMMDD_HHMMSS_{work_name}.md`
-
----
-
-### Step 3: Create Plan File
-
-> **⚠️ ENGLISH OUTPUT REQUIRED**: All content MUST be in English
-> **Template**: See @.claude/commands/01_confirm.md for full plan template
-
-**Quick Structure**:
-- User Requirements (Verbatim) + Coverage Check
-- PRP Analysis (What, Why, How, Success Criteria, Constraints)
-- Scope (In/Out)
-- Test Environment (Detected)
-- Execution Context (Planner Handoff)
-- External Service Integration
-- Architecture
-- Vibe Coding Compliance
-- Execution Plan
-- Acceptance Criteria
-- Test Plan
-- Risks & Mitigations
-- Open Questions
-- Review History
-
-**Write File**:
-```bash
-cat > "$PLAN_FILE" << 'PLAN_EOF'
-[Content extracted from conversation]
-PLAN_EOF
-```
-
-**Verification**:
-```bash
-if [ -f "$PLAN_FILE" ]; then
-    echo "✓ Plan file exists"
-    LINE_COUNT=$(wc -l < "$PLAN_FILE")
-    echo "✓ Plan file: $LINE_COUNT lines"
-else
-    echo "✗ Plan file creation failed"
-    exit 1
-fi
+AskUserQuestion:
+  question: "Self-contained verification failed: {check_name}. How to resolve?"
+  header: "Verify"
+  options:
+    - label: "Go back to /00_plan"
+      description: "Add missing context"
+    - label: "Provide details now"
+      description: "I'll describe inline"
+    - label: "Mark as assumption"
+      description: "Add to Assumptions with default"
 ```
 
 ---
 
-### Step 4: Auto-Review
+## Context Pack Formats (Reference)
 
-> **Principle**: Plan validation with Interactive Recovery for BLOCKING findings
-
-**Default Behavior**: Always run auto-review with strict mode
-
-**Exception Flags**:
-- `--no-review`: Skip auto-review entirely
-- `--lenient`: Convert BLOCKING findings to WARNING
-
-**Auto-Invoke Plan-Reviewer Agent**:
+### Design Context Pack
 ```markdown
-Task: Review plan at {PLAN_FILE}
-Focus: Completeness, Gaps (APIs, DBs, async, env, errors), Feasibility, Clarity
-Severity: BLOCKING (prevents execution), Critical, Warning, Suggestion
+### Inputs (Embedded) - Design
+
+> **Source**: {url}
+> **Captured**: {timestamp}
+
+#### Visual Analysis
+| Property | Value | Notes |
+|----------|-------|-------|
+| Primary Color | #XXXXXX | Buttons, accents |
+| Background | #FAFAFA | Off-white, not pure white |
+| Font Family | Geist Sans | Headings + Body |
+| Grid System | 12-col | Max-width: 1200px |
+| Border Radius | 8px | Cards, buttons |
+
+#### Component Breakdown
+- **Hero**: 100vh, gradient background (#XXX→#YYY), centered text
+- **Navigation**: Fixed, logo left, menu right, blur backdrop
+- **Cards**: 3-col grid, 16px gap, subtle shadow, hover lift
+
+#### Interactions
+- **Hover**: scale(1.02), 200ms ease-out
+- **Scroll**: fade-in on viewport entry
 ```
 
-**BLOCKING Handling**:
-- BLOCKING > 0 AND no --lenient → Interactive Recovery Loop
-- BLOCKING > 0 AND --lenient → Log warning, proceed
-- BLOCKING = 0 → Proceed
+### API Context Pack
+```markdown
+### Inputs (Embedded) - API
 
-**Interactive Recovery Loop** (max 5 iterations):
+> **Source**: {docs_url}
+> **Version**: v2024.01
+
+#### Endpoints
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /v1/checkout/sessions | Create checkout session |
+| GET | /v1/checkout/sessions/{id} | Retrieve session |
+
+#### Request Schema
+```json
+{
+  "line_items": [{ "price": "price_xxx", "quantity": 1 }],
+  "mode": "payment",
+  "success_url": "https://...",
+  "cancel_url": "https://..."
+}
+```
+
+#### Auth
+- Header: `Authorization: Bearer sk_xxx`
+- Test key prefix: `sk_test_`
+
+#### Error Cases
+| Code | Meaning | Handle |
+|------|---------|--------|
+| 400 | Invalid request | Show validation error |
+| 402 | Payment failed | Retry with different method |
+```
+
+### Library Context Pack
+```markdown
+### Inputs (Embedded) - Library
+
+> **Package**: next-auth
+> **Version**: ^4.24.5 (PINNED)
+
+#### Installation
 ```bash
-while [ $BLOCKING_COUNT -gt 0 ] && [ $ITERATION -le 5 ]; do
-    # AskUserQuestion: Fix now / Add as TODO / Mark out of scope
-    # Update plan, re-run plan-reviewer, check BLOCKING resolved
-    BLOCKING_COUNT=$(grep -c "BLOCKING" "$PLAN_FILE")
-    ITERATION=$((ITERATION + 1))
-done
+npm install next-auth@4.24.5
+```
+
+#### Configuration
+```typescript
+// app/api/auth/[...nextauth]/route.ts
+import NextAuth from "next-auth"
+import GithubProvider from "next-auth/providers/github"
+
+export const authOptions = {
+  providers: [
+    GithubProvider({
+      clientId: process.env.GITHUB_ID,
+      clientSecret: process.env.GITHUB_SECRET,
+    }),
+  ],
+}
+
+export default NextAuth(authOptions)
+```
+
+#### Required Environment
+```
+GITHUB_ID=xxx
+GITHUB_SECRET=xxx
+NEXTAUTH_SECRET=xxx
+NEXTAUTH_URL=http://localhost:3000
+```
 ```
 
 ---
 
-## Testing
+## Zero-Knowledge TODO Format (MANDATORY)
 
-**Commands**:
-```bash
-/01_confirm "test_plan"                  # Standard (auto-review + BLOCKING resolution)
-/01_confirm "test_plan" --no-review      # Skip review
-/01_confirm "test_plan" --lenient        # Convert BLOCKING to WARNING
+### Principles
+> "아무것도 모르는 실행자가 생각 없이 따라할 수 있는 수준"
+
+| Rule | Bad Example ❌ | Good Example ✅ |
+|------|---------------|-----------------|
+| **파일 경로 명시** | "컴포넌트 생성" | "src/components/Hero.tsx 파일 생성" |
+| **정확한 값 포함** | "적절한 색상 사용" | "배경색 #FAFAFA, 버튼색 #0066FF 사용" |
+| **코드 스니펫 포함** | "타입 정의" | "interface Props { title: string; onClick: () => void }" |
+| **명령어 그대로 복사** | "패키지 설치" | "npm install next-auth@4.24.5 --save-exact" |
+| **위치 정확히 지정** | "import 추가" | "line 3에 import { Button } from '@/components/Button' 추가" |
+| **조건문 없음** | "필요시 추가" | "무조건 추가" (조건 판단 금지) |
+
+### TODO Format Example
+
+**❌ BAD (vague, requires thinking)**:
+```markdown
+- [ ] TODO-1.1: Hero 컴포넌트 생성
+- [ ] TODO-1.2: 적절한 스타일링 적용
+- [ ] TODO-1.3: 필요한 props 추가
 ```
 
-**Verification Checklist**:
-- [ ] Plan file created in `.pilot/plan/pending/`
-- [ ] User Requirements (Verbatim) + Coverage Check completed
-- [ ] All requirements mapped to Success Criteria
-- [ ] BLOCKING findings resolved (or --lenient used)
-- [ ] External Service Integration added (if applicable)
-- [ ] Auto-review completed (or skipped with --no-review)
-- [ ] Execution NOT started
+**✅ GOOD (Zero-Knowledge executable)**:
+```markdown
+- [ ] TODO-1.1: `src/components/Hero.tsx` 파일 생성, 다음 코드 복사:
+  ```tsx
+  export function Hero() {
+    return (
+      <section className="h-screen bg-gradient-to-b from-[#1a1a2e] to-[#16213e]">
+        <div className="max-w-6xl mx-auto px-4 pt-32">
+          <h1 className="text-5xl font-bold text-white">Title Here</h1>
+        </div>
+      </section>
+    )
+  }
+  ```
+- [ ] TODO-1.2: `src/app/page.tsx` line 3에 import 추가:
+  ```tsx
+  import { Hero } from '@/components/Hero'
+  ```
+- [ ] TODO-1.3: `src/app/page.tsx` line 8 (return 내부 첫 줄)에 추가:
+  ```tsx
+  <Hero />
+  ```
+```
 
 ---
 
-**Reference Version**: claude-pilot 4.4.12
-**Last Updated**: 2026-01-22
-**Change**: Added Dual-Source Extraction (Step 1.1-1.4) for omission prevention
+## GPT Delegation Details
+
+| Trigger | Action |
+|---------|--------|
+| 5+ SCs | Delegate to GPT Plan Reviewer |
+| User requests | Delegate to GPT Plan Reviewer |
+
+**Delegation Command**:
+```bash
+# ⚠️ CRITICAL: Use EXACTLY these parameters
+# - Model: gpt-5.2 (NEVER change)
+# - Sandbox: read-only (advisory mode - NEVER use workspace-write)
+# - Reasoning: reasoning_effort=medium (MUST be medium)
+codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "$REVIEWER_PROMPT"
+```
+
+**Fallback**: `if ! command -v codex &> /dev/null; then echo "Falling back to Claude-only"; return 0; fi`
+
+---
+
+**Reference Version**: claude-pilot 4.4.40
+**Last Updated**: 2026-01-25

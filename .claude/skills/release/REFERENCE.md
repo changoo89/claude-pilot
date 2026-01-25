@@ -2,11 +2,176 @@
 
 > **Purpose**: Extended details for plugin release workflow
 > **Skill**: @.claude/skills/release/SKILL.md
-> **Last Updated**: 2026-01-22
+> **Last Updated**: 2026-01-25
 
 ---
 
-## Pre-flight Checks
+## Troubleshooting
+
+### Version Mismatch Error
+
+```
+Error: Tag version (4.3.3) does not match plugin.json version (4.3.2)
+```
+
+**Solution**: Re-run `/999_release` to ensure all versions are synchronized
+
+### jq Not Installed
+
+```
+Error: jq required
+```
+
+**Solution**: Install jq
+```bash
+# macOS
+brew install jq
+
+# Linux
+sudo apt-get install jq
+```
+
+### Tag Already Exists
+
+```
+Error: Git tag v4.3.3 already exists
+```
+
+**Solution**: Delete existing tag first
+```bash
+git tag -d v4.3.3
+git push origin :refs/tags/v4.3.3
+```
+
+### Marketplace Shows Old Version
+
+**Symptom**: Marketplace shows 4.4.5 but plugin.json is 4.4.6
+
+**Cause**: marketplace.json version not updated during release
+
+**Solution**: Update all version fields in marketplace.json
+```bash
+jq --arg v "4.4.6" '
+    .version = $v |
+    .metadata.version = $v |
+    .plugins[0].version = $v
+' .claude-plugin/marketplace.json > tmp.json && mv tmp.json .claude-plugin/marketplace.json
+
+# Commit and update tag
+git add .claude-plugin/marketplace.json
+git commit -m "fix: Update marketplace.json version to 4.4.6"
+git tag -d v4.4.6 && git push origin --delete v4.4.6
+git tag v4.4.6 && git push origin main --tags
+```
+
+### Plugin Install Fails with "Invalid Input"
+
+**Symptom**:
+```
+Error: Failed to install: Plugin has an invalid manifest file
+Validation errors: agents: Invalid input
+```
+
+**Cause**: plugin.json contains unsupported fields
+
+**Supported fields** (based on official plugins):
+| Field | Type | Required | Example |
+|-------|------|----------|---------|
+| `name` | string | ✓ | `"claude-pilot"` |
+| `description` | string | ✓ | `"SPEC-First workflow..."` |
+| `version` | string | ✓ | `"4.4.6"` |
+| `author` | object | ✓ | `{"name": "...", "url": "..."}` |
+| `commands` | string | ○ | `"./.claude/commands/"` |
+| `skills` | string | ○ | `"./.claude/skills/"` |
+| `mcpServers` | object | ○ | MCP server configs |
+| `homepage` | string | ○ | GitHub URL |
+| `repository` | string | ○ | GitHub URL |
+| `license` | string | ○ | `"MIT"` |
+| `keywords` | array | ○ | `["tdd", "workflow"]` |
+
+**Unsupported fields** (will cause install failure):
+- `agents` - Claude Code auto-detects from `agents/` directory
+- Any unknown fields
+
+**Solution**:
+```bash
+# Remove unsupported field
+jq 'del(.agents)' .claude-plugin/plugin.json > tmp.json && mv tmp.json .claude-plugin/plugin.json
+
+# Commit, push, and update tag
+git add .claude-plugin/plugin.json
+git commit -m "fix: Remove unsupported agents field from plugin.json"
+git push origin main
+git tag -d vX.Y.Z && git push origin --delete vX.Y.Z
+git tag -a vX.Y.Z -m "Release vX.Y.Z" && git push origin vX.Y.Z
+```
+
+### Remote Tag Not Updated
+
+**Symptom**: Local tag points to correct commit but remote tag points to old commit
+
+**Diagnosis**:
+```bash
+# Check local tag
+git rev-parse v4.4.6^{}
+
+# Check remote tag (should match local)
+curl -sL "https://api.github.com/repos/OWNER/REPO/git/refs/tags/v4.4.6" | jq -r '.object.sha'
+
+# For annotated tags, check the commit it points to
+curl -sL "https://api.github.com/repos/OWNER/REPO/git/tags/TAG_SHA" | jq -r '.object.sha'
+```
+
+**Solution**:
+```bash
+# Force delete and recreate remote tag
+git push origin --delete v4.4.6
+git push origin v4.4.6
+
+# Recreate GitHub release
+gh release delete v4.4.6 --yes
+gh release create v4.4.6 --title "Release v4.4.6" --notes "Release notes..."
+```
+
+---
+
+## Version Parsing Details
+
+### Bump Types
+
+| Type | Example | Result |
+|------|---------|--------|
+| `major` | 4.0.0 → | 5.0.0 |
+| `minor` | 4.1.0 → | 4.2.0 |
+| `patch` | 4.1.0 → | 4.1.1 |
+| `X.Y.Z` | Custom | X.Y.Z |
+
+### Flags
+
+| Flag | Purpose | Default |
+|------|---------|---------|
+| `--skip-gh` | Skip local GitHub release | `true` (CI handles it) |
+| `--create-gh` | Create local GitHub release | `false` |
+| `--dry-run` | Test without committing | `false` |
+
+---
+
+## CHANGELOG Generation Details
+
+### Conventional Commit Mapping
+
+| Type | Category | Example |
+|------|----------|---------|
+| `feat:` | Added | feat(auth): add login endpoint |
+| `fix:` | Fixed | fix(api): handle null response |
+| `refactor:`, `chore:` | Changed | refactor(db): optimize query |
+| `perf:` | Performance | perf(cache): reduce memory usage |
+| `docs:` | Documentation | docs(readme): update install steps |
+| `remove:`, `rm:` | Removed | remove(legacy): drop old API |
+
+---
+
+## Pre-flight Validation
 
 ### Validation Requirements
 
@@ -22,97 +187,9 @@
 - `source` in marketplace.json must be local path (`"./"`) NOT GitHub URL
 - Missing `homepage`, `repository`, `license`, `keywords` causes installation failure
 
-**Full validation script**: See `.claude/scripts/release.sh`
-
 ---
 
-## Version Parsing
-
-### Bump Types
-
-| Type | Example | Result |
-|------|---------|--------|
-| `major` | 4.0.0 → | 5.0.0 |
-| `minor` | 4.1.0 → | 4.2.0 |
-| `patch` | 4.1.0 → | 4.1.1 |
-| `X.Y.Z` | Custom | X.Y.Z |
-
-### Prerelease Support
-
-```bash
-/999_release minor --pre beta  # 4.2.0-beta
-/999_release 5.0.0-rc.1        # 5.0.0-rc.1
-```
-
-### Flags
-
-| Flag | Purpose | Default |
-|------|---------|---------|
-| `--skip-gh` | Skip local GitHub release | `true` (CI handles it) |
-| `--create-gh` | Create local GitHub release | `false` |
-| `--dry-run` | Test without committing | `false` |
-| `--pre` | Add prerelease suffix | (none) |
-
----
-
-## Version File Updates
-
-### Sources to Sync
-
-| File | Field | Notes |
-|------|-------|-------|
-| `.claude-plugin/plugin.json` | `.version` | **PRIMARY source of truth** |
-| `.claude-plugin/marketplace.json` | `.plugins[0].version` | Plugin entry version |
-
-**Update commands**:
-```bash
-# Update plugin.json (PRIMARY)
-jq --arg v "$VERSION" '.version = $v' .claude-plugin/plugin.json > tmp && mv tmp .claude-plugin/plugin.json
-
-# Update marketplace.json (DUPLICATE)
-jq --arg v "$VERSION" '(.plugins[] | select(.name == "claude-pilot").version) = $v' .claude-plugin/marketplace.json > tmp && mv tmp .claude-plugin/marketplace.json
-```
-
-**Verification**:
-```bash
-diff <(jq -r '.version' .claude-plugin/plugin.json) <(jq -r '.plugins[0].version' .claude-plugin/marketplace.json)
-```
-
----
-
-## CHANGELOG Generation
-
-### Auto-Generation Workflow
-
-**Process**:
-1. Detect previous tag: `git tag -l "v*" --sort=-v:refname | head -1`
-2. Parse commits since last tag: `git log $PREV_TAG..HEAD --pretty=format:"%h|||%s"`
-3. Categorize by conventional commit type
-4. Group into categories: Added, Changed, Fixed, Removed, Performance, Docs
-5. Format as Markdown with Keep a Changelog structure
-6. Present for review/editing
-
-**Conventional Commit Mapping**:
-
-| Type | Category | Example |
-|------|----------|---------|
-| `feat:` | Added | feat(auth): add login endpoint |
-| `fix:` | Fixed | fix(api): handle null response |
-| `refactor:`, `chore:` | Changed | refactor(db): optimize query |
-| `perf:` | Performance | perf(cache): reduce memory usage |
-| `docs:` | Documentation | docs(readme): update install steps |
-| `remove:`, `rm:` | Removed | remove(legacy): drop old API |
-
-**Review Options**:
-1. Accept as-is
-2. Edit with `$EDITOR`
-3. Provide custom changelog
-
-**Full implementation**: See `.claude/scripts/release.sh` (lines 220-415)
-
----
-
-## CI/CD Integration
+## CI/CD Integration Details
 
 ### GitHub Actions Release
 
@@ -145,89 +222,6 @@ diff <(jq -r '.version' .claude-plugin/plugin.json) <(jq -r '.plugins[0].version
 
 ---
 
-## Troubleshooting
-
-### Plugin Update Doesn't Apply
-
-**Diagnosis**:
-```bash
-ls -la ~/.claude/plugins/cache/claude-pilot/  # Check cached version
-/plugin list | grep claude-pilot              # Check installed version
-```
-
-**Solutions** (priority order):
-1. Force reinstall: `/plugin uninstall claude-pilot@changoo89 && /plugin install claude-pilot@changoo89`
-2. Clear cache: `rm -rf ~/.claude/plugins/cache/claude-pilot && /plugin install claude-pilot@changoo89`
-3. Verify marketplace source points to GitHub (not local path)
-
-### Commands Show Up Twice
-
-**Root Cause**: Local `.claude/commands/` folder exists + plugin installed
-
-**Solution**: Remove local commands folder (plugin provides commands)
-```bash
-rm -rf .claude/commands  # Backup first if needed
-```
-
-### Stop Hook Permission Denied
-
-**Note**: Pre-commit hooks were removed in v4.4.14 as part of skill-based architecture migration. This issue no longer applies.
-
----
-
-## Release Workflow Summary
-
-### Maintainer Workflow
-
-```bash
-# 1. Make changes, commit to main
-git add . && git commit -m "feat: add feature"
-
-# 2. Run release command
-/999_release minor  # or major/patch/X.Y.Z
-
-# 3. Script handles:
-#   - Version bump in all files
-#   - CHANGELOG generation
-#   - Git commit and tag
-#   - Push to remote
-
-# 4. GitHub Actions automatically creates release
-```
-
-### User Update Workflow
-
-```bash
-# 1. Update marketplace index
-/plugin marketplace update
-
-# 2. Update plugin
-/plugin update claude-pilot@changoo89
-
-# 3. If update fails, reinstall:
-/plugin uninstall claude-pilot@changoo89
-rm -rf ~/.claude/plugins/cache/claude-pilot
-/plugin install claude-pilot@changoo89
-```
-
----
-
-## Version Tracking
-
-**Single Source of Truth**: `.claude-plugin/plugin.json`
-
-```json
-{
-  "version": "4.4.11"  // Always primary, never edit manually
-}
-```
-
-**Automated sync**: `/999_release` syncs to marketplace.json
-
-**Never manually edit**: marketplace.json version (auto-synced by release script)
-
----
-
 ## Best Practices
 
 ### For Maintainers
@@ -257,4 +251,4 @@ rm -rf ~/.claude/plugins/cache/claude-pilot
 
 ---
 
-**Lines**: 300 (Target: ≤300) ✅
+**Lines**: 260 (Target: ≤300) ✅

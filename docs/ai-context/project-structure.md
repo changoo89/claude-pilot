@@ -51,16 +51,24 @@ claude-pilot/
 │   │   ├── git-master/     # Git operations
 │   │   ├── gpt-delegation/ # GPT expert delegation
 │   │   ├── docs-verify/    # Documentation verification
-│   │   └── frontend-design/# UI/UX design skill
-│   ├── agents/             # Specialized agent configs (8)
+│   │   ├── frontend-design/# UI/UX design skill
+│   │   ├── execute-plan/  # TDD execution with E2E verification (Step 5)
+│   │   ├── confirm-plan/   # Plan confirmation workflow with Context Manifest
+│   │   ├── rapid-fix/      # Rapid bug fix
+│   │   ├── release/        # Plugin release workflow
+│   │   ├── review/         # Multi-angle review with enhanced code-reviewer integration
+│   │   ├── code-cleanup/   # Dead code removal
+│   │   └── spec-driven-workflow/ # Enhanced with Context Manifest and Quick Sufficiency Test (≤200 lines)
+│   ├── agents/             # Specialized agent configs (13)
 │   │   ├── CONTEXT.md      # Agent folder context
 │   │   ├── explorer.md     # Codebase exploration (haiku)
 │   │   ├── researcher.md   # External docs research (haiku)
-│   │   ├── coder.md        # TDD implementation (sonnet)
+│   │   ├── coder.md        # TDD implementation (sonnet) + EXAMPLES.md
 │   │   ├── tester.md       # Test writing (sonnet)
 │   │   ├── validator.md    # Quality verification (haiku)
 │   │   ├── plan-reviewer.md # Plan analysis (sonnet)
 │   │   ├── code-reviewer.md # Deep code review (opus)
+│   │   ├── build-error-resolver.md # Error resolution (haiku) + TROUBLESHOOTING.md
 │   │   └── documenter.md   # Documentation sync (haiku)
 │   ├── scripts/
 │   │   └── statusline.sh   # Statusline display (copied to user project)
@@ -111,9 +119,15 @@ claude-pilot/
 | `vibe-coding` | LLM-readable code standards |
 | `git-master` | Git operations |
 | `gpt-delegation` | GPT expert delegation |
-| `docs-verify` | Documentation verification |
-| `spec-driven-workflow` | Enhanced with Context Manifest and Quick Sufficiency Test |
+| `close-plan` | OOM-optimized plan completion (5 steps, 2 agents) |
+| `docs-verify` | Pure bash verification (no external deps) |
+| `execute-plan` | TDD execution with E2E verification and Chrome in Claude integration |
+| `confirm-plan` | Plan confirmation workflow with Context Manifest |
+| `rapid-fix` | Rapid bug fix workflow |
+| `release` | Plugin release workflow |
 | `review` | Multi-angle review with enhanced code-reviewer integration |
+| `code-cleanup` | Dead code detection and removal |
+| `spec-driven-workflow` | Enhanced with Context Manifest and Quick Sufficiency Test (≤200 lines) |
 
 **Details**: See `@.claude/skills/CONTEXT.md`
 
@@ -122,12 +136,17 @@ claude-pilot/
 |-------|-------|---------|
 | explorer | haiku | Fast codebase exploration |
 | researcher | haiku | External docs research |
-| coder | sonnet | TDD implementation |
-| tester | sonnet | Test writing |
+| frontend-engineer | sonnet | Frontend UI/React implementation |
+| backend-engineer | sonnet | Backend API/DB implementation |
+| coder | sonnet | TDD implementation (general) |
+| tester | sonnet | Test writing and execution |
 | validator | haiku | Quality verification |
-| plan-reviewer | sonnet | Plan analysis |
+| security-analyst | sonnet | Security vulnerability analysis |
+| build-error-resolver | haiku | Build/compilation error resolution |
+| plan-reviewer | sonnet | Plan analysis and gaps |
 | code-reviewer | opus | Enhanced code review with risk areas, assumptions tracking |
-| documenter | haiku | Documentation sync |
+| design-reviewer | sonnet | Design quality review for high-stakes UI surfaces |
+| documenter | haiku | Documentation generation |
 
 **Details**: See `@.claude/agents/CONTEXT.md`
 

@@ -223,6 +223,33 @@ Task:
     Output: <CODER_COMPLETE> or <CODER_BLOCKED>
 ```
 
+### Step 3.2c: Single Coder Delegation (MANDATORY for 1-2 SCs)
+
+When plan has 1-2 SCs, delegate to single coder agent (DO NOT execute directly):
+
+**Context Protection**: Main orchestrator maintains clean context by delegating even single tasks.
+
+```markdown
+Task:
+  subagent_type: $AGENT_TYPE
+  prompt: |
+    Execute all SCs from $PLAN_PATH
+    Skills to use: tdd, ralph-loop, vibe-coding
+
+    Success Criteria from plan:
+    [SC-1]: {description}
+    [SC-2]: {description} (if exists)
+
+    Output: <CODER_COMPLETE> or <CODER_BLOCKED>
+```
+
+**CRITICAL**: Never execute implementation directly in main orchestrator context.
+- Subagent runs in isolated context (~80K tokens internally)
+- Returns concise summary (~1K tokens) to orchestrator
+- Orchestrator maintains clean context for coordination
+
+**Reference**: @.claude/skills/parallel-subagents/SKILL.md - Single Agent Delegation Pattern
+
 ### Step 3.3: Process Results
 
 After parallel execution completes:

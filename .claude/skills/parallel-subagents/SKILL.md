@@ -85,6 +85,63 @@ Task: subagent_type: security-analyst, prompt: Review security issues
 - Tasks with dependencies (later task will fail)
 - Sequential workflows (e.g., build then test)
 
+## Single Agent Delegation Pattern
+
+### When to Use
+- Single SC execution (no parallelism needed)
+- Sequential workflow steps
+- Context protection for main orchestrator
+
+### Why Delegate Single Tasks
+
+Main orchestrator context is limited (~200K tokens). By delegating:
+- Subagent runs in isolated context (~80K tokens internally)
+- Returns concise summary (~1K tokens) to orchestrator
+- Orchestrator maintains clean context for coordination
+
+### Pattern
+
+```markdown
+Task:
+  subagent_type: [agent-type]
+  prompt: |
+    [Clear task description with all context needed]
+    Skills to use: [skill1, skill2]
+    Expected output: <MARKER_COMPLETE> or <MARKER_BLOCKED>
+```
+
+### Examples
+
+**Single Coder Delegation**:
+```markdown
+Task:
+  subagent_type: coder
+  prompt: |
+    Execute SC-1: Create authentication service
+    Skills to use: tdd, ralph-loop, vibe-coding
+    Expected output: <CODER_COMPLETE> or <CODER_BLOCKED>
+```
+
+**Single Plan-Reviewer Delegation**:
+```markdown
+Task:
+  subagent_type: plan-reviewer
+  prompt: |
+    Review plan at $PLAN_FILE for gaps and issues
+    Review criteria: requirements coverage, success criteria clarity
+    Expected output: <PLAN_COMPLETE> or <PLAN_BLOCKED>
+```
+
+**Single Documenter Delegation**:
+```markdown
+Task:
+  subagent_type: documenter
+  prompt: |
+    Invoke the three-tier-docs skill to sync documentation
+    Project root: $PROJECT_ROOT
+    Expected output: <DOCS_COMPLETE> or <DOCS_BLOCKED>
+```
+
 ## Verification
 
 ```bash

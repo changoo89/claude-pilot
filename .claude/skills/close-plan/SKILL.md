@@ -152,13 +152,30 @@ echo "   📚 Launching Step 3.1a: Documentation Update (parallel)"
 # Capture timestamp before documentation update
 DOC_UPDATE_BEFORE=$(stat -f "%m" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null || stat -c "%Y" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null || echo 0)
 
-# Invoke the three-tier-docs skill to sync documentation with code changes.
-# Use Task tool to invoke documenter agent with three-tier-docs skill.
+# MANDATORY: Launch subagent for Documentation Update
 #
-# Task invocation:
-# Task: "Invoke the three-tier-docs skill to sync documentation with code changes"
-# Target Agent: documenter
-# Expected Output: Updated Tier 1/2/3 documentation files
+# Task tool invocation for documenter agent:
+```
+
+**MANDATORY: Launch subagent for Documentation Update**
+
+Task:
+  subagent_type: documenter
+  prompt: |
+    Invoke the three-tier-docs skill to sync documentation with code changes.
+
+    Project root: $PROJECT_ROOT
+    Plan path: $PLAN_PATH
+
+    Documentation tiers to update:
+    - Tier 1: CLAUDE.md, project-structure.md, docs-overview.md
+    - Tier 2: Component CONTEXT.md files (if applicable)
+    - Tier 3: Feature CONTEXT.md files (if applicable)
+
+    Expected output: <DOCS_COMPLETE> or <DOCS_BLOCKED>
+
+```bash
+# After Task tool completes, continue with timestamp verification
 ```
 
 **Step 3.1b: Evidence Verification (Parallel)**
@@ -168,13 +185,31 @@ echo "   🔍 Launching Step 3.1b: Evidence Verification (parallel)"
 # Extract all verify commands from plan
 VERIFY_COMMANDS=$(grep -A1 "Verify:" "$PLAN_PATH" | grep -E "^\s*(test|grep|\[)" || true)
 
-# Invoke the validator agent to run verification commands from Success Criteria.
-# Use Task tool to invoke validator agent.
+# MANDATORY: Launch subagent for Evidence Verification
 #
-# Task invocation:
-# Task: "Run verification commands from Success Criteria in plan: $PLAN_PATH"
-# Target Agent: validator
-# Expected Output: Pass/fail results for each verification command
+# Task tool invocation for validator agent:
+```
+
+**MANDATORY: Launch subagent for Evidence Verification**
+
+Task:
+  subagent_type: validator
+  prompt: |
+    Run verification commands from Success Criteria in plan: $PLAN_PATH
+
+    Verification commands extracted:
+    $VERIFY_COMMANDS
+
+    Review criteria:
+    - Extract all Verify: commands from Success Criteria
+    - Execute each verification command
+    - Distinguish between "no verify commands" and "verify failed"
+    - Return pass/fail results for each command
+
+    Expected output: <VALIDATE_COMPLETE> or <VALIDATE_BLOCKED>
+
+```bash
+# After Task tool completes, continue with Step 3.2
 ```
 
 **⚠️ WAIT**: BOTH tasks (3.1a AND 3.1b) MUST complete before proceeding to Step 3.2
@@ -183,13 +218,31 @@ VERIFY_COMMANDS=$(grep -A1 "Verify:" "$PLAN_PATH" | grep -E "^\s*(test|grep|\[)"
 
 ```bash
 echo "✅ Running Step 3.2: Documentation Verification (sequential)"
-# Invoke the docs-verify skill to validate documentation compliance.
-# Use Task tool to invoke documenter agent with docs-verify skill.
+
+# MANDATORY: Launch subagent for Documentation Verification
 #
-# Task invocation:
-# Task: "Invoke the docs-verify skill to validate documentation compliance"
-# Target Agent: documenter
-# Expected Output: Documentation validation results
+# Task tool invocation for documenter agent with docs-verify skill:
+```
+
+**MANDATORY: Launch subagent for Documentation Verification**
+
+Task:
+  subagent_type: documenter
+  prompt: |
+    Invoke the docs-verify skill to validate documentation compliance.
+
+    Project root: $PROJECT_ROOT
+
+    Validation criteria:
+    - Tier 1 line limits (≤200 lines): CLAUDE.md, project-structure.md, docs-overview.md
+    - docs/ai-context/ contains exactly 2 files
+    - No broken cross-references
+    - No circular references
+
+    Expected output: <DOCS_COMPLETE> or <DOCS_BLOCKED>
+
+```bash
+# After Task tool completes, verify documentation was actually modified
 
 # Capture timestamp after documentation update
 DOC_UPDATE_AFTER=$(stat -f "%m" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null || stat -c "%Y" "$PROJECT_ROOT/CLAUDE.md" 2>/dev/null || echo 0)

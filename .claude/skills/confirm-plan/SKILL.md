@@ -527,7 +527,22 @@ fi
 
 ## Step 3: Auto-Review & Auto-Apply
 
-**Invoke plan-reviewer agent** for analysis:
+# Task tool invocation for plan-reviewer agent:
+
+**MANDATORY: Delegate to plan-reviewer**
+
+Task:
+  subagent_type: plan-reviewer
+  prompt: |
+    Review plan at $PLAN_FILE for gaps and issues.
+
+    Review criteria:
+    - Requirements coverage (UR -> SC mapping)
+    - Success criteria clarity
+    - Dependency identification
+    - Risk assessment
+
+    Output: <PLAN_COMPLETE> (no gaps) or <PLAN_BLOCKED> (BLOCKING gaps found)
 
 **Findings**:
 - **BLOCKING**: Interactive Recovery (AskUserQuestion)
@@ -540,13 +555,13 @@ fi
 **Workflow**:
 1. Invoke plan-reviewer agent
 2. Check for BLOCKING findings
-3. If BLOCKING > 0 → Interactive Recovery loop
+3. If BLOCKING > 0 -> Interactive Recovery loop
 4. Use AskUserQuestion to resolve each BLOCKING
 5. Re-run plan-reviewer after updates
 6. Continue until BLOCKING = 0 or max iterations (5)
 
-**Default**: Strict mode (BLOCKING → Interactive Recovery)
-**Exceptions**: `--no-review` (skip), `--lenient` (BLOCKING → WARNING)
+**Default**: Strict mode (BLOCKING -> Interactive Recovery)
+**Exceptions**: `--no-review` (skip), `--lenient` (BLOCKING -> WARNING)
 
 ---
 

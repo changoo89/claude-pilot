@@ -32,6 +32,50 @@ You are the Documenter Agent. Your mission is to update project documentation af
 
 ## Workflow
 
+### 0. Change Detection (MANDATORY FIRST STEP)
+
+**CRITICAL**: Before any documentation work, detect what changed:
+
+```bash
+# Get changed files (with fallback for edge cases)
+CHANGED_FILES=$(git diff --name-only HEAD~1 2>/dev/null || git diff --name-only 2>/dev/null || echo "FALLBACK_FULL_UPDATE")
+
+# Fallback: If git diff fails (new repo, first commit), run full update
+if [ "$CHANGED_FILES" = "FALLBACK_FULL_UPDATE" ]; then
+  echo "Cannot detect changes (new repo/first commit)"
+  echo "   Running full documentation update as fallback"
+  DOC_RELEVANT=true
+fi
+
+# Check if documentation-relevant changes exist
+DOC_RELEVANT=false
+
+for file in $CHANGED_FILES; do
+    case "$file" in
+      src/*|lib/*|components/*) DOC_RELEVANT=true ;; # Code changes
+      .claude/commands/*|.claude/skills/*|.claude/agents/*) DOC_RELEVANT=true ;; # Plugin changes
+      *.md) DOC_RELEVANT=true ;; # Direct doc changes
+    esac
+done
+
+if [ "$DOC_RELEVANT" = "false" ]; then
+    echo "No documentation-relevant changes detected"
+    echo "Skipping documentation update"
+    echo "<DOCS_COMPLETE>"
+    exit 0
+fi
+```
+
+**Decision Logic**:
+| Changed Path | Action |
+|--------------|--------|
+| `src/`, `lib/`, `components/` | Update relevant CONTEXT.md |
+| `.claude/commands/` | Update commands/CONTEXT.md |
+| `.claude/skills/` | Update skills/CONTEXT.md |
+| `.claude/agents/` | Update agents/CONTEXT.md |
+| `*.md` only | Verify only, no generation |
+| Other files | Skip documentation entirely |
+
 ### 1. Analyze Implementation Changes
 ```bash
 # Check git diff for changed files
@@ -41,12 +85,34 @@ git diff --name-only
 git status --short
 ```
 
-### 2. Determine Documentation Updates Needed
+### 2. Targeted Documentation Updates
 
-Based on changes:
-- **New feature**: Update Tier 1 (Project Structure)
-- **Component changes**: Update Tier 2 (Component CONTEXT.md)
-- **Implementation details**: Update Tier 3 (Feature CONTEXT.md)
+**Only update affected documentation**:
+
+```bash
+# Map changed files to documentation targets
+TARGETS=()
+for file in $CHANGED_FILES; do
+    case "$file" in
+      src/components/*) TARGETS+=("src/components/CONTEXT.md") ;;
+      src/lib/*) TARGETS+=("src/lib/CONTEXT.md") ;;
+      .claude/commands/*) TARGETS+=(".claude/commands/CONTEXT.md") ;;
+      .claude/skills/*/*)
+        SKILL_DIR=$(dirname "$file")
+        TARGETS+=("$SKILL_DIR/CONTEXT.md") ;;
+      .claude/agents/*) TARGETS+=(".claude/agents/CONTEXT.md") ;;
+    esac
+done
+
+# Remove duplicates
+TARGETS=($(printf "%s\n" "${TARGETS[@]}" | sort -u))
+
+echo "Documentation targets: ${TARGETS[*]}"
+```
+
+**Skip if**:
+- No targets identified
+- Only config/test files changed
 
 ### 3. Update Documentation
 
@@ -95,12 +161,18 @@ Add new directories and key files.
 Update documentation navigation only.
 ```
 
-### 4. Archive Implementation Artifacts
+### 4. Archive Implementation Artifacts (Conditional)
 
-Move to appropriate location:
-- `.pilot/plan/done/{RUN_ID}/test-scenarios.md`
-- `.pilot/plan/done/{RUN_ID}/coverage-report.txt`
-- `.pilot/plan/done/{RUN_ID}/ralph-loop-log.md`
+**Only if artifacts exist**:
+```bash
+# Only archive if files exist
+for artifact in test-scenarios.md coverage-report.txt ralph-loop-log.md; do
+    if [ -f "$artifact" ]; then
+        mv "$artifact" ".pilot/plan/done/${RUN_ID}/"
+        echo "Archived: $artifact"
+    fi
+done
+```
 
 ### 5. Update Plan File
 

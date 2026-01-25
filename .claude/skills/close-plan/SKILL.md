@@ -48,10 +48,10 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 - Distinguish between "no verify commands" and "verify failed"
 - Exit if verification fails
 
-### Step 3: Documentation Sync + Verify
-- Launch documenter agent (single call)
-- Update documentation (three-tier-docs skill)
-- Verify compliance (line limits, file counts, cross-refs)
+### Step 3: Documentation Sync + Verify (Conditional)
+- Check for documentation-relevant changes
+- **If changes detected**: Launch documenter agent
+- **If no changes**: Skip with message "No documentation update needed"
 - Exit if verification fails
 
 ### Step 4: Archive + Git

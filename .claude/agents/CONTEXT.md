@@ -20,7 +20,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 | **plan-reviewer** | sonnet | 128 | Read, Glob, Grep | Plan analysis and gaps | `/01_confirm` - Gap detection |
 | **code-reviewer** | opus | 162 | Read, Glob, Grep, Bash | Enhanced code review with risk areas, assumptions tracking | `/review` - Async bugs, memory leaks, risk assessment |
 | **design-reviewer** | sonnet | 170 | Read, Glob, Grep, Bash | Design quality review | `/review --design-review` - Landing pages, pricing, onboarding |
-| **documenter** | haiku | 351 | Read, Write | Documentation generation | `/document` - Sync docs |
+| **documenter** | haiku | 281 | Read, Write, Edit, Glob, Grep, Bash | Smart documentation sync with change detection | `/document` - Conditional sync |
 
 **Total**: 13 agents (all refactored to ≤200 lines main files + companion docs with enhanced capabilities)
 
@@ -45,7 +45,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **design-reviewer** (sonnet): Design quality review for high-stakes UI surfaces
 
 ### Documentation Agents (Haiku)
-- **documenter**: Documentation generation
+- **documenter**: Smart documentation sync with git-based change detection (skips update if no doc-relevant changes)
 
 ## Usage by Commands
 
@@ -70,7 +70,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 - **design-reviewer** (sonnet): Design quality review (`/review --design-review`)
 
 ### `/document` (Documentation)
-- **documenter** (haiku): Sync documentation
+- **documenter** (haiku): Smart sync with change detection (only updates if doc-relevant changes detected)
 
 ### `/03_close` (Plan Completion)
 - **validator** (haiku): Evidence verification from Success Criteria

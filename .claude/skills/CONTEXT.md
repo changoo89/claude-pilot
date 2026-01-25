@@ -9,7 +9,7 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | Skill | Purpose | Trigger Keywords |
 |-------|---------|-----------------|
 | `claude-pilot-standards` | Plugin development standards | "plugin standards", "command format", "skill format" |
-| `close-plan` | OOM-optimized plan closure (5 steps, 2 agents) | "close plan", "finalize", "mark complete" |
+| `close-plan` | OOM-optimized plan closure (5 steps, 2 agents, conditional doc sync) | "close plan", "finalize", "mark complete" |
 | `code-cleanup` | Dead code detection and removal | "cleanup", "remove unused code", "dead code" |
 | `code-quality-gates` | Quality validation gates | "quality gates", "validation", "checks" |
 | `coding-standards` | TypeScript/React/API standards | "coding standards", "best practices", "conventions" |
@@ -30,7 +30,7 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `spec-driven-workflow` | SPEC-first development | "SPEC-first", "planning", "requirements", "external context detection" |
 | `tdd` | Test-Driven Development | "implementing features", "test coverage", "TDD" |
 | `test-driven-development` | Advanced TDD patterns | "TDD patterns", "testing strategies", "test design" |
-| `three-tier-docs` | 3-tier documentation hierarchy with integrated verification | "documentation tiers", "CLAUDE.md", "CONTEXT.md", "line limits" |
+| `three-tier-docs` | 3-tier documentation hierarchy with integrated verification and selective validation | "documentation tiers", "CLAUDE.md", "CONTEXT.md", "line limits" |
 | `using-git-worktrees` | Parallel development with worktrees | "worktrees", "parallel development", "isolated workspace" |
 | `vibe-coding` | Code quality standards | "refactor", "code quality", "clean code" |
 

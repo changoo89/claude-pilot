@@ -206,6 +206,23 @@ fi
 
 **Expected**: `<DOCS_COMPLETE>` marker
 
+### Conditional Execution (NEW)
+
+**Decision Flow**:
+```
+git diff --name-only HEAD~1
+      ↓
+Any *.md, src/*, .claude/* changes?
+      ↓
+YES → Launch documenter agent
+NO  → Skip with "No documentation update needed"
+```
+
+**Skip Criteria**:
+- Only test files changed (*.test.ts, *.spec.ts)
+- Only config files changed (*.json, *.yaml)
+- Only dependencies changed (package-lock.json)
+
 ---
 
 ## Integration Points

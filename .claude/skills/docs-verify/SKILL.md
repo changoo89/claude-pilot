@@ -32,6 +32,32 @@ done
 
 ---
 
+## Change Detection (MANDATORY FIRST STEP)
+
+**Before running verification, check if docs changed**:
+
+```bash
+# Get changed markdown files (with fallback)
+CHANGED_MD=$(git diff --name-only HEAD~1 -- "*.md" 2>/dev/null || git diff --name-only -- "*.md" 2>/dev/null || echo "FALLBACK_FULL_VERIFY")
+
+# Fallback: If git diff fails, run full verification
+if [ "$CHANGED_MD" = "FALLBACK_FULL_VERIFY" ]; then
+    echo "Cannot detect changes, running full verification"
+    CHANGED_MD=$(find . -name "*.md" -type f ! -path "*/.git/*" ! -path "*/.trash/*")
+fi
+
+if [ -z "$CHANGED_MD" ]; then
+    echo "No markdown files changed"
+    echo "Skipping documentation verification"
+    exit 0
+fi
+
+echo "Changed markdown files:"
+echo "$CHANGED_MD"
+```
+
+---
+
 ## Core Concepts
 
 ### 3-Tier System
@@ -49,7 +75,7 @@ done
 
 ## Verification Checks
 
-### 1. Tier 1 Line Limits (CRITICAL)
+### 1. Tier 1 Line Limits (Changed Files Only)
 
 **Limit**: ≤200 lines per file
 
@@ -61,10 +87,14 @@ TIER1_FILES=(
 )
 
 for file in "${TIER1_FILES[@]}"; do
-  LINES=$(wc -l < "$file" | tr -d ' ')
-  if [ "$LINES" -gt 200 ]; then
-    echo "FAIL: $file has $LINES lines (limit: 200)"
-    exit 1
+  # Only check if file was changed
+  if echo "$CHANGED_MD" | grep -q "$file"; then
+    LINES=$(wc -l < "$file" | tr -d ' ')
+    if [ "$LINES" -gt 200 ]; then
+      echo "FAIL: $file has $LINES lines (limit: 200)"
+      exit 1
+    fi
+    echo "$file: $LINES lines"
   fi
 done
 ```
@@ -83,12 +113,13 @@ if [ "$COUNT" -ne 2 ]; then
 fi
 ```
 
-### 3. Cross-Reference Validation
+### 3. Cross-Reference Validation (Changed Files Only)
 
 ```bash
-# Check all @.claude/ and @docs/ references
-find . -name "*.md" ! -path "*/.git/*" ! -path "*/.trash/*" | while read file; do
-  grep -oE '@\.(claude|docs)/[^]):space:]+' "$file" | while read ref; do
+# Only validate changed files
+for file in $CHANGED_MD; do
+  [ -f "$file" ] || continue
+  grep -oE '@\.(claude|docs)/[^][:space:]]+' "$file" 2>/dev/null | while read ref; do
     ref_path="${ref#@}"
     ref_path="${ref_path%[\`\*\]\"]}"
     if [ ! -e "$ref_path" ]; then

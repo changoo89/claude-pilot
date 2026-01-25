@@ -18,7 +18,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 | **security-analyst** | sonnet | 166 | Read, Grep, Glob, Bash | Security vulnerability analysis | `/review security` - OWASP Top 10 |
 | **build-error-resolver** | haiku | 272 | Bash, Read, Edit | Build/compilation error resolution | `/02_execute` - Build error recovery |
 | **plan-reviewer** | sonnet | 128 | Read, Glob, Grep | Plan analysis and gaps | `/01_confirm` - Gap detection |
-| **code-reviewer** | opus | 122 | Read, Glob, Grep, Bash | Deep code review | `/review` - Async bugs, memory leaks |
+| **code-reviewer** | opus | 162 | Read, Glob, Grep, Bash | Enhanced code review with risk areas, assumptions tracking | `/review` - Async bugs, memory leaks, risk assessment |
 | **design-reviewer** | sonnet | 170 | Read, Glob, Grep, Bash | Design quality review | `/review --design-review` - Landing pages, pricing, onboarding |
 | **documenter** | haiku | 351 | Read, Write | Documentation generation | `/document` - Sync docs |
 

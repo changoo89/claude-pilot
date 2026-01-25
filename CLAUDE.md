@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.40 | **Last Updated**: 2026-01-24
+> **Version**: 4.4.43 | **Last Updated**: 2026-01-25
 
 ---
 
@@ -121,6 +121,8 @@ Response Handling (synthesize, apply, verify)
 **Coding Standards**: `@.claude/skills/coding-standards/SKILL.md` - TypeScript, React, API, testing standards
 **Git Master**: `@.claude/skills/git-master/SKILL.md` - Git operations
 **Frontend Design**: `@.claude/skills/frontend-design/SKILL.md` - UI/UX design thinking
+**Spec-Driven Workflow**: `@.claude/skills/spec-driven-workflow/SKILL.md` - Enhanced with Context Manifest and Quick Sufficiency Test
+**Multi-Angle Review**: `@.claude/skills/review/SKILL.md` - Comprehensive review with enhanced code-reviewer integration
 
 ---
 
@@ -154,7 +156,7 @@ Response Handling (synthesize, apply, verify)
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.38
+**Plugin Version**: 4.4.43
 **Distribution**: GitHub Marketplace via `#release` branch
 
 **Branch Structure**:
@@ -180,8 +182,8 @@ Response Handling (synthesize, apply, verify)
 ### v4.4.40 (2026-01-24)
 Self-Contained Planning Framework - External Context Detection, Context Pack Structure, Self-Contained Verification, Zero-Knowledge TODO format
 
-### v4.4.42 (2026-01-25)
-Single Agent Delegation Pattern - Context protection for main orchestrator, mandatory Task tool patterns in all workflow skills
+### v4.4.43 (2026-01-25)
+QA/QC Enhancement Framework - Enhanced code-reviewer agent with Risk Areas, Assumptions tracking, Context Manifest format, Quick Sufficiency Test
 
 ### v4.4.31 (2026-01-24)
 Scope Clarity Framework - Step 1.5 in spec-driven-workflow, Step 1.7 in confirm-plan, 4 mandatory triggers for scope validation

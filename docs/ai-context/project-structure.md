@@ -11,7 +11,7 @@
 Framework: Claude Code Plugin
 Language: Markdown + JSON (no code runtime)
 Package Manager: Claude Code Plugin System
-Version: 4.4.14
+Version: 4.4.43
 Deployment: GitHub Marketplace (plugin distribution)
 ```
 
@@ -112,7 +112,8 @@ claude-pilot/
 | `git-master` | Git operations |
 | `gpt-delegation` | GPT expert delegation |
 | `docs-verify` | Documentation verification |
-| `parallel-subagents` | Concurrent agent execution with single delegation pattern |
+| `spec-driven-workflow` | Enhanced with Context Manifest and Quick Sufficiency Test |
+| `review` | Multi-angle review with enhanced code-reviewer integration |
 
 **Details**: See `@.claude/skills/CONTEXT.md`
 
@@ -125,7 +126,7 @@ claude-pilot/
 | tester | sonnet | Test writing |
 | validator | haiku | Quality verification |
 | plan-reviewer | sonnet | Plan analysis |
-| code-reviewer | opus | Deep code review |
+| code-reviewer | opus | Enhanced code review with risk areas, assumptions tracking |
 | documenter | haiku | Documentation sync |
 
 **Details**: See `@.claude/agents/CONTEXT.md`

@@ -368,6 +368,6 @@ fi
 
 ## Further Reading
 
-**Internal**: @.claude/skills/review/REFERENCE.md - Detailed review criteria, gap detection, GPT delegation | @.claude/rules/delegator/orchestration.md - GPT expert delegation | @.claude/skills/parallel-subagents/SKILL.md - Multi-angle parallel review
+**Internal**: @.claude/skills/review/REFERENCE.md - Detailed review criteria, gap detection, GPT delegation | @.claude/rules/delegator/orchestration.md - GPT expert delegation | @.claude/skills/parallel-subagents/SKILL.md - Multi-angle parallel review | @.claude/agents/code-reviewer.md - Code reviewer output format (Risk Areas, Assumptions Made, Context Used/Ignored, Suggested Tests)
 
 **External**: [Code Review by Jason Cohen](https://blog.smartbear.com/code-review/best-practices-for-code-review/) | [The Art of Readable Code](https://www.amazon.com/Art-Readable-Code-Simple/dp/1593272740)

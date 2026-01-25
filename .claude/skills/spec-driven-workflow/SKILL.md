@@ -314,6 +314,90 @@ landing|marketing|redesign|beautiful|modern|premium|hero|pricing|portfolio|homep
 
 ---
 
+### Step 1.8.5: Context Manifest Generation (NEW)
+
+**Purpose**: Explicitly list all collected context for verification
+
+**After Step 1.8 (External Context Detection)**:
+
+1. **Generate Context Manifest**:
+
+```markdown
+## Context Manifest
+
+### Collected Context
+| ID | Type | Source | Status |
+|----|------|--------|--------|
+| C-1 | Code | [file path] | Read |
+| C-2 | Docs | [doc path] | Read |
+| C-3 | External | [URL/reference] | Partial |
+
+### Related Files (Auto-discovered by explorer)
+| File | Reason | Included? |
+|------|--------|-----------|
+| [file] | [why related] | Yes / No (reason) |
+
+### Missing Context (BLOCKING if critical)
+| Item | Why Needed | Resolution |
+|------|------------|------------|
+| [gap] | [reason] | Ask user / Default: [value] |
+```
+
+2. **Store in Draft File**: Append manifest to draft plan
+
+**After Manifest Generation**:
+- If Missing Context table is empty → proceed to Step 1.9
+- If Missing Context has items → AskUserQuestion to resolve
+
+---
+
+### Step 1.9: Quick Sufficiency Test (NEW)
+
+**Purpose**: Practical 3-question check BEFORE Step 2 (Gather Requirements)
+
+**3 Practical Questions**:
+
+1. **File Test**: "Are all file paths to be modified explicitly specified?"
+   - Pass: All file paths explicit (e.g., `src/auth/login.ts`, `tests/auth.test.ts`)
+   - Fail: Vague expressions ("관련 파일", "적절한 위치", "related files")
+
+2. **Value Test**: "Are configuration values, constants, strings explicitly specified?"
+   - Pass: Concrete values (e.g., `timeout: 5000`, `retries: 3`, `"application/json"`)
+   - Fail: Vague expressions ("적절한 값", "필요에 따라", "appropriate value")
+
+3. **Dependency Test**: "Are external dependencies explicitly specified?"
+   - Pass: Library + version OR "no external dependencies" stated
+   - Fail: Features assumed without dependency mention
+
+**Test Execution**:
+```markdown
+### Quick Sufficiency Test Results
+| Test | Result | Details |
+|------|--------|---------|
+| File Test | Pass/Fail | [specifics] |
+| Value Test | Pass/Fail | [specifics] |
+| Dependency Test | Pass/Fail | [specifics] |
+
+**Overall**: Pass/Fail
+```
+
+**BLOCKING if any test fails** → AskUserQuestion to resolve before proceeding to Step 2
+
+**Example AskUserQuestion for failures**:
+```
+AskUserQuestion:
+  question: "Context insufficient for self-contained execution. Please resolve:"
+  header: "Missing Context"
+  multiSelect: false
+  options:
+    - label: "Provide missing details"
+      description: "I'll specify the missing file paths, values, and dependencies"
+    - label: "Use defaults"
+      description: "Use reasonable defaults and proceed with implementation"
+```
+
+---
+
 ### Step 2: Gather Requirements
 
 **Purpose**: Capture user requirements verbatim for plan foundation

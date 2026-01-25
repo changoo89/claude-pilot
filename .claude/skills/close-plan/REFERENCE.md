@@ -2,11 +2,11 @@
 
 > **Purpose**: Extended details for plan completion workflow
 > **Main Skill**: @.claude/skills/close-plan/SKILL.md
-> **Last Updated**: 2026-01-24
+> **Last Updated**: 2026-01-25
 
 ---
 
-## Enhanced Step Tracking (v1.3.0)
+## Enhanced Step Tracking
 
 ### Execution Directive
 
@@ -14,16 +14,16 @@
 
 ### Step Markers
 
-Each step now includes clear markers for execution flow:
+Each step includes clear markers for execution flow:
 - `▶ STEP N`: Start of step
 - `✓ STEP N COMPLETE`: Successful completion
 - `[MANDATORY GATE]`: Critical validation points that must pass
 
 ### Mandatory Gates
 
-Steps 3 and 4 are now mandatory gates that must complete successfully:
-- **Step 3**: Auto Documentation Sync with timestamp verification
-- **Step 4**: Verify Evidence with detailed command execution tracking
+Steps 3 and 4 are mandatory gates that must complete successfully:
+- **Step 3**: Parallel Documentation Sync + Evidence Verification with timestamp verification
+- **Step 4**: Move plan to done (waits for Step 3 to complete)
 
 ### Step Tracking Implementation
 
@@ -34,20 +34,18 @@ echo "▶ STEP N: [Step Name]"
 echo "✓ STEP N COMPLETE"
 ```
 
-**Purpose**: Ensures no steps are skipped and provides clear execution feedback.
-
 ---
 
-## Worktree Cleanup
+## Worktree Cleanup Details
 
-### Worktree Context (Step 1)
+### Worktree Context (Step 7)
 
 **Purpose**: Read context from plan file metadata
 
 **Metadata parsing**:
 ```bash
 if grep -q "## Worktree Info" "$ACTIVE_PLAN_PATH" 2>/dev/null; then
-    WORKTREE_META="$(read_worktree_metadata "$ACTIVE_PLAN_PATH")"
+    WORKTREE_META="$(read_worktree_metadata "$PLAN_PATH")"
     IFS='|' read -r WT_BRANCH WT_PATH WT_MAIN MAIN_PROJECT_DIR LOCK_FILE <<< "$WORKTREE_META"
 
     # Validate fields
@@ -55,7 +53,7 @@ if grep -q "## Worktree Info" "$ACTIVE_PLAN_PATH" 2>/dev/null; then
     [ ! -d "$MAIN_PROJECT_DIR" ] && exit 1
 
     # Error trap: cleanup lock on failure
-    trap "rm -rf \"$LOCK_FILE\" 2>/dev/null" EXIT ERR
+    trap "rm -f \"$LOCK_FILE\" 2>/dev/null" EXIT ERR
 
     # Change to main project
     cd "$MAIN_PROJECT_DIR" || exit 1
@@ -73,7 +71,7 @@ if grep -q "## Worktree Info" "$ACTIVE_PLAN_PATH" 2>/dev/null; then
 
     # Cleanup worktree
     cleanup_worktree "$WT_PATH" "$WT_BRANCH"
-    rm -rf "$LOCK_FILE"
+    rm -f "$LOCK_FILE"
     trap - EXIT ERR
 fi
 ```
@@ -104,25 +102,52 @@ fi
 
 **Retry logic**: Max 3 attempts, exponential backoff (2^iteration seconds)
 
-### Safe Git Push (Step 7.3)
+### git_push_with_retry Implementation
 
-**Safety**: Dry-run verification, graceful degradation, no force push
+```bash
+git_push_with_retry() {
+    local remote="${1:-origin}"
+    local branch="${2:-$CURRENT_BRANCH}"
+    local max_attempts=3
+    local wait_times=(2 4 8)  # Exponential backoff
 
-**Blocking**: Plan closure blocks if push fails (exit 1)
+    echo "🔄 Pushing to $remote/$branch..."
 
-**Workflow**:
-1. Skip if: not git repo, no remote, uncommitted changes, no branch
-2. Dry-run verification (`git push --dry-run`)
-3. Actual push with retry (if dry-run successful)
-4. Track results in `PUSH_RESULTS` array
-5. Block plan closure if any push failed
+    for attempt in $(seq 1 $max_attempts); do
+        # Attempt push
+        if git push "$remote" "$branch" 2>&1; then
+            echo "✓ Push successful"
+            return 0
+        fi
 
-### Verify Git Push Completed (Step 7.4)
+        local exit_code=$?
+        local error_output="$(git push "$remote" "$branch" 2>&1 || true)"
 
-**SHA comparison**: Compare local SHA (`git rev-parse HEAD`) with remote SHA (`git rev-parse origin/<branch>`)
+        # Classify error
+        if echo "$error_output" | grep -qiE "non-fast-forward|rejected|protected"; then
+            echo "❌ Push rejected (non-fast-forward or protected branch)"
+            echo "   Run: git pull --rebase && git push"
+            return 1
+        elif echo "$error_output" | grep -qiE "authentication|permission|credentials"; then
+            echo "❌ Authentication error"
+            echo "   Check git credentials: git config --list | grep credential"
+            return 1
+        fi
 
-**Success**: Local and remote SHA match
-**Failure**: SHA mismatch → Mark as failed, print warning
+        # Retry for network/transient errors
+        if [ $attempt -lt $max_attempts ]; then
+            local wait_time=${wait_times[$((attempt-1))]}
+            echo "⚠️  Push failed (attempt $attempt/$max_attempts), retrying in ${wait_time}s..."
+            sleep "$wait_time"
+        else
+            echo "❌ Push failed after $max_attempts attempts"
+            return 1
+        fi
+    done
+
+    return 1
+}
+```
 
 ---
 
@@ -152,9 +177,6 @@ if [ -f "$ISSUES_STATE_FILE" ]; then
             echo "   P0 (blocking): $P0_COUNT | P1 (follow-up): $P1_COUNT | P2 (backlog): $P2_COUNT"
             echo ""
             echo "   These issues will remain unresolved after closing this plan."
-            echo "   Press Ctrl+C to abort, or wait 3 seconds to continue..."
-            echo ""
-            sleep 3  # Non-blocking wait - user can press Ctrl+C to abort
         fi
     fi
 fi
@@ -198,6 +220,90 @@ fi
 
 ---
 
+## Step-by-Step Implementation Details
+
+### Step 1: Load Plan (Full)
+
+```bash
+echo "▶ STEP 1: Load Plan"
+
+PROJECT_ROOT="$(pwd)"
+PLAN_ARG="$1"
+NO_COMMIT_FLAG="$2"
+NO_PUSH_FLAG="$3"
+
+# Find plan path
+if [ -n "$PLAN_ARG" ] && [ -f "$PLAN_ARG" ]; then
+    PLAN_PATH="$PLAN_ARG"
+elif [ -n "$PLAN_ARG" ]; then
+    PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*${PLAN_ARG}*.md" -type f 2>/dev/null | head -1)"
+else
+    PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | head -1)"
+fi
+
+if [ -z "$PLAN_PATH" ]; then
+    echo "❌ No plan in progress"
+    exit 1
+fi
+
+echo "✓ Plan: $PLAN_PATH"
+echo "✓ STEP 1 COMPLETE"
+```
+
+### Step 2: Verify All SCs Complete (Full)
+
+```bash
+echo "▶ STEP 2: Verify All SCs Complete"
+
+INCOMPLETE_SC="$(grep -c "^- \[ \]" "$PLAN_PATH" 2>/dev/null || echo 0)"
+
+if [ "$INCOMPLETE_SC" -gt 0 ]; then
+    echo "⚠️  $INCOMPLETE_SC Success Criteria incomplete"
+    echo "   Continue with: /02_execute"
+    exit 1
+fi
+
+echo "✓ All Success Criteria complete"
+echo "✓ STEP 2 COMPLETE"
+```
+
+### Step 4: Move Plan to Done (Full)
+
+```bash
+echo "▶ STEP 4: Move Plan to Done"
+
+TIMESTAMP="$(date +%Y%m%d)"
+DONE_DIR="$PROJECT_ROOT/.pilot/plan/done/${TIMESTAMP}"
+mkdir -p "$DONE_DIR"
+
+mv "$PLAN_PATH" "$DONE_DIR/"
+DONE_PLAN_PATH="$DONE_DIR/$(basename "$PLAN_PATH")"
+
+echo "✓ Plan moved to: $DONE_PLAN_PATH"
+echo "✓ STEP 4 COMPLETE"
+```
+
+### Step 5: Git Commit (Full)
+
+```bash
+echo "▶ STEP 5: Git Commit"
+
+if [ "$NO_COMMIT_FLAG" = "no-commit" ]; then
+    echo "⚠️  Skipping git commit (no-commit flag)"
+    exit 0
+fi
+
+git add "$DONE_DIR/"
+PLAN_TITLE="$(basename "$PLAN_PATH" .md)"
+
+git commit -m "close(plan): $PLAN_TITLE" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+
+echo "✓ Git commit created"
+echo "✓ STEP 5 COMPLETE"
+```
+
+---
+
 ## See Also
 
 **Skill Documentation**:
@@ -215,5 +321,5 @@ fi
 
 ---
 
-**Last Updated**: 2026-01-24
-**Version**: 1.3.0 (Close Plan Skill - Enhanced step tracking with mandatory gates)
+**Last Updated**: 2026-01-25
+**Version**: 1.4.0 (Close Plan Skill - Refactored for ≤200 lines SKILL.md)

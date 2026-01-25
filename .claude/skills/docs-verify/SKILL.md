@@ -20,11 +20,12 @@ description: Documentation verification for 3-Tier system - validates line limit
 ### Quick Reference
 
 ```bash
-# Run full verification (all checks)
-npx --yes markdown-link-check CLAUDE.md docs/**/*.md
-find .claude -name "*.md" -exec grep -l "@.claude/\|@docs/" {} \; | while read f; do
-  grep -oE '@\.(claude|docs)/[^)[:space:]]+' "$f" | while read ref; do
-    [ -e "${ref#@}" ] || echo "Broken: $ref in $f"
+# Pure bash link check (no external deps)
+for file in CLAUDE.md docs/ai-context/*.md; do
+  [ -f "$file" ] || continue
+  grep -oE '@[^][:space:]]+' "$file" | while read ref; do
+    ref_path="${ref#@}"
+    [ ! -e "$ref_path" ] && echo "Broken: $ref in $file"
   done
 done
 ```

@@ -145,6 +145,28 @@ Invoke the `docs-verify` skill for comprehensive validation.
 
 **Script**: See @.claude/skills/docs-verify/SKILL.md for full verification commands
 
+### Step 4: Inline Verification
+
+Verify documentation compliance immediately after update:
+
+```bash
+# 1. Tier 1 Line Limits (≤200)
+for file in CLAUDE.md docs/ai-context/*.md; do
+  [ -f "$file" ] || continue
+  lines=$(wc -l < "$file" | tr -d ' ')
+  [ "$lines" -gt 200 ] && echo "FAIL: $file has $lines lines (limit: 200)"
+done
+
+# 2. ai-context file count (exactly 2)
+count=$(find docs/ai-context -maxdepth 1 -name "*.md" -type f | wc -l | tr -d ' ')
+[ "$count" -ne 2 ] && echo "FAIL: docs/ai-context/ has $count files (expected: 2)"
+
+# 3. Cross-reference check
+grep -oE '@[^][:space:]]+' CLAUDE.md | while read ref; do
+  [ ! -e "${ref#@}" ] && echo "Broken: $ref"
+done
+```
+
 ---
 
 ## Verification Failure Recovery

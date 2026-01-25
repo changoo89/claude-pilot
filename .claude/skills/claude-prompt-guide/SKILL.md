@@ -190,10 +190,10 @@ Before analysis: Read files, search patterns, check documentation.
 
 ## Further Reading
 
-**Internal**: @.claude/skills/claude-prompt-guide/REFERENCE.md - Detailed tag documentation, 10-component examples, customization guide | @.claude/skills/coding-standards/SKILL.md - Code quality standards | @.claude/agents/CONTEXT.md - Agent ecosystem | @.claude/commands/CONTEXT.md - Command workflows
+**Internal**: @.claude/skills/claude-prompt-guide/REFERENCE.md - Detailed tag documentation, customization guide | @.claude/skills/claude-prompt-guide/EXAMPLES.md - Common patterns and 10-component framework examples | @.claude/skills/coding-standards/SKILL.md - Code quality standards | @.claude/agents/CONTEXT.md - Agent ecosystem | @.claude/commands/CONTEXT.md - Command workflows
 
 **External**: [Prompting best practices - Claude Docs](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices) | [Use XML tags - Claude Docs](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/use-xml-tags) | [Claude Code Best Practices - Anthropic](https://www.anthropic.com/engineering/claude-code-best-practices) | [Piebald-AI/claude-code-system-prompts](https://github.com/Piebald-AI/claude-code-system-prompts) - 40+ system prompt examples
 
 ---
 
-**Version**: claude-pilot 4.4.40
+**Version**: claude-pilot 4.4.43

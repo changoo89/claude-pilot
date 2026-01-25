@@ -25,8 +25,6 @@ description: Initial setup workflow for claude-pilot plugin - directory creation
 # Steps: Directories → Statusline → Documentation → GitHub Star
 ```
 
----
-
 ## Execution Steps
 
 Execute ALL steps in sequence. Do NOT pause between steps unless explicitly marked as user interaction.
@@ -50,8 +48,6 @@ test -d .pilot/plan/in_progress && echo "in_progress: ✓" || echo "in_progress:
 test -d .pilot/plan/done && echo "done: ✓" || echo "done: ✗"
 test -d .pilot/state && echo "state: ✓" || echo "state: ✗"
 ```
-
----
 
 ### Step 2: Configure Statusline
 
@@ -98,8 +94,6 @@ test -f .claude/scripts/statusline.sh && echo "statusline.sh: ✓" || echo "stat
 test -f .claude/settings.json && echo "settings.json: ✓" || echo "settings.json: ✗"
 ```
 
----
-
 ### Step 3: MCP Servers (Informational)
 
 **Purpose**: Inform user about recommended MCP servers
@@ -114,8 +108,6 @@ Configuration: Add to ~/.claude.json under projects.<project-path>.mcpServers
 ```
 
 **No action required** - informational only.
-
----
 
 ### Step 4: Initial Documentation (Optional)
 
@@ -135,8 +127,6 @@ echo "Invoke the three-tier-docs skill to generate initial documentation."
 ```bash
 echo "⏭️  Skipping documentation sync"
 ```
-
----
 
 ### Step 5: GitHub Star Request (Optional)
 
@@ -167,8 +157,6 @@ fi
 echo "👋 Thanks for using claude-pilot!"
 ```
 
----
-
 ### Step 6: Complete
 
 **Purpose**: Show completion message and next steps
@@ -178,8 +166,6 @@ echo ""
 echo "✓ claude-pilot setup complete"
 echo "  Run /00_plan to start planning"
 ```
-
----
 
 ## What This Skill Covers
 
@@ -194,8 +180,6 @@ echo "  Run /00_plan to start planning"
 - MCP server installation → User responsibility
 - Plugin installation → Already completed before setup
 - Documentation generation logic → @.claude/skills/three-tier-docs/SKILL.md
-
----
 
 ## Further Reading
 

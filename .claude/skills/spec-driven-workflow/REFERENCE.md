@@ -39,53 +39,20 @@ prompt: |
 
 ### Step 1.5: Scope Clarity Check (MANDATORY)
 
-**Purpose**: 범위에 대한 암묵적 가정 방지
+**Purpose**: Prevent implicit scope assumptions
 
-**Trigger Conditions** (하나라도 해당되면 범위 확인 필수):
-
-1. **Completeness Keywords**:
-   - Korean: "전체", "완전한", "모든", "다", "처음부터 끝까지"
-   - English: "full", "complete", "entire", "whole", "end-to-end", "from scratch"
-
-2. **Reference-Based Requests**:
-   - "이 프로젝트처럼", "레퍼런스 기반", "이거 보고", "똑같이"
-   - "like this project", "based on reference", "same as"
-
-3. **Ambiguous Scope**:
-   - 사용자가 명시적 범위 지정 없이 작업 요청
-   - "XX 만들어줘" (무엇이 "XX"의 전체인지 불명확)
-
-4. **Multi-Layer Architecture Detected**:
-   - 탐색 결과 2개 이상의 독립 레이어 발견
-   - 서로 다른 기술 스택이 공존 (예: Next.js + Express)
+**Trigger Conditions** (any one triggers mandatory scope confirmation):
+1. Completeness keywords (Korean: "전체", "모든" | English: "full", "complete", "entire", "end-to-end")
+2. Reference-based requests ("like this project", "based on reference", "same as")
+3. Ambiguous scope (no explicit boundaries specified)
+4. Multi-layer architecture detected (2+ independent tech stacks)
 
 **When Triggered**:
-
-1. Identify distinct layers from exploration:
-   - Independent modules/directories
-   - Different tech stacks
-   - Input/output boundaries
-
-2. Ask user to select scope:
-   ```
-   AskUserQuestion:
-     question: "프로젝트의 전체 범위를 확인합니다. 이번 계획에 포함할 영역을 선택해주세요:"
-     header: "Scope"
-     multiSelect: true
-     options:
-       - label: "[Layer 1 from exploration]"
-         description: "[Description]"
-       - label: "[Layer 2 from exploration]"
-         description: "[Description]"
-       - label: "단계적 구현"
-         description: "먼저 할 부분을 지정"
-   ```
-
+1. Identify distinct layers from exploration
+2. Ask user to select scope via AskUserQuestion (multiSelect: true)
 3. Document scope decision in draft file
 
-**CRITICAL**:
-- Do NOT assume "X first, Y later" without user confirmation
-- If plan only covers part of discovered architecture, get explicit confirmation
+**CRITICAL**: Do NOT assume "X first, Y later" without user confirmation
 
 ---
 
@@ -93,50 +60,15 @@ prompt: |
 
 **Purpose**: Detect high-aesthetic-risk tasks and capture design direction early
 
-**Trigger Keywords** (high-aesthetic-risk):
-```
-landing|marketing|redesign|beautiful|modern|premium|hero|pricing|portfolio|homepage|brand|client-facing|polish|revamp
-```
+**Trigger Keywords**: `landing|marketing|redesign|beautiful|modern|premium|hero|pricing|portfolio|homepage|brand|client-facing|polish|revamp`
 
-**When Triggered** (any keyword present in task description):
+**When Triggered**: Ask user for aesthetic direction (Minimal/Warm/Bold) via AskUserQuestion, store in draft plan
 
-1. Ask user for aesthetic direction:
-   ```
-   AskUserQuestion:
-     question: "What visual style should this UI follow?"
-     header: "Style"
-     multiSelect: false
-     options:
-       - label: "Minimal (Recommended)"
-         description: "Clean, sparse, purposeful - Stripe/Linear style"
-       - label: "Warm"
-         description: "Organic textures, soft edges - Notion/Gumroad style"
-       - label: "Bold"
-         description: "High contrast, strong typography - Modern/Experimental"
-   ```
+**When Not Triggered**: Use house style defaults (Minimal), store in draft plan
 
-2. Store decision in draft plan:
-   ```markdown
-   | D-{N} | HH:MM | Aesthetic Direction: [Minimal/Warm/Bold] | User selected style for design implementation |
-   ```
+**House Style Defaults**: Minimalist direction, Geist/Satoshi fonts, off-white backgrounds, varied radii. See `@.claude/skills/frontend-design/SKILL.md`
 
-**When Not Triggered** (no keywords detected):
-
-1. Proceed with "house style" defaults (NO question asked)
-2. Store in draft plan:
-   ```markdown
-   | D-{N} | HH:MM | Aesthetic Direction: Minimal (house style default) | No design keywords detected, using defaults |
-   ```
-
-**Canonical Source**: All design defaults reference `@.claude/skills/frontend-design/SKILL.md`
-
-**House Style Defaults** (when no keywords detected):
-- **Direction**: Minimalist (clean, sparse, purposeful)
-- **Typography**: Geist/Satoshi (NOT Inter)
-- **Colors**: Off-white backgrounds, no purple-to-blue gradients
-- **Components**: Varied radii, subtle borders, proper states
-
-**Non-Blocking Rule**: If no response within 30 seconds, proceed with `aesthetic_direction: minimal`
+**Non-Blocking**: If no response within 30 seconds, proceed with `aesthetic_direction: minimal`
 
 ---
 
@@ -144,84 +76,14 @@ landing|marketing|redesign|beautiful|modern|premium|hero|pricing|portfolio|homep
 
 **Purpose**: Detect ANY external context dependency for self-contained execution
 
-**Detection Patterns** (from GPT Architect):
-
-| Pattern | Examples | Context Type |
-|---------|----------|--------------|
-| "Like X / similar to Y" | "메타랩처럼", "Stripe style", "같은", "based on" | Design/Reference |
-| External links | URLs, Figma, Slack, docs, "see above" | Various |
-| "Use the API/docs/spec" | "Stripe API", "REST endpoint" | API |
-| "Use library X" | "using NextAuth", "with Prisma" | Library |
-| "Refactor to match" | "기존처럼", "like the example" | Refactor |
-| Implicit knowledge | "우리 브랜드", "standard", "best practice" | Domain |
-| Untestable requirement | No acceptance criteria | Scope |
+**Detection Patterns**: "Like X", external links (URLs, Figma), "Use API/library", "Refactor to match", implicit knowledge, untestable requirements
 
 **When Detected**:
+1. **Identify Context Type**: Design, API, Library, Refactor, Domain
+2. **Capture Workflow**: Use appropriate MCP tools (playwright for design, webReader/context7 for docs, etc.)
+3. **Create Context Pack**: Goal, Inputs (Embedded), Derived Requirements, Assumptions & Unknowns, Traceability Map (see formats below)
 
-1. **Identify Context Type**:
-   - Design: website, UI, visual reference
-   - API: endpoints, schemas, auth
-   - Library: packages, frameworks, tools
-   - Refactor: existing code patterns
-   - Domain: business rules, brand guidelines
-
-2. **Capture Workflow per Type**:
-
-   **Design Context**:
-   ```bash
-   # Screenshot + visual analysis
-   playwright: browser_navigate(url)
-   playwright: browser_take_screenshot(fullPage=true)
-   # Extract: colors, typography, layout, components, interactions
-   ```
-
-   **API Context**:
-   ```bash
-   # Documentation capture
-   webReader: webReader(docs_url)
-   # Extract: endpoints, schemas, auth, errors, examples
-   context7: query-docs(libraryId, "API reference")
-   ```
-
-   **Library Context**:
-   ```bash
-   # Version + config + examples
-   context7: resolve-library-id(libraryName)
-   context7: query-docs(libraryId, "setup configuration")
-   # Pin version, capture config, minimal examples
-   ```
-
-   **Refactor Context**:
-   ```bash
-   # Before/after patterns
-   # Capture: current code, target pattern, invariants to preserve
-   ```
-
-3. **Create Context Pack**:
-   ```markdown
-   ## Context Pack
-
-   ### Goal
-   [User-facing outcome - what success looks like]
-
-   ### Inputs (Embedded)
-   [Per context type - see formats below]
-
-   ### Derived Requirements
-   [Measurable bullets extracted from inputs - NOT references]
-
-   ### Assumptions & Unknowns
-   | Item | Status | Resolution |
-   |------|--------|------------|
-   | [Gap] | Unknown | Ask user / Use default |
-
-   ### Traceability Map
-   | Requirement | Source (Embedded) |
-   |-------------|-------------------|
-   | [Req-1] | Context Pack → Inputs → [excerpt] |
-   ```
-
-**CRITICAL**: Do NOT proceed to Step 2 if context capture incomplete.
+**CRITICAL**: Do NOT proceed to Step 2 if context capture incomplete
 
 ---
 
@@ -264,48 +126,14 @@ landing|marketing|redesign|beautiful|modern|premium|hero|pricing|portfolio|homep
 
 ### Step 1.9: Quick Sufficiency Test
 
-**Purpose**: Practical 3-question check BEFORE Step 2 (Gather Requirements)
+**Purpose**: 3-question check BEFORE Step 2 (Gather Requirements)
 
-**3 Practical Questions**:
+**Tests**:
+1. **File Test**: All file paths explicit? (Pass: explicit paths | Fail: "related files")
+2. **Value Test**: Config values explicit? (Pass: concrete values | Fail: "appropriate value")
+3. **Dependency Test**: Dependencies explicit? (Pass: library+version OR "none" | Fail: assumed)
 
-1. **File Test**: "Are all file paths to be modified explicitly specified?"
-   - Pass: All file paths explicit (e.g., `src/auth/login.ts`, `tests/auth.test.ts`)
-   - Fail: Vague expressions ("관련 파일", "적절한 위치", "related files")
-
-2. **Value Test**: "Are configuration values, constants, strings explicitly specified?"
-   - Pass: Concrete values (e.g., `timeout: 5000`, `retries: 3`, `"application/json"`)
-   - Fail: Vague expressions ("적절한 값", "필요에 따라", "appropriate value")
-
-3. **Dependency Test**: "Are external dependencies explicitly specified?"
-   - Pass: Library + version OR "no external dependencies" stated
-   - Fail: Features assumed without dependency mention
-
-**Test Execution**:
-```markdown
-### Quick Sufficiency Test Results
-| Test | Result | Details |
-|------|--------|---------|
-| File Test | Pass/Fail | [specifics] |
-| Value Test | Pass/Fail | [specifics] |
-| Dependency Test | Pass/Fail | [specifics] |
-
-**Overall**: Pass/Fail
-```
-
-**BLOCKING if any test fails** → AskUserQuestion to resolve before proceeding to Step 2
-
-**Example AskUserQuestion for failures**:
-```
-AskUserQuestion:
-  question: "Context insufficient for self-contained execution. Please resolve:"
-  header: "Missing Context"
-  multiSelect: false
-  options:
-    - label: "Provide missing details"
-      description: "I'll specify the missing file paths, values, and dependencies"
-    - label: "Use defaults"
-      description: "Use reasonable defaults and proceed with implementation"
-```
+**BLOCKING if any test fails**: AskUserQuestion to resolve (provide details OR use defaults)
 
 ---
 
@@ -480,141 +308,46 @@ Write initial file with header:
 ### ⛔ TOOL RESTRICTIONS (ABSOLUTE)
 - Edit tool: FORBIDDEN on any file
 - Write tool: ONLY `.pilot/plan/draft/*.md`
-
 - Creating plan files without user approval
-- Running /01_confirm automatically
-- Running /02_execute automatically
-- **Starting implementation after user selects an approach** (selection = continue planning)
-- **Interpreting ANY natural language as phase transition trigger**
-  - Examples: "proceed", "go ahead", "do it", "sounds good", "yes", "let's do it", "go with B"
-  - These expressions mean "continue planning in this direction", NOT "start implementation"
-
-**EXPLICIT COMMAND REQUIRED**:
-- To move to /01_confirm: User must type exactly `/01_confirm`
-- To move to /02_execute: User must type exactly `/02_execute`
-- NO natural language expression can trigger phase transition
-- When in doubt, ASK: "Should I continue refining the plan, or run /01_confirm?"
-
----
+- Auto-running /01_confirm or /02_execute
+- Starting implementation after user selects an approach (selection = continue planning)
 
 ### ⛔ NATURAL LANGUAGE INTERPRETATION (CRITICAL)
+**Natural language expressions NEVER trigger phase transition**:
+- Korean: "진행해", "해결해줘", "고쳐줘", "수정해줘" → Continue planning
+- English: "proceed", "go ahead", "fix it", "do it", "sounds good" → Continue planning
 
-**Korean Examples**:
-- "진행해" (continue/proceed)
-- "해결해줘" (fix it/solve it)
-- "고쳐줘" (fix it)
-- "수정해줘" (modify/fix it)
-- "그렇게 해" (do that)
+**EXPLICIT COMMAND REQUIRED**: `/01_confirm` or `/02_execute` only
 
-**English Examples**:
-- "proceed"
-- "go ahead"
-- "fix it"
-- "solve it"
-- "do it"
-- "sounds good"
-- "yes, let's do it"
-
-**ALL mean "continue planning", NOT "implement"**
-
-**IF USER SAYS these phrases:**
-→ Respond: "I'll continue refining the plan. [continue planning with more details]"
-
-**IF USER ASKS TO IMPLEMENT:**
-→ Respond: "This is a planning phase. I'll include this in the plan. Run `/01_confirm` → `/02_execute` to implement."
-
-**Response Template**:
-```
-I understand you want me to [action]. During this planning phase (/00_plan), I'll:
-
-1. Continue refining the plan with [requested changes/details]
-2. Document this in the draft plan
-3. Present the complete plan for your review
-
-To start implementation, you'll need to:
-- Run `/01_confirm` to save and review the plan
-- Run `/02_execute` to begin implementation
-
-Shall I continue planning with [specific detail]?
-```
+**Response to ambiguous requests**: "This is a planning phase. I'll continue refining the plan. Run `/01_confirm` → `/02_execute` to implement."
 
 ---
 
 ## Context Pack Formats
 
 ### Design Context Format
-
 ```markdown
 ### Inputs (Embedded) - Design Reference
-
-> **Source**: Screenshot captured via playwright
-> **Captured**: {timestamp}
-
-#### Visual Analysis
-
-**Colors**:
-- Primary: {hex}
-- Secondary: {hex}
-- Background: {hex}
-- Text: {hex}
-
-**Typography**:
-- Headings: {font}, {weight}
-- Body: {font}, {weight}
-
-**Layout**:
-- Structure: {description}
-- Spacing: {description}
-
-**Components**:
-- Button styles: {description}
-- Card styles: {description}
+> **Source**: Screenshot | **Captured**: {timestamp}
+**Colors**: Primary, Secondary, Background, Text (hex values)
+**Typography**: Headings, Body (font, weight)
+**Layout**: Structure, Spacing | **Components**: Button/Card styles
 ```
 
 ### API Context Format
-
 ```markdown
 ### Inputs (Embedded) - API Documentation
-
-> **Source**: {docs_url}
-> **Captured**: {timestamp}
-
-#### Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/resource | List resources |
-| POST | /api/resource | Create resource |
-
-#### Authentication
-- Type: {Bearer token / API key / etc}
-- Header: {header_name}
-
-#### Request/Response Schema
-[JSON examples]
+> **Source**: {docs_url} | **Captured**: {timestamp}
+**Endpoints**: Method, Endpoint, Description (table)
+**Authentication**: Type, Header | **Schema**: Request/Response examples
 ```
 
 ### Library Context Format
-
 ```markdown
 ### Inputs (Embedded) - Library Documentation
-
-> **Source**: {library_name} {version} docs
-> **Captured**: {timestamp}
-
-#### Installation
-```bash
-npm install {library-name}@{version}
-```
-
-#### Configuration
-```javascript
-import { Library } from '{library-name}'
-
-const config = {
-  // minimal config
-}
-```
+> **Source**: {library_name} {version} | **Captured**: {timestamp}
+**Installation**: `npm install {library}@{version}`
+**Configuration**: Import statement + minimal config
 ```
 
 ---

@@ -1,3 +1,8 @@
+---
+name: review
+description: Comprehensive code review with multi-angle analysis using parallel agents
+---
+
 # SKILL: Multi-Angle Code Review
 
 > **Purpose**: Comprehensive plan review with gap detection, extended reviews, and GPT expert delegation

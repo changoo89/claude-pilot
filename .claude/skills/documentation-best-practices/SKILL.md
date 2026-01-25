@@ -21,11 +21,13 @@ description: Claude Code documentation standards for CLAUDE.md, commands, skills
 
 | File Type | Target | Max | Action When Exceeded |
 |-----------|--------|-----|----------------------|
-| **SKILL.md** | 150 | **200** | >300 → Create REFERENCE.md |
+| **SKILL.md** | 150 | **200** (official: 500) | >300 → Create REFERENCE.md |
 | **Agent** | 250 | **300** | >450 → Simplify required |
 | **Command** | 150 | **200** | >300 → Extract to guide |
 | **CONTEXT.md** | 150 | **200** | >300 → Simplify required |
 | **REFERENCE.md** | 250 | 300 | Split into multiple files |
+
+**Note**: Claude Code officially recommends ≤500 lines for SKILL.md. This project uses a stricter 200-line internal standard for token optimization and context efficiency.
 
 ## What This Skill Covers
 
@@ -153,4 +155,4 @@ skills: [skill list]
 
 **Internal**: @.claude/skills/documentation-best-practices/REFERENCE.md - Detailed examples, good/bad patterns, external links | @.claude/skills/coding-standards/SKILL.md - Official directory structure | @.claude/skills/three-tier-docs/SKILL.md - Complete 3-Tier system
 
-**External**: [Claude Code Best Practices - Anthropic](https://www.anthropic.com/engineering/claude-code-best-practices) | [Superpowers - obra/superpowers](https://github.com/obra/superpowers)
+**External**: [Claude Code Skills Documentation](https://code.claude.com/docs/en/skills) | [Claude Code Memory Documentation](https://code.claude.com/docs/en/memory) | [Claude Code Best Practices - Anthropic](https://www.anthropic.com/engineering/claude-code-best-practices) | [Superpowers - obra/superpowers](https://github.com/obra/superpowers)

@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## [4.4.44] - 2026-01-25
+
+### Changed
+- close(plan): execute-plan robustness improvements (096a6fa)
+- close(plan): smart-documentation-update (abc2f83)
+- close(plan): e2e_verification (61440fc)
+- close(plan): close-plan-refactor (a96d638)
+- close(plan): skill refactoring for ≤200 lines compliance (ea15089)
+- close(plan): QA/QC Enhancement for claude-pilot (3480dcd)
+
+### Documentation
+- Restructure documentation per Claude Code official guidelines (9010f84)
+
 ## [4.4.43] - 2026-01-25
 
 ### Documentation

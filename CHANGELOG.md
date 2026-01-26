@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## [4.4.46] - 2026-01-26
+
+### Changed
+- close(plan): Plan completion and documentation updates (3551f09)
+- close(plan): Atomic SC principle enforcement (be1bbde)
+- close(plan): Documentation condition fixes (fdb913d)
+
 ## [4.4.45] - 2026-01-26
 
 ### Added

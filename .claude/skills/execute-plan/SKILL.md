@@ -63,41 +63,6 @@ echo "$SC_LIST"
 
 ---
 
-## Step 2.5: Agent Selection
-
-**Priority Order** (first match wins):
-1. `.claude/*` or `docs/*` → coder (plugin/documentation work)
-2. `src/components/*` + UI keywords → frontend-engineer
-3. `src/api/*` or `server/*` + API keywords → backend-engineer
-4. Default → coder
-
-```bash
-PLAN_CONTENT=$(cat "$PLAN_PATH")
-FILES_TO_MODIFY=$(grep -E "^\| \`" "$PLAN_PATH" | sed 's/.*`\([^`]*\)`.*/\1/' || echo "")
-
-# Priority 1: Plugin/Documentation work
-if echo "$FILES_TO_MODIFY" | grep -qE "^\.claude/|^docs/"; then
-    AGENT_TYPE="coder"
-    echo "Selected agent: coder (plugin/documentation work)"
-# Priority 2: Frontend (only for src/ paths)
-elif echo "$FILES_TO_MODIFY" | grep -qE "^src/components/|^src/ui/" && \
-     echo "$PLAN_CONTENT" | grep -qiE "component|UI|React|CSS|Tailwind"; then
-    AGENT_TYPE="frontend-engineer"
-    echo "Selected agent: frontend-engineer"
-# Priority 3: Backend (only for src/ paths)
-elif echo "$FILES_TO_MODIFY" | grep -qE "^src/api/|^src/server/|^server/" && \
-     echo "$PLAN_CONTENT" | grep -qiE "API|endpoint|database|server|backend"; then
-    AGENT_TYPE="backend-engineer"
-    echo "Selected agent: backend-engineer"
-# Default: coder
-else
-    AGENT_TYPE="coder"
-    echo "Selected agent: coder (default)"
-fi
-```
-
----
-
 ## Step 2.7: Pre-Execution Confidence
 
 **Purpose**: Evaluate confidence before complex SCs. If < 0.5 → consult GPT Architect (rubric: @.claude/skills/gpt-delegation/SKILL.md).
@@ -127,9 +92,9 @@ fi
 
 ---
 
-## Step 3: Execute with Ralph Loop
+## Step 3: Execute with Ralph Loop (Per-SC Agent Selection)
 
-**Dependency Analysis** (supports both `### SC-N:` and `- [ ] **SC-N**` formats):
+**Dependency Analysis, File Extraction & Agent Selection** (supports both `### SC-N:` and `- [ ] **SC-N**` formats):
 ```bash
 for SC in $SC_LIST; do
     SC_NUM=$(echo "$SC" | sed 's/SC-//')
@@ -137,6 +102,28 @@ for SC in $SC_LIST; do
     if [ -z "$SC_CONTENT" ]; then
         SC_CONTENT=$(sed -n "/\*\*SC-${SC_NUM}\*\*/,/^\*- \[ \]/p" "$PLAN_PATH" | tail -n +2 | head -n -1 2>/dev/null)
     fi
+
+    # Extract SC-specific files (look for file paths in backticks)
+    SC_FILES=$(echo "$SC_CONTENT" | grep -oE '\`[^`]+\.(ts|tsx|js|jsx|py|md|sh)\`' | tr -d '`' || echo "")
+
+    # Per-SC Agent Selection (Priority: plugin > frontend > backend > coder)
+    if echo "$SC_FILES" | grep -qE "^\.claude/|^docs/"; then
+        SC_AGENT="coder"
+        echo "SC-${SC_NUM}: Agent=coder (plugin/docs), Files: $SC_FILES"
+    elif echo "$SC_FILES" | grep -qE "^src/components/|^src/ui/" && \
+         echo "$SC_CONTENT" | grep -qiE "component|UI|React|CSS|Tailwind"; then
+        SC_AGENT="frontend-engineer"
+        echo "SC-${SC_NUM}: Agent=frontend-engineer, Files: $SC_FILES"
+    elif echo "$SC_FILES" | grep -qE "^src/api/|^src/server/|^server/" && \
+         echo "$SC_CONTENT" | grep -qiE "API|endpoint|database|server|backend"; then
+        SC_AGENT="backend-engineer"
+        echo "SC-${SC_NUM}: Agent=backend-engineer, Files: $SC_FILES"
+    else
+        SC_AGENT="coder"
+        echo "SC-${SC_NUM}: Agent=coder (default), Files: $SC_FILES"
+    fi
+
+    # Determine grouping
     if echo "$SC_CONTENT" | grep -qiE 'after|depends|requires|follows'; then
         echo "**SequentialGroup**: $SC"
     else
@@ -147,7 +134,9 @@ done
 
 **Smart Grouping**: When SCs follow Atomic SC Principle (@.claude/skills/spec-driven-workflow/SKILL.md), parallel execution naturally emerges. SCs modifying same file type automatically group for specialized agents (e.g., frontend-engineer for `src/components/*`, backend-engineer for `src/api/*`).
 
-**Execution Strategies**: Parallel (Independent SCs, 50-70% speedup): `Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-{N} from $PLAN_PATH. Skills: tdd, ralph-loop, vibe-coding. Output: <CODER_COMPLETE> or <CODER_BLOCKED>"` | Sequential (Dependent SCs): One agent with all SCs | Single Coder (1-2 SCs): Always delegate
+**Execution Strategies**: Parallel (Independent SCs, 50-70% speedup): `Task: subagent_type: $SC_AGENT, prompt: "Execute SC-{N} from $PLAN_PATH. Skills: tdd, ralph-loop, vibe-coding. Output: <CODER_COMPLETE> or <CODER_BLOCKED>"` | Sequential (Dependent SCs): One agent with all SCs | Single Coder (1-2 SCs): Always delegate
+
+**Note**: `$SC_AGENT` is selected per-SC (not per-plan), so parallel SCs may use different specialized agents (e.g., SC-1 → frontend-engineer, SC-2 → backend-engineer).
 
 **Process Results**: Check `<CODER_COMPLETE>`, run `npm test`, mark complete or retry. Quality Gates: Tests pass, Coverage ≥80%, Type-check clean, Lint clean.
 

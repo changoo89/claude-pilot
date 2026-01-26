@@ -11,7 +11,7 @@
 Framework: Claude Code Plugin
 Language: Markdown + JSON (no code runtime)
 Package Manager: Claude Code Plugin System
-Version: 4.4.43
+Version: 4.4.47
 Deployment: GitHub Marketplace (plugin distribution)
 ```
 

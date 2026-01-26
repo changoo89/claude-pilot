@@ -20,21 +20,21 @@ description: Use when executing independent tasks concurrently. Launch multiple 
 
 ### Quick Reference
 ```markdown
-# Use dynamically selected agent type (from execute-plan Step 2.5)
+# Use per-SC dynamically selected agent type (from execute-plan Step 3)
 Task:
-  subagent_type: $AGENT_TYPE
+  subagent_type: $SC_AGENT
   prompt: Implement SC-1: Create authentication service
 
 Task:
-  subagent_type: $AGENT_TYPE
+  subagent_type: $SC_AGENT
   prompt: Implement SC-2: Create user service
 
 Task:
-  subagent_type: $AGENT_TYPE
+  subagent_type: $SC_AGENT
   prompt: Implement SC-3: Create database migrations
 ```
 
-**Note**: `$AGENT_TYPE` is selected in execute-plan Step 2.5 based on task type (frontend-engineer, backend-engineer, coder, etc.)
+**Note**: `$SC_AGENT` is selected per-SC (not per-plan) in execute-plan Step 3 based on each SC's file paths and keywords. Different SCs may use different specialized agents (e.g., SC-1 → frontend-engineer, SC-2 → backend-engineer).
 
 ## Core Concepts
 

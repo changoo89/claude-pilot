@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [4.4.47] - 2026-01-26
+
+### Added
+- SC-Level Agent Selection - Moved agent selection from plan-level (Step 2.5) to per-SC (Step 3) in execute-plan/SKILL.md, enabling specialized agents (frontend-engineer, backend-engineer) for each Success Criterion based on its specific file paths and keywords
+- Updated parallel-subagents/SKILL.md to document per-SC agent selection pattern
+
 ## [4.4.46] - 2026-01-26
 
 ### Changed

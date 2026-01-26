@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.47 | **Last Updated**: 2026-01-26
+> **Version**: 4.4.48 | **Last Updated**: 2026-01-26
 
 ---
 
@@ -150,7 +150,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.47
+**Plugin Version**: 4.4.48
 **Distribution**: GitHub Marketplace via `#release` branch
 
 **Branch Structure**:
@@ -173,10 +173,10 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ## Version History
 
-### v4.4.47 (2026-01-26)
+### v4.4.48 (2026-01-26)
 SC-Level Agent Selection - Moved agent selection from plan-level (Step 2.5) to per-SC (Step 3) in execute-plan/SKILL.md, enabling specialized agents (frontend-engineer, backend-engineer) for each Success Criterion based on its specific file paths and keywords. Updated parallel-subagents/SKILL.md to document per-SC agent selection pattern.
 
-### v4.4.40 (2026-01-24)
+### v4.4.47 (2026-01-26)
 Self-Contained Planning Framework - External Context Detection, Context Pack Structure, Self-Contained Verification, Zero-Knowledge TODO format
 
 ### v4.4.45 (2026-01-26)

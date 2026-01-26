@@ -98,6 +98,35 @@ fi
 
 ---
 
+## Step 2.7: Pre-Execution Confidence
+
+**Purpose**: Evaluate confidence before complex SCs. If < 0.5 → consult GPT Architect (rubric: @.claude/skills/gpt-delegation/SKILL.md).
+
+```bash
+# Confidence detection (arch/multi/uncertain patterns reduce score)
+ARCH_COUNT=$(echo "$SC_CONTENT" | grep -ciE 'architecture|tradeoff|design|scalability|pattern|choice' || echo "0")
+APPROACH_COUNT=$(echo "$SC_CONTENT" | grep -ciE 'could|might|option [AB]|either' || echo "0")
+UNCERTAINTY_COUNT=$(echo "$SC_CONTENT" | grep -ciE 'not sure|unclear|depends' || echo "0")
+
+# Calculate: 1.0 - (arch*0.3) - (approach*0.2) - (uncertain*0.2), clamp to [0,1]
+CONFIDENCE=$(echo "scale=2; 1.0 - ($ARCH_COUNT * 0.3) - ($APPROACH_COUNT * 0.2) - ($UNCERTAINTY_COUNT * 0.2)" | bc)
+CONFIDENCE=$(echo "$CONFIDENCE" | awk '{if ($1 < 0) print 0; else if ($1 > 1) print 1; else print $1}')
+echo "📊 Pre-Execution Confidence: $CONFIDENCE"
+
+# Proactive GPT if < 0.5 (graceful fallback if codex unavailable)
+if (( $(echo "$CONFIDENCE < 0.5" | bc -l) )); then
+    echo "⚠️  Low confidence - consulting GPT Architect"
+    if command -v codex &> /dev/null; then
+        codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "TASK: Review SC $SC for architecture/approach/risks. Confidence: $CONFIDENCE"
+        echo "✓ GPT consultation complete - apply recommendations"
+    else
+        echo "⚠️  Codex unavailable - Claude-only mode (graceful fallback)"
+    fi
+fi
+```
+
+---
+
 ## Step 3: Execute with Ralph Loop
 
 **Dependency Analysis** (supports both `### SC-N:` and `- [ ] **SC-N**` formats):

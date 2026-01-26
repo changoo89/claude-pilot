@@ -93,7 +93,8 @@ resolve_blocking_findings "$PLAN_FILE"
 - Include Context Pack Formats and Zero-Knowledge TODO Format sections
 
 ### Step 2.5: GPT Delegation Check
-- Trigger for large plans (5+ Success Criteria)
+- **Trigger**: Large plans (5+ Success Criteria) OR architecture keywords in plan
+- **Architecture keywords**: architecture, tradeoff, design, scalability, pattern, choice
 - Delegate to GPT Plan Reviewer using codex CLI
 - Graceful fallback if Codex not installed
 

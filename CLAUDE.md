@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.44 | **Last Updated**: 2026-01-26
+> **Version**: 4.4.45 | **Last Updated**: 2026-01-26
 
 ---
 
@@ -75,7 +75,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 ## Key Features
 
 ### Codex Integration (v4.2.0)
-**Intelligent GPT Delegation**: Context-aware delegation to GPT experts
+**Intelligent GPT Delegation**: Context-aware delegation to GPT experts with confidence-based proactive consultation
 **Full Guide**: `@.claude/skills/gpt-delegation/REFERENCE.md`
 
 ### CI/CD Integration
@@ -108,14 +108,14 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 ## Plugin Skills
 
 **TDD**: `@.claude/skills/tdd/SKILL.md` - Red-Green-Refactor cycle
-**Ralph Loop**: `@.claude/skills/ralph-loop/SKILL.md` - Autonomous iteration
+**Ralph Loop**: `@.claude/skills/ralph-loop/SKILL.md` - Autonomous iteration with Early Escalation option
 **Vibe Coding**: `@.claude/skills/vibe-coding/SKILL.md` - Code quality standards
 **Coding Standards**: `@.claude/skills/coding-standards/SKILL.md` - TypeScript, React, API, testing standards
 **Git Master**: `@.claude/skills/git-master/SKILL.md` - Git operations
 **Frontend Design**: `@.claude/skills/frontend-design/SKILL.md` - UI/UX design thinking
-**Spec-Driven Workflow**: `@.claude/skills/spec-driven-workflow/SKILL.md` - Enhanced with Atomic SC Principle, Context Manifest, and Quick Sufficiency Test
+**Spec-Driven Workflow**: `@.claude/skills/spec-driven-workflow/SKILL.md` - Enhanced with Atomic SC Principle, Context Manifest, Quick Sufficiency Test, and Proactive GPT Consultation (confidence < 0.5)
 **Multi-Angle Review**: `@.claude/skills/review/SKILL.md` - Comprehensive review with enhanced code-reviewer integration
-**E2E Verification**: `@.claude/skills/execute-plan/REFERENCE.md` - End-to-end testing with Chrome in Claude integration
+**E2E Verification**: `@.claude/skills/execute-plan/REFERENCE.md` - End-to-end testing with Chrome in Claude integration and Pre-Execution Confidence check
 **OOM-Optimized Close**: `@.claude/skills/close-plan/SKILL.md` - Streamlined plan completion (5 steps, 2 agents)
 
 ---
@@ -150,7 +150,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.44
+**Plugin Version**: 4.4.45
 **Distribution**: GitHub Marketplace via `#release` branch
 
 **Branch Structure**:
@@ -175,6 +175,9 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ### v4.4.40 (2026-01-24)
 Self-Contained Planning Framework - External Context Detection, Context Pack Structure, Self-Contained Verification, Zero-Knowledge TODO format
+
+### v4.4.45 (2026-01-26)
+Proactive GPT Consultation - Added confidence-based GPT consultation with centralized rubric in gpt-delegation/SKILL.md, Enhanced spec-driven-workflow/SKILL.md with MUST Consult GPT section (architecture keywords OR confidence < 0.5), Enhanced confirm-plan/REFERENCE.md with Proactive Consultation pattern, Enhanced execute-plan/SKILL.md with Pre-Execution Confidence check (Step 2.7), Enhanced ralph-loop/SKILL.md with Early Escalation option (--early flag)
 
 ### v4.4.44 (2026-01-26)
 Atomic SC Principle - Added "One SC = One File OR One Concern" principle to spec-driven-workflow/SKILL.md for fine-grained Success Criteria, Enhanced confirm-plan/SKILL.md with SC Granularity Check (Step 1.9), Enhanced execute-plan/SKILL.md with Smart Grouping note for parallel execution by specialized agents

@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## [4.4.45] - 2026-01-26
+
+### Added
+- Proactive GPT Consultation with confidence-based automatic consultation before user questions
+- Confidence Score Rubric (centralized in gpt-delegation/SKILL.md): confidence = 1.0 - (architecture_keywords * 0.3) - (multiple_approaches * 0.2) - (uncertainty * 0.2)
+- MUST Consult GPT section in spec-driven-workflow/SKILL.md (triggers: architecture keywords OR confidence < 0.5)
+- Proactive Consultation pattern in confirm-plan/REFERENCE.md
+- Pre-Execution Confidence check in execute-plan/SKILL.md (Step 2.7)
+- Early Escalation option in ralph-loop/SKILL.md (--early flag OR architecture-related failure)
+
+### Changed
+- Enhanced gpt-delegation/SKILL.md with centralized Confidence Score Rubric
+- Enhanced confirm-plan/REFERENCE.md with Proactive Consultation pattern and concrete example
+- Enhanced execute-plan/SKILL.md with Pre-Execution Confidence evaluation before complex SCs
+- Enhanced ralph-loop/SKILL.md with Early Escalation for 2-iteration escalation
+
 ## [4.4.44] - 2026-01-25
 
 ### Changed

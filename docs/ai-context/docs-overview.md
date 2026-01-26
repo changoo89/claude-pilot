@@ -147,4 +147,4 @@ grep -o '@[^[:space:]]+' CLAUDE.md | while read ref; do [ -e "${ref#@}" ] || ech
 
 ---
 
-**Version**: 4.4.44 (Atomic SC Principle - Fine-grained Success Criteria for parallel specialized agent execution)
+**Version**: 4.4.45 (Proactive GPT Consultation - Confidence-based automatic GPT consultation before user questions)

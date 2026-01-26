@@ -75,6 +75,20 @@ description: SPEC-First planning workflow - explore codebase, gather requirement
 
 **GPT Consultation**: Use gpt-delegation skill → "read-only" mode for advisory
 
+### MUST Consult GPT (Proactive Pattern)
+**Trigger**: Architecture keywords detected OR confidence < 0.5
+
+**Keywords**: architecture, tradeoff, design, scalability, pattern
+
+**Confidence Formula** (from gpt-delegation/SKILL.md):
+```
+confidence = 1.0 - (architecture_keywords * 0.3) - (multiple_approaches * 0.2) - (uncertainty * 0.2)
+```
+
+**Threshold**: < 0.5 → MUST consult GPT before AskUserQuestion
+
+**Pattern**: IF triggered → consult GPT Architect (read-only) → apply recommendation OR present to user → THEN AskUserQuestion if still ambiguous
+
 ### Ask User (ONLY these):
 - **Business requirements**: What the user actually wants
 - **Direction choices**: When 2+ approaches have genuinely different outcomes
@@ -146,19 +160,7 @@ Ask user to choose: A) Continue editing, B) Explore different approach, C) Run /
 
 ### Atomic SC Principle
 **"One SC = One File OR One Concern"**
-
-Each Success Criterion (SC) should be atomic:
-- **One File**: SC touches only one file/location
-- **One Concern**: SC focuses on single technical aspect (frontend, backend, DB, test)
-
-**Benefits**:
-- Enables parallel execution by specialized agents
-- Clear file ownership prevents conflicts
-- Natural grouping by file/type for efficiency
-
-**Anti-Patterns** (avoid):
-- "Update frontend AND backend" → Split into 2 SCs
-- "Add feature X across multiple files" → One SC per file
+Each SC touches one file/location OR single technical aspect. Enables parallel execution, clear ownership. Anti-pattern: "Update frontend AND backend" → Split.
 
 ### Selection vs Execution (CRITICAL)
 **When user says "Go with B"**:

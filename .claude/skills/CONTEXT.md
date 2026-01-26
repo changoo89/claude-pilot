@@ -13,21 +13,21 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `code-cleanup` | Dead code detection and removal | "cleanup", "remove unused code", "dead code" |
 | `code-quality-gates` | Quality validation gates | "quality gates", "validation", "checks" |
 | `coding-standards` | TypeScript/React/API standards | "coding standards", "best practices", "conventions" |
-| `confirm-plan` | Plan confirmation workflow with SC granularity check | "confirm plan", "plan review", "requirements verification", "context pack", "self-contained verification", "SC granularity" |
+| `confirm-plan` | Plan confirmation workflow with SC granularity check and Proactive GPT Consultation | "confirm plan", "plan review", "requirements verification", "context pack", "self-contained verification", "SC granularity", "proactive consultation" |
 | `documentation-best-practices` | Documentation standards | "documentation", "docs", "CLAUDE.md" (200+ lines) |
-| `execute-plan` | Plan execution workflow with Smart Grouping | "execute plan", "implement SC", "parallel execution", "smart grouping" |
+| `execute-plan` | Plan execution workflow with Smart Grouping and Pre-Execution Confidence check | "execute plan", "implement SC", "parallel execution", "smart grouping", "pre-execution confidence" |
 | `frontend-design` | Production-grade frontend design | "UI design", "frontend styling", "landing page" |
 | `git-master` | Version control workflow | "commit", "branch", "PR", "git" |
 | `git-operations` | Safe git push/pull/merge | "git push", "git pull", "retry", "error handling" |
-| `gpt-delegation` | Intelligent Codex/GPT consultation | "GPT delegation", "Codex CLI", "escalate" |
+| `gpt-delegation` | Intelligent Codex/GPT consultation with confidence-based proactive consultation | "GPT delegation", "Codex CLI", "escalate", "proactive consultation", "confidence score" |
 | `parallel-subagents` | Parallel agent execution with single delegation pattern | "parallel agents", "concurrent execution", "independent SCs", "single agent delegation", "context protection" |
 | `quality-gates` | Pre-commit quality validation | "pre-commit", "quality check", "validate" |
-| `ralph-loop` | Autonomous completion | "until tests pass", "quality gates", "iteration" |
+| `ralph-loop` | Autonomous completion with Early Escalation option | "until tests pass", "quality gates", "iteration", "early escalation" |
 | `rapid-fix` | Rapid bug fix workflow | "fix bug", "quick fix", "one-line fix" |
 | `release` | Plugin release workflow | "release version", "bump version", "git tag", "GitHub release" |
 | `review` | Multi-angle code review | "code review", "quality review", "parallel review" |
 | `safe-file-ops` | Safe file operations | "file operations", "safe edit", "pre-flight checks" |
-| `spec-driven-workflow` | SPEC-first development with Atomic SC Principle | "SPEC-first", "planning", "requirements", "external context detection", "atomic SC" |
+| `spec-driven-workflow` | SPEC-first development with Atomic SC Principle and Proactive GPT Consultation | "SPEC-first", "planning", "requirements", "external context detection", "atomic SC", "proactive consultation" |
 | `tdd` | Test-Driven Development | "implementing features", "test coverage", "TDD" |
 | `test-driven-development` | Advanced TDD patterns | "TDD patterns", "testing strategies", "test design" |
 | `three-tier-docs` | 3-tier documentation hierarchy with integrated verification and selective validation | "documentation tiers", "CLAUDE.md", "CONTEXT.md", "line limits" |

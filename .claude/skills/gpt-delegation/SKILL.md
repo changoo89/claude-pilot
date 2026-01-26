@@ -18,29 +18,18 @@ description: Use when blocked, stuck, or needing fresh perspective. Consults GPT
 - Security concerns
 - Ambiguous requirements
 - Plan review for large plans (5+ SCs)
+- **Proactive consultation**: Before asking user when confidence < 0.5 (see rubric below)
 
 ### Quick Reference
 
 ```bash
-# Check Codex CLI availability
+# Graceful fallback + delegation (see CRITICAL WARNING below for valid parameters)
 if ! command -v codex &> /dev/null; then
   echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
   return 0
 fi
-
-# Delegate to GPT Architect (direct codex CLI format)
-codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "You are a software architect...
-TASK: [One sentence atomic goal]
-EXPECTED OUTCOME: [What success looks like]
-CONTEXT:
-- Previous attempts: [what was tried]
-- Errors: [exact error messages]
-- Current iteration: [N]
-
-MUST DO:
-- Analyze why previous attempts failed
-- Provide fresh approach
-- Report all files modified"
+codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "TASK: [goal]
+EXPECTED: [outcome], CONTEXT: [attempts, errors, iteration], MUST: Analyze failures, fresh approach, report files"
 ```
 
 ## Core Concepts
@@ -66,43 +55,10 @@ fi
 
 **MANDATORY: Use EXACT values below - NO variations allowed**
 
-#### Sandbox Mode (-s flag)
-
-**Valid sandbox modes ONLY**:
-- `read-only` - Advisory mode, no file modifications
-- `workspace-write` - Implementation mode, can modify files
-- `danger-full-access` - Full system access (use with extreme caution)
-
-**FORBIDDEN - NEVER use these values**:
-- `workspace-read` - INVALID (Claude often creates this by combining terms - DO NOT USE)
-- `read-write` - INVALID
-- `write` - INVALID
-- Any other variation not in the valid list above
-
-#### Reasoning Effort (-c flag)
-
-**Valid value ONLY**:
-- `reasoning_effort=medium` - MANDATORY, use this EXACT value
-
-**FORBIDDEN - NEVER use these values**:
-- `reasoning_effort=high` - INVALID (Claude may try this for "better results" - DO NOT USE)
-- `reasoning_effort=low` - INVALID
-- Any other reasoning effort value
-
-#### Correct Command Format
-
-```bash
-# Write mode (implementation)
-codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "PROMPT"
-
-# Read-only mode (advisory)
-codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "PROMPT"
-```
-
-#### Other Parameters
-- `-m gpt-5.2`: Use GPT-5.2 model (REQUIRED)
-- `--json`: Output JSON format (REQUIRED)
-- `"PROMPT"`: The delegation prompt text
+**Valid -s modes**: `read-only` | `workspace-write` | `danger-full-access`
+**FORBIDDEN**: `workspace-read`, `read-write`, `write` (Claude often creates invalid combinations)
+**Valid -c value**: `reasoning_effort=medium` ONLY (NOT high/low)
+**Required**: `-m gpt-5.2 --json "PROMPT"`
 
 ### Delegation Triggers
 
@@ -114,6 +70,25 @@ codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "PROMPT"
 | Security concern | Security Analyst | read-only | Vulnerability assessment |
 | Ambiguous plan | Scope Analyst | read-only | Requirements clarification |
 | Large plan (5+ SCs) | Plan Reviewer | read-only | Plan validation |
+
+### Confidence Score Rubric (Centralized)
+
+**Formula**:
+```
+confidence = 1.0 - (architecture_keywords * 0.3) - (multiple_approaches * 0.2) - (uncertainty_markers * 0.2)
+```
+
+**Scale**: 0.0 - 1.0
+
+**Thresholds**:
+- 0.9-1.0: Proceed autonomously
+- 0.5-0.9: Consider consultation
+- < 0.5: **MUST consult GPT** (proactive)
+
+**Detection Patterns**:
+- Architecture: architecture, tradeoff, design, scalability, pattern, choice
+- Multiple approaches: could, might, option A/B, either
+- Uncertainty: not sure, unclear, depends
 
 ### Progressive Escalation
 

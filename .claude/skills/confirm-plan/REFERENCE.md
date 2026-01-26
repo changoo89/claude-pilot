@@ -328,5 +328,75 @@ codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "$REVIEWER_
 
 ---
 
-**Reference Version**: claude-pilot 4.4.40
-**Last Updated**: 2026-01-25
+## Proactive Consultation
+
+> **Purpose**: Auto-consult GPT Architect before asking user when architecture decisions or uncertainty detected
+> **Reference**: @.claude/skills/gpt-delegation/SKILL.md - Confidence Score Rubric
+
+### When to Trigger Proactive Consultation
+
+**Automatic Triggers** (evaluate during Step 2.5 - Plan Review):
+
+1. **Architecture Keywords Detected**:
+   - Keywords: architecture, tradeoff, design, scalability, pattern, choice
+   - Example: "Choose between microservices or monolith"
+
+2. **Confidence Score < 0.5**:
+   - Formula: `confidence = 1.0 - (arch_keywords * 0.3) - (multiple_approaches * 0.2) - (uncertainty * 0.2)`
+   - Detection: "could", "might", "option A/B", "either", "not sure", "unclear"
+
+3. **High-Risk Decisions**:
+   - 5+ Success Criteria (complex plan)
+   - Security implications
+   - Performance critical paths
+
+### Consultation Pattern
+
+```bash
+# Step 2.5.1: Evaluate confidence
+if has_architecture_keywords || confidence < 0.5; then
+    echo "→ Proactive GPT consultation triggered"
+
+    # Step 2.5.2: Consult GPT Architect (read-only mode)
+    if ! command -v codex &> /dev/null; then
+        echo "⚠️ Codex not available - Claude-only analysis"
+        return 0
+    fi
+
+    PROMPT="TASK: Review plan architecture decision
+    CONTEXT: ${PLAN_EXCERPT}
+    PROVIDE: Recommendation with tradeoffs, risks, alternatives
+    MODE: Advisory (read-only)"
+
+    codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "$PROMPT"
+
+    # Step 2.5.3: Apply OR present to user
+    if recommendation_clear; then
+        apply_recommendation
+    else
+        present_to_user_with_gpt_context
+    fi
+fi
+```
+
+### Example: Architecture Decision
+
+**Plan Contains**:
+```markdown
+### SC-3: Backend Architecture
+- "Choose between microservices or monolith for payment processing"
+- Tradeoffs: Scalability vs complexity
+```
+
+**Proactive Consultation Flow**:
+1. Detect: "Choose between" + "microservices or monolith" = architecture keyword
+2. Consult: GPT Architect (read-only) with context
+3. Apply: Present GPT recommendation + tradeoffs to user
+4. Proceed: User makes informed decision OR auto-apply if recommendation clear
+
+**User Benefit**: Faster decisions with expert guidance, reduced cognitive load
+
+---
+
+**Reference Version**: claude-pilot 4.4.44
+**Last Updated**: 2026-01-26

@@ -23,6 +23,13 @@ description: Use after first code change. Autonomous iteration until all quality
 # Ralph Loop: Autonomous iteration
 iteration=0
 max_iterations=7
+early_escalation=false
+
+# Check for --early flag or architecture-related failure
+if [[ "$*" == *"--early"* ]] || is_architecture_failure; then
+  max_iterations=2
+  early_escalation=true
+fi
 
 while [ $iteration -lt $max_iterations ]; do
   echo "Iteration $((iteration + 1))/$max_iterations"
@@ -72,18 +79,14 @@ fi
 
 ### Iteration Pattern
 
-| Iteration | Action | Success | Failure |
-|-----------|--------|---------|---------|
-| 1-6 | Run checks → Fix → Retry | Exit with `<CODER_COMPLETE>` | Continue to next iteration |
-| 7 (max) | Run checks → Fix | Exit with `<CODER_COMPLETE>` | Exit with `<CODER_BLOCKED>`, escalate to GPT Architect |
+| Mode | Max Iter | Trigger | Escalation |
+|------|----------|---------|------------|
+| **Standard** | 7 | Default (after failed attempts) | GPT Architect at iteration 7 |
+| **Early** | 2 | `--early` flag OR architecture failure | GPT Architect at iteration 2 |
 
-**Flow**:
-1. Make code change
-2. Run all checks (tests, coverage, type-check, lint)
-3. If all pass → `<CODER_COMPLETE>`
-4. If any fail → Fix failures, increment iteration
-5. If iteration < 7 → Repeat from step 2
-6. If iteration = 7 → `<CODER_BLOCKED>`, delegate to GPT Architect
+**Triggers for Early Escalation**: `--early` flag OR architecture keywords (architecture, tradeoff, design, scalability, pattern, choice) OR confidence < 0.5 (see @.claude/skills/gpt-delegation/SKILL.md)
+
+**Flow**: Code change → Run checks → All pass? → Complete : Check trigger → Fix → Repeat (max iterations) → Escalate to GPT Architect if blocked
 
 ---
 
@@ -119,27 +122,50 @@ fix_failures() {
 }
 ```
 
+### Architecture Failure Detection
+```bash
+is_architecture_failure() {
+  # Check for architecture keywords in error output
+  local error_log=$(last_error 2>/dev/null || echo "")
+  local arch_keywords="architecture|tradeoff|design|scalability|pattern|choice"
+
+  if echo "$error_log" | grep -qiE "$arch_keywords"; then
+    return 0  # True
+  fi
+
+  # Check confidence score (see @.claude/skills/gpt-delegation/SKILL.md)
+  # confidence = 1.0 - (architecture_keywords * 0.3) - (multiple_approaches * 0.2) - (uncertainty_markers * 0.2)
+  # If confidence < 0.5, trigger early escalation
+
+  return 1  # False
+}
+```
+
 ---
 
 ## Escalation
 
 ### When Blocked
 
-**Condition**: 7 iterations reached, still failing
+**Condition**: Max iterations reached (7 standard, 2 early escalation), still failing
 
 **Action**: Delegate to GPT Architect
 ```bash
 echo "<CODER_BLOCKED>"
 echo "Iterations: $iteration"
+echo "Early Escalation: $early_escalation"
 echo "Last error: $(last_error)"
 ```
 
-**Orchestrator handles escalation**:
-- Reads `.claude/rules/delegator/prompts/architect.md`
-- Builds delegation prompt with full history
-- Calls `codex-sync.sh` with workspace-write mode
-- Applies GPT recommendations
-- Re-invokes Coder with fresh perspective
+**Orchestrator handles escalation**: Reads `.claude/rules/delegator/prompts/architect.md`, builds delegation prompt with history, calls `codex-sync.sh` (workspace-write mode), applies GPT recommendations, re-invokes Coder
+
+### Early Escalation
+
+**Purpose**: Rapid escalation for architecture-related failures (max 2 iterations instead of 7)
+
+**Triggers**: 1) `--early` flag (explicit request), 2) Architecture keywords in errors (architecture, tradeoff, design, scalability, pattern, choice), 3) Low confidence < 0.5 (see @.claude/skills/gpt-delegation/SKILL.md rubric)
+
+**Behavior**: Faster delegation to GPT Architect, ideal for complex design decisions requiring expert input
 
 ---
 

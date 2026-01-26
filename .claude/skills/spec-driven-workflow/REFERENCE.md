@@ -10,25 +10,7 @@
 
 **Purpose**: Launch explorer and researcher in parallel for comprehensive discovery
 
-**Parallel Task Execution**:
-```bash
-# Task 1.1a: Codebase Exploration
-subagent_type: explorer
-prompt: |
-  Explore codebase for {task_description}
-  - Find relevant TypeScript/JavaScript files in src/
-  - Look for existing patterns related to {domain}
-  - Identify config files, test files, and documentation
-  Output: File list with brief descriptions
-
-# Task 1.1b: External Research
-subagent_type: researcher
-prompt: |
-  Research external documentation for {task_description}
-  - Search for official docs and API references
-  - Find best practices and design patterns
-  Output: Research summary with links
-```
+**Parallel Execution**: explorer (codebase files, patterns) + researcher (external docs, best practices)
 
 **After Exploration: Self-Assess**
 - If scope is clear from task description → proceed to Step 2
@@ -94,26 +76,11 @@ prompt: |
 **After Step 1.8 (External Context Detection)**:
 
 1. **Generate Context Manifest**:
-
 ```markdown
 ## Context Manifest
-
-### Collected Context
-| ID | Type | Source | Status |
-|----|------|--------|--------|
-| C-1 | Code | [file path] | Read |
-| C-2 | Docs | [doc path] | Read |
-| C-3 | External | [URL/reference] | Partial |
-
-### Related Files (Auto-discovered by explorer)
-| File | Reason | Included? |
-|------|--------|-----------|
-| [file] | [why related] | Yes / No (reason) |
-
-### Missing Context (BLOCKING if critical)
-| Item | Why Needed | Resolution |
-|------|------------|------------|
-| [gap] | [reason] | Ask user / Default: [value] |
+### Collected Context: | ID | Type | Source | Status |
+### Related Files: | File | Reason | Included? |
+### Missing Context: | Item | Why Needed | Resolution |
 ```
 
 2. **Store in Draft File**: Append manifest to draft plan
@@ -203,59 +170,15 @@ Ask user to choose next step:
 
 > **NOTE**: `*_draft.md` is NOT a plan file. It is a temporary working draft stored in `.pilot/plan/draft/` and is exempt from the "Creating plan files without user approval" rule.
 
-### When to Record
-Record a decision when user:
-- Selects an option from AskUserQuestion
-- Confirms scope (in/out)
-- Agrees on approach
-- Specifies constraints or requirements
-
+### When to Record: User selects option, confirms scope, agrees approach, specifies constraints.
 ### How to Record
 
-**First Decision**: Create draft file
+**Draft File**: `.pilot/plan/draft/{timestamp}_draft.md`
 ```bash
-PROJECT_ROOT="$(pwd)"
-TS="$(date +%Y%m%d_%H%M%S)"
-DRAFT_FILE="$PROJECT_ROOT/.pilot/plan/draft/${TS}_draft.md"
 mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
+# Structure: # {Title} | Session, Task, Requirements (ID|Timestamp|Input|Summary), Decisions (ID|Time|Decision|Context), Success Criteria
 ```
-
-Write initial file with header:
-```markdown
-# {Work Title}
-
-> **Session**: {timestamp}
-> **Task**: {task description from arguments}
-
-## User Requirements (Verbatim)
-
-| ID | Timestamp | User Input (Original) | Summary |
-|----|-----------|----------------------|---------|
-
-## Decisions Log
-
-| ID | Time | Decision | Context |
-|----|------|----------|---------|
-
-## Success Criteria
-
-- [ ] **SC-1**: [Measurable outcome]
-  - **Verify**: [test command or verification step]
-```
-
-**Subsequent Decisions**: Append to existing file
-- Find latest `*_draft.md` in `.pilot/plan/draft/`
-- Append new row to Decisions table
-- Decision content MUST be in English
-
-**Decision Format**:
-
-| ID | Time | Decision | Context |
-|----|------|----------|---------|
-| D-1 | HH:MM | User selected approach B: Use real-time tracking | User chose between A) Post-hoc scan, B) Real-time tracking |
-| D-2 | HH:MM | Scope includes: error handling | User confirmed error handling is in scope |
-
-**Note**: The draft file includes both User Requirements and Decisions Log sections for easy reference during /01_confirm.
+**Subsequent**: Append to latest draft, decisions in English. Format: `| D-1 | HH:MM | User selected approach B | Context |`
 
 ---
 
@@ -325,32 +248,38 @@ Write initial file with header:
 
 ## Context Pack Formats
 
-### Design Context Format
-```markdown
-### Inputs (Embedded) - Design Reference
-> **Source**: Screenshot | **Captured**: {timestamp}
-**Colors**: Primary, Secondary, Background, Text (hex values)
-**Typography**: Headings, Body (font, weight)
-**Layout**: Structure, Spacing | **Components**: Button/Card styles
-```
+**Embedded Context**: Inline format with source, timestamp, key properties. See gpt-delegation/SKILL.md for capture tools.
 
-### API Context Format
-```markdown
-### Inputs (Embedded) - API Documentation
-> **Source**: {docs_url} | **Captured**: {timestamp}
-**Endpoints**: Method, Endpoint, Description (table)
-**Authentication**: Type, Header | **Schema**: Request/Response examples
-```
-
-### Library Context Format
-```markdown
-### Inputs (Embedded) - Library Documentation
-> **Source**: {library_name} {version} | **Captured**: {timestamp}
-**Installation**: `npm install {library}@{version}`
-**Configuration**: Import statement + minimal config
-```
+| Type | Format | Key Fields |
+|------|--------|------------|
+| Design | `### Inputs (Embedded) - Design Reference` | Source, Captured, Colors, Typography, Layout, Components |
+| API | `### Inputs (Embedded) - API Documentation` | Source, Captured, Endpoints, Authentication, Schema |
+| Library | `### Inputs (Embedded) - Library Documentation` | Source, Captured, Installation, Configuration |
 
 ---
 
-**Reference Version**: claude-pilot 4.4.40
-**Last Updated**: 2026-01-25
+## Confidence Score
+
+**Purpose**: Determine when to consult GPT proactively before asking user
+
+**Formula** (see @.claude/skills/gpt-delegation/SKILL.md for full rubric):
+```
+confidence = 1.0 - (architecture_keywords * 0.3) - (multiple_approaches * 0.2) - (uncertainty_markers * 0.2)
+```
+
+**Scale**: 0.0 - 1.0
+
+**Thresholds**:
+- 0.9-1.0: Proceed autonomously
+- 0.5-0.9: Consider consultation
+- **< 0.5: MUST consult GPT** (proactive, before user interaction)
+
+**Detection Patterns**:
+- Architecture: architecture, tradeoff, design, scalability, pattern, choice
+- Multiple approaches: could, might, option A/B, either
+- Uncertainty: not sure, unclear, depends
+
+---
+
+**Reference Version**: claude-pilot 4.4.44
+**Last Updated**: 2026-01-26

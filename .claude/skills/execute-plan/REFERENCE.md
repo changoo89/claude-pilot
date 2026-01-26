@@ -428,3 +428,89 @@ detect_project_type() {
 1. **Web** has highest precedence (frameworks detected first)
 2. **CLI** checked second (build tools + scripts)
 3. **Library** is fallback (default for tests-only projects)
+
+---
+
+## Pre-Execution Confidence Evaluation
+
+**Purpose**: Evaluate confidence before executing complex Success Criteria to determine if GPT consultation is needed.
+
+**Reference**: Confidence Score Rubric defined in @.claude/skills/gpt-delegation/SKILL.md
+
+### Confidence Formula
+
+```
+confidence = 1.0 - (architecture_keywords * 0.3) - (multiple_approaches * 0.2) - (uncertainty_markers * 0.2)
+```
+
+**Scale**: 0.0 - 1.0
+
+**Thresholds**:
+- 0.9-1.0: Proceed autonomously
+- 0.5-0.9: Consider consultation
+- < 0.5: **MUST consult GPT Architect** before execution
+
+### Detection Patterns
+
+| Pattern Type | Keywords/Markers | Weight |
+|--------------|-----------------|--------|
+| Architecture | architecture, tradeoff, design, scalability, pattern, choice | 0.3 |
+| Multiple Approaches | could, might, option A/B, either, alternative | 0.2 |
+| Uncertainty | not sure, unclear, depends, ambiguous, unsure | 0.2 |
+
+### Evaluation Example
+
+**Scenario**: SC requires implementing caching layer
+
+```bash
+# Step 1: Extract SC description
+sc_description="Implement distributed caching with Redis or Memcached"
+
+# Step 2: Count patterns
+architecture_count=1  # "caching", "distributed"
+approaches_count=1    # "Redis or Memcached" (multiple options)
+uncertainty_count=0   # no uncertainty markers
+
+# Step 3: Calculate confidence
+confidence=$(echo "1.0 - (1 * 0.3) - (1 * 0.2) - (0 * 0.2)" | bc)
+# Result: 0.5
+
+# Step 4: Evaluate threshold
+if (( $(echo "$confidence < 0.5" | bc -l) )); then
+    echo "⚠️  Confidence $confidence < 0.5 - MUST consult GPT Architect"
+    # Delegate to GPT Architect for recommendation
+else
+    echo "✓ Confidence $confidence - Proceed with execution"
+fi
+```
+
+### Integration Pattern
+
+```bash
+# Before executing SC
+evaluate_pre_execution_confidence() {
+    local sc_description="$1"
+
+    # Check for architecture keywords
+    local arch_keywords=$(echo "$sc_description" | grep -ocE "architecture|tradeoff|design|scalability|pattern|choice")
+
+    # Check for multiple approaches
+    local approaches=$(echo "$sc_description" | grep -ocE "could|might|option|either|alternative|or [A-Z]")
+
+    # Check for uncertainty
+    local uncertainty=$(echo "$sc_description" | grep -ocE "not sure|unclear|depends|ambiguous|unsure")
+
+    # Calculate confidence
+    local confidence=$(echo "1.0 - ($arch_keywords * 0.3) - ($approaches * 0.2) - ($uncertainty * 0.2)" | bc)
+
+    # Return confidence
+    echo "$confidence"
+}
+
+# Usage
+confidence=$(evaluate_pre_execution_confidence "$sc_description")
+if (( $(echo "$confidence < 0.5" | bc -l) )); then
+    # Consult GPT Architect before execution
+    delegate_to_gpt_architect "Low confidence ($confidence) for: $sc_description"
+fi
+```

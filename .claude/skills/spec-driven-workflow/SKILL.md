@@ -144,6 +144,22 @@ Ask user to choose: A) Continue editing, B) Explore different approach, C) Run /
 - Decisions Log table (ID, Time, Decision, Context)
 - Success Criteria with checkboxes
 
+### Atomic SC Principle
+**"One SC = One File OR One Concern"**
+
+Each Success Criterion (SC) should be atomic:
+- **One File**: SC touches only one file/location
+- **One Concern**: SC focuses on single technical aspect (frontend, backend, DB, test)
+
+**Benefits**:
+- Enables parallel execution by specialized agents
+- Clear file ownership prevents conflicts
+- Natural grouping by file/type for efficiency
+
+**Anti-Patterns** (avoid):
+- "Update frontend AND backend" → Split into 2 SCs
+- "Add feature X across multiple files" → One SC per file
+
 ### Selection vs Execution (CRITICAL)
 **When user says "Go with B"**:
 - ✅ CORRECT: Continue planning with approach B → refine plan

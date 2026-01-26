@@ -13,9 +13,9 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `code-cleanup` | Dead code detection and removal | "cleanup", "remove unused code", "dead code" |
 | `code-quality-gates` | Quality validation gates | "quality gates", "validation", "checks" |
 | `coding-standards` | TypeScript/React/API standards | "coding standards", "best practices", "conventions" |
-| `confirm-plan` | Plan confirmation workflow | "confirm plan", "plan review", "requirements verification", "context pack", "self-contained verification" |
+| `confirm-plan` | Plan confirmation workflow with SC granularity check | "confirm plan", "plan review", "requirements verification", "context pack", "self-contained verification", "SC granularity" |
 | `documentation-best-practices` | Documentation standards | "documentation", "docs", "CLAUDE.md" (200+ lines) |
-| `execute-plan` | Plan execution workflow | "execute plan", "implement SC", "parallel execution" |
+| `execute-plan` | Plan execution workflow with Smart Grouping | "execute plan", "implement SC", "parallel execution", "smart grouping" |
 | `frontend-design` | Production-grade frontend design | "UI design", "frontend styling", "landing page" |
 | `git-master` | Version control workflow | "commit", "branch", "PR", "git" |
 | `git-operations` | Safe git push/pull/merge | "git push", "git pull", "retry", "error handling" |
@@ -27,7 +27,7 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `release` | Plugin release workflow | "release version", "bump version", "git tag", "GitHub release" |
 | `review` | Multi-angle code review | "code review", "quality review", "parallel review" |
 | `safe-file-ops` | Safe file operations | "file operations", "safe edit", "pre-flight checks" |
-| `spec-driven-workflow` | SPEC-first development | "SPEC-first", "planning", "requirements", "external context detection" |
+| `spec-driven-workflow` | SPEC-first development with Atomic SC Principle | "SPEC-first", "planning", "requirements", "external context detection", "atomic SC" |
 | `tdd` | Test-Driven Development | "implementing features", "test coverage", "TDD" |
 | `test-driven-development` | Advanced TDD patterns | "TDD patterns", "testing strategies", "test design" |
 | `three-tier-docs` | 3-tier documentation hierarchy with integrated verification and selective validation | "documentation tiers", "CLAUDE.md", "CONTEXT.md", "line limits" |

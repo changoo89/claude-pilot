@@ -147,4 +147,4 @@ grep -o '@[^[:space:]]+' CLAUDE.md | while read ref; do [ -e "${ref#@}" ] || ech
 
 ---
 
-**Version**: 4.4.43 (E2E Verification Framework with Chrome in Claude integration, retry loop pattern, and OOM-optimized close-plan workflow)
+**Version**: 4.4.44 (Atomic SC Principle - Fine-grained Success Criteria for parallel specialized agent execution)

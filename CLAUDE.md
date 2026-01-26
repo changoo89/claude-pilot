@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.43 | **Last Updated**: 2026-01-25
+> **Version**: 4.4.44 | **Last Updated**: 2026-01-26
 
 ---
 
@@ -113,7 +113,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 **Coding Standards**: `@.claude/skills/coding-standards/SKILL.md` - TypeScript, React, API, testing standards
 **Git Master**: `@.claude/skills/git-master/SKILL.md` - Git operations
 **Frontend Design**: `@.claude/skills/frontend-design/SKILL.md` - UI/UX design thinking
-**Spec-Driven Workflow**: `@.claude/skills/spec-driven-workflow/SKILL.md` - Enhanced with Context Manifest and Quick Sufficiency Test
+**Spec-Driven Workflow**: `@.claude/skills/spec-driven-workflow/SKILL.md` - Enhanced with Atomic SC Principle, Context Manifest, and Quick Sufficiency Test
 **Multi-Angle Review**: `@.claude/skills/review/SKILL.md` - Comprehensive review with enhanced code-reviewer integration
 **E2E Verification**: `@.claude/skills/execute-plan/REFERENCE.md` - End-to-end testing with Chrome in Claude integration
 **OOM-Optimized Close**: `@.claude/skills/close-plan/SKILL.md` - Streamlined plan completion (5 steps, 2 agents)
@@ -150,7 +150,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.43
+**Plugin Version**: 4.4.44
 **Distribution**: GitHub Marketplace via `#release` branch
 
 **Branch Structure**:
@@ -167,7 +167,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ---
 
-**Line Count**: 177 lines (Target: ≤200 lines) ✅
+**Line Count**: 188 lines (Target: ≤200 lines) ✅
 
 ---
 
@@ -175,6 +175,9 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ### v4.4.40 (2026-01-24)
 Self-Contained Planning Framework - External Context Detection, Context Pack Structure, Self-Contained Verification, Zero-Knowledge TODO format
+
+### v4.4.44 (2026-01-26)
+Atomic SC Principle - Added "One SC = One File OR One Concern" principle to spec-driven-workflow/SKILL.md for fine-grained Success Criteria, Enhanced confirm-plan/SKILL.md with SC Granularity Check (Step 1.9), Enhanced execute-plan/SKILL.md with Smart Grouping note for parallel execution by specialized agents
 
 ### v4.4.43 (2026-01-25)
 E2E Verification Framework - Added mandatory E2E verification to /02_execute final stage with project type detection, Chrome in Claude integration for web projects, and retry loop pattern (max 3 attempts), Enhanced QA/QC Framework - Enhanced code-reviewer agent with Risk Areas, Assumptions tracking, Context Manifest format, Quick Sufficiency Test, Documentation Refactoring - 9 SKILL.md and 2 agent files refactored to ≤200 lines, 2 companion docs (TROUBLESHOOTING.md, EXAMPLES.md) created, OOM Optimization - Reduced agent calls in /03_close from 3 to 2, merged verification steps, pure bash link checking

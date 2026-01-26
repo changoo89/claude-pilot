@@ -82,6 +82,7 @@ resolve_blocking_findings "$PLAN_FILE"
 6. Verify 100% requirements coverage (UR → SC mapping)
 7. Verify scope completeness (scope vs SC mapping, assumptions verified)
 8. Run Self-Contained verification (9-point checklist)
+9. SC Granularity Check: Verify each SC follows Atomic SC Principle ("One SC = One File OR One Concern")
 
 **BLOCKING if**: Requirements incomplete, scope gaps, or self-contained check fails
 

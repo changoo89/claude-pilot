@@ -53,6 +53,7 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 - **If changes detected**: Launch documenter agent
 - **If no changes**: Skip with message "No documentation update needed"
 - Exit if verification fails
+- See @.claude/agents/documenter/REFERENCE.md for condition check logic
 
 ### Step 4: Archive + Git
 - Move plan to `.pilot/plan/done/YYYYMMDD/`

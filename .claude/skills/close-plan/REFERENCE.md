@@ -218,6 +218,37 @@ YES → Launch documenter agent
 NO  → Skip with "No documentation update needed"
 ```
 
+**Implementation** (from @.claude/agents/documenter/REFERENCE.md):
+```bash
+# Get changed files (with fallback for edge cases)
+CHANGED_FILES=$(git diff --name-only HEAD~1 2>/dev/null || git diff --name-only 2>/dev/null || echo "FALLBACK_FULL_UPDATE")
+
+# Fallback: If git diff fails (new repo, first commit), run full update
+if [ "$CHANGED_FILES" = "FALLBACK_FULL_UPDATE" ]; then
+  echo "Cannot detect changes (new repo/first commit)"
+  echo "   Running full documentation update as fallback"
+  DOC_RELEVANT=true
+fi
+
+# Check if documentation-relevant changes exist
+DOC_RELEVANT=false
+
+for file in $CHANGED_FILES; do
+    case "$file" in
+      src/*|lib/*|components/*) DOC_RELEVANT=true ;; # Code changes
+      .claude/commands/*|.claude/skills/*|.claude/agents/*) DOC_RELEVANT=true ;; # Plugin changes
+      *.md) DOC_RELEVANT=true ;; # Direct doc changes
+    esac
+done
+
+if [ "$DOC_RELEVANT" = "false" ]; then
+    echo "No documentation-relevant changes detected"
+    echo "Skipping documentation update"
+    echo "<DOCS_COMPLETE>"
+    exit 0
+fi
+```
+
 **Skip Criteria**:
 - Only test files changed (*.test.ts, *.spec.ts)
 - Only config files changed (*.json, *.yaml)

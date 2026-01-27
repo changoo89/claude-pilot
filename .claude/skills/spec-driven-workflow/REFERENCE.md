@@ -182,6 +182,42 @@ mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 
 ---
 
+## Intermediate File Naming
+
+### File Patterns
+
+| File Type | Pattern | Example |
+|-----------|---------|---------|
+| Draft | `{TS}_{work_name}_draft.md` | `20260127_183000_api_auth_draft.md` |
+| Context Pack | `{TS}_{work_name}_context_pack.md` | `20260127_183000_api_auth_context_pack.md` |
+
+### work_name Derivation
+
+1. Extract from user's task description
+2. Sanitize: lowercase, replace spaces with underscores
+3. Use first 2-3 significant words (skip articles, prepositions)
+4. Max 30 characters
+
+**Examples**:
+- "Add user authentication API" → `user_auth_api`
+- "Create landing page like Metalab" → `landing_page_metalab`
+- "Fix checkout flow bug" → `checkout_flow_bug`
+
+### Lifecycle
+
+```
+/00_plan
+  ├── Creates: {TS}_{work_name}_draft.md
+  └── Creates: {TS}_{work_name}_context_pack.md (if external context)
+       ↓
+/01_confirm
+  ├── Reads draft + context_pack
+  ├── Creates plan file in pending/
+  └── Deletes draft + context_pack (Step 4.5)
+```
+
+---
+
 ## Selection vs Execution (CRITICAL)
 
 **When user says "Go with B" (choose option B):**

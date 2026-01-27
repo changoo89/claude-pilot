@@ -109,6 +109,11 @@ resolve_blocking_findings "$PLAN_FILE"
 - Move plan file to `.pilot/plan/pending/`
 - STOP: Do NOT proceed to /02_execute automatically
 
+### Step 4.5: Cleanup Intermediate Files
+- Delete matching `*_draft.md` and `*_context_pack.md` files from draft/
+- Match by work_name extracted from confirmed plan filename
+- Log deleted files for audit trail
+
 ---
 
 ## Argument Parsing

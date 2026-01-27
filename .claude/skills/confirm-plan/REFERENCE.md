@@ -398,5 +398,36 @@ fi
 
 ---
 
+## Step 4.5: Cleanup Intermediate Files (Full)
+
+**Purpose**: Remove intermediate files after plan confirmation
+
+```bash
+echo "▶ STEP 4.5: Cleanup Intermediate Files"
+
+# Extract work_name from plan filename
+# Pattern: {timestamp}_{work_name}.md
+PLAN_BASENAME=$(basename "$PLAN_PATH" .md)
+WORK_NAME=$(echo "$PLAN_BASENAME" | sed 's/^[0-9]*_//')
+
+# Find matching intermediate files
+DRAFT_FILES=$(find "$PROJECT_ROOT/.pilot/plan/draft" -name "*${WORK_NAME}*_draft.md" -type f 2>/dev/null)
+CONTEXT_FILES=$(find "$PROJECT_ROOT/.pilot/plan/draft" -name "*${WORK_NAME}*context_pack.md" -type f 2>/dev/null)
+
+# Delete with logging
+for file in $DRAFT_FILES $CONTEXT_FILES; do
+    if [ -f "$file" ]; then
+        rm "$file"
+        echo "  ✓ Deleted: $(basename "$file")"
+    fi
+done
+
+[ -z "$DRAFT_FILES" ] && [ -z "$CONTEXT_FILES" ] && echo "  (no intermediate files to clean)"
+
+echo "✓ STEP 4.5 COMPLETE"
+```
+
+---
+
 **Reference Version**: claude-pilot 4.4.44
 **Last Updated**: 2026-01-26

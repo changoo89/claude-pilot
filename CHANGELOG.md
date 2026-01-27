@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [4.4.49] - 2026-01-27
+
+### Changed
+- Workflow: Integrate Certainty Protocol across all workflow phases (b96bb0a)
+
 ## [4.4.48] - 2026-01-26
 
 ### Changed

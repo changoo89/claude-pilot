@@ -111,10 +111,22 @@ if [ -f "pyproject.toml" ] || [ -f "pytest.ini" ]; then
     COVERAGE_CMD="pytest --cov"
 fi
 
-# Node.js
+# Node.js - Use --maxWorkers=50% for parallel agent safety
+# Rationale: Prevents worker explosion when multiple tester agents run in parallel
+# Example: 6 parallel agents × 16 default workers = 96 processes. With 50%: 6 × 8 = 48 processes
 if [ -f "package.json" ]; then
-    TEST_CMD="npm test"
-    COVERAGE_CMD="npm run test:coverage"
+    # Detect test framework and apply appropriate worker limits
+    if grep -q '"test"' package.json && grep -q 'jest' package.json; then
+        TEST_CMD="npm test -- --maxWorkers=50%"
+        COVERAGE_CMD="npm run test:coverage -- --maxWorkers=50%"
+    elif grep -q '"test:e2e"' package.json && grep -q 'playwright' package.json; then
+        # E2E tests: use single worker to avoid environment contention
+        TEST_CMD="npm run test:e2e -- --workers=1"
+    else
+        # Default: safe parallel execution
+        TEST_CMD="npm test -- --maxWorkers=50%"
+        COVERAGE_CMD="npm run test:coverage -- --maxWorkers=50%"
+    fi
 fi
 
 # Go
@@ -123,6 +135,12 @@ if [ -f "go.mod" ]; then
     COVERAGE_CMD="go test -cover ./..."
 fi
 ```
+
+**Test Worker Limits**:
+- **Jest**: `--maxWorkers=50%` (half of CPU cores, dynamic scaling)
+- **Playwright E2E**: `--workers=1` (sequential, environment-bound tests)
+- **Pytest**: No limit needed (process-based, already safe)
+- **Go test**: No limit needed (goroutine-based, efficient)
 
 ## Important Notes
 - Write tests BEFORE implementation (TDD)

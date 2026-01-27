@@ -85,6 +85,23 @@ Task: subagent_type: security-analyst, prompt: Review security issues
 - Tasks with dependencies (later task will fail)
 - Sequential workflows (e.g., build then test)
 
+## Test Execution Concurrency
+
+**Critical**: Multiple tester agents in parallel can cause worker explosion (6 agents × 16 workers = 96 processes, Load 85+)
+
+**Pattern**: Test type-aware concurrency
+- **E2E/Integration**: Sequential execution (one at a time)
+- **Unit/Lint/Type**: Parallel allowed with `--maxWorkers=50%`
+
+**Detection** (from `execute-plan` Step 3):
+- Path: `**/e2e/**`, `**/integration/**`, `**/*.e2e.*`
+- Keywords: "e2e", "integration", "playwright", "cypress"
+- Fail-safe: Unknown → `unit` (parallel with worker limit)
+
+**Implementation**: `@.claude/agents/tester.md` applies `--maxWorkers=50%` (Jest) or `--workers=1` (Playwright E2E)
+
+**Full examples**: See `@.claude/skills/parallel-subagents/REFERENCE.md#test-execution-concurrency`
+
 ## Single Agent Delegation Pattern
 
 ### When to Use

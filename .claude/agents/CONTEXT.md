@@ -13,7 +13,7 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 | **frontend-engineer** | sonnet | 169 | Read, Write, Edit, Bash, Glob, Grep | Frontend UI/React implementation | `/02_execute` - Component, UI, styling |
 | **backend-engineer** | sonnet | 196 | Read, Write, Edit, Bash, Glob, Grep | Backend API/DB implementation | `/02_execute` - API, endpoint, server |
 | **coder** | sonnet | 137 (+ EXAMPLES.md) | Read, Write, Edit, Bash | TDD implementation (general) | `/02_execute` - Red-Green-Refactor, Ralph Loop |
-| **tester** | sonnet | 302 | Read, Write, Bash | Test writing and execution | `/review` - Test coverage, debug |
+| **tester** | sonnet | 169 | Read, Write, Bash | Test writing and execution with worker limits | `/review` - Test coverage, debug |
 | **validator** | haiku | 335 | Bash, Read | Type check, lint, coverage | `/review` - Quality verification |
 | **security-analyst** | sonnet | 166 | Read, Grep, Glob, Bash | Security vulnerability analysis | `/review security` - OWASP Top 10 |
 | **build-error-resolver** | haiku | 188 (+ TROUBLESHOOTING.md) | Bash, Read, Edit | Build/compilation error resolution | `/02_execute` - Build error recovery |

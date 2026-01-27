@@ -207,3 +207,103 @@ Task: Implement data service src/data/data.service.ts
 
 **Issue**: Partial results from parallel agents
 **Solution**: Wait for all agents to complete before integration
+
+## Test Execution Concurrency
+
+### Problem: Worker Explosion
+
+When multiple tester agents execute in parallel without worker limits:
+- 6 parallel tester agents × 16 default Jest workers = 96 processes
+- Load Average spikes to 85+ (normal: 1-4)
+- System becomes unresponsive
+
+### Anti-Pattern: Unrestricted Parallel Test Execution
+
+```bash
+# DON'T: Multiple tester agents with default workers
+Task: subagent_type: tester, prompt: Run unit tests
+Task: subagent_type: tester, prompt: Run integration tests
+Task: subagent_type: tester, prompt: Run e2e tests
+
+# Result: 3 agents × 16 workers = 48 processes (or worse)
+```
+
+### Correct Pattern: Test Type-Aware Concurrency
+
+**Worker Limits** (from `@.claude/agents/tester.md`):
+- **Jest**: `--maxWorkers=50%` (half of CPU cores)
+- **Playwright E2E**: `--workers=1` (sequential)
+- **Pytest**: No limit needed (process-based, already safe)
+- **Go test**: No limit needed (goroutine-based, efficient)
+
+**Test Type Detection** (from `execute-plan` Step 3):
+- **E2E/Integration**: Sequential execution (one at a time)
+  - Path-based: `**/e2e/**`, `**/integration/**`, `**/*.e2e.*`
+  - Keyword-based: "e2e", "integration", "playwright", "cypress"
+  - Script-based: package.json script contains "e2e" or "integration"
+- **Unit/Lint/Type**: Parallel allowed with worker limits
+
+**Routing Logic** (from `execute-plan` Step 3):
+```bash
+# E2E tests → Sequential (environment-bound, stateful)
+if echo "$SC_CONTENT" | grep -qiE 'e2e|integration|playwright|cypress'; then
+    TEST_TYPE="e2e"
+    SequentialGroup  # One at a time
+else
+    TEST_TYPE="unit"
+    ParallelGroup  # Safe with --maxWorkers=50%
+fi
+```
+
+### Resource Calculation Examples
+
+**Before (Unrestricted)**:
+- 6 tester SCs (unit tests)
+- All run in parallel
+- Each Jest uses 16 workers (default = CPU cores)
+- Total: 6 × 16 = **96 processes**, Load: 85+
+
+**After (Controlled)**:
+- 6 tester SCs (unit tests)
+- All run in parallel
+- Each Jest uses `--maxWorkers=50%` (8 workers on 16-core machine)
+- Total: 6 × 8 = **48 processes**, Load: ≤10
+
+**E2E Tests** (Sequential):
+- 3 E2E SCs
+- Run one at a time
+- Each uses `--workers=1`
+- Total: 1 × 1 = **1 process** per SC, Load: ≤2
+
+### Implementation Patterns
+
+**For Parallel Execution** (Unit tests):
+```bash
+# Safe parallel execution with worker limits
+Task: subagent_type: tester, prompt: SC-1: Test auth module
+Task: subagent_type: tester, prompt: SC-2: Test user module
+Task: subagent_type: tester, prompt: SC-3: Test API module
+
+# All use --maxWorkers=50% (tester agent default)
+# Result: 3 × 8 = 24 workers (safe)
+```
+
+**For Sequential Execution** (E2E tests):
+```bash
+# E2E tests run one at a time
+SequentialGroup:
+  - SC-1: E2E test for login flow (test-type=e2e)
+  - SC-2: E2E test for checkout (test-type=e2e)
+  - SC-3: E2E test for payment (test-type=e2e)
+
+# Each uses --workers=1 (tester agent E2E default)
+# Result: 1 worker per SC (safe)
+```
+
+### Key Principles
+
+1. **Test Type Detection First**: Always detect test type before routing (see `execute-plan` Step 3)
+2. **Fail-Safe Default**: Unknown test type → `unit` (parallel allowed with worker limit)
+3. **Environment-Bound Tests**: E2E/integration → Always sequential (stateful, contention-prone)
+4. **Unit Tests**: Parallel allowed with `--maxWorkers=50%` (fast, isolated)
+

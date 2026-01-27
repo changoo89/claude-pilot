@@ -106,6 +106,15 @@ for SC in $SC_LIST; do
     # Extract SC-specific files (look for file paths in backticks)
     SC_FILES=$(echo "$SC_CONTENT" | grep -oE '\`[^`]+\.(ts|tsx|js|jsx|py|md|sh)\`' | tr -d '`' || echo "")
 
+    # Test Type Detection (explicit rules: path + keyword + script-based)
+    if echo "$SC_CONTENT" | grep -qiE 'e2e|integration|playwright|cypress|\.e2e\.|/e2e/|/integration/'; then
+        TEST_TYPE="e2e"
+        echo "SC-${SC_NUM}: TestType=$TEST_TYPE (sequential execution required)"
+    else
+        TEST_TYPE="unit"
+        echo "SC-${SC_NUM}: TestType=$TEST_TYPE (parallel allowed)"
+    fi
+
     # Per-SC Agent Selection (Priority: plugin > frontend > backend > coder)
     if echo "$SC_FILES" | grep -qE "^\.claude/|^docs/"; then
         SC_AGENT="coder"
@@ -123,16 +132,18 @@ for SC in $SC_LIST; do
         echo "SC-${SC_NUM}: Agent=coder (default), Files: $SC_FILES"
     fi
 
-    # Determine grouping
-    if echo "$SC_CONTENT" | grep -qiE 'after|depends|requires|follows'; then
-        echo "**SequentialGroup**: $SC"
+    # Determine grouping (E2E tests always sequential for safety)
+    if [ "$TEST_TYPE" = "e2e" ] || echo "$SC_CONTENT" | grep -qiE 'after|depends|requires|follows'; then
+        echo "**SequentialGroup**: $SC (test-type=$TEST_TYPE)"
     else
-        echo "**ParallelGroup**: $SC"
+        echo "**ParallelGroup**: $SC (test-type=$TEST_TYPE)"
     fi
 done
 ```
 
-**Smart Grouping**: When SCs follow Atomic SC Principle (@.claude/skills/spec-driven-workflow/SKILL.md), parallel execution naturally emerges. SCs modifying same file type automatically group for specialized agents (e.g., frontend-engineer for `src/components/*`, backend-engineer for `src/api/*`).
+**Test Type Detection Rules**: Path-based (`**/e2e/**`, `**/integration/**`, `**/*.e2e.*`) + Keyword-based (e2e, integration, playwright, cypress) + Script-based (package.json script name). **Fail-Safe**: Defaults to `unit` (parallel allowed, safe with `--maxWorkers=50%` from SC-1). **Routing**: `e2e` → Sequential (environment-bound, stateful), `unit` → Parallel allowed.
+
+**Smart Grouping**: When SCs follow Atomic SC Principle (@.claude/skills/spec-driven-workflow/SKILL.md), parallel execution naturally emerges. SCs modifying same file type automatically group for specialized agents (e.g., frontend-engineer for `src/components/*`, backend-engineer for `src/api/*`). Test type detection automatically groups E2E SCs sequentially (path: `**/e2e/**`, `**/integration/**`, `**/*.e2e.*`; keywords: e2e, integration, playwright, cypress).
 
 **Execution Strategies**: Parallel (Independent SCs, 50-70% speedup): `Task: subagent_type: $SC_AGENT, prompt: "Execute SC-{N} from $PLAN_PATH. Skills: tdd, ralph-loop, vibe-coding. Output: <CODER_COMPLETE> or <CODER_BLOCKED>"` | Sequential (Dependent SCs): One agent with all SCs | Single Coder (1-2 SCs): Always delegate
 

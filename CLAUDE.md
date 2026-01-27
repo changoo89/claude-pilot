@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.48 | **Last Updated**: 2026-01-26
+> **Version**: 4.4.49 | **Last Updated**: 2026-01-28
 
 ---
 
@@ -151,7 +151,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.48
+**Plugin Version**: 4.4.49
 **Distribution**: GitHub Marketplace via `#release` branch
 
 **Branch Structure**:
@@ -168,11 +168,14 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ---
 
-**Line Count**: 195 lines (Target: ≤200 lines) ✅
+**Line Count**: 198 lines (Target: ≤200 lines) ✅
 
 ---
 
 ## Version History
+
+### v4.4.49 (2026-01-27)
+Test Resource Optimization - Added test execution concurrency safeguards to prevent worker explosion. SC-1: Added `--maxWorkers=50%` to Jest commands in tester.md (parallel agent safety). SC-2: Added TEST_TYPE detection in execute-plan/SKILL.md (E2E vs unit test detection, sequential vs parallel routing). SC-3: Added "Test Execution Concurrency" section to parallel-subagents/SKILL.md and REFERENCE.md (test type-aware concurrency patterns, resource calculation examples).
 
 ### v4.4.48 (2026-01-26)
 SC-Level Agent Selection - Moved agent selection from plan-level (Step 2.5) to per-SC (Step 3) in execute-plan/SKILL.md, enabling specialized agents (frontend-engineer, backend-engineer) for each Success Criterion based on its specific file paths and keywords. Updated parallel-subagents/SKILL.md to document per-SC agent selection pattern.

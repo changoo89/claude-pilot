@@ -20,7 +20,7 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 | `git-master` | Version control workflow | "commit", "branch", "PR", "git" |
 | `git-operations` | Safe git push/pull/merge | "git push", "git pull", "retry", "error handling" |
 | `gpt-delegation` | Intelligent Codex/GPT consultation with confidence-based proactive consultation | "GPT delegation", "Codex CLI", "escalate", "proactive consultation", "confidence score" |
-| `parallel-subagents` | Parallel agent execution with single delegation pattern | "parallel agents", "concurrent execution", "independent SCs", "single agent delegation", "context protection" |
+| `parallel-subagents` | Parallel agent execution with test type-aware concurrency safeguards | "parallel agents", "concurrent execution", "independent SCs", "single agent delegation", "context protection", "test execution concurrency", "worker limits" |
 | `quality-gates` | Pre-commit quality validation | "pre-commit", "quality check", "validate" |
 | `ralph-loop` | Autonomous completion with Early Escalation option | "until tests pass", "quality gates", "iteration", "early escalation" |
 | `rapid-fix` | Rapid bug fix workflow | "fix bug", "quick fix", "one-line fix" |

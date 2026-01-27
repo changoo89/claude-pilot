@@ -250,6 +250,95 @@ grep "<RALPH_COMPLETE>" ralph-loop-log.md
 
 ---
 
+## No-Excuses Enforcement Algorithm
+
+### PROHIBITED Phrases
+
+| Phrase Type | Examples | Impact |
+|-------------|----------|--------|
+| **Defeatist** | "I cannot...", "Unable to...", "Impossible to..." | Blocks progress |
+| **Complexity Excuse** | "Too complex to...", "Beyond scope...", "Not feasible..." | Premature quit |
+| **Capability Limit** | "Beyond my capabilities...", "I'm not able to..." | False limitation |
+
+### Required Response Pattern
+
+**on_blocker_detected Flow**:
+```bash
+on_blocker_detected() {
+  local blocker="$1"
+
+  # Step 1: GPT Architect delegation
+  echo "Blocker detected: $blocker"
+  echo "Delegating to GPT Architect for resolution strategy..."
+
+  if gpt_architect_resolve "$blocker"; then
+    echo "GPT provided solution, implementing..."
+    return 0
+  fi
+
+  # Step 2: User collaboration (NOT "give up")
+  echo "GPT unable to resolve independently."
+  echo "Requesting user collaboration for: $blocker"
+  echo "Options: [approach A], [approach B], [approach C]"
+
+  # Step 3: Never use PROHIBITED phrases
+  # WRONG: "I cannot implement this feature"
+  # RIGHT: "To implement this feature, I need: [specific help]"
+
+  return 1
+}
+```
+
+### Enforcement Examples
+
+| Scenario | PROHIBITED Response | REQUIRED Response |
+|----------|---------------------|-------------------|
+| API integration | "I cannot integrate this API" | "To integrate this API, I will: 1) delegate to GPT for auth strategy, 2) implement retry logic, 3) request user API key" |
+| Complex algorithm | "Too complex to implement" | "Breaking down into: 1) data structure design (GPT), 2) core logic (incremental), 3) optimization (iterative)" |
+| Missing dependency | "Unable to proceed without X" | "Installing dependency X, updating imports, implementing feature" |
+
+### Exception Handling
+
+**Only Exception**: User explicitly requests task abort
+
+```bash
+# User says: "Stop working on this, abandon the feature"
+# Response: Acknowledge and halt (not a violation)
+
+# User says: "This is hard"
+# Response: Continue with alternative approaches (NOT an excuse to quit)
+```
+
+### Ralph Loop Integration
+
+**Blocker Detection Points**:
+1. Test failure after 3 iterations → on_blocker_detected
+2. Type check errors persist after 2 iterations → on_blocker_detected
+3. Coverage plateau after 4 iterations → on_blocker_detected
+4. Max iterations (7) reached → on_blocker_detected (GPT escalation)
+
+**Integration Example**:
+```bash
+while [ $iteration -lt $max_iterations ]; do
+  if run_all_checks; then
+    echo "<RALPH_COMPLETE>"
+    break
+  fi
+
+  # Check for persistent blockers
+  if is_persistent_blocker; then
+    on_blocker_detected "$(get_blocker_description)"
+    # Never output: "I cannot fix this"
+    # Always: GPT delegation → User collaboration → Alternative approach
+  fi
+
+  fix_failures
+  ((iteration++))
+done
+```
+
+---
+
 ## Further Reading
 
 **Internal**: @.claude/skills/tdd/SKILL.md - Test-Driven Development | @.claude/skills/vibe-coding/SKILL.md - Code quality standards | @.claude/skills/gpt-delegation/SKILL.md - Escalation patterns
@@ -258,4 +347,4 @@ grep "<RALPH_COMPLETE>" ralph-loop-log.md
 
 ---
 
-**Last Updated**: 2026-01-22
+**Last Updated**: 2026-01-27

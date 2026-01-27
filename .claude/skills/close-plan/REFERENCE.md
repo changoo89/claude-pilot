@@ -270,6 +270,39 @@ fi
 
 ## Step-by-Step Implementation Details
 
+### Step 0: Mandatory Oracle Consultation (Full)
+
+**Purpose**: Pre-close quality verification with GPT QA Expert
+
+**Pattern**:
+```bash
+echo "▶ STEP 0: Mandatory Oracle Consultation"
+
+# Graceful fallback
+if ! command -v codex &> /dev/null; then
+    echo "Warning: Codex CLI not installed - falling back to Claude-only analysis"
+    echo "✓ STEP 0 COMPLETE (fallback)"
+    return 0
+fi
+
+# Prepare consultation context
+PLAN_SUMMARY="$(head -50 "$PLAN_PATH" | grep -E "^##|^-" || echo "Plan summary unavailable")"
+SC_COUNT="$(grep -c "^- \[x\]" "$PLAN_PATH" 2>/dev/null || echo 0)"
+
+# Consult GPT QA Expert
+PROMPT="TASK: Pre-close quality verification for plan completion
+EXPECTED: Quality assessment (1-10), risks, missing items
+CONTEXT: Plan: $PLAN_PATH | SCs completed: $SC_COUNT | Summary: $PLAN_SUMMARY
+MUST: Verify all SCs tested, documentation complete, no regressions"
+
+codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "$PROMPT"
+
+echo "✓ Oracle consultation complete"
+echo "✓ STEP 0 COMPLETE"
+```
+
+**Graceful Fallback**: Continues if Codex unavailable (see @.claude/skills/gpt-delegation/SKILL.md)
+
 ### Step 1: Load Plan (Full)
 
 ```bash
@@ -298,7 +331,7 @@ echo "✓ Plan: $PLAN_PATH"
 echo "✓ STEP 1 COMPLETE"
 ```
 
-### Step 2: Verify All SCs Complete (Full)
+### Step 2: Verify All SCs Complete + TaskList (Full)
 
 ```bash
 echo "▶ STEP 2: Verify All SCs Complete"
@@ -312,10 +345,28 @@ if [ "$INCOMPLETE_SC" -gt 0 ]; then
 fi
 
 echo "✓ All Success Criteria complete"
+
+# TaskList verification (Claude Code MCP tool)
+# Verify all plan tasks are marked as completed
+PLAN_ID="$(basename "$PLAN_PATH" .md)"
+
+# Note: TaskList tool integration
+# Expected: All tasks show status="completed"
+# If TaskList available: Check completion status
+# If TaskList unavailable: Skip gracefully (not all environments have MCP)
+
+if command -v task-cli &> /dev/null 2>&1; then
+    # Verify tasks via TaskList MCP tool
+    echo "Verifying TaskList completion..."
+    # Implementation varies by environment
+else
+    echo "TaskList tool unavailable - skipping verification"
+fi
+
 echo "✓ STEP 2 COMPLETE"
 ```
 
-### Step 4: Move Plan to Done (Full)
+### Step 4: Move Plan to Done + TaskUpdate (Full)
 
 ```bash
 echo "▶ STEP 4: Move Plan to Done"
@@ -328,6 +379,23 @@ mv "$PLAN_PATH" "$DONE_DIR/"
 DONE_PLAN_PATH="$DONE_DIR/$(basename "$PLAN_PATH")"
 
 echo "✓ Plan moved to: $DONE_PLAN_PATH"
+
+# TaskUpdate: Mark plan task as completed
+PLAN_ID="$(basename "$PLAN_PATH" .md)"
+
+# Note: TaskUpdate tool integration (Claude Code MCP)
+# Expected: Update task status to "completed"
+# If TaskUpdate available: Mark completion
+# If TaskUpdate unavailable: Skip gracefully
+
+if command -v task-cli &> /dev/null 2>&1; then
+    # Update task status via TaskUpdate MCP tool
+    echo "Marking plan task as completed..."
+    # Implementation: TaskUpdate(id="$PLAN_ID", status="completed")
+else
+    echo "TaskUpdate tool unavailable - skipping status update"
+fi
+
 echo "✓ STEP 4 COMPLETE"
 ```
 

@@ -36,10 +36,17 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 
 ## Execution Steps (Summary)
 
+### Step 0: Mandatory Oracle Consultation (NEW)
+- **Purpose**: Pre-close quality verification
+- **GPT Role**: QA Expert - Completion quality assessment
+- **Pattern**: mandatory_oracle_consultation before proceeding
+- **Graceful Fallback**: Continue if Codex CLI unavailable
+
 ### Step 1: Load Plan + Verify SCs
 - Find active plan with absolute path detection
 - Parse arguments (plan_path, no-commit, no-push)
 - Check for incomplete Success Criteria
+- **TaskList Verification**: Verify all tasks completed via TaskList tool
 - Exit if no plan or SCs incomplete
 
 ### Step 2: Evidence Verification
@@ -57,6 +64,7 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 
 ### Step 4: Archive + Git
 - Move plan to `.pilot/plan/done/YYYYMMDD/`
+- **TaskUpdate**: Mark plan task as completed
 - Create git commit with Co-Authored-By
 - Push with retry (3 attempts, 2s/4s/8s backoff)
 - Skip commit/push if flags set

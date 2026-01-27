@@ -112,6 +112,28 @@ When BLOCKING issues found, enter dialogue mode:
 3. Update plan with user responses
 4. Re-run review to verify fixes
 
+## Oracle Validation Pattern
+
+**When to Consult GPT**: Large plans (5+ SCs) OR complex dependencies OR high-risk changes
+
+**Pattern**:
+```bash
+# Graceful fallback check
+if ! command -v codex &> /dev/null; then
+  echo "Warning: Codex CLI not installed - falling back to Claude-only review"
+  # Continue with Claude review
+fi
+
+# GPT validation for plan quality
+codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json \
+  "TASK: Review plan completeness and quality
+  EXPECTED: Rate clarity (1-10), identify gaps, assess feasibility
+  CONTEXT: ${PLAN_FILE_PATH}
+  MUST: Check all sections, flag ambiguities, validate acceptance criteria"
+```
+
+**See**: @.claude/skills/gpt-delegation/SKILL.md - Expert mapping, triggers
+
 ## Important Notes
 - Use Sonnet model for plan analysis (requires reasoning)
 - Focus on HIGH-IMPACT gaps (BLOCKING, Critical)

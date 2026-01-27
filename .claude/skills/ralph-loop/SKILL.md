@@ -169,6 +169,16 @@ echo "Last error: $(last_error)"
 
 ---
 
+## No-Excuses Enforcement
+
+**PROHIBITED Phrases**: "I cannot", "Too complex", "Out of scope", "Unable to"
+
+**Required Pattern**: on_blocker_detected → GPT delegation → User collaboration (never "give up")
+
+**Details**: @.claude/skills/ralph-loop/REFERENCE.md - Full enforcement algorithm
+
+---
+
 ## Related Skills
 
 - **test-driven-development**: Red-Green-Refactor cycle

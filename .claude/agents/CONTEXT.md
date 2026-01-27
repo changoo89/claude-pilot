@@ -166,6 +166,41 @@ Agents output completion markers:
 
 **Parallel Execution**: Multiple agents with `in_progress` simultaneously, used for independent SCs
 
+## Certainty Protocol
+
+### Mandatory Oracle Consultation Points
+
+All agents must consult GPT Oracle when confidence < 0.5 or at designated decision points:
+
+| Phase | Agent | Consultation Point | Trigger |
+|-------|-------|-------------------|---------|
+| /00_plan | planner | Architecture direction | Architecture keywords OR 5+ SCs |
+| /01_confirm | plan-reviewer | Plan quality audit | Large plans, complex deps |
+| /02_execute | coder | Implementation approach | Confidence < 0.5 OR 2+ failures |
+| /02_execute | frontend-engineer | Design decisions | Complex UI, multiple layouts |
+| /02_execute | backend-engineer | API design | Architecture changes, scalability |
+| /03_close | validator | Completion quality | Evidence verification |
+
+### No-Excuses Policy
+
+**PROHIBITED Phrases**: "I cannot...", "Too complex...", "Out of scope...", "Beyond my capabilities..."
+
+**Required Pattern**: "To achieve X, I will: [alternative approach]"
+
+**Only Exception**: User explicitly requests task abort
+
+### Graceful Fallback
+
+All Oracle consultations MUST include graceful fallback:
+```bash
+if ! command -v codex &> /dev/null; then
+  echo "Warning: Codex CLI not installed - falling back to Claude-only"
+  return 0  # Continue with Claude
+fi
+```
+
+**See**: @.claude/skills/gpt-delegation/SKILL.md - Complete delegation patterns
+
 ## See Also
 
 - @.claude/commands/CONTEXT.md - Command workflow and agent invocation

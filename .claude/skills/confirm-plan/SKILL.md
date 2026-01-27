@@ -20,6 +20,10 @@ description: Plan confirmation workflow - extract plan from conversation, create
 
 ### Quick Reference
 ```bash
+# TaskList Pattern: TaskUpdate (analyzing → completed) + TaskCreate (confirming)
+TaskUpdate "analyzing" "completed"
+TaskCreate "confirming" "in_progress"
+
 # Extract plan from conversation
 PLAN_CONTENT=$(extract_from_conversation "$CONVERSATION")
 
@@ -61,6 +65,25 @@ resolve_blocking_findings "$PLAN_FILE"
 
 ---
 
+### Definition of Done
+
+**Functional Completion**:
+- [ ] All SC implemented
+- [ ] All tests passing
+- [ ] Coverage >= 80%
+
+**Quality Gates**:
+- [ ] Type check: 0 errors
+- [ ] Lint: 0 violations
+- [ ] E2E verification passed
+
+**Delivery Contract**:
+- No partial completion allowed
+- No "demo/skeleton/basic" versions
+- Only explicit deferral with user approval permitted
+
+---
+
 ## ⚠️ EXECUTION DIRECTIVE
 
 **IMPORTANT**: Execute ALL steps below IMMEDIATELY and AUTOMATICALLY without waiting for user input.
@@ -92,11 +115,14 @@ resolve_blocking_findings "$PLAN_FILE"
 - Apply full plan template (User Requirements, Context Pack, Success Criteria, PRP Analysis, etc.)
 - Include Context Pack Formats and Zero-Knowledge TODO Format sections
 
-### Step 2.5: GPT Delegation Check
+### Step 2.5: GPT Delegation Check (Mandatory Oracle Consultation)
 - **Trigger**: Large plans (5+ Success Criteria) OR architecture keywords in plan
 - **Architecture keywords**: architecture, tradeoff, design, scalability, pattern, choice
+- **Oracle Role**: Auditor - Plan quality audit
 - Delegate to GPT Plan Reviewer using codex CLI
 - Graceful fallback if Codex not installed
+
+**Mandatory Oracle Consultation**: All plans receive quality audit via GPT Auditor to verify requirements coverage, SC clarity, dependencies, and risks before confirmation.
 
 ### Step 3: Auto-Review & Auto-Apply
 - Invoke plan-reviewer agent

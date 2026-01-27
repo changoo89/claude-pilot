@@ -91,16 +91,99 @@
 
 ---
 
-### Step 1.9: Quick Sufficiency Test
+### Step 1.9: Absolute Certainty Gate
 
-**Purpose**: 3-question check BEFORE Step 2 (Gather Requirements)
+**Purpose**: Ensure 100% certainty before proceeding to requirements gathering
 
-**Tests**:
-1. **File Test**: All file paths explicit? (Pass: explicit paths | Fail: "related files")
-2. **Value Test**: Config values explicit? (Pass: concrete values | Fail: "appropriate value")
-3. **Dependency Test**: Dependencies explicit? (Pass: library+version OR "none" | Fail: assumed)
+**Certainty Checklist** (ALL MUST PASS):
+1. **Codebase understanding**: 100% relevant files explored (use explorer + researcher agents)
+2. **Dependency tracking**: All import/require chains traced (check package.json, imports)
+3. **Impact scope**: All affected files identified (grep for references, check callers)
+4. **Test strategy**: Concrete verification methods defined (unit, integration, E2E)
+5. **Edge cases**: Exception scenarios listed (error handling, edge inputs)
+6. **Rollback plan**: Recovery strategy defined (revert steps, backup plan)
 
-**BLOCKING if any test fails**: AskUserQuestion to resolve (provide details OR use defaults)
+**Enforcement Loop**:
+```bash
+iteration=0
+max_iterations=10
+timebox_minutes=30
+start_time=$(date +%s)
+
+while [ $iteration -lt $max_iterations ]; do
+  elapsed=$(($(date +%s) - start_time))
+  if [ $elapsed -ge $((timebox_minutes * 60)) ]; then
+    echo "⏰ Timebox exceeded (${timebox_minutes}min)"
+    break
+  fi
+
+  # Check all 6 items in Certainty Checklist
+  if all_checks_pass; then
+    echo "✓ 100% certainty achieved"
+    break
+  fi
+
+  # Parallel exploration + GPT consultation
+  run_parallel_exploration
+  consult_gpt_if_needed
+
+  ((iteration++))
+done
+
+# BLOCKING if incomplete after timebox
+if ! all_checks_pass; then
+  AskUserQuestion "Unable to achieve 100% certainty. Need help with: [missing items]"
+fi
+```
+
+**BLOCKING if incomplete**: Escalate to user after timebox with specific missing items
+
+### Step 1.10: Readiness Gate
+
+**Purpose**: Final readiness check before proceeding to plan creation
+
+**Readiness Checklist** (ALL MUST PASS):
+1. **Unknowns Enumerated**: All unknowns listed in Assumptions & Unknowns table
+2. **Assumptions Verified**: All assumptions validated or marked for user confirmation
+3. **Dependencies Clear**: All external dependencies (libraries, APIs, services) identified
+4. **Acceptance Criteria Measurable**: All success criteria have concrete verification commands
+5. **Verification Plan Defined**: Test strategy includes unit/integration/E2E approach
+6. **Rollback Plan Defined**: Recovery steps documented in draft plan
+
+**Uncertainty Loop**:
+```bash
+max_retries=3
+retry=0
+
+while [ $retry -lt $max_retries ]; do
+  # Check Readiness Checklist
+  if readiness_check_pass; then
+    echo "✓ Ready to proceed to Step 2"
+    break
+  fi
+
+  # Parallel exploration for missing items
+  launch_explorer_for_unknowns &
+  launch_researcher_for_assumptions &
+  wait
+
+  # GPT consultation for complex items
+  if has_architecture_unknowns; then
+    consult_gpt_architect
+  fi
+
+  ((retry++))
+done
+
+# BLOCKING if checklist incomplete after MAX_RETRIES
+if ! readiness_check_pass; then
+  echo "❌ BLOCKING: Readiness Gate incomplete after $max_retries retries"
+  AskUserQuestion "Cannot proceed with incomplete readiness. Missing: [items]"
+  exit 1
+fi
+```
+
+**BLOCKING if incomplete**: Checklist incomplete after MAX_RETRIES → escalate to user
 
 ---
 

@@ -130,6 +130,28 @@ Max 7 iterations reached, Unrecoverable error, User intervention needed
 
 **Thresholds**: < 0.5: MUST delegate | 0.5-0.9: Consider delegation | 0.9-1.0: Proceed autonomously
 
+## Oracle Consultation Pattern
+
+**When to Consult GPT**: Confidence < 0.5 OR architecture decisions OR 2+ failed attempts
+
+**Pattern**:
+```bash
+# Graceful fallback check
+if ! command -v codex &> /dev/null; then
+  echo "Warning: Codex CLI not installed - falling back to Claude-only"
+  # Continue with Claude implementation
+fi
+
+# GPT consultation for implementation approach
+codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json \
+  "TASK: Implement ${SC_NAME}
+  EXPECTED: ${OUTCOME}
+  CONTEXT: Attempts: ${ITERATION}, Errors: ${LAST_ERROR}
+  MUST: Analyze failures, propose fresh approach, report modified files"
+```
+
+**See**: @.claude/skills/gpt-delegation/SKILL.md - Full delegation patterns
+
 ## Further Reading
 
 **Internal**: [EXAMPLES.md](./EXAMPLES.md) - Extended TDD examples, Ralph Loop integration | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor | @.claude/skills/ralph-loop/SKILL.md - Autonomous iteration | @.claude/skills/vibe-coding/SKILL.md - Code quality | @.claude/skills/git-master/SKILL.md - Git operations

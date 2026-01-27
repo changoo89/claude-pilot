@@ -150,6 +150,14 @@ if grep -q "<CODER_BLOCKED>" /tmp/coder_output.log 2>/dev/null; then
 fi
 ```
 
+**TaskCreate/TaskUpdate Pattern**: Create TaskList entry per SC before execution. Update on completion with `<CODER_COMPLETE>`. Progress tracking: `Task: status=in_progress, id=SC-N` → Execute → `TaskUpdate: status=completed, id=SC-N`.
+
+**No-Excuses Enforcement**: PROHIBITED phrases ("I cannot", "Too complex", "Out of scope"). Required pattern: "To achieve X, I will: [alternative]" or "Breaking down into: [steps]". Exception: User explicit abort only. Details: @REFERENCE.md
+
+**Mandatory Oracle Consultation** (mandatory_oracle_consultation): Per-SC execution (GPT Role: Engineer), Blocker resolution (GPT Role: Problem Solver). Pattern: `codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium`. Graceful fallback if unavailable. Full table: @REFERENCE.md
+
+**No-Partial-Delivery Policy**: No "simplified version", "basic implementation", "you can extend later". On BLOCKED: 1) GPT delegation, 2) User collaboration (not "give up"). All SCs must be fully completed.
+
 ---
 
 ## Step 4: Completion & E2E Verification

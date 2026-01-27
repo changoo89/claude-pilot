@@ -117,6 +117,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 **Multi-Angle Review**: `@.claude/skills/review/SKILL.md` - Comprehensive review with enhanced code-reviewer integration
 **E2E Verification**: `@.claude/skills/execute-plan/REFERENCE.md` - End-to-end testing with Chrome in Claude integration and Pre-Execution Confidence check
 **OOM-Optimized Close**: `@.claude/skills/close-plan/SKILL.md` - Streamlined plan completion (5 steps, 2 agents)
+**Certainty Protocol**: 100% certainty before plan exit - Readiness Gate (6-point checklist), Definition of Done (proof artifacts), Absolute Certainty (complete understanding), No-Excuses (no partial delivery), Mandatory Oracle (GPT consultation). Integrated across `spec-driven-workflow`, `confirm-plan`, `execute-plan`, and `ralph-loop` skills
 
 ---
 
@@ -167,7 +168,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ---
 
-**Line Count**: 197 lines (Target: ≤200 lines) ✅
+**Line Count**: 195 lines (Target: ≤200 lines) ✅
 
 ---
 

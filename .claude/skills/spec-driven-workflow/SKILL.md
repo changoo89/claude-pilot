@@ -99,6 +99,12 @@ confidence = 1.0 - (architecture_keywords * 0.3) - (multiple_approaches * 0.2) -
 
 ## Execution Steps
 
+### Step 0: Initialize Progress Tracking
+Create TaskCreate entry for planning phase:
+```bash
+# TaskCreate (analyzing) - marks /00_plan start
+```
+
 ### Step 1: Explore Codebase (Parallel)
 Launch explorer and researcher in parallel for comprehensive discovery.
 
@@ -123,10 +129,27 @@ When not triggered: Use "house style" defaults (Minimalist).
 ### Step 1.8.5: Context Manifest Generation
 Generate Context Manifest with Collected Context, Related Files, and Missing Context tables.
 
-### Step 1.9: Quick Sufficiency Test
-**3 Questions**: File Test (explicit paths?), Value Test (explicit values?), Dependency Test (explicit dependencies?)
+### Step 1.9: Absolute Certainty Gate
+**Purpose**: Ensure 100% certainty before proceeding to requirements gathering.
 
-**BLOCKING if any test fails** → AskUserQuestion to resolve.
+**Certainty Checklist** (ALL MUST PASS): Codebase understanding, Dependency tracking, Impact scope, Test strategy, Edge cases, Rollback plan
+
+**Enforcement Loop**: Iterate until 100% certainty achieved (max 30min timebox)
+
+**BLOCKING if incomplete**: Escalate to user after timebox
+
+**Details**: See REFERENCE.md for full checklist and implementation
+
+### Step 1.10: Readiness Gate
+**Purpose**: Final readiness check before proceeding to plan creation.
+
+**Readiness Checklist** (ALL MUST PASS): Unknowns Enumerated, Assumptions Verified, Dependencies Clear, Acceptance Criteria Measurable, Verification Plan Defined, Rollback Plan Defined
+
+**Uncertainty Loop**: Max 3 retries with parallel exploration + GPT consultation
+
+**BLOCKING if incomplete**: Checklist incomplete after MAX_RETRIES
+
+**Details**: See REFERENCE.md for full implementation
 
 ### Step 2: Gather Requirements
 Create User Requirements table with ID, Timestamp, User Input (Original), Summary.
@@ -135,6 +158,17 @@ Create User Requirements table with ID, Timestamp, User Input (Original), Summar
 **PRP Framework**: What (Functionality), Why (Context), How (Approach), Success Criteria
 
 **Approach Selection**: Apply question filter - one clear approach → present directly; multiple approaches → ask user; technical trade-offs → consult GPT.
+
+### Step 3.5: Mandatory Oracle Consultation (NEW)
+**mandatory_oracle_consultation** - GPT consultation at 3 points during /00_plan:
+
+| Phase | GPT Role | Purpose |
+|-------|----------|---------|
+| /00_plan start | Analyst | Requirements interpretation |
+| /00_plan mid | Architect | Architecture direction |
+| /00_plan end | Reviewer | Plan completeness |
+
+**Graceful Fallback**: WebSearch/Context7 if Codex unavailable
 
 ### Step 4: Final User Decision (MANDATORY)
 **NEVER auto-proceed to /01_confirm or /02_execute.**

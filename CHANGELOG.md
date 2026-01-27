@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [4.4.48] - 2026-01-26
+
+### Changed
+- Skills: Add intermediate file naming convention and cleanup lifecycle (5ee5a69)
+
 ## [4.4.47] - 2026-01-26
 
 ### Added

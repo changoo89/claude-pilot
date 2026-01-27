@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.49 | **Last Updated**: 2026-01-28
+> **Version**: 4.4.50 | **Last Updated**: 2026-01-28
 
 ---
 
@@ -151,7 +151,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.49
+**Plugin Version**: 4.4.50
 **Distribution**: GitHub Marketplace via `#release` branch
 
 **Branch Structure**:
@@ -173,6 +173,9 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 ---
 
 ## Version History
+
+### v4.4.50 (2026-01-28)
+Test Resource Optimization with Worker Limits - Added test execution concurrency safeguards to prevent worker explosion during parallel testing.
 
 ### v4.4.49 (2026-01-27)
 Test Resource Optimization - Added test execution concurrency safeguards to prevent worker explosion. SC-1: Added `--maxWorkers=50%` to Jest commands in tester.md (parallel agent safety). SC-2: Added TEST_TYPE detection in execute-plan/SKILL.md (E2E vs unit test detection, sequential vs parallel routing). SC-3: Added "Test Execution Concurrency" section to parallel-subagents/SKILL.md and REFERENCE.md (test type-aware concurrency patterns, resource calculation examples).

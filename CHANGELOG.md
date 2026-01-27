@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [4.4.50] - 2026-01-28
+
+### Changed
+- Plugin: Test resource optimization with worker limits (898347e)
+
 ## [4.4.49] - 2026-01-27
 
 ### Changed

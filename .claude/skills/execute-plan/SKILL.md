@@ -171,15 +171,21 @@ fi
 
 ---
 
+## Step 3.5: Per-SC TODO Verification (BLOCKING)
+
+After each SC execution, verify all TODO checkboxes are marked `[x]`. If unchecked items remain, BLOCKING until coder completes them. Full implementation: @REFERENCE.md - Per-SC TODO Verification
+
+---
+
+## Step 3.9: Final TODO Sweep (BLOCKING)
+
+Before E2E verification, sweep entire plan for unchecked TODOs. Max 50 retries with GPT escalation at 10, user escalation at 50. Full implementation: @REFERENCE.md - Final TODO Sweep
+
+---
+
 ## Step 4: Completion & E2E Verification
 
-**Completion**:
-```bash
-echo "✅ All Success Criteria Complete"
-echo "📦 Next Step: Run Step 5 for E2E verification"
-```
-
-**E2E Verification**: Detect project type → Web: Chrome in Claude, CLI: check exit code/stdout, Library: run tests. Retry max 3, then GPT delegation, then user. Full: @REFERENCE.md
+All SCs complete → E2E verification. Detect project type: Web (Chrome in Claude), CLI (exit code/stdout), Library (tests). Retry max 3 → GPT → user. Full: @REFERENCE.md
 
 ---
 

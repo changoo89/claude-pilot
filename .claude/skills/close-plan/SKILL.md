@@ -21,9 +21,9 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 ### Quick Reference
 ```bash
 # Full workflow
-/03_close [RUN_ID|plan_path] [no-commit] [no-push]
+/03_close [RUN_ID|plan_path] [no-commit] [no-push] [--force]
 
-# Steps: Load+Verify → Evidence Verify → Docs Sync+Verify → Move+Git → Worktree Merge
+# Steps: Load+Verify+TODO Gate → Evidence Verify → Docs Sync+Verify → Move+Git → Worktree Merge
 ```
 
 ---
@@ -42,10 +42,13 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 - **Pattern**: mandatory_oracle_consultation before proceeding
 - **Graceful Fallback**: Continue if Codex CLI unavailable
 
-### Step 1: Load Plan + Verify SCs
+### Step 1: Load Plan + Verify SCs + TODO Gate
 - Find active plan with absolute path detection
-- Parse arguments (plan_path, no-commit, no-push)
+- Parse arguments (plan_path, no-commit, no-push, force)
 - Check for incomplete Success Criteria
+- **TODO Completion Check (BLOCKING)**: Count unchecked `- [ ]` items
+  - Exit if unchecked TODOs exist (unless --force flag)
+  - Full implementation: @REFERENCE.md - TODO Completion Gate
 - **TaskList Verification**: Verify all tasks completed via TaskList tool
 - Exit if no plan or SCs incomplete
 

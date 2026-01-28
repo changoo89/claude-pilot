@@ -1,7 +1,7 @@
 # Project Structure Guide
 
 > **Purpose**: Technology stack, directory layout, and key files
-> **Last Updated**: 2026-01-24
+> **Last Updated**: 2026-01-28
 
 ---
 
@@ -11,7 +11,7 @@
 Framework: Claude Code Plugin
 Language: Markdown + JSON (no code runtime)
 Package Manager: Claude Code Plugin System
-Version: 4.4.47
+Version: 4.4.50
 Deployment: GitHub Marketplace (plugin distribution)
 ```
 

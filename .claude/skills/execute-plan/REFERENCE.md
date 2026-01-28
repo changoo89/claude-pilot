@@ -514,3 +514,296 @@ if (( $(echo "$confidence < 0.5" | bc -l) )); then
     delegate_to_gpt_architect "Low confidence ($confidence) for: $sc_description"
 fi
 ```
+
+---
+
+## Per-SC TODO Verification
+
+**Purpose**: Verify TODO completion immediately after each SC execution (BLOCKING).
+
+### Verification Function
+
+```bash
+verify_sc_todos() {
+    local plan_file="$1"
+    local sc_number="$2"
+
+    # Extract SC section (supports both formats)
+    local sc_content=$(sed -n "/^### SC-${sc_number}:/,/^### /p" "$plan_file" | tail -n +2 | head -n -1 2>/dev/null)
+    if [ -z "$sc_content" ]; then
+        sc_content=$(sed -n "/\*\*SC-${sc_number}\*\*/,/^\- \[ \]/p" "$plan_file" | tail -n +2 | head -n -1 2>/dev/null)
+    fi
+
+    # Count unchecked TODOs in this SC
+    local unchecked=$(echo "$sc_content" | grep -c "^- \[ \]" || echo "0")
+
+    if [ "$unchecked" -gt 0 ]; then
+        echo "❌ BLOCKING: SC-${sc_number} has $unchecked unchecked TODOs"
+        echo "$sc_content" | grep "^- \[ \]"
+        return 1
+    fi
+
+    echo "✓ All TODOs complete for SC-${sc_number}"
+    return 0
+}
+```
+
+### Integration Pattern
+
+```bash
+# After Coder returns <CODER_COMPLETE>
+if ! verify_sc_todos "$PLAN_PATH" "$SC_NUM"; then
+    echo "⚠️ Re-invoking coder to complete remaining TODOs"
+    # Re-invoke coder with context
+fi
+```
+
+---
+
+## Final TODO Sweep
+
+**Purpose**: Comprehensive sweep of all TODOs across entire plan before E2E verification (BLOCKING).
+
+**Trigger**: After all SCs execute (Step 3.9), before E2E verification (Step 4)
+
+**Scope**: Entire plan file (all SC sections)
+
+### Sweep Function
+
+```bash
+final_todo_sweep() {
+    local plan_file="$1"
+    local retry_count=0
+    local max_retries=50
+
+    while [ $retry_count -lt $max_retries ]; do
+        # Count ALL unchecked TODOs in plan (skip code blocks)
+        unchecked=$(awk '/^```/ { in_code=!in_code; next } !in_code && /^- \[ \]/ { count++ } END { print count+0 }' "$plan_file")
+
+        if [ "$unchecked" -eq 0 ]; then
+            echo "✓ Final TODO sweep complete - all items checked"
+            return 0
+        fi
+
+        retry_count=$((retry_count + 1))
+
+        # Progressive escalation
+        if [ $retry_count -eq 10 ]; then
+            echo "⚠️  Escalating to GPT Architect (retry $retry_count/50)"
+            delegate_to_gpt_architect "$plan_file" "ALL_SCS"
+        elif [ $retry_count -eq 50 ]; then
+            echo "❌ BLOCKING: Max retries reached - user intervention required"
+            echo "Unchecked TODOs: $unchecked"
+            grep "^- \[ \]" "$plan_file"
+            exit 1
+        else
+            echo "⚠️  $unchecked unchecked TODOs (retry $retry_count/50)"
+            invoke_coder_agent "$plan_file" "final_sweep"
+        fi
+    done
+}
+```
+
+**Integration**: Called automatically in Step 3.9 before E2E verification begins
+
+---
+
+## TODO Verification Algorithm
+
+**Purpose**: Ensure complete TODO execution with BLOCKING enforcement and progressive escalation.
+
+### Checkbox Parsing
+
+| Pattern | Meaning | Regex | Usage |
+|---------|---------|-------|-------|
+| `- [ ]` | Unchecked | `^- \[ \]` | Incomplete TODO item |
+| `- [x]` | Checked | `^- \[x\]` | Completed TODO item |
+
+**Parsing Function**:
+
+```bash
+count_unchecked_todos() {
+    local plan_file="$1"
+    local sc_section="${2:-}"  # Optional: specific SC section
+
+    if [ -n "$sc_section" ]; then
+        # Count within specific SC section
+        awk "/^### $sc_section:/,/^### /" "$plan_file" | grep -c "^- \[ \]" || echo "0"
+    else
+        # Count all unchecked TODOs in plan
+        grep -c "^- \[ \]" "$plan_file" || echo "0"
+    fi
+}
+```
+
+### Escalation Table
+
+| Retry Count | Action | Responsibility | Timeout |
+|-------------|--------|----------------|---------|
+| 1-9 | Coder retry with context | Coder agent | 2 min/retry |
+| 10-49 | GPT Architect consultation | GPT Architect | 5 min |
+| 50 | User escalation (BLOCKING) | Human user | Indefinite |
+
+**Escalation Logic**:
+
+```bash
+retry_todo_completion() {
+    local plan_file="$1"
+    local sc_name="$2"
+    local retry_count=0
+    local max_retries=50
+
+    while [ $retry_count -lt $max_retries ]; do
+        unchecked=$(count_unchecked_todos "$plan_file" "$sc_name")
+
+        if [ "$unchecked" -eq 0 ]; then
+            echo "✓ All TODOs complete for $sc_name"
+            return 0
+        fi
+
+        retry_count=$((retry_count + 1))
+
+        # Progressive escalation
+        if [ $retry_count -eq 10 ]; then
+            echo "⚠️  Escalating to GPT Architect (retry $retry_count)"
+            delegate_to_gpt_architect "$plan_file" "$sc_name"
+        elif [ $retry_count -eq 50 ]; then
+            echo "❌ BLOCKING: Max retries reached - user intervention required"
+            ask_user_question "$plan_file" "$sc_name" "$unchecked"
+            exit 1
+        else
+            echo "⚠️  $unchecked unchecked TODOs (retry $retry_count/$max_retries)"
+            invoke_coder_agent "$plan_file" "$sc_name"
+        fi
+    done
+}
+```
+
+### Edge Cases
+
+**1. Code Blocks**: Skip lines inside fenced code blocks to avoid false positives
+
+```bash
+parse_todos_skip_code_blocks() {
+    local plan_file="$1"
+    awk '
+        /^```/ { in_code_block = !in_code_block; next }
+        !in_code_block && /^- \[ \]/ { print }
+    ' "$plan_file"
+}
+```
+
+**2. Nested Lists**: Only count top-level TODO items (avoid double-counting sub-items)
+
+```bash
+parse_top_level_todos() {
+    local plan_file="$1"
+    grep "^- \[ \]" "$plan_file"  # ^ ensures line start (top-level)
+}
+```
+
+**3. Plan Format Variations**: Support both section header and list formats
+
+```bash
+# Format 1: Section headers
+### SC-1: Feature Name
+- [ ] TODO-1.1: Task description
+
+# Format 2: List items
+- [ ] **SC-1**: Feature Name
+  - [ ] TODO-1.1: Task description
+
+# Parser handles both
+extract_sc_todos() {
+    local plan_file="$1"
+    local sc_number="$2"
+
+    # Try section header format
+    awk "/^### SC-$sc_number:/,/^### /" "$plan_file" | grep "^- \[ \]"
+
+    # Fallback: list format
+    if [ $? -ne 0 ]; then
+        awk "/^- \[ \] \*\*SC-$sc_number\*\*/,/^- \[ \] \*\*SC-/" "$plan_file" | grep "  - \[ \]"
+    fi
+}
+```
+
+**4. Cosmetic TODOs**: Only parse TODOs within SC sections (ignore general notes)
+
+```bash
+# Valid: Under SC section
+### SC-1: Auth Implementation
+- [ ] TODO-1.1: Add login endpoint
+
+# Invalid (ignored): Outside SC sections
+## Notes
+- [ ] Remember to update docs
+```
+
+### Verification Checkpoints
+
+| Checkpoint | Location | Trigger | Scope |
+|-----------|----------|---------|-------|
+| **Per-SC** | Step 3.5 | After each SC execution | Current SC only |
+| **Final Sweep** | Step 3.9 | Before E2E verification | Entire plan |
+| **Pre-Close** | close-plan Step 1 | Before archival | Entire plan |
+| **Quality Gate** | Ralph Loop | Before `<CODER_COMPLETE>` | Current SC |
+
+### Integration Examples
+
+**Per-SC Verification (Step 3.5)**:
+
+```bash
+# After Coder returns <CODER_COMPLETE>
+echo "▶ Verifying SC-$SC_NUM TODO completion"
+unchecked=$(count_unchecked_todos "$PLAN_FILE" "SC-$SC_NUM")
+
+if [ "$unchecked" -gt 0 ]; then
+    echo "❌ BLOCKING: $unchecked unchecked TODOs in SC-$SC_NUM"
+    retry_todo_completion "$PLAN_FILE" "SC-$SC_NUM"
+fi
+```
+
+**Final Sweep (Step 3.9)**:
+
+```bash
+# Before E2E verification
+echo "▶ Final TODO sweep"
+unchecked=$(count_unchecked_todos "$PLAN_FILE")
+
+if [ "$unchecked" -gt 0 ]; then
+    echo "❌ BLOCKING: $unchecked unchecked TODOs across all SCs"
+    retry_todo_completion "$PLAN_FILE" "ALL"
+fi
+```
+
+**Pre-Close Gate**:
+
+```bash
+# In close-plan/SKILL.md Step 1
+echo "▶ TODO Completion Check"
+unchecked=$(count_unchecked_todos "$PLAN_FILE")
+
+if [ "$unchecked" -gt 0 ]; then
+    echo "❌ BLOCKING: $unchecked unchecked TODOs in plan"
+
+    if [ "$FORCE_FLAG" != "true" ]; then
+        echo "Use --force to bypass (NOT recommended)"
+        exit 1
+    else
+        echo "⚠️ WARNING: Proceeding despite unchecked TODOs (--force)"
+    fi
+fi
+```
+
+### Backward Compatibility
+
+**Graceful Handling**: Plans without checkboxes (legacy format)
+
+```bash
+# Check if plan uses checkbox format
+if ! grep -q "^- \[ \]" "$PLAN_FILE" && ! grep -q "^- \[x\]" "$PLAN_FILE"; then
+    echo "ℹ️  Legacy plan format detected (no checkboxes) - skipping TODO verification"
+    return 0
+fi
+```

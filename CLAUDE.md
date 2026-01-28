@@ -175,7 +175,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 ## Version History
 
 ### v4.4.50 (2026-01-28)
-Test Resource Optimization with Worker Limits - Added test execution concurrency safeguards to prevent worker explosion during parallel testing.
+TODO Enforcement Framework - Step 1 TODO Gate in /03_close (--force flag to override), Step 3.5 Per-SC TODO Verification, Step 3.9 Final TODO Sweep (max 50 retries with GPT/user escalation).
 
 ### v4.4.49 (2026-01-27)
 Test Resource Optimization - Added test execution concurrency safeguards to prevent worker explosion. SC-1: Added `--maxWorkers=50%` to Jest commands in tester.md (parallel agent safety). SC-2: Added TEST_TYPE detection in execute-plan/SKILL.md (E2E vs unit test detection, sequential vs parallel routing). SC-3: Added "Test Execution Concurrency" section to parallel-subagents/SKILL.md and REFERENCE.md (test type-aware concurrency patterns, resource calculation examples).
@@ -194,8 +194,5 @@ Atomic SC Principle - Added "One SC = One File OR One Concern" principle to spec
 
 ### v4.4.43 (2026-01-25)
 E2E Verification Framework - Added mandatory E2E verification to /02_execute final stage with project type detection, Chrome in Claude integration for web projects, and retry loop pattern (max 3 attempts), Enhanced QA/QC Framework - Enhanced code-reviewer agent with Risk Areas, Assumptions tracking, Context Manifest format, Quick Sufficiency Test, Documentation Refactoring - 9 SKILL.md and 2 agent files refactored to ≤200 lines, 2 companion docs (TROUBLESHOOTING.md, EXAMPLES.md) created, OOM Optimization - Reduced agent calls in /03_close from 3 to 2, merged verification steps, pure bash link checking
-
-### v4.4.31 (2026-01-24)
-Scope Clarity Framework - Step 1.5 in spec-driven-workflow, Step 1.7 in confirm-plan, 4 mandatory triggers for scope validation
 
 **Full History**: See `CHANGELOG.md`

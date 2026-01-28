@@ -76,6 +76,9 @@ fi
 2. **Coverage**: ≥80% overall, ≥90% core modules
 3. **Type-check**: `npm run type-check` or `tsc --noEmit`
 4. **Lint**: `npm run lint` - Zero violations
+5. **TODOs**: All SC TODOs must be `[x]` before `<CODER_COMPLETE>`
+   - PLAN_PATH from execute-plan prompt OR auto-detect in `.pilot/plan/in_progress/`
+   - `grep -q "^- \[ \]" "$PLAN_PATH"` must return false (no unchecked items)
 
 ### Iteration Pattern
 
@@ -107,6 +110,12 @@ run_all_checks() {
 
   # Lint
   npm run lint || return 1
+
+  # TODOs (PLAN_PATH from execute-plan OR auto-detect)
+  PLAN_PATH="${PLAN_PATH:-$(find .pilot/plan/in_progress -name "*.md" -type f | head -1)}"
+  if [ -f "$PLAN_PATH" ]; then
+    grep -q "^- \[ \]" "$PLAN_PATH" && return 1
+  fi
 
   return 0
 }
@@ -179,13 +188,6 @@ echo "Last error: $(last_error)"
 
 ---
 
-## Related Skills
-
-- **test-driven-development**: Red-Green-Refactor cycle
-- **gpt-delegation**: Escalation when blocked
-
----
-
 ## Further Reading
 
 **Internal**: @.claude/skills/ralph-loop/REFERENCE.md - Advanced patterns, state machine details | @.claude/skills/tdd/SKILL.md - Red-Green-Refactor cycle | @.claude/skills/gpt-delegation/SKILL.md - GPT escalation patterns
@@ -194,4 +196,4 @@ echo "Last error: $(last_error)"
 
 ---
 
-**Version**: claude-pilot 4.4.11
+**Version**: claude-pilot 4.4.50

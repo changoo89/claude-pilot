@@ -151,6 +151,66 @@ git_push_with_retry() {
 
 ---
 
+## TODO Completion Gate
+
+### Purpose
+
+**BLOCKING gate**: Prevent plan archival when unchecked TODOs exist
+
+**Philosophy**: "No partial delivery" - All planned work must be completed before closing
+
+### Implementation Pattern
+
+```bash
+# Count unchecked TODOs (top-level only)
+UNCHECKED=$(grep -c "^- \[ \]" "$PLAN_PATH" || echo "0")
+
+# BLOCKING if unchecked items exist
+if [ "$UNCHECKED" -gt 0 ]; then
+    # Display unchecked items
+    grep "^- \[ \]" "$PLAN_PATH"
+
+    # Check --force flag
+    if [ "$FORCE_FLAG" != "true" ]; then
+        exit 1  # BLOCKING
+    else
+        echo "WARNING: Proceeding with --force"
+    fi
+fi
+```
+
+### Checkbox Patterns
+
+| Pattern | Meaning | Regex | Counted |
+|---------|---------|-------|---------|
+| `- [ ]` | Unchecked TODO | `^- \[ \]` | Yes |
+| `- [x]` | Checked TODO | `^- \[x\]` | No |
+| `  - [ ]` | Nested (indented) | `^  - \[ \]` | No |
+
+**Note**: Only top-level checkboxes are counted (starts with `^-`)
+
+### Force Flag Behavior
+
+**Syntax**: `/03_close --force` or `/03_close [plan_path] --force`
+
+**Purpose**: Emergency bypass for edge cases (e.g., obsolete TODOs, changed requirements)
+
+**Warning**: Shows explicit warning when bypassing TODO gate
+
+**Recommendation**: Use sparingly - unchecked TODOs usually indicate incomplete work
+
+### Edge Cases
+
+| Case | Behavior |
+|------|----------|
+| No TODOs in plan | Skip check silently |
+| All TODOs checked | Pass silently |
+| Code block checkboxes | Not counted (requires `^-` start) |
+| Nested checkboxes | Not counted (indented) |
+| Empty plan file | Exit with error (no plan found) |
+
+---
+
 ## Discovered Issues Warning
 
 ### Active Issues Check (Step 2.5)
@@ -303,15 +363,23 @@ echo "✓ STEP 0 COMPLETE"
 
 **Graceful Fallback**: Continues if Codex unavailable (see @.claude/skills/gpt-delegation/SKILL.md)
 
-### Step 1: Load Plan (Full)
+### Step 1: Load Plan + TODO Completion Gate (Full)
 
 ```bash
-echo "▶ STEP 1: Load Plan"
+echo "▶ STEP 1: Load Plan + TODO Completion Check"
 
 PROJECT_ROOT="$(pwd)"
 PLAN_ARG="$1"
 NO_COMMIT_FLAG="$2"
 NO_PUSH_FLAG="$3"
+FORCE_FLAG="false"
+
+# Parse --force flag from any position
+for arg in "$@"; do
+    if [ "$arg" = "--force" ]; then
+        FORCE_FLAG="true"
+    fi
+done
 
 # Find plan path
 if [ -n "$PLAN_ARG" ] && [ -f "$PLAN_ARG" ]; then
@@ -328,6 +396,27 @@ if [ -z "$PLAN_PATH" ]; then
 fi
 
 echo "✓ Plan: $PLAN_PATH"
+
+# TODO Completion Check (BLOCKING)
+echo "▶ TODO Completion Check"
+UNCHECKED=$(grep -c "^- \[ \]" "$PLAN_PATH" || echo "0")
+
+if [ "$UNCHECKED" -gt 0 ]; then
+    echo "❌ BLOCKING: $UNCHECKED unchecked TODOs in plan"
+    echo ""
+    grep "^- \[ \]" "$PLAN_PATH" || true
+    echo ""
+
+    if [ "$FORCE_FLAG" != "true" ]; then
+        echo "Use --force to bypass (NOT recommended)"
+        echo "Example: /03_close --force"
+        exit 1
+    else
+        echo "⚠️  WARNING: Proceeding despite unchecked TODOs (--force)"
+    fi
+fi
+
+echo "✓ All TODOs complete"
 echo "✓ STEP 1 COMPLETE"
 ```
 

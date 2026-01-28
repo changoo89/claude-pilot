@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [4.4.51] - 2026-01-28
+
+### Added
+- Workflow: TODO completion enforcement framework (85870a6)
+
 ## [4.4.50] - 2026-01-28
 
 ### Changed

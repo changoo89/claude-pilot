@@ -1,0 +1,23 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-pilot-marketplace",
+  "version": "4.4.53",
+  "description": "SPEC-First development workflow with TDD, Ralph Loop, autonomous agents, and intelligent GPT Codex delegation for Claude Code",
+  "owner": {
+    "name": "changoo89",
+    "email": "changoo89@users.noreply.github.com"
+  },
+  "plugins": [
+    {
+      "name": "claude-pilot",
+      "description": "SPEC-First development workflow: Plan -> Confirm -> Execute -> Review -> Document -> Close.",
+      "version": "4.4.53",
+      "author": {
+        "name": "changoo89",
+        "email": "changoo89@users.noreply.github.com"
+      },
+      "source": "./plugins/claude-pilot",
+      "category": "development"
+    }
+  ]
+}

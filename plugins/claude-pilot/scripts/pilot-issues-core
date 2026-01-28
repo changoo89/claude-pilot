@@ -1,0 +1,78 @@
+#!/bin/bash
+# pilot-issues-core - Core functions for Discovered Issues system
+# Source this file from pilot-issues CLI
+
+# Generate unique ID: DI-YYYYMMDD-NNN
+generate_id() {
+  local date_part=$(date +%Y%m%d)
+  local seq=1
+
+  if [ -f "$LOG_FILE" ]; then
+    local last_id=$(grep -o "DI-${date_part}-[0-9]*" "$LOG_FILE" 2>/dev/null | sort -V | tail -1 | grep -o '[0-9]*$' || echo 0)
+    seq=$((10#$last_id + 1))  # Force decimal interpretation
+  fi
+
+  printf "DI-%s-%03d" "$date_part" "$seq"
+}
+
+# Create event JSON with safe escaping (compact for .jsonl format)
+create_event_json() {
+  local type="$1"
+  local id="$2"
+  shift 2
+
+  jq -nc \
+    --arg type "$type" \
+    --arg id "$id" \
+    --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    "$@" \
+    '{type: $type, id: $id, ts: $ts} + $ARGS.named'
+}
+
+# Rebuild state.json from log.jsonl
+refresh_state() {
+  local resolved_ids
+  local dismissed_ids
+  local active_issues
+  local counts
+
+  # Get IDs of resolved issues
+  resolved_ids=$(
+    jq -s 'map(select(.type == "issue.resolved") | .id)' "$LOG_FILE" 2>/dev/null || echo '[]'
+  )
+
+  # Get IDs of dismissed issues
+  dismissed_ids=$(
+    jq -s 'map(select(.type == "issue.dismissed") | .id)' "$LOG_FILE" 2>/dev/null || echo '[]'
+  )
+
+  # Get all inactive IDs (resolved or dismissed)
+  local inactive_ids
+  inactive_ids=$(echo "$resolved_ids" "$dismissed_ids" | jq -s 'add | unique')
+
+  # Extract active issues (created but not resolved/dismissed)
+  active_issues=$(
+    jq -s --argjson inactive "$inactive_ids" '
+      map(select(.type == "issue.created") | {id, priority, title, phase})
+      | map(select(.id as $id | $inactive | index($id) | not))
+    ' "$LOG_FILE" 2>/dev/null || echo '[]'
+  )
+
+  # Count by priority
+  counts=$(
+    echo "$active_issues" | jq '
+      {
+        P0: map(select(.priority == "P0")) | length,
+        P1: map(select(.priority == "P1")) | length,
+        P2: map(select(.priority == "P2")) | length
+      }
+    '
+  )
+
+  # Build state.json
+  jq -n \
+    --argjson counts "$counts" \
+    --argjson active "$active_issues" \
+    --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '{counts: $counts, active: $active, generatedAt: $ts}' > "$STATE_FILE"
+}

@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.52 | **Last Updated**: 2026-01-28
+> **Version**: 4.4.53 | **Last Updated**: 2026-01-28
 
 ---
 
@@ -151,7 +151,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.52
+**Plugin Version**: 4.4.53
 **Distribution**: GitHub Marketplace via `#release` branch
 
 **Branch Structure**:

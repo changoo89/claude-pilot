@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [4.4.53] - 2026-01-28
+
+### Added
+- Skills: Context Protection Pattern - Mandatory Task tool delegation in all workflow skills for main orchestrator context protection (~50-80% context savings)
+- Spec-Driven: Evidence-based certainty enforcement with Verified/Cannot Verify binary, 6-item Certainty Checklist, and fail-closed loop
+
 ## [4.4.52] - 2026-01-28
 
 ### Changed

@@ -174,6 +174,9 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ## Version History
 
+### v4.4.53 (2026-01-28)
+Certainty Enforcement - Evidence-based gates with Verified/Cannot Verify binary, 6-item Certainty Checklist, fail-closed loop, Cannot Verify escape hatch, and 6 False Certainty Anti-Patterns. Details: REFERENCE.md.
+
 ### v4.4.50 (2026-01-28)
 TODO Enforcement Framework - Step 1 TODO Gate in /03_close (--force flag to override), Step 3.5 Per-SC TODO Verification, Step 3.9 Final TODO Sweep (max 50 retries with GPT/user escalation).
 
@@ -193,6 +196,5 @@ Proactive GPT Consultation - Added confidence-based GPT consultation with centra
 Atomic SC Principle - Added "One SC = One File OR One Concern" principle to spec-driven-workflow/SKILL.md for fine-grained Success Criteria, Enhanced confirm-plan/SKILL.md with SC Granularity Check (Step 1.9), Enhanced execute-plan/SKILL.md with Smart Grouping note for parallel execution by specialized agents
 
 ### v4.4.43 (2026-01-25)
-E2E Verification Framework - Added mandatory E2E verification to /02_execute final stage with project type detection, Chrome in Claude integration for web projects, and retry loop pattern (max 3 attempts), Enhanced QA/QC Framework - Enhanced code-reviewer agent with Risk Areas, Assumptions tracking, Context Manifest format, Quick Sufficiency Test, Documentation Refactoring - 9 SKILL.md and 2 agent files refactored to ≤200 lines, 2 companion docs (TROUBLESHOOTING.md, EXAMPLES.md) created, OOM Optimization - Reduced agent calls in /03_close from 3 to 2, merged verification steps, pure bash link checking
-
+E2E Verification, QA/QC Framework Enhancement, OOM Optimization (33% reduction in /03_close)
 **Full History**: See `CHANGELOG.md`

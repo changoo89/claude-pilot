@@ -36,6 +36,8 @@
 
 **CRITICAL**: Do NOT assume "X first, Y later" without user confirmation
 
+**From SKILL.md**: Triggers include completeness keywords, reference-based requests ("like X"), ambiguous scope, multi-layer architecture. When triggered, ask user to select scope from discovered layers.
+
 ---
 
 ### Step 1.6: Design Direction Check (SMART DETECTION)
@@ -52,6 +54,8 @@
 
 **Non-Blocking**: If no response within 30 seconds, proceed with `aesthetic_direction: minimal`
 
+**From SKILL.md**: Trigger keywords include landing, marketing, redesign, beautiful, modern, premium, hero, pricing, portfolio, homepage, brand, client-facing, polish, revamp. When triggered, ask user for aesthetic direction (Minimal/Warm/Bold). When not triggered, use "house style" defaults (Minimalist).
+
 ---
 
 ### Step 1.8: External Context Detection (MANDATORY)
@@ -66,6 +70,8 @@
 3. **Create Context Pack**: Goal, Inputs (Embedded), Derived Requirements, Assumptions & Unknowns, Traceability Map (see formats below)
 
 **CRITICAL**: Do NOT proceed to Step 2 if context capture incomplete
+
+**From SKILL.md**: Detection patterns include "Like X/similar to Y", external links, "Use API/docs", "Use library X", refactor references, implicit knowledge. Context types: Design, API, Library, Refactor, Domain. Action: Capture context using appropriate tools, create Context Pack with Goal, Inputs, Derived Requirements, Assumptions, Traceability Map.
 
 ---
 
@@ -89,6 +95,8 @@
 - If Missing Context table is empty → proceed to Step 1.9
 - If Missing Context has items → AskUserQuestion to resolve
 
+**From SKILL.md**: Generate Context Manifest with Collected Context, Related Files, and Missing Context tables. Store in draft file.
+
 ---
 
 ### Step 1.9: Absolute Certainty Gate
@@ -102,6 +110,8 @@
 4. **Test strategy**: Concrete verification methods defined (unit, integration, E2E)
 5. **Edge cases**: Exception scenarios listed (error handling, edge inputs)
 6. **Rollback plan**: Recovery strategy defined (revert steps, backup plan)
+
+**From SKILL.md**: Ensure 100% certainty before proceeding. Checklist includes: Codebase understanding, Dependency tracking, Impact scope, Test strategy, Edge cases, Rollback plan. Enforcement loop iterates until 100% certainty achieved (max 30min timebox). BLOCKING if incomplete: Escalate to user after timebox.
 
 **Enforcement Loop**:
 ```bash
@@ -138,6 +148,44 @@ fi
 
 **BLOCKING if incomplete**: Escalate to user after timebox with specific missing items
 
+---
+
+### Step 1.9 Certainty Checklist Details
+
+**Evidence-Based Verification** - Each item requires 3-part verification:
+
+1. **Codebase Understanding**
+   - Must produce: File list with purpose annotations (e.g., `auth.ts - authentication logic, api.ts - API client`)
+   - Verifier checks: `ls -1 [files] | wc -l` ≥ expected count AND each file annotated with purpose
+   - Fail if: Any relevant file missing from list OR any file lacks purpose annotation
+
+2. **Dependency Tracking**
+   - Must produce: Dependency graph showing import chains (e.g., `A imports B, B imports C`)
+   - Verifier checks: `grep -r "import.*from" [files]` output matches documented chains
+   - Fail if: Any import statement not documented OR circular dependency not identified
+
+3. **Impact Scope**
+   - Must produce: Affected files list with change description (e.g., `auth.ts - modify login(), api.ts - add endpoint`)
+   - Verifier checks: `grep -r "[function/class name]" [files]` returns all callers
+   - Fail if: Any caller not identified OR any affected file missing change description
+
+4. **Test Strategy**
+   - Must produce: Test plan with test types and commands (e.g., `Unit: npm test auth.test.ts, E2E: npm run e2e`)
+   - Verifier checks: Test files exist via `ls tests/` AND commands are runnable
+   - Fail if: Test command fails to run OR test file missing for any component
+
+5. **Edge Cases**
+   - Must produce: Edge case list with handling approach (e.g., `null input - return error, network timeout - retry 3x`)
+   - Verifier checks: Each edge case has defined handling strategy in code or plan
+   - Fail if: Any edge case lacks handling strategy OR strategy not implementable
+
+6. **Rollback Plan**
+   - Must produce: Rollback steps with verification (e.g., `1. Revert commit ABC123, 2. Verify tests pass`)
+   - Verifier checks: Git commands valid via `git log` AND rollback steps are reversible
+   - Fail if: Rollback steps incomplete OR any step not verifiable
+
+---
+
 ### Step 1.10: Readiness Gate
 
 **Purpose**: Final readiness check before proceeding to plan creation
@@ -149,6 +197,8 @@ fi
 4. **Acceptance Criteria Measurable**: All success criteria have concrete verification commands
 5. **Verification Plan Defined**: Test strategy includes unit/integration/E2E approach
 6. **Rollback Plan Defined**: Recovery steps documented in draft plan
+
+**From SKILL.md**: Final readiness check before plan creation. Checklist: Unknowns Enumerated, Assumptions Verified, Dependencies Clear, Acceptance Criteria Measurable, Verification Plan Defined, Rollback Plan Defined. Uncertainty loop: Max 3 retries with parallel exploration + GPT consultation. BLOCKING if incomplete: Checklist incomplete after MAX_RETRIES.
 
 **Uncertainty Loop**:
 ```bash
@@ -184,6 +234,40 @@ fi
 ```
 
 **BLOCKING if incomplete**: Checklist incomplete after MAX_RETRIES → escalate to user
+
+### Step 1.10 Readiness Checklist Details
+
+**Evidence-Based Verification** - Each item requires 3-part verification:
+
+1. **Unknowns Enumerated**
+   - Must produce: Assumptions & Unknowns table with all unknowns listed
+   - Verifier checks: `grep -c "| .* | Unknown |" draft_file.md` ≥ 0 (zero is valid if all resolved)
+   - Fail if: Unknowns table missing OR unknowns present without resolution plan
+
+2. **Assumptions Verified**
+   - Must produce: Assumptions & Unknowns table with Status column filled (Verified/Pending/Waived)
+   - Verifier checks: `grep -c "| .* | Assumption | Verified\\|Pending\\|Waived |" draft_file.md` equals assumption count
+   - Fail if: Any assumption has empty Status OR no validation method documented
+
+3. **Dependencies Clear**
+   - Must produce: Dependencies list (libraries, APIs, services) with versions
+   - Verifier checks: `grep -E "(npm|pip|cargo|go get|dependencies)" draft_file.md` returns matches
+   - Fail if: External dependencies exist but not documented OR versions not specified
+
+4. **Acceptance Criteria Measurable**
+   - Must produce: Success Criteria with concrete verification commands
+   - Verifier checks: `grep -c "Verify:" draft_file.md` equals SC count
+   - Fail if: Any SC lacks verification command OR command is vague (e.g., "test it")
+
+5. **Verification Plan Defined**
+   - Must produce: Test strategy section with unit/integration/E2E approach
+   - Verifier checks: `grep -E "(unit|integration|e2e|E2E)" draft_file.md` returns matches
+   - Fail if: Test strategy missing OR no test types specified
+
+6. **Rollback Plan Defined**
+   - Must produce: Rollback section with recovery steps
+   - Verifier checks: `grep -iE "(rollback|revert|recovery)" draft_file.md` returns matches
+   - Fail if: Rollback steps missing OR no recovery strategy documented
 
 ---
 
@@ -231,6 +315,27 @@ fi
 
 ---
 
+### Step 3.5: Mandatory Oracle Consultation (Detailed)
+
+**From SKILL.md**: GPT consultation at 3 points during /00_plan: start (Analyst), mid (Architect), end (Reviewer). Graceful fallback: WebSearch/Context7 if Codex unavailable.
+
+**mandatory_oracle_consultation** - GPT consultation at 3 points during /00_plan:
+
+| Phase | GPT Role | Purpose |
+|-------|----------|---------|
+| /00_plan start | Analyst | Requirements interpretation |
+| /00_plan mid | Architect | Architecture direction |
+| /00_plan end | Reviewer | Plan completeness |
+
+**Graceful Fallback**: WebSearch/Context7 if Codex unavailable
+
+**Implementation**:
+1. **Start**: After Step 1 (Explore Codebase), consult GPT Analyst for requirements interpretation
+2. **Mid**: After Step 2 (Gather Requirements), consult GPT Architect for architecture direction
+3. **End**: After Step 3 (Create Plan), consult GPT Reviewer for plan completeness
+
+---
+
 ### Step 4: Final User Decision (MANDATORY)
 
 **Purpose**: Let user choose next action
@@ -247,7 +352,9 @@ Ask user to choose next step:
 
 ---
 
-## Decision Tracking (Real-time)
+## Decision Tracking (Real-time) - Detailed
+
+**From SKILL.md**: Draft file (.pilot/plan/draft/{TIMESTAMP}_draft.md) contains: User Requirements (Verbatim) table, Decisions Log table (ID, Time, Decision, Context), Success Criteria with checkboxes.
 
 **Purpose**: Record decisions as they happen to prevent omissions in /01_confirm
 
@@ -301,7 +408,22 @@ mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 
 ---
 
-## Selection vs Execution (CRITICAL)
+## Atomic SC Principle (Detailed)
+
+**From SKILL.md**: "One SC = One File OR One Concern" - Each SC touches one file/location OR single technical aspect. Enables parallel execution, clear ownership. Anti-pattern: "Update frontend AND backend" → Split.
+
+**Detailed Explanation**:
+- **One File**: SC-1 modifies only `auth.ts`, SC-2 modifies only `api.ts`
+- **One Concern**: SC-1 handles authentication logic, SC-2 handles rate limiting
+- **Enables Parallel**: Independent SCs can be implemented by different agents simultaneously
+- **Clear Ownership**: Each SC has clear file/concern boundaries
+- **Anti-pattern**: "Update frontend (3 files) AND backend (2 files)" → Split into SC-1 (frontend) and SC-2 (backend)
+
+---
+
+## Selection vs Execution (CRITICAL) - Detailed
+
+**From SKILL.md**: When user says "Go with B": ✅ Continue planning (refine plan) | ❌ Start implementing. Implementation starts only when user runs `/01_confirm` → `/02_execute`.
 
 **When user says "Go with B" (choose option B):**
 - ✅ CORRECT: Continue planning with approach B → refine plan → present complete plan
@@ -365,6 +487,19 @@ mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 
 ---
 
+## Context Pack Structure (Detailed)
+
+**From SKILL.md**: Context Pack contains: Goal (user-facing outcome), Inputs (Embedded - per context type), Derived Requirements (measurable bullets), Assumptions & Unknowns (table with Item, Status, Resolution), Traceability Map (Requirement → Source).
+
+**Full Structure**:
+- **Goal**: User-facing outcome
+- **Inputs (Embedded)**: Per context type (see formats below)
+- **Derived Requirements**: Measurable bullets
+- **Assumptions & Unknowns**: Table with Item, Status, Resolution
+- **Traceability Map**: Requirement → Source
+
+---
+
 ## Context Pack Formats
 
 **Embedded Context**: Inline format with source, timestamp, key properties. See gpt-delegation/SKILL.md for capture tools.
@@ -377,7 +512,9 @@ mkdir -p "$PROJECT_ROOT/.pilot/plan/draft"
 
 ---
 
-## Confidence Score
+## Confidence Score (Detailed)
+
+**From SKILL.md**: MUST Consult GPT when: Architecture keywords detected OR confidence < 0.5. Threshold < 0.5 → MUST consult GPT before AskUserQuestion. See @.claude/skills/gpt-delegation/SKILL.md for full details.
 
 **Purpose**: Determine when to consult GPT proactively before asking user
 
@@ -397,6 +534,92 @@ confidence = 1.0 - (architecture_keywords * 0.3) - (multiple_approaches * 0.2) -
 - Architecture: architecture, tradeoff, design, scalability, pattern, choice
 - Multiple approaches: could, might, option A/B, either
 - Uncertainty: not sure, unclear, depends
+
+**Proactive GPT Consultation Pattern** (from SKILL.md):
+- **Trigger**: Architecture keywords detected OR confidence < 0.5
+- **Keywords**: architecture, tradeoff, design, scalability, pattern
+- **Threshold**: < 0.5 → MUST consult GPT before AskUserQuestion
+- **Pattern**: IF triggered → consult GPT Architect (read-only) → apply recommendation OR present to user → THEN AskUserQuestion if still ambiguous
+
+---
+
+## Fail-Closed Enforcement
+
+**Purpose**: Prevent premature gate passage when evidence is incomplete
+
+**Principle**: Iteration/timebox caps default to FAIL, not PASS
+
+### Enforcement Behavior
+
+**Current Problem**: Gates with iteration caps "fail-open" (cap reached = pass anyway)
+
+**Required Behavior**: Gates must "fail-closed" (cap reached = FAIL with missing-evidence report)
+
+### Iteration Cap Behavior
+
+**When iteration/timebox limit is reached**:
+1. **DO NOT** automatically pass the gate
+2. **MUST** FAIL with missing-evidence report
+3. **MUST** escalate to user with specific blockers
+
+**Example** (Step 1.9 Absolute Certainty Gate):
+```bash
+# Current (fail-open - WRONG)
+if ! all_checks_pass && [ $iteration -eq $max_iterations ]; then
+  echo "⏰ Max iterations reached, proceeding anyway"  # ❌ FAIL-OPEN
+  # Continue to next step
+fi
+
+# Required (fail-closed - CORRECT)
+if ! all_checks_pass && [ $iteration -eq $max_iterations ]; then
+  echo "❌ FAIL: Max iterations reached without achieving certainty"  # ✓ FAIL-CLOSED
+  generate_missing_evidence_report
+  AskUserQuestion "Cannot proceed without 100% certainty. Blockers: [list]"
+  exit 1
+fi
+```
+
+### Missing Evidence Report Format
+
+**When gate fails due to iteration/timebox cap**:
+
+```markdown
+## Missing Evidence Report
+
+### Gate: [Gate Name]
+**Status**: FAIL with missing-evidence report
+**Reason**: [Iteration cap reached | Timebox exceeded | Evidence incomplete]
+
+### Missing Evidence Items:
+1. **[Checklist Item]**: [What's missing] | [Why it couldn't be obtained] | [Proposed resolution]
+2. **[Checklist Item]**: [What's missing] | [Why it couldn't be obtained] | [Proposed resolution]
+
+### Attempted Actions:
+- [Action 1]: [Result]
+- [Action 2]: [Result]
+
+### Recommended Next Steps:
+- [User action required]
+- [Alternative approach]
+```
+
+### Application to Gates
+
+**Step 1.9 Absolute Certainty Gate**:
+- Max iterations: 10, Timebox: 30 minutes
+- If cap reached without 100% certainty → FAIL with missing-evidence report
+- Report lists: unchecked items, exploration attempts, GPT consultations
+
+**Step 1.10 Readiness Gate**:
+- Max retries: 3
+- If cap reached with incomplete checklist → FAIL with missing-evidence report
+- Report lists: missing unknowns, unverified assumptions, incomplete dependencies
+
+**Escalation Pattern**:
+1. Generate missing evidence report
+2. AskUserQuestion with specific blockers
+3. Wait for user input (do NOT proceed)
+4. User provides: missing info | explicit waiver | alternative approach
 
 ---
 

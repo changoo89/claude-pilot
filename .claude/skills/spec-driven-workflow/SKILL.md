@@ -76,18 +76,7 @@ description: SPEC-First planning workflow - explore codebase, gather requirement
 **GPT Consultation**: Use gpt-delegation skill → "read-only" mode for advisory
 
 ### MUST Consult GPT (Proactive Pattern)
-**Trigger**: Architecture keywords detected OR confidence < 0.5
-
-**Keywords**: architecture, tradeoff, design, scalability, pattern
-
-**Confidence Formula** (from gpt-delegation/SKILL.md):
-```
-confidence = 1.0 - (architecture_keywords * 0.3) - (multiple_approaches * 0.2) - (uncertainty * 0.2)
-```
-
-**Threshold**: < 0.5 → MUST consult GPT before AskUserQuestion
-
-**Pattern**: IF triggered → consult GPT Architect (read-only) → apply recommendation OR present to user → THEN AskUserQuestion if still ambiguous
+**Trigger**: Architecture keywords OR confidence < 0.5. **Threshold**: < 0.5 → MUST consult GPT before AskUserQuestion. **Details**: REFERENCE.md, @.claude/skills/gpt-delegation/SKILL.md
 
 ### Ask User (ONLY these):
 - **Business requirements**: What the user actually wants
@@ -109,47 +98,22 @@ Create TaskCreate entry for planning phase:
 Launch explorer and researcher in parallel for comprehensive discovery.
 
 ### Step 1.5: Scope Clarity Check (MANDATORY)
-**Triggers**: Completeness keywords ("full", "complete"), reference-based requests ("like X"), ambiguous scope, multi-layer architecture.
-
-When triggered: Ask user to select scope from discovered layers.
+**Triggers**: Completeness keywords, reference-based requests, ambiguous scope, multi-layer architecture. **Action**: Ask user to select scope. **Details**: REFERENCE.md
 
 ### Step 1.6: Design Direction Check (SMART DETECTION)
-**Trigger Keywords**: landing, marketing, redesign, beautiful, modern, premium, hero, pricing, portfolio, homepage, brand, client-facing, polish, revamp
-
-When triggered: Ask user for aesthetic direction (Minimal/Warm/Bold).
-When not triggered: Use "house style" defaults (Minimalist).
+**Triggers**: landing, marketing, redesign, beautiful, modern, premium, hero, pricing. **Action**: Ask aesthetic direction (Minimal/Warm/Bold) or use defaults. **Details**: REFERENCE.md
 
 ### Step 1.8: External Context Detection (MANDATORY)
-**Detection Patterns**: "Like X/similar to Y", external links, "Use API/docs", "Use library X", refactor references, implicit knowledge
-
-**Context Types**: Design, API, Library, Refactor, Domain
-
-**Action**: Capture context using appropriate tools, create Context Pack with Goal, Inputs, Derived Requirements, Assumptions, Traceability Map.
+**Triggers**: "Like X", external links, "Use API/library", refactor references. **Action**: Capture context, create Context Pack. **Details**: REFERENCE.md
 
 ### Step 1.8.5: Context Manifest Generation
-Generate Context Manifest with Collected Context, Related Files, and Missing Context tables.
+Generate Context Manifest with Collected Context, Related Files, Missing Context tables. **Details**: REFERENCE.md
 
 ### Step 1.9: Absolute Certainty Gate
-**Purpose**: Ensure 100% certainty before proceeding to requirements gathering.
-
-**Certainty Checklist** (ALL MUST PASS): Codebase understanding, Dependency tracking, Impact scope, Test strategy, Edge cases, Rollback plan
-
-**Enforcement Loop**: Iterate until 100% certainty achieved (max 30min timebox)
-
-**BLOCKING if incomplete**: Escalate to user after timebox
-
-**Details**: See REFERENCE.md for full checklist and implementation
+**Checklist**: Codebase understanding, Dependencies, Impact scope, Test strategy, Edge cases, Rollback plan. **Loop**: Max 30min timebox. **Blocking**: Escalate to user. **Details**: REFERENCE.md
 
 ### Step 1.10: Readiness Gate
-**Purpose**: Final readiness check before proceeding to plan creation.
-
-**Readiness Checklist** (ALL MUST PASS): Unknowns Enumerated, Assumptions Verified, Dependencies Clear, Acceptance Criteria Measurable, Verification Plan Defined, Rollback Plan Defined
-
-**Uncertainty Loop**: Max 3 retries with parallel exploration + GPT consultation
-
-**BLOCKING if incomplete**: Checklist incomplete after MAX_RETRIES
-
-**Details**: See REFERENCE.md for full implementation
+**Checklist**: Unknowns Enumerated, Assumptions Verified, Dependencies Clear, Acceptance Criteria Measurable, Verification Plan Defined, Rollback Plan Defined. **Loop**: Max 3 retries. **Blocking**: Incomplete after MAX_RETRIES. **Details**: REFERENCE.md
 
 ### Step 2: Gather Requirements
 Create User Requirements table with ID, Timestamp, User Input (Original), Summary.
@@ -160,15 +124,7 @@ Create User Requirements table with ID, Timestamp, User Input (Original), Summar
 **Approach Selection**: Apply question filter - one clear approach → present directly; multiple approaches → ask user; technical trade-offs → consult GPT.
 
 ### Step 3.5: Mandatory Oracle Consultation (NEW)
-**mandatory_oracle_consultation** - GPT consultation at 3 points during /00_plan:
-
-| Phase | GPT Role | Purpose |
-|-------|----------|---------|
-| /00_plan start | Analyst | Requirements interpretation |
-| /00_plan mid | Architect | Architecture direction |
-| /00_plan end | Reviewer | Plan completeness |
-
-**Graceful Fallback**: WebSearch/Context7 if Codex unavailable
+GPT consultation at 3 points: start (Analyst), mid (Architect), end (Reviewer). Fallback: WebSearch/Context7. **Details**: REFERENCE.md
 
 ### Step 4: Final User Decision (MANDATORY)
 **NEVER auto-proceed to /01_confirm or /02_execute.**
@@ -180,28 +136,35 @@ Ask user to choose: A) Continue editing, B) Explore different approach, C) Run /
 ## Core Concepts
 
 ### Context Pack Structure
-**Goal**: User-facing outcome
-**Inputs (Embedded)**: Per context type
-**Derived Requirements**: Measurable bullets
-**Assumptions & Unknowns**: Table with Item, Status, Resolution
-**Traceability Map**: Requirement → Source
+Goal, Inputs (Embedded), Derived Requirements, Assumptions & Unknowns, Traceability Map. **Details**: REFERENCE.md
 
 ### Decision Tracking (Real-time)
-**Draft file** (.pilot/plan/draft/{TIMESTAMP}_draft.md) contains:
-- User Requirements (Verbatim) table
-- Decisions Log table (ID, Time, Decision, Context)
-- Success Criteria with checkboxes
+Draft file contains: User Requirements table, Decisions Log, Success Criteria with checkboxes. **Details**: REFERENCE.md
 
 ### Atomic SC Principle
-**"One SC = One File OR One Concern"**
-Each SC touches one file/location OR single technical aspect. Enables parallel execution, clear ownership. Anti-pattern: "Update frontend AND backend" → Split.
+"One SC = One File OR One Concern" - enables parallel execution, clear ownership. **Details**: REFERENCE.md
 
 ### Selection vs Execution (CRITICAL)
-**When user says "Go with B"**:
-- ✅ CORRECT: Continue planning with approach B → refine plan
-- ❌ WRONG: Start implementing approach B
+**When user says "Go with B"**: ✅ Continue planning (refine plan) | ❌ Start implementing. **Implementation starts**: Only when user runs `/01_confirm` → `/02_execute`. **Details**: REFERENCE.md
 
-**Implementation ONLY starts when**: User explicitly runs `/01_confirm` → `/02_execute`
+### Operational Certainty Definition
+
+**Binary**: **Verified** (with evidence) OR **Cannot Verify** (with artifact). **Evidence**: Code reference (file + lines), Test output (cmd + results), GPT log (ID + summary), User confirmation (timestamp + response). **Cannot Verify**: Create artifact (what, why, needs) + notify user. **Details**: REFERENCE.md
+
+### False Certainty Anti-Patterns
+
+**BLOCKED Phrases** (never declare certainty with these):
+
+| Anti-Pattern | Example | Remedy |
+|--------------|---------|--------|
+| **Vague language** | "I think", "probably", "should work" | Use "Verified" OR "Cannot Verify" |
+| **Uncited claims** | "Tests will pass" (no test run) | Run command, cite output |
+| **Assumption as fact** | "File exists" (not checked) | Verify with Read/Glob, cite result |
+| **Missing verification** | "Pattern found" (no grep output) | Execute verification command, show output |
+| **Skipped exploration** | "Didn't check X but confident" | Mark as "Cannot Verify", create artifact |
+| **Implicit unknowns** | Proceeding without stating gaps | Enumerate unknowns explicitly |
+
+**Enforcement**: Certainty Gate (Step 1.9) blocks completion if any anti-pattern detected. **Details**: REFERENCE.md
 
 ---
 

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## [4.4.52] - 2026-01-28
+
+### Changed
+- Workflow: Orchestrator delegation enforcement (70e4ba4)
+
 ## [4.4.51] - 2026-01-28
 
 ### Added

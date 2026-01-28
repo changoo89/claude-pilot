@@ -6,6 +6,117 @@
 
 ---
 
+## Step 1: Plan Detection (Full Bash)
+
+```bash
+PROJECT_ROOT="$(pwd)"
+PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | sort | head -1)"
+
+[ -z "$PLAN_PATH" ] && { echo "❌ No plan found"; exit 1; }
+
+# Move from pending/ to in_progress/
+if echo "$PLAN_PATH" | grep -q "/pending/"; then
+    PLAN_FILENAME="$(basename "$PLAN_PATH")"
+    IN_PROGRESS_PATH="$PROJECT_ROOT/.pilot/plan/in_progress/${PLAN_FILENAME}"
+    mkdir -p "$PROJECT_ROOT/.pilot/plan/in_progress"
+    mv "$PLAN_PATH" "$IN_PROGRESS_PATH"
+    PLAN_PATH="$IN_PROGRESS_PATH"
+fi
+
+echo "✓ Plan: $PLAN_PATH"
+
+# Extract SCs (supports both header ### SC-N: and checkbox - [ ] **SC-N** formats)
+SC_LIST=$(grep -E "^### SC-[0-9]+:|^- \[ \] \*\*SC-[0-9]+\*\*" "$PLAN_PATH" | sed -E 's/.*SC-([0-9]+).*/SC-\1/')
+SC_COUNT=$(echo "$SC_LIST" | grep -c "SC-" || echo "0")
+
+if [ "$SC_COUNT" -eq 0 ]; then
+    echo "❌ No Success Criteria found in plan"
+    exit 1
+fi
+
+echo "✓ Found $SC_COUNT Success Criteria"
+echo "$SC_LIST"
+```
+
+---
+
+## Step 2.7: Pre-Execution Confidence (Full Bash)
+
+```bash
+# Confidence detection (arch/multi/uncertain patterns reduce score)
+ARCH_COUNT=$(echo "$SC_CONTENT" | grep -ciE 'architecture|tradeoff|design|scalability|pattern|choice' || echo "0")
+APPROACH_COUNT=$(echo "$SC_CONTENT" | grep -ciE 'could|might|option [AB]|either' || echo "0")
+UNCERTAINTY_COUNT=$(echo "$SC_CONTENT" | grep -ciE 'not sure|unclear|depends' || echo "0")
+
+# Calculate: 1.0 - (arch*0.3) - (approach*0.2) - (uncertain*0.2), clamp to [0,1]
+CONFIDENCE=$(echo "scale=2; 1.0 - ($ARCH_COUNT * 0.3) - ($APPROACH_COUNT * 0.2) - ($UNCERTAINTY_COUNT * 0.2)" | bc)
+CONFIDENCE=$(echo "$CONFIDENCE" | awk '{if ($1 < 0) print 0; else if ($1 > 1) print 1; else print $1}')
+echo "📊 Pre-Execution Confidence: $CONFIDENCE"
+
+# Proactive GPT if < 0.5 (graceful fallback if codex unavailable)
+if (( $(echo "$CONFIDENCE < 0.5" | bc -l) )); then
+    echo "⚠️  Low confidence - consulting GPT Architect"
+    if command -v codex &> /dev/null; then
+        codex exec -m gpt-5.2 -s read-only -c reasoning_effort=medium --json "TASK: Review SC $SC for architecture/approach/risks. Confidence: $CONFIDENCE"
+        echo "✓ GPT consultation complete - apply recommendations"
+    else
+        echo "⚠️  Codex unavailable - Claude-only mode (graceful fallback)"
+    fi
+fi
+```
+
+---
+
+## Step 3: Dependency Analysis (Full Bash)
+
+```bash
+for SC in $SC_LIST; do
+    SC_NUM=$(echo "$SC" | sed 's/SC-//')
+    SC_CONTENT=$(sed -n "/### SC-${SC_NUM}:/,/^###\|^- \[ \] \*\*SC-/p" "$PLAN_PATH" | tail -n +2 | head -n -1 2>/dev/null)
+    if [ -z "$SC_CONTENT" ]; then
+        SC_CONTENT=$(sed -n "/\*\*SC-${SC_NUM}\*\*/,/^\*- \[ \]/p" "$PLAN_PATH" | tail -n +2 | head -n -1 2>/dev/null)
+    fi
+
+    # Extract SC-specific files (look for file paths in backticks)
+    SC_FILES=$(echo "$SC_CONTENT" | grep -oE '\`[^`]+\.(ts|tsx|js|jsx|py|md|sh)\`' | tr -d '`' || echo "")
+
+    # Test Type Detection (explicit rules: path + keyword + script-based)
+    if echo "$SC_CONTENT" | grep -qiE 'e2e|integration|playwright|cypress|\.e2e\.|/e2e/|/integration/'; then
+        TEST_TYPE="e2e"
+        echo "SC-${SC_NUM}: TestType=$TEST_TYPE (sequential execution required)"
+    else
+        TEST_TYPE="unit"
+        echo "SC-${SC_NUM}: TestType=$TEST_TYPE (parallel allowed)"
+    fi
+
+    # Per-SC Agent Selection (Priority: plugin > frontend > backend > coder)
+    if echo "$SC_FILES" | grep -qE "^\.claude/|^docs/"; then
+        SC_AGENT="coder"
+        echo "SC-${SC_NUM}: Agent=coder (plugin/docs), Files: $SC_FILES"
+    elif echo "$SC_FILES" | grep -qE "^src/components/|^src/ui/" && \
+         echo "$SC_CONTENT" | grep -qiE "component|UI|React|CSS|Tailwind"; then
+        SC_AGENT="frontend-engineer"
+        echo "SC-${SC_NUM}: Agent=frontend-engineer, Files: $SC_FILES"
+    elif echo "$SC_FILES" | grep -qE "^src/api/|^src/server/|^server/" && \
+         echo "$SC_CONTENT" | grep -qiE "API|endpoint|database|server|backend"; then
+        SC_AGENT="backend-engineer"
+        echo "SC-${SC_NUM}: Agent=backend-engineer, Files: $SC_FILES"
+    else
+        SC_AGENT="coder"
+        echo "SC-${SC_NUM}: Agent=coder (default), Files: $SC_FILES"
+    fi
+
+    # Determine grouping (E2E tests always sequential for safety)
+    if [ "$TEST_TYPE" = "e2e" ] || echo "$SC_CONTENT" | grep -qiE 'after|depends|requires|follows'; then
+        echo "**SequentialGroup**: $SC (test-type=$TEST_TYPE)"
+    else
+        echo "**ParallelGroup**: $SC (test-type=$TEST_TYPE)"
+    fi
+done
+```
+
+---
+
 ## Worktree Mode Setup
 
 Full guide: **@.claude/skills/using-git-worktrees/SKILL.md**

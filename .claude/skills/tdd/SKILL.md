@@ -7,6 +7,7 @@ description: Test-Driven Development (TDD) skill for Red-Green-Refactor cycle. U
 
 > **Purpose**: Execute TDD Red-Green-Refactor cycle for feature implementation
 > **Target**: Coder Agent implementing features with test-first methodology
+> **⚠️ Subagents Only**: This skill is for coder/tester subagents. Main orchestrator must delegate via Task tool.
 
 ---
 

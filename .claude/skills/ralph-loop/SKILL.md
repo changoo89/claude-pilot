@@ -7,6 +7,7 @@ description: Use after first code change. Autonomous iteration until all quality
 
 > **Purpose**: Autonomous completion loop - iterate until all tests pass, coverage met, type-check clean
 > **Target**: Coder, Tester, Validator agents
+> **⚠️ Subagents Only**: This skill is for coder/tester subagents. Main orchestrator must delegate via Task tool.
 
 ---
 

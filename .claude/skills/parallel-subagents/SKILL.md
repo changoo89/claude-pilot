@@ -36,6 +36,26 @@ Task:
 
 **Note**: `$SC_AGENT` is selected per-SC (not per-plan) in execute-plan Step 3 based on each SC's file paths and keywords. Different SCs may use different specialized agents (e.g., SC-1 → frontend-engineer, SC-2 → backend-engineer).
 
+### ⚠️ What "Parallel" Means (CRITICAL)
+
+**Parallel = Multiple Task calls in SAME response**:
+```markdown
+# ✅ TRUE PARALLEL (single response, multiple Task calls)
+Task: subagent_type: coder, prompt: "Execute SC-1..."
+Task: subagent_type: coder, prompt: "Execute SC-2..."
+Task: subagent_type: coder, prompt: "Execute SC-3..."
+```
+
+**Sequential = One Task per response (loop dispatch)**:
+```markdown
+# ❌ NOT PARALLEL (even if called "parallel")
+for SC in $SC_LIST; do
+    Task: subagent_type: coder, prompt: "Execute $SC..."
+done
+```
+
+**If platform cannot true-parallelize**: Rename to "batched delegation" (do not claim parallelism)
+
 ## Core Concepts
 
 ### Parallel Execution Patterns

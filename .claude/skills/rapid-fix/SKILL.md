@@ -45,6 +45,27 @@ description: Rapid bug fix workflow - auto-plan, execute, test, and close simple
 
 ## Execution Steps
 
+---
+
+## ⛔ MAIN ORCHESTRATOR RESTRICTIONS (ABSOLUTE)
+
+**FORBIDDEN** (orchestrator direct use prohibited):
+- Direct code modification without Task tool
+- Direct fix verification without agent delegation
+
+**MANDATORY** (must delegate via Task tool):
+- Step 1 scope validation: `Task: subagent_type: researcher` (verify classification)
+- Step 3 fix execution: `Task: subagent_type: coder`
+- Step 4 diff verification: `Task: subagent_type: validator` (before user confirmation)
+- Step 6 completion check: `Task: subagent_type: validator`
+
+**TRIVIAL EXCEPTIONS** (no delegation needed):
+- Complexity score calculation, plan file creation, git diff display, user prompts
+
+**WHY**: Subagent isolation provides 50-80% context savings (CLAUDE.md:58-59)
+
+---
+
 ### Step 1: Validate Scope
 **Goal**: Reject complex tasks that belong in `/00_plan`
 

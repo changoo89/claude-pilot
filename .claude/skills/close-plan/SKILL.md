@@ -34,6 +34,25 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 
 ---
 
+## ⛔ MAIN ORCHESTRATOR RESTRICTIONS (ABSOLUTE)
+
+**FORBIDDEN** (orchestrator direct use prohibited):
+- Direct evidence verification without Task tool
+- Direct TODO gate resolution without agent delegation
+- Direct documentation sync without Task tool
+
+**MANDATORY** (must delegate via Task tool):
+- Step 1 TODO analysis: `Task: subagent_type: validator` before user escalation
+- Step 2 evidence verification: `Task: subagent_type: validator`
+- Step 3 docs sync: `Task: subagent_type: documenter` (conditional)
+
+**TRIVIAL EXCEPTIONS** (no delegation needed):
+- Argument parsing, file existence check, timestamp/directory creation, git commit formatting
+
+**WHY**: Subagent isolation provides 50-80% context savings (CLAUDE.md:58-59)
+
+---
+
 ## Execution Steps (Summary)
 
 ### Step 0: Mandatory Oracle Consultation (NEW)
@@ -47,7 +66,8 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 - Parse arguments (plan_path, no-commit, no-push, force)
 - Check for incomplete Success Criteria
 - **TODO Completion Check (BLOCKING)**: Count unchecked `- [ ]` items
-  - Exit if unchecked TODOs exist (unless --force flag)
+  - Delegate to validator agent for TODO analysis and resolution attempt
+  - Exit if validator cannot resolve (unless --force flag)
   - Full implementation: @REFERENCE.md - TODO Completion Gate
 - **TaskList Verification**: Verify all tasks completed via TaskList tool
 - Exit if no plan or SCs incomplete

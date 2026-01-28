@@ -12,11 +12,10 @@ description: Comprehensive code review with multi-angle analysis using parallel 
 
 ## Quick Start
 
-### When to Use This Skill
+### When to Use
 - Review plan before execution (/01_confirm, /review)
 - Detect gaps in external service integration
 - Validate test plan completeness
-- Apply findings to improve plan quality
 
 ### Quick Reference
 ```bash
@@ -24,78 +23,72 @@ description: Comprehensive code review with multi-angle analysis using parallel 
 /review .pilot/plan/pending/plan.md
 ```
 
-**In Scope**: 8 mandatory reviews, extended reviews, gap detection, autonomous perspectives, findings application
+**In Scope**: 8 mandatory reviews, extended reviews, gap detection, findings application
 
-**Out of Scope**: Plan creation → @.claude/skills/spec-driven-workflow/SKILL.md | Test execution → @.claude/skills/tdd/SKILL.md | GPT delegation → @.claude/rules/delegator/orchestration.md
+**Out of Scope**: Plan creation → spec-driven-workflow | Test execution → tdd | GPT delegation → @.claude/rules/delegator/orchestration.md
 
 ---
 
 ## Execution Steps
 
-### ⚠️ EXECUTION DIRECTIVE
+**Core Philosophy**: Comprehensive (multi-angle) | Actionable (findings map to sections) | Severity-based (BLOCKING → Interactive Recovery)
 
-**IMPORTANT**: Execute ALL steps IMMEDIATELY and AUTOMATICALLY without waiting for user input.
+---
 
-**Core Philosophy**: Comprehensive (multi-angle review) | Actionable (findings map to plan sections) | Severity-based (BLOCKING → Interactive Recovery)
+## ⛔ MAIN ORCHESTRATOR RESTRICTIONS
+
+**MANDATORY** (delegate via Task tool):
+- Step 2 parallel review: tester + validator + code-reviewer (parallel)
+- Step 4 plan updates: documenter
+- Step 9.5 multi-angle (5+ SCs): 3 parallel plan-reviewer agents
+
+**TRIVIAL EXCEPTIONS**: Plan loading, type detection, severity classification
+
+**WHY**: 50-80% context savings
 
 ---
 
 ## Step 1: Load Plan
 
-**⚠️ CRITICAL**: Always use absolute path based on Claude Code's initial working directory.
-
 ```bash
-PROJECT_ROOT="$(pwd)"
-PLAN_PATH="${1:-$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | head -1)}"
+PLAN_PATH="${1:-$(find "$(pwd)/.pilot/plan/pending" "$(pwd)/.pilot/plan/in_progress" -name "*.md" -type f | head -1)}"
 [ -f "$PLAN_PATH" ] || { echo "❌ No plan found"; exit 1; }
-echo "📋 Loaded plan: $PLAN_PATH"
 ```
 
 ---
 
 ## Step 2: Multi-Angle Parallel Review
 
-Launch 3 parallel agents for comprehensive review:
+Launch 3 parallel agents (60-70% faster):
 
-### Task 2.1: Test Coverage Review
-
-```markdown
-Task: subagent_type: tester, prompt: "Review plan: $PLAN_PATH. Evaluate test coverage: SCs verifiable? verify: commands exist? coverage ≥80%? scenarios comprehensive? Output: TEST_PASS/FAIL with findings"
+**Task 2.1: Test Coverage**
+```
+Task: subagent_type: tester, prompt: "Review plan: $PLAN_PATH. Test coverage: SCs verifiable? commands? coverage ≥80%? Output: PASS/FAIL + findings"
 ```
 
-### Task 2.2: Type Safety & Lint Review
-
-```markdown
-Task: subagent_type: validator, prompt: "Review plan: $PLAN_PATH. Evaluate type safety: types specified? lint check included? type issues? code quality (SRP, DRY, KISS)? Output: VALIDATE_PASS/FAIL with findings"
+**Task 2.2: Type Safety & Lint**
+```
+Task: subagent_type: validator, prompt: "Review plan: $PLAN_PATH. Type safety: types? lint? quality (SRP/DRY/KISS)? Output: PASS/FAIL + findings"
 ```
 
-### Task 2.3: Code Quality Review
-
-```markdown
-Task: subagent_type: code-reviewer, prompt: "Review plan: $PLAN_PATH. Evaluate code quality: architecture? size limits (≤50/≤200)? early return? nesting ≤3? bugs/edge cases? Output: REVIEW_PASS/FAIL with findings"
+**Task 2.3: Code Quality**
 ```
-
-**Speedup**: 60-70% faster
+Task: subagent_type: code-reviewer, prompt: "Review plan: $PLAN_PATH. Quality: architecture? size (≤50/≤200)? nesting ≤3? edge cases? Output: PASS/FAIL + findings"
+```
 
 ---
 
 ## Step 3: Process Findings
 
-**BLOCKING**: Interactive Recovery | **Critical/Warning/Suggestion**: Auto-apply
-
 | Level | Symbol | Action |
 |-------|--------|--------|
-| **BLOCKING** | 🛑 | Interactive Recovery |
-| **Critical** | 🚨 | Must fix |
-| **Warning** | ⚠️ | Should fix |
-| **Suggestion** | 💡 | Nice to have |
+| BLOCKING | 🛑 | Interactive Recovery |
+| Critical | 🚨 | Must fix |
+| Warning | ⚠️ | Should fix |
+| Suggestion | 💡 | Nice to have |
 
 ```bash
-if echo "$findings" | grep -q "🛑.*BLOCKING"; then
-    echo "🛑 BLOCKING - Interactive Recovery"
-    return 1
-fi
-# Auto-apply Critical/Warning/Suggestion
+echo "$findings" | grep -q "🛑.*BLOCKING" && { echo "🛑 BLOCKING"; return 1; }
 ```
 
 ---
@@ -112,87 +105,46 @@ fi
 
 ---
 
-## Review Workflow Summary
+## Review Workflow
 
-### Step 0: Load plan → Extract SC count
-
+**Step 0**: Extract SC count
 ```bash
 sc_count=$(grep -c "^- \[.\] \*\*SC-" "$PLAN_PATH" || echo "0")
 ```
 
-### Step 1: Proactive investigation
+**Step 1**: Search "needs investigation/confirmation/review" keywords
 
-Search for "needs investigation/confirmation/review" keywords
+**Step 2**: Type detection (code, config, docs, scenario, infra, db, ai)
 
-### Step 2: Type detection
+**Step 3**: 8 mandatory reviews
+1. Development Principles: SOLID, DRY, KISS, YAGNI
+2. Project Structure: File locations, naming
+3. Requirement Completeness: Explicit + implicit
+4. Logic Errors: Order, dependencies, edge cases
+5. Existing Code Reuse: Search utilities, patterns
+6. Better Alternatives: Simpler/scalable approaches
+7. Project Alignment: Type-check, API docs
+8. Long-term Impact: Consequences, technical debt
 
-| Type | Keywords |
-|------|----------|
-| **code** | function, component, API, bug fix, src/, lib/ |
-| **config** | .claude/, settings, rules, template, workflow |
-| **documentation** | CLAUDE.md, README, guide, docs/, CONTEXT.md |
-| **scenario** | test, validation, edge cases |
-| **infra** | Vercel, env, deploy, CI/CD |
-| **db** | migration, table, schema |
-| **ai** | LLM, prompts, AI |
+**Step 5**: Extended reviews (type-activated)
+- A: API Compatibility | B: Type Safety | C: Documentation | D: Test Coverage
+- E: Migration | F: Deployment | G: Prompt Engineering | H: Scenarios
 
-### Step 3: 8 mandatory reviews
+**Step 6**: Autonomous perspectives
+- Security | Performance | UX | Maintainability | Concurrency | Error Recovery
 
-1. **Development Principles**: SOLID, DRY, KISS, YAGNI
-2. **Project Structure**: File locations, naming, boundaries
-3. **Requirement Completeness**: Explicit + implicit requirements
-4. **Logic Errors**: Order of operations, dependencies, edge cases
-5. **Existing Code Reuse**: Search existing utilities, patterns
-6. **Better Alternatives**: Simpler/scalable/testable approaches
-7. **Project Alignment**: Type-check, API docs consistency
-8. **Long-term Impact**: Future consequences, technical debt
+**Step 7**: Gap detection (BLOCKING → Interactive Recovery)
+- 9.1: External API | 9.2: Database | 9.3: Async | 9.4: File Ops
+- 9.5: Env Vars | 9.6: Error Handling | 9.7: Test Plan (BLOCKING)
 
-### Step 5: Extended reviews (type-activated)
-
-| Review | Type | Checks |
-|--------|------|--------|
-| **A: API Compatibility** | Code | Breaking changes, version compatibility |
-| **B: Type Safety** | Code | TypeScript types, interfaces |
-| **C: Documentation Consistency** | Documentation | Terminology, formatting |
-| **D: Test Coverage** | Code, Scenario | Unit tests, integration tests |
-| **E: Migration Strategy** | DB Schema | Migration path, rollback plan |
-| **F: Deployment** | Infrastructure | Deployment steps, env vars |
-| **G: Prompt Engineering** | AI/Prompts | Prompt clarity, context |
-| **H: Coverage Scenarios** | Scenario | Happy path, error paths |
-
-### Step 6: Autonomous perspectives (6 angles)
-
-- **Security**: Input validation, auth/authz, secrets
-- **Performance**: Expectations, bottlenecks, optimization
-- **UX**: User experience, error messages
-- **Maintainability**: Code organization, documentation
-- **Concurrency**: Race conditions, locking
-- **Error Recovery**: Error handling, graceful degradation
-
-### Step 7: Gap detection (BLOCKING triggers Interactive Recovery)
-
-- **9.1 External API**: SDK vs HTTP, endpoint verification, error handling
-- **9.2 Database Operations**: Migration files, rollback strategy
-- **9.3 Async Operations**: Timeout config, race conditions
-- **9.4 File Operations**: Path resolution, existence checks
-- **9.5 Environment Variables**: Documentation, existence verification
-- **9.6 Error Handling**: No silent catches, user notification
-- **9.7 Test Plan Verification** (BLOCKING): Scenarios, test files, commands, coverage
-
-### Step 9.5: Parallel multi-angle review (5+ SCs)
-
+**Step 9.5**: Parallel multi-angle (5+ SCs)
 ```bash
-if [ "$sc_count" -ge 5 ]; then
-  echo "🚀 Parallel multi-angle review (Security/Quality/Architecture)"
-fi
+[ "$sc_count" -ge 5 ] && echo "🚀 Parallel Security/Quality/Architecture"
 ```
 
-### Step 10: GPT expert review (optional)
-
+**Step 10**: GPT expert (5+ SCs or architecture/security/auth)
 ```bash
-if [ "$sc_count" -ge 5 ] || echo "$PLAN_PATH" | grep -qiE "architecture|security|auth"; then
-  echo "🤖 GPT expert review"
-fi
+[ "$sc_count" -ge 5 ] || echo "$PLAN_PATH" | grep -qiE "architecture|security|auth" && echo "🤖 GPT"
 ```
 
 ---

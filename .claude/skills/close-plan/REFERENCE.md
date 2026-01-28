@@ -407,12 +407,31 @@ if [ "$UNCHECKED" -gt 0 ]; then
     grep "^- \[ \]" "$PLAN_PATH" || true
     echo ""
 
-    if [ "$FORCE_FLAG" != "true" ]; then
-        echo "Use --force to bypass (NOT recommended)"
-        echo "Example: /03_close --force"
-        exit 1
+    # Delegate to validator agent BEFORE user escalation
+    echo "▶ Delegating to validator agent for TODO analysis..."
+
+    # Task tool delegation pattern
+    # Task: subagent_type: validator, prompt: "Analyze unchecked TODOs in $PLAN_PATH. Identify blockers and attempt resolution. For each TODO: 1) Check if already completed (code exists), 2) Attempt to complete if trivial, 3) Mark [x] if resolved, 4) Report blockers requiring user input."
+
+    # Re-check TODOs after validator attempt
+    UNCHECKED_AFTER=$(grep -c "^- \[ \]" "$PLAN_PATH" || echo "0")
+
+    if [ "$UNCHECKED_AFTER" -gt 0 ]; then
+        echo "❌ $UNCHECKED_AFTER TODOs remain after validator analysis"
+        echo ""
+        grep "^- \[ \]" "$PLAN_PATH" || true
+        echo ""
+
+        if [ "$FORCE_FLAG" != "true" ]; then
+            echo "Validator could not resolve all TODOs"
+            echo "Use --force to bypass (NOT recommended)"
+            echo "Example: /03_close --force"
+            exit 1
+        else
+            echo "⚠️  WARNING: Proceeding despite unchecked TODOs (--force)"
+        fi
     else
-        echo "⚠️  WARNING: Proceeding despite unchecked TODOs (--force)"
+        echo "✓ Validator resolved all TODOs"
     fi
 fi
 

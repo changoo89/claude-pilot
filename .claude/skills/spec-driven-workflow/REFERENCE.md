@@ -103,6 +103,8 @@
 
 **Purpose**: Ensure 100% certainty before proceeding to requirements gathering
 
+**Agent Delegation**: BEFORE user escalation, delegate to explorer/researcher agents for gap investigation
+
 **Certainty Checklist** (ALL MUST PASS):
 1. **Codebase understanding**: 100% relevant files explored (use explorer + researcher agents)
 2. **Dependency tracking**: All import/require chains traced (check package.json, imports)
@@ -140,13 +142,19 @@ while [ $iteration -lt $max_iterations ]; do
   ((iteration++))
 done
 
-# BLOCKING if incomplete after timebox
+# BEFORE user escalation, delegate to agents for gap investigation
 if ! all_checks_pass; then
-  AskUserQuestion "Unable to achieve 100% certainty. Need help with: [missing items]"
+  # Task: subagent_type: explorer, prompt: "Investigate gaps in certainty checklist items: [missing items]"
+  # Task: subagent_type: researcher, prompt: "Research unknowns in certainty verification for: [missing items]"
+
+  # If agents cannot resolve gaps, then escalate to user
+  if ! all_checks_pass_after_delegation; then
+    AskUserQuestion "Unable to achieve 100% certainty. Need help with: [missing items]"
+  fi
 fi
 ```
 
-**BLOCKING if incomplete**: Escalate to user after timebox with specific missing items
+**BLOCKING if incomplete**: Delegate to explorer/researcher agents BEFORE user escalation. Only escalate to user if agents cannot resolve gaps.
 
 ---
 
@@ -190,6 +198,8 @@ fi
 
 **Purpose**: Final readiness check before proceeding to plan creation
 
+**Agent Delegation**: BEFORE user escalation, delegate to explorer/researcher agents for unknowns investigation
+
 **Readiness Checklist** (ALL MUST PASS):
 1. **Unknowns Enumerated**: All unknowns listed in Assumptions & Unknowns table
 2. **Assumptions Verified**: All assumptions validated or marked for user confirmation
@@ -225,15 +235,21 @@ while [ $retry -lt $max_retries ]; do
   ((retry++))
 done
 
-# BLOCKING if checklist incomplete after MAX_RETRIES
+# BEFORE user escalation, delegate to agents for unknowns investigation
 if ! readiness_check_pass; then
-  echo "❌ BLOCKING: Readiness Gate incomplete after $max_retries retries"
-  AskUserQuestion "Cannot proceed with incomplete readiness. Missing: [items]"
-  exit 1
+  # Task: subagent_type: explorer, prompt: "Investigate unknowns in readiness checklist: [missing items]"
+  # Task: subagent_type: researcher, prompt: "Research assumptions and dependencies for: [missing items]"
+
+  # If agents cannot resolve readiness gaps, then escalate to user
+  if ! readiness_check_pass_after_delegation; then
+    echo "❌ BLOCKING: Readiness Gate incomplete after $max_retries retries"
+    AskUserQuestion "Cannot proceed with incomplete readiness. Missing: [items]"
+    exit 1
+  fi
 fi
 ```
 
-**BLOCKING if incomplete**: Checklist incomplete after MAX_RETRIES → escalate to user
+**BLOCKING if incomplete**: Delegate to explorer/researcher agents BEFORE user escalation. Only escalate to user if agents cannot resolve readiness gaps.
 
 ### Step 1.10 Readiness Checklist Details
 

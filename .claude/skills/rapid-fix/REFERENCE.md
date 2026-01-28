@@ -10,6 +10,12 @@
 
 **Purpose**: Reject complex tasks before plan generation
 
+**Delegation Pattern**:
+```bash
+# Delegate scope validation to researcher before proceeding
+Task: subagent_type: researcher, prompt: "Validate fix complexity classification. Verify scope is truly 'rapid-fix' appropriate. Check for architecture keywords, file count, and multiple task indicators. Return classification: ACCEPT or REJECT with reasons."
+```
+
 **Complexity Score Algorithm** (0.0-1.0 scale):
 
 | Component | Weight | Threshold | Rationale |
@@ -46,6 +52,20 @@ Use /00_plan instead for complex bug fixes, multi-file refactoring, architecture
 
 ---
 
+### Step 4: Show Diff & Verify
+
+**Purpose**: Verify changes before user confirmation
+
+**Delegation Pattern**:
+```bash
+# Delegate diff verification to validator before user confirmation
+Task: subagent_type: validator, prompt: "Verify diff changes are minimal and correct. Check for unintended modifications, security issues, and code quality. Confirm changes align with bug fix intent."
+```
+
+**User Confirmation Flow**: After validator approval, display `git diff HEAD` → Prompt user (y/n) → If yes: proceed to commit
+
+---
+
 ### Step 5: Execute Plan with TDD + Ralph Loop
 
 **Why call `/02_execute` directly?**
@@ -78,6 +98,12 @@ Returns when complete or max iterations reached
 ---
 
 ### Step 6: Verify Completion
+
+**Delegation Pattern**:
+```bash
+# Delegate completion verification to validator
+Task: subagent_type: validator, prompt: "Verify fix completion. Run quality gates (tests, type-check, lint, coverage ≥80%). Check plan file for unchecked TODOs. Confirm all Success Criteria met."
+```
 
 **Completion check algorithm**:
 ```bash

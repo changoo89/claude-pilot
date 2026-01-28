@@ -122,9 +122,31 @@
 
 ---
 
+## Parallel Review Task Patterns
+
+> **Purpose**: Explicit Task tool patterns for Step 2 parallel review
+
+**Step 2 (Parallel Review)**:
+```bash
+# Invoke all 3 review agents in parallel (single response with multiple Task calls)
+Task: subagent_type: tester, prompt: "Run test coverage analysis for current changes"
+Task: subagent_type: validator, prompt: "Run type-check and lint verification"
+Task: subagent_type: code-reviewer, prompt: "Perform deep code quality review"
+```
+
+**Reference**: @.claude/skills/parallel-subagents/SKILL.md - Parallel execution patterns
+
+---
+
 ## Apply Findings to Plan
 
 > **Purpose**: Apply review findings to improve plan
+
+**Step 4 (Plan Updates)**:
+```bash
+# Delegate plan section updates to documenter
+Task: subagent_type: documenter, prompt: "Update plan sections based on review findings"
+```
 
 ### Issue Type Mapping
 

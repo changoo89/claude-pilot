@@ -142,6 +142,24 @@ resolve_blocking_findings "$PLAN_FILE"
 
 ---
 
+## ⛔ MAIN ORCHESTRATOR RESTRICTIONS (ABSOLUTE)
+
+**FORBIDDEN** (orchestrator direct use prohibited):
+- Direct plan validation without Task tool
+- Direct BLOCKING gate resolution without agent delegation
+
+**MANDATORY** (must delegate via Task tool):
+- Step 1.6/1.7/1.9 verification: `Task: subagent_type: plan-reviewer` before user escalation
+- Step 2.5 GPT review: Via gpt-delegation skill
+- Step 3 auto-review: `Task: subagent_type: plan-reviewer`
+
+**TRIVIAL EXCEPTIONS** (no delegation needed):
+- Dual-source extraction scanning, file operations, conversation parsing
+
+**WHY**: Subagent isolation provides 50-80% context savings (CLAUDE.md:58-59)
+
+---
+
 ## Argument Parsing
 
 Parse `$ARGUMENTS` from command invocation:

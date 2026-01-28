@@ -95,7 +95,33 @@ Verify 100% requirements coverage before creating plan file:
 2. Extract Success Criteria (SC-1, SC-2, ...)
 3. Verify 1:1 mapping (UR → SC)
 4. BLOCKING if any requirement missing
-5. Use AskUserQuestion to resolve before proceeding
+
+**⚠️ Delegation Before User Escalation**:
+```bash
+# Before asking user, delegate to plan-reviewer for verification
+if [ "$BLOCKING" = true ]; then
+    echo "→ Delegating requirements verification to plan-reviewer agent"
+
+    Task: subagent_type: plan-reviewer
+    prompt: |
+      Verify requirements completeness for plan:
+      - Plan path: $PLAN_PATH
+      - User Requirements: $UR_LIST
+      - Success Criteria: $SC_LIST
+
+      Check:
+      1. 100% UR → SC mapping coverage
+      2. Each SC traces back to UR
+      3. No orphaned requirements
+
+      Output: <COMPLETE> if 100% coverage, <BLOCKED: {missing_items}> if gaps found
+
+    # If still blocked after agent review, escalate to user
+    if [ "$AGENT_STATUS" = "BLOCKED" ]; then
+        AskUserQuestion: "Requirements coverage incomplete: ${AGENT_FINDINGS}"
+    fi
+fi
+```
 
 **⚠️ CRITICAL**: Do NOT proceed to Step 2 if BLOCKING findings exist.
 
@@ -122,6 +148,35 @@ Verify 100% requirements coverage before creating plan file:
 - Unverified assumptions exist
 - Excluded layer without user confirmation exists
 
+**⚠️ Delegation Before User Escalation**:
+```bash
+# Before asking user, delegate to plan-reviewer for validation
+if [ "$BLOCKING" = true ]; then
+    echo "→ Delegating scope validation to plan-reviewer agent"
+
+    Task: subagent_type: plan-reviewer
+    prompt: |
+      Validate scope completeness for plan:
+      - Plan path: $PLAN_PATH
+      - Scope areas: $SCOPE_LIST
+      - Success Criteria: $SC_LIST
+      - Assumptions: $ASSUMPTIONS
+
+      Check:
+      1. Each scope area has corresponding SC
+      2. All assumptions verified (✅)
+      3. Excluded layers explicitly confirmed
+      4. SC granularity follows Atomic SC Principle
+
+      Output: <COMPLETE> if scope complete, <BLOCKED: {gaps}> if issues found
+
+    # If still blocked after agent review, escalate to user
+    if [ "$AGENT_STATUS" = "BLOCKED" ]; then
+        AskUserQuestion: "Scope completeness issues: ${AGENT_FINDINGS}"
+    fi
+fi
+```
+
 #### Step 1.9: Self-Contained Verification (MANDATORY)
 
 **Purpose**: Ensure plan is executable without external access
@@ -140,18 +195,44 @@ Verify 100% requirements coverage before creating plan file:
 
 **BLOCKING if**: Any check fails
 
-**Resolution per check**:
-```markdown
-AskUserQuestion:
-  question: "Self-contained verification failed: {check_name}. How to resolve?"
-  header: "Verify"
-  options:
-    - label: "Go back to /00_plan"
-      description: "Add missing context"
-    - label: "Provide details now"
-      description: "I'll describe inline"
-    - label: "Mark as assumption"
-      description: "Add to Assumptions with default"
+**⚠️ Delegation Before User Escalation**:
+```bash
+# Before asking user, delegate to plan-reviewer for 9-point checklist execution
+if [ "$BLOCKING" = true ]; then
+    echo "→ Delegating 9-point self-contained verification to plan-reviewer agent"
+
+    Task: subagent_type: plan-reviewer
+    prompt: |
+      Execute 9-point self-contained verification checklist for plan:
+      - Plan path: $PLAN_PATH
+
+      Verify ALL 9 points:
+      1. References Embedded: All external links embedded or replaced
+      2. Executor Clarity: "What to build?" answerable from plan alone
+      3. Dependencies Pinned: All versions/configs specified
+      4. Testable Acceptance: SC verifiable from repo artifacts
+      5. Unknowns Enumerated: Gaps explicitly listed
+      6. Verification Commands: Commands map to SC
+      7. Concrete Examples: Ambiguity resolved with examples
+      8. Conversation Deleted Test: Plan self-sufficient
+      9. Zero-Knowledge TODO Test: TODOs executable without thinking
+
+      Output: <COMPLETE> if all 9 pass, <BLOCKED: {failed_checks}> with details
+
+    # If still blocked after agent review, escalate to user with specific failures
+    if [ "$AGENT_STATUS" = "BLOCKED" ]; then
+        AskUserQuestion:
+          question: "Self-contained verification failed: ${AGENT_FINDINGS}. How to resolve?"
+          header: "Verify"
+          options:
+            - label: "Go back to /00_plan"
+              description: "Add missing context"
+            - label: "Provide details now"
+              description: "I'll describe inline"
+            - label: "Mark as assumption"
+              description: "Add to Assumptions with default"
+    fi
+fi
 ```
 
 ---

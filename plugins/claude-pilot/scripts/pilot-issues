@@ -1,0 +1,170 @@
+#!/bin/bash
+# pilot-issues - Discovered Issues CLI
+# Non-interactive CLI for managing discovered issues during plan execution
+# Agent layer handles "Offer, don't force" confirmation
+
+set -euo pipefail
+
+# Project root detection
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+ISSUES_DIR="$PROJECT_ROOT/.pilot/issues"
+LOG_FILE="$ISSUES_DIR/log.jsonl"
+STATE_FILE="$ISSUES_DIR/state.json"
+
+# Core library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/pilot-issues-core"
+
+# Ensure jq is available
+if ! command -v jq &>/dev/null; then
+  echo "Error: jq is required but not installed" >&2
+  exit 1
+fi
+
+# Ensure issues directory exists
+mkdir -p "$ISSUES_DIR"
+
+# Phase gating: Check if plan is confirmed
+is_plan_confirmed() {
+  local in_progress=$(find "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | head -1)
+  local done=$(find "$PROJECT_ROOT/.pilot/plan/done" -name "*.md" -type f 2>/dev/null | head -1)
+
+  if [ -n "$in_progress" ] || [ -n "$done" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Atomic write with lock (using mkdir for portability)
+with_lock() {
+  local lock_dir="$ISSUES_DIR/.lock.dir"
+
+  # Wait for lock (max 5 seconds)
+  local count=0
+  while ! mkdir "$lock_dir" 2>/dev/null; do
+    sleep 0.1
+    count=$((count + 1))
+    if [ $count -gt 50 ]; then
+      echo "Error: Could not acquire lock" >&2
+      exit 1
+    fi
+  done
+
+  # Execute command
+  "$@"
+
+  # Release lock
+  rmdir "$lock_dir"
+}
+
+# Add new issue
+cmd_add() {
+  local priority="${1:-P2}"
+  local title="${2:-}"
+  local phase="${3:-/02_execute}"
+  local details="${4:-}"
+
+  if [ -z "$title" ]; then
+    echo "Error: --title is required" >&2
+    exit 1
+  fi
+
+  # Phase gating check
+  if ! is_plan_confirmed; then
+    echo "Error: Cannot record Discovered Issues before /01_confirm"
+    echo "Issues found during /00_plan or /01_confirm should be added to the plan." >&2
+    exit 1
+  fi
+
+  # Generate ID and event directly
+  local id=$(generate_id)
+  local event
+  event=$(create_event_json "issue.created" "$id" \
+    --arg priority "$priority" \
+    --arg title "$title" \
+    --arg phase "$phase" \
+    --arg details "$details")
+
+  with_lock bash -c 'echo "$1" >> "$2"' bash "$event" "$LOG_FILE"
+  with_lock refresh_state
+
+  echo "$id"
+}
+
+# Resolve issue
+cmd_resolve() {
+  local issue_id="$1"
+  local resolution="${2:-Fixed}"
+  local event
+
+  event=$(create_event_json "issue.resolved" "$issue_id" \
+    --arg resolution "$resolution")
+
+  with_lock bash -c 'echo "$1" >> "$2"' bash "$event" "$LOG_FILE"
+  with_lock refresh_state
+
+  echo "Resolved: $issue_id"
+}
+
+# Dismiss issue
+cmd_dismiss() {
+  local issue_id="$1"
+  local reason="${2:-Dismissed}"
+  local event
+
+  event=$(create_event_json "issue.dismissed" "$issue_id" \
+    --arg reason "$reason")
+
+  with_lock bash -c 'echo "$1" >> "$2"' bash "$event" "$LOG_FILE"
+  with_lock refresh_state
+
+  echo "Dismissed: $issue_id"
+}
+
+# Refresh state from log
+cmd_refresh() {
+  with_lock refresh_state
+  echo "State refreshed from log"
+}
+
+# Show usage
+cmd_help() {
+  cat << 'EOF'
+pilot-issues - Discovered Issues CLI
+
+Usage:
+  pilot-issues add --priority P0 --title "Issue title" [--phase /02_execute] [--details "..."]
+  pilot-issues resolve DI-20260124-001 [--resolution "Fixed in..."]
+  pilot-issues dismiss DI-20260124-001 [--reason "Not applicable"]
+  pilot-issues refresh
+
+Priority: P0=Blocking(red), P1=Follow-up(yellow), P2=Backlog(hidden)
+Phase Gating: Issues only recorded after /01_confirm
+EOF
+}
+
+# Parse add command arguments
+parse_add_args() {
+  local priority="P2" title="" phase="/02_execute" details=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --priority) priority="$2"; shift 2 ;;
+      --title) title="$2"; shift 2 ;;
+      --phase) phase="$2"; shift 2 ;;
+      --details) details="$2"; shift 2 ;;
+      *) echo "Unknown option: $1" >&2; exit 1 ;;
+    esac
+  done
+  cmd_add "$priority" "$title" "$phase" "$details"
+}
+
+# Main command dispatcher
+case "${1:-help}" in
+  add) shift; parse_add_args "$@" ;;
+  resolve) shift; cmd_resolve "${1:-}" "${2:-}" ;;
+  dismiss) shift; cmd_dismiss "${1:-}" "${2:-}" ;;
+  refresh) cmd_refresh ;;
+  help|--help|-h) cmd_help ;;
+  *) echo "Unknown command: $1" >&2; cmd_help; exit 1 ;;
+esac

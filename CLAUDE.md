@@ -1,6 +1,6 @@
 # claude-pilot - Plugin Documentation
 
-> **Version**: 4.4.53 | **Last Updated**: 2026-01-28
+> **Version**: 4.4.54 | **Last Updated**: 2026-02-08
 
 ---
 
@@ -158,7 +158,7 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ## Version & Distribution
 
-**Plugin Version**: 4.4.53
+**Plugin Version**: 4.4.54
 **Distribution**: GitHub Marketplace via `#release` branch
 
 **Branch Structure**:
@@ -179,6 +179,9 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ## Version History
 
+### v4.4.54 (2026-02-08)
+Agent Teams Migration - Full migration from subagent to Agent Teams native patterns
+
 ### v4.4.53 (2026-01-28)
 Certainty Enforcement - Evidence-based gates, 6-item checklist, Cannot Verify escape hatch
 
@@ -190,9 +193,6 @@ Test Resource Optimization - Concurrency safeguards, TEST_TYPE detection, worker
 
 ### v4.4.48 (2026-01-26)
 SC-Level Agent Selection - Per-SC specialized agents (frontend-engineer, backend-engineer)
-
-### v4.4.47-v4.4.45 (2026-01-26)
-Self-Contained Planning, Proactive GPT Consultation, Atomic SC Principle
 
 ### v4.4.43 (2026-01-25)
 E2E Verification, QA/QC Framework, OOM Optimization (33% reduction)

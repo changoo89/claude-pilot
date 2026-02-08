@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [4.4.54] - 2026-02-08
+
+### Added
+- Agent Teams: Full migration from subagent to Agent Teams native patterns (9b1d9d7)
+
+### Changed
+- Chore: Remove .serena from git tracking (854ea73)
+
 ## [4.4.53] - 2026-01-28
 
 ### Added

@@ -8,33 +8,36 @@ Auto-discoverable capabilities that Claude Code uses to match user intent to app
 
 | Skill | Purpose | Trigger Keywords |
 |-------|---------|-----------------|
+| `agent-teams` | Agent Teams coordination patterns with team templates and hooks | "Agent Teams", "teammate spawn", "execution-team", "review-team", "planning-team" |
 | `claude-pilot-standards` | Plugin development standards | "plugin standards", "command format", "skill format" |
-| `close-plan` | OOM-optimized plan closure (5 steps, 2 agents, conditional doc sync) | "close plan", "finalize", "mark complete" |
+| `close-plan` | OOM-optimized plan closure (5 steps, 2 agents, conditional doc sync) via Agent Teams | "close plan", "finalize", "mark complete" |
 | `code-cleanup` | Dead code detection and removal | "cleanup", "remove unused code", "dead code" |
 | `code-quality-gates` | Quality validation gates | "quality gates", "validation", "checks" |
 | `coding-standards` | TypeScript/React/API standards | "coding standards", "best practices", "conventions" |
-| `confirm-plan` | Plan confirmation workflow with SC granularity check and Proactive GPT Consultation | "confirm plan", "plan review", "requirements verification", "context pack", "self-contained verification", "SC granularity", "proactive consultation" |
+| `confirm-plan` | Plan confirmation workflow with SC granularity check and Proactive GPT Consultation via Agent Teams | "confirm plan", "plan review", "requirements verification", "context pack", "self-contained verification", "SC granularity", "proactive consultation" |
 | `documentation-best-practices` | Documentation standards | "documentation", "docs", "CLAUDE.md" (200+ lines) |
-| `execute-plan` | Plan execution workflow with Smart Grouping and Pre-Execution Confidence check | "execute plan", "implement SC", "parallel execution", "smart grouping", "pre-execution confidence" |
+| `execute-plan` | Plan execution workflow with Smart Grouping and Pre-Execution Confidence check via Agent Teams | "execute plan", "implement SC", "parallel execution", "smart grouping", "pre-execution confidence" |
 | `frontend-design` | Production-grade frontend design | "UI design", "frontend styling", "landing page" |
 | `git-master` | Version control workflow | "commit", "branch", "PR", "git" |
 | `git-operations` | Safe git push/pull/merge | "git push", "git pull", "retry", "error handling" |
 | `gpt-delegation` | Intelligent Codex/GPT consultation with confidence-based proactive consultation | "GPT delegation", "Codex CLI", "escalate", "proactive consultation", "confidence score" |
-| `parallel-subagents` | Parallel agent execution with test type-aware concurrency safeguards | "parallel agents", "concurrent execution", "independent SCs", "single agent delegation", "context protection", "test execution concurrency", "worker limits" |
+| `parallel-subagents` | Agent Teams coordination patterns (rewritten from subagent patterns) with test type-aware concurrency safeguards | "parallel agents", "concurrent execution", "independent SCs", "single teammate delegation", "context protection", "test execution concurrency", "worker limits", "Agent Teams" |
 | `quality-gates` | Pre-commit quality validation | "pre-commit", "quality check", "validate" |
 | `ralph-loop` | Autonomous completion with Early Escalation option | "until tests pass", "quality gates", "iteration", "early escalation" |
 | `rapid-fix` | Rapid bug fix workflow | "fix bug", "quick fix", "one-line fix" |
 | `release` | Plugin release workflow | "release version", "bump version", "git tag", "GitHub release" |
-| `review` | Multi-angle code review | "code review", "quality review", "parallel review" |
+| `review` | Multi-angle code review via Agent Teams review-team | "code review", "quality review", "parallel review" |
 | `safe-file-ops` | Safe file operations | "file operations", "safe edit", "pre-flight checks" |
-| `spec-driven-workflow` | SPEC-first development with Atomic SC Principle and Proactive GPT Consultation | "SPEC-first", "planning", "requirements", "external context detection", "atomic SC", "proactive consultation" |
-| `tdd` | Test-Driven Development | "implementing features", "test coverage", "TDD" |
+| `spec-driven-workflow` | SPEC-first development with Atomic SC Principle and Proactive GPT Consultation via Agent Teams | "SPEC-first", "planning", "requirements", "external context detection", "atomic SC", "proactive consultation" |
+| `tdd` | Test-Driven Development (used by coder teammates) | "implementing features", "test coverage", "TDD" |
 | `test-driven-development` | Advanced TDD patterns | "TDD patterns", "testing strategies", "test design" |
 | `three-tier-docs` | 3-tier documentation hierarchy with integrated verification and selective validation | "documentation tiers", "CLAUDE.md", "CONTEXT.md", "line limits" |
 | `using-git-worktrees` | Parallel development with worktrees | "worktrees", "parallel development", "isolated workspace" |
 | `vibe-coding` | Code quality standards | "refactor", "code quality", "clean code" |
 
-**Total**: 25 skills, each with SKILL.md (≤200 lines) and REFERENCE.md (variable length), all refactored for compliance and enhanced functionality
+**Total**: 26 skills (added `agent-teams`), each with SKILL.md (≤200 lines) and REFERENCE.md (variable length), all refactored for compliance and enhanced functionality
+
+**Agent Teams Integration**: `agent-teams`, `parallel-subagents`, `execute-plan`, `review`, `close-plan`, `spec-driven-workflow`, `confirm-plan` now leverage Agent Teams coordination patterns
 
 ## Common Tasks
 
@@ -102,12 +105,16 @@ Skills are integrated into agent workflows via cross-references:
 
 ## Skill Categories
 
+### Agent Teams Skills
+- `agent-teams`: Agent Teams coordination patterns
+- `parallel-subagents`: Rewritten for Agent Teams teammate spawn patterns
+
 ### Development Skills
-- `tdd`: Test-Driven Development cycle
+- `tdd`: Test-Driven Development cycle (used by coder teammates)
 - `vibe-coding`: Code quality standards
 
 ### Workflow Skills
-- `ralph-loop`: Autonomous completion loop
+- `ralph-loop`: Autonomous completion loop (used by coder teammates)
 - `git-master`: Version control workflow
 
 ### Documentation Skills
@@ -115,17 +122,23 @@ Skills are integrated into agent workflows via cross-references:
 
 ## Usage by Agents
 
-### Coder Agent (sonnet)
-- `tdd`: Red-Green-Refactor cycle
-- `ralph-loop`: Iterate until quality gates pass
+### Coder Teammate (sonnet)
+- `tdd`: Red-Green-Refactor cycle (within teammate context)
+- `ralph-loop`: Iterate until quality gates pass (autonomous)
 - `vibe-coding`: Refactor code for quality
 - `git-master`: Create commits (when requested)
 
-### Documenter Agent (haiku)
+**Agent Teams**: Spawned by Team Lead in /02_execute, runs autonomously, messages team lead if blocked
+
+### Documenter Teammate (haiku)
 - `documentation-best-practices`: Create/review documentation
 
-### Plan-Reviewer Agent (sonnet)
+**Agent Teams**: Spawned by Team Lead in /03_close, syncs documentation with change detection
+
+### Plan-Reviewer Teammate (sonnet)
 - `documentation-best-practices`: Review plan documentation
+
+**Agent Teams**: Spawned by Team Lead in /01_confirm, verifies requirements completeness
 
 ## Size Guidelines
 

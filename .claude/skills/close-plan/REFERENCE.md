@@ -252,9 +252,9 @@ fi
 
 ---
 
-## Documenter Agent Delegation
+## Documenter Teammate Delegation
 
-### Documenter Agent Invocation (Step 3)
+### Documenter Teammate Invocation (Step 3)
 
 **Full details**: @.claude/skills/three-tier-docs/SKILL.md
 
@@ -407,13 +407,17 @@ if [ "$UNCHECKED" -gt 0 ]; then
     grep "^- \[ \]" "$PLAN_PATH" || true
     echo ""
 
-    # Delegate to validator agent BEFORE user escalation
-    echo "▶ Delegating to validator agent for TODO analysis..."
+    # Delegate to validator teammate BEFORE user escalation
+    echo "▶ Spawning validator teammate for TODO analysis..."
 
-    # Task tool delegation pattern
-    # Task: subagent_type: validator, prompt: "Analyze unchecked TODOs in $PLAN_PATH. Identify blockers and attempt resolution. For each TODO: 1) Check if already completed (code exists), 2) Attempt to complete if trivial, 3) Mark [x] if resolved, 4) Report blockers requiring user input."
+    # Agent Teams delegation pattern
+    # Spawn teammate "todo-verifier" (role: validator)
+    # Prompt: "Analyze unchecked TODOs in $PLAN_PATH. Identify blockers and attempt resolution.
+    #          For each TODO: 1) Check if already completed (code exists), 2) Attempt to complete if trivial,
+    #          3) Mark [x] if resolved, 4) Report blockers requiring user input.
+    #          When complete, mark task as done."
 
-    # Re-check TODOs after validator attempt
+    # Re-check TODOs after validator teammate attempt
     UNCHECKED_AFTER=$(grep -c "^- \[ \]" "$PLAN_PATH" || echo "0")
 
     if [ "$UNCHECKED_AFTER" -gt 0 ]; then

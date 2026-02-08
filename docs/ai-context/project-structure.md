@@ -42,6 +42,9 @@ claude-pilot/
 │   │   ├── review.md       # Review code
 │   │   ├── document.md     # Update docs
 │   │   └── 999_release.md  # Bump version + release
+│   ├── hooks/              # Agent Teams lifecycle hooks
+│   │   ├── verify-task-completion.sh  # TaskCompleted hook
+│   │   └── teammate-idle-check.sh     # TeammateIdle hook
 │   ├── templates/          # PRP, CONTEXT, SKILL templates
 │   ├── skills/             # Reusable skill modules
 │   │   ├── CONTEXT.md      # Skill folder context
@@ -52,6 +55,7 @@ claude-pilot/
 │   │   ├── gpt-delegation/ # GPT expert delegation
 │   │   ├── docs-verify/    # Documentation verification
 │   │   ├── frontend-design/# UI/UX design skill
+│   │   ├── agent-teams/    # Agent Teams coordination skill
 │   │   ├── execute-plan/  # TDD execution with E2E verification (Step 5)
 │   │   ├── confirm-plan/   # Plan confirmation workflow with Context Manifest
 │   │   ├── rapid-fix/      # Rapid bug fix
@@ -119,6 +123,7 @@ claude-pilot/
 | `vibe-coding` | LLM-readable code standards |
 | `git-master` | Git operations |
 | `gpt-delegation` | GPT expert delegation |
+| `agent-teams` | Agent Teams coordination and lifecycle hooks |
 | `close-plan` | OOM-optimized plan completion (5 steps, 2 agents) |
 | `docs-verify` | Pure bash verification (no external deps) |
 | `execute-plan` | TDD execution with E2E verification and Chrome in Claude integration |

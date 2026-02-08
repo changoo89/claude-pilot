@@ -114,17 +114,27 @@ Attempt 3 (GPT Architect) → Success
 
 ## Integration Pattern
 
-### Coder Agent (Ralph Loop)
+### Coder Teammate (Ralph Loop)
+
+**Pattern**: Teammate calls GPT directly when blocked, shares results with Team Lead and other teammates via Message.
 
 ```bash
-# After 2nd failure
+# After 2nd failure in Ralph Loop
 if [ $iteration -ge 2 ] && [ $TEST_RESULT -ne 0 ]; then
   PROMPT="TASK: Fix failing test ${TEST_NAME}
   EXPECTED OUTCOME: All tests pass
   CONTEXT: Previous attempts: ${ATTEMPT_SUMMARY}, Errors: $(cat /tmp/test.log | tail -20)"
   codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "$PROMPT"
+
+  # Share GPT recommendations with Team Lead
+  echo "Message to Team Lead: GPT Architect provided recommendations. Applying fixes..."
 fi
 ```
+
+**Key Points**:
+- Teammate calls codex directly (no Team Lead relay needed)
+- Teammate shares GPT results via Message tool
+- Team Lead coordinates but doesn't implement
 
 ### /00_plan Command
 

@@ -6,8 +6,8 @@ description: Use after first code change. Autonomous iteration until all quality
 # SKILL: Ralph Loop
 
 > **Purpose**: Autonomous completion loop - iterate until all tests pass, coverage met, type-check clean
-> **Target**: Coder, Tester, Validator agents
-> **⚠️ Subagents Only**: This skill is for coder/tester subagents. Main orchestrator must delegate via Task tool.
+> **Target**: Coder, Tester, Validator teammates
+> **⚠️ Teammates Only**: This skill is for coder/tester teammates in Agent Teams. Team Lead spawns teammates who execute this loop autonomously.
 
 ---
 
@@ -51,7 +51,8 @@ done
 
 # Complete or escalate
 if [ $iteration -eq $max_iterations ]; then
-  echo "<CODER_BLOCKED>"  # Escalate to GPT Architect
+  # Message Team Lead for GPT Architect escalation
+  echo "Max iterations reached. Messaging Team Lead for GPT Architect escalation..."
 else
   echo "<CODER_COMPLETE>"  # All checks pass
 fi
@@ -66,9 +67,10 @@ fi
 **Trigger**: Immediately after first code change
 
 **Detection**:
-- Coder agent makes first edit/write
+- Coder teammate makes first edit/write
 - Tests run and fail
 - Ralph Loop begins automatically
+- TeammateIdle hook prevents premature idle on quality check failure
 
 ### Quality Gates
 
@@ -80,6 +82,7 @@ fi
 5. **TODOs**: All SC TODOs must be `[x]` before `<CODER_COMPLETE>`
    - PLAN_PATH from execute-plan prompt OR auto-detect in `.pilot/plan/in_progress/`
    - `grep -q "^- \[ \]" "$PLAN_PATH"` must return false (no unchecked items)
+6. **TaskCompleted Hook**: Automatically verifies gates 1-5 when teammate marks task done
 
 ### Iteration Pattern
 
@@ -159,15 +162,17 @@ is_architecture_failure() {
 
 **Condition**: Max iterations reached (7 standard, 2 early escalation), still failing
 
-**Action**: Delegate to GPT Architect
+**Action**: Teammate messages the team lead for GPT Architect escalation
 ```bash
-echo "<CODER_BLOCKED>"
+# Teammate uses Message tool to communicate with Team Lead
+echo "Messaging Team Lead for escalation..."
 echo "Iterations: $iteration"
 echo "Early Escalation: $early_escalation"
 echo "Last error: $(last_error)"
+# Message: "BLOCKED after $iteration iterations. Need GPT Architect for: $(last_error)"
 ```
 
-**Orchestrator handles escalation**: Reads `.claude/rules/delegator/prompts/architect.md`, builds delegation prompt with history, calls `codex-sync.sh` (workspace-write mode), applies GPT recommendations, re-invokes Coder
+**Team Lead handles escalation**: Reads `.claude/rules/delegator/prompts/architect.md`, builds delegation prompt with history, calls `codex-sync.sh` (workspace-write mode), applies GPT recommendations, re-spawns teammate
 
 ### Early Escalation
 

@@ -153,18 +153,15 @@ Full guide: **@.claude/skills/using-git-worktrees/SKILL.md**
 
 ### Parallel Invocation
 
-**Group 1**: Invoke multiple Coder agents concurrently for independent SCs
+**Group 1**: Spawn multiple teammates concurrently for independent SCs
 **Group 2+**: Sequential execution after previous group completes
 
 ### Process Results
 
-| Marker | Meaning | Action |
-|--------|---------|--------|
-| `<CODER_COMPLETE>` | SC met, tests pass, coverage ≥80% | Mark todo as complete |
-| `<CODER_BLOCKED>` | Cannot complete | **AUTO-DELEGATE to GPT Architect** |
+**TaskCompleted Hook**: Automatically verifies tests pass, coverage ≥80%, TODOs checked. Exit 0 allows completion, Exit 2 rejects with feedback.
 
-**After ALL agents return**:
-1. Mark all parallel todos as `completed` together
+**After ALL teammates complete**:
+1. Mark all parallel tasks as `completed` together
 2. Verify no file conflicts
 3. Integrate results (files, tests, coverage)
 4. Proceed to Group 2 or Verification
@@ -173,15 +170,15 @@ Full guide: **@.claude/skills/using-git-worktrees/SKILL.md**
 
 | Step | Action |
 |------|--------|
-| 1 | Note failure with agent ID and SC |
-| 2 | Continue waiting for other parallel agents |
+| 1 | Note failure with teammate ID and SC |
+| 2 | Continue waiting for other parallel teammates |
 | 3 | Present all results together |
-| 4 | Re-invoke **only failed agent** with error context |
+| 4 | Teammate messages Team Lead → Lead re-spawns with error context |
 | 5 | Merge successful results once retry succeeds |
 
-**Fallback**: If 2+ retries fail, use `AskUserQuestion`
+**Fallback**: If 2+ retries fail, Team Lead escalates to GPT Architect
 
-### Single Coder Pattern
+### Single Teammate Pattern
 
 **When to use**:
 - Plan has 1-2 SCs only
@@ -195,17 +192,17 @@ Full guide: **@.claude/skills/using-git-worktrees/SKILL.md**
 
 ### Parallel Verification
 
-Invoke three agents in parallel: **tester** (tests + coverage), **validator** (type check + lint), **code-reviewer** (quality review).
+Spawn three teammates in parallel: **tester** (tests + coverage), **validator** (type check + lint), **code-reviewer** (quality review).
 
 ### Success Criteria
 
-| Agent | Required Output | Success Criteria |
-|-------|----------------|------------------|
+| Teammate | Required Output | Success Criteria |
+|----------|----------------|------------------|
 | **Tester** | Test results, coverage | All tests pass, coverage ≥80% |
 | **Validator** | Type check, lint | Both clean |
 | **Code-Reviewer** | Review findings | No CRITICAL issues |
 
-**If any agent fails**: Fix issues and re-run verification
+**If any teammate fails**: Fix issues and re-run verification
 
 ---
 
@@ -213,11 +210,11 @@ Invoke three agents in parallel: **tester** (tests + coverage), **validator** (t
 
 ### Auto-Delegation to GPT Architect
 
-**MANDATORY**: When Coder returns `<CODER_BLOCKED>`, automatically delegate to GPT Architect
+**MANDATORY**: When teammate messages Team Lead with BLOCKED status, automatically delegate to GPT Architect
 
-**Process**: Read prompt template → Build context → Call `codex-sync.sh` → Apply response → Re-invoke Coder
+**Process**: Read prompt template → Build context → Call `codex-sync.sh` → Apply response → Re-spawn teammate with recommendations
 
-**Fallback**: If Architect fails → `AskUserQuestion` (max 2 auto-delegations)
+**Fallback**: If Architect fails → Team Lead escalates to user (max 2 auto-delegations)
 
 ### GPT Expert Escalation
 
@@ -432,8 +429,9 @@ while [ $E2E_RETRY_COUNT -lt $MAX_E2E_RETRIES ]; do
         # Analyze failure and fix
         analyze_failure
 
-        # Delegate to Coder for fix
-        Task: subagent_type: coder, prompt: "Fix E2E failure (attempt $E2E_RETRY_COUNT/$MAX_E2E_RETRIES): $FAILURE_OUTPUT"
+        # Spawn teammate for fix
+        Spawn teammate "e2e-fixer" (role: coder) with prompt:
+        "Fix E2E failure (attempt $E2E_RETRY_COUNT/$MAX_E2E_RETRIES): $FAILURE_OUTPUT"
 
         # Re-verify after fix
         continue
@@ -662,11 +660,10 @@ verify_sc_todos() {
 ### Integration Pattern
 
 ```bash
-# After Coder returns <CODER_COMPLETE>
-if ! verify_sc_todos "$PLAN_PATH" "$SC_NUM"; then
-    echo "⚠️ Re-invoking coder to complete remaining TODOs"
-    # Re-invoke coder with context
-fi
+# TaskCompleted hook runs automatically
+# If TODOs remain, hook rejects completion (Exit 2)
+# Teammate receives feedback and continues work
+# Team Lead monitors completion via Task List
 ```
 
 ---
@@ -715,7 +712,7 @@ final_todo_sweep() {
 }
 ```
 
-**Integration**: Called automatically in Step 3.9 before E2E verification begins
+**Integration**: Team Lead performs sweep in Step 3.9. If unchecked TODOs remain, spawns verification teammate to complete them.
 
 ---
 

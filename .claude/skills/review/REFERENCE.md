@@ -122,19 +122,46 @@
 
 ---
 
-## Parallel Review Task Patterns
+## Review Team Patterns
 
-> **Purpose**: Explicit Task tool patterns for Step 2 parallel review
+> **Purpose**: Agent Teams review-team patterns for Step 2 multi-angle review
 
-**Step 2 (Parallel Review)**:
-```bash
-# Invoke all 3 review agents in parallel (single response with multiple Task calls)
-Task: subagent_type: tester, prompt: "Run test coverage analysis for current changes"
-Task: subagent_type: validator, prompt: "Run type-check and lint verification"
-Task: subagent_type: code-reviewer, prompt: "Perform deep code quality review"
+**Step 2 (Review Team)**:
+```markdown
+# Spawn all review teammates simultaneously (Team Lead in delegate mode)
+
+Spawn teammate "test-reviewer" with prompt:
+  "You are a tester (see @.claude/agents/tester.md).
+  Review test coverage for plan: $PLAN_PATH.
+  Evaluate: SCs verifiable? test commands? coverage ≥80%?
+  Discuss findings with other reviewers via Message.
+  Output: PASS or FAIL with detailed findings."
+
+Spawn teammate "quality-reviewer" with prompt:
+  "You are a validator (see @.claude/agents/validator.md).
+  Review type safety and code quality for plan: $PLAN_PATH.
+  Evaluate: TypeScript types? lint config? quality (SRP/DRY/KISS)?
+  Discuss findings with other reviewers via Message.
+  Output: PASS or FAIL with detailed findings."
+
+Spawn teammate "deep-reviewer" with prompt:
+  "You are a code-reviewer (see @.claude/agents/code-reviewer.md).
+  Perform deep code quality review for plan: $PLAN_PATH.
+  Evaluate: architecture? function size (≤50)? file size (≤200)? nesting ≤3? edge cases?
+  Discuss findings with other reviewers via Message.
+  Output: PASS or FAIL with detailed findings."
+
+Spawn teammate "security-reviewer" with prompt:
+  "You are a security-analyst (see @.claude/agents/security-analyst.md).
+  Review security aspects for plan: $PLAN_PATH.
+  Evaluate: input validation? auth/authz? secret management? OWASP Top 10?
+  Discuss findings with other reviewers via Message.
+  Output: PASS or FAIL with detailed findings."
 ```
 
-**Reference**: @.claude/skills/parallel-subagents/SKILL.md - Parallel execution patterns
+**Key Enhancement**: Reviewers discuss findings with each other before Team Lead aggregates final report
+
+**Reference**: @.claude/skills/agent-teams/SKILL.md - review-team template
 
 ---
 
@@ -143,9 +170,14 @@ Task: subagent_type: code-reviewer, prompt: "Perform deep code quality review"
 > **Purpose**: Apply review findings to improve plan
 
 **Step 4 (Plan Updates)**:
-```bash
-# Delegate plan section updates to documenter
-Task: subagent_type: documenter, prompt: "Update plan sections based on review findings"
+```markdown
+# Spawn documenter teammate to update plan sections
+Spawn teammate "plan-updater" with prompt:
+  "You are a documenter (see @.claude/agents/documenter.md).
+  Update plan sections in $PLAN_PATH based on review findings.
+  Apply findings to appropriate sections (Execution Plan, Test Plan, Risks).
+  Preserve plan structure and formatting.
+  Mark task done when complete."
 ```
 
 ### Issue Type Mapping
@@ -166,26 +198,31 @@ Task: subagent_type: documenter, prompt: "Update plan sections based on review f
 
 ---
 
-## Parallel Multi-Angle Review
+## Multi-Angle Review Team Enhancement
 
-> **Purpose**: Leverage multiple Claude plan-reviewer agents concurrently
+> **Purpose**: Enhanced review-team for complex plans with additional specialized reviewers
 
 **Use When**:
 - Plan has 5+ success criteria
 - High-stakes features (security, payments, auth)
 - System-wide architectural changes
+- Frontend changes detected (component, UI, React, Vue)
 
-**Do NOT Use When**:
-- Simple plans (< 5 SCs)
-- Cost constraints (3x token cost)
-- Time-sensitive review (sequential faster)
+**Additional Teammates**:
 
-**Approach**: Invoke 3 plan-reviewer agents concurrently with different angles:
-- Security angle: External API security, input validation, auth/authz, secret management
-- Quality angle: Vibe Coding, code quality, testing coverage, documentation
-- Architecture angle: System design, component relationships, scalability, integration points
+```markdown
+# Conditionally spawn design-reviewer for frontend changes
+Spawn teammate "design-reviewer" with prompt:
+  "You are a design-reviewer (see @.claude/agents/design-reviewer.md).
+  Review UI/UX design aspects for plan: $PLAN_PATH.
+  Evaluate: component structure? accessibility? responsive design? user experience?
+  Discuss findings with other reviewers via Message.
+  Output: PASS or FAIL with detailed findings."
+```
 
-**Merge Strategy**: Collect all findings, deduplicate, prioritize by severity, apply to plan
+**Team Coordination**: All reviewers (test-reviewer, quality-reviewer, deep-reviewer, security-reviewer, design-reviewer) cross-reference findings before Team Lead aggregates final report.
+
+**Merge Strategy**: Team Lead collects all PASS/FAIL results, deduplicates findings, prioritizes by severity (🛑 BLOCKING → 🚨 Critical → ⚠️ Warning → 💡 Suggestion), applies to plan
 
 ---
 

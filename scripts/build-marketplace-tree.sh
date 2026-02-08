@@ -31,7 +31,7 @@ mkdir -p "$PLUGIN_DIR"
 
 # Copy plugin contents to plugins/claude-pilot/
 # Exclude internal-only files (999_release, release skill, docs)
-for dir in agents commands skills scripts; do
+for dir in agents commands skills scripts hooks; do
   if [[ -d "$ROOT_DIR/.claude/$dir" ]]; then
     mkdir -p "$PLUGIN_DIR/$dir"
     rsync -a --delete \
@@ -41,6 +41,11 @@ for dir in agents commands skills scripts; do
       "$ROOT_DIR/.claude/$dir/" "$PLUGIN_DIR/$dir/"
   fi
 done
+
+# Preserve executable permissions for hook scripts
+if [[ -d "$PLUGIN_DIR/hooks" ]]; then
+  chmod +x "$PLUGIN_DIR/hooks"/*.sh 2>/dev/null || true
+fi
 
 # Add claude-pilot: prefix to agent references in skills (required for plugin installation)
 # SC-1: All 13 agent literal transformations (8 existing + 5 new)

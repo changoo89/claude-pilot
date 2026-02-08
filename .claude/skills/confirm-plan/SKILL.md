@@ -125,7 +125,7 @@ resolve_blocking_findings "$PLAN_FILE"
 **Mandatory Oracle Consultation**: All plans receive quality audit via GPT Auditor to verify requirements coverage, SC clarity, dependencies, and risks before confirmation.
 
 ### Step 3: Auto-Review & Auto-Apply
-- Invoke plan-reviewer agent
+- Spawn teammate "plan-reviewer" (role: plan-reviewer)
 - Review criteria: requirements coverage, SC clarity, dependencies, risks
 - Output: <PLAN_COMPLETE> or <PLAN_BLOCKED>
 - BLOCKING → Interactive Recovery loop (max 5 iterations)
@@ -139,24 +139,6 @@ resolve_blocking_findings "$PLAN_FILE"
 - Delete matching `*_draft.md` and `*_context_pack.md` files from draft/
 - Match by work_name extracted from confirmed plan filename
 - Log deleted files for audit trail
-
----
-
-## ⛔ MAIN ORCHESTRATOR RESTRICTIONS (ABSOLUTE)
-
-**FORBIDDEN** (orchestrator direct use prohibited):
-- Direct plan validation without Task tool
-- Direct BLOCKING gate resolution without agent delegation
-
-**MANDATORY** (must delegate via Task tool):
-- Step 1.6/1.7/1.9 verification: `Task: subagent_type: plan-reviewer` before user escalation
-- Step 2.5 GPT review: Via gpt-delegation skill
-- Step 3 auto-review: `Task: subagent_type: plan-reviewer`
-
-**TRIVIAL EXCEPTIONS** (no delegation needed):
-- Dual-source extraction scanning, file operations, conversation parsing
-
-**WHY**: Subagent isolation provides 50-80% context savings (CLAUDE.md:58-59)
 
 ---
 

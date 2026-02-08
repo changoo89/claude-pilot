@@ -98,27 +98,27 @@ Verify 100% requirements coverage before creating plan file:
 
 **⚠️ Delegation Before User Escalation**:
 ```bash
-# Before asking user, delegate to plan-reviewer for verification
+# Before asking user, spawn teammate for verification
 if [ "$BLOCKING" = true ]; then
-    echo "→ Delegating requirements verification to plan-reviewer agent"
+    echo "→ Spawning plan-reviewer teammate for requirements verification"
 
-    Task: subagent_type: plan-reviewer
-    prompt: |
-      Verify requirements completeness for plan:
-      - Plan path: $PLAN_PATH
-      - User Requirements: $UR_LIST
-      - Success Criteria: $SC_LIST
+    # Spawn teammate "plan-reviewer" (role: plan-reviewer)
+    # Prompt:
+    # "Verify requirements completeness for plan:
+    # - Plan path: $PLAN_PATH
+    # - User Requirements: $UR_LIST
+    # - Success Criteria: $SC_LIST
+    #
+    # Check:
+    # 1. 100% UR → SC mapping coverage
+    # 2. Each SC traces back to UR
+    # 3. No orphaned requirements
+    #
+    # Output: <COMPLETE> if 100% coverage, <BLOCKED: {missing_items}> if gaps found"
 
-      Check:
-      1. 100% UR → SC mapping coverage
-      2. Each SC traces back to UR
-      3. No orphaned requirements
-
-      Output: <COMPLETE> if 100% coverage, <BLOCKED: {missing_items}> if gaps found
-
-    # If still blocked after agent review, escalate to user
-    if [ "$AGENT_STATUS" = "BLOCKED" ]; then
-        AskUserQuestion: "Requirements coverage incomplete: ${AGENT_FINDINGS}"
+    # If still blocked after teammate review, escalate to user
+    if [ "$TEAMMATE_STATUS" = "BLOCKED" ]; then
+        AskUserQuestion: "Requirements coverage incomplete: ${TEAMMATE_FINDINGS}"
     fi
 fi
 ```
@@ -150,29 +150,29 @@ fi
 
 **⚠️ Delegation Before User Escalation**:
 ```bash
-# Before asking user, delegate to plan-reviewer for validation
+# Before asking user, spawn teammate for validation
 if [ "$BLOCKING" = true ]; then
-    echo "→ Delegating scope validation to plan-reviewer agent"
+    echo "→ Spawning plan-reviewer teammate for scope validation"
 
-    Task: subagent_type: plan-reviewer
-    prompt: |
-      Validate scope completeness for plan:
-      - Plan path: $PLAN_PATH
-      - Scope areas: $SCOPE_LIST
-      - Success Criteria: $SC_LIST
-      - Assumptions: $ASSUMPTIONS
+    # Spawn teammate "plan-reviewer" (role: plan-reviewer)
+    # Prompt:
+    # "Validate scope completeness for plan:
+    # - Plan path: $PLAN_PATH
+    # - Scope areas: $SCOPE_LIST
+    # - Success Criteria: $SC_LIST
+    # - Assumptions: $ASSUMPTIONS
+    #
+    # Check:
+    # 1. Each scope area has corresponding SC
+    # 2. All assumptions verified (✅)
+    # 3. Excluded layers explicitly confirmed
+    # 4. SC granularity follows Atomic SC Principle
+    #
+    # Output: <COMPLETE> if scope complete, <BLOCKED: {gaps}> if issues found"
 
-      Check:
-      1. Each scope area has corresponding SC
-      2. All assumptions verified (✅)
-      3. Excluded layers explicitly confirmed
-      4. SC granularity follows Atomic SC Principle
-
-      Output: <COMPLETE> if scope complete, <BLOCKED: {gaps}> if issues found
-
-    # If still blocked after agent review, escalate to user
-    if [ "$AGENT_STATUS" = "BLOCKED" ]; then
-        AskUserQuestion: "Scope completeness issues: ${AGENT_FINDINGS}"
+    # If still blocked after teammate review, escalate to user
+    if [ "$TEAMMATE_STATUS" = "BLOCKED" ]; then
+        AskUserQuestion: "Scope completeness issues: ${TEAMMATE_FINDINGS}"
     fi
 fi
 ```
@@ -197,32 +197,32 @@ fi
 
 **⚠️ Delegation Before User Escalation**:
 ```bash
-# Before asking user, delegate to plan-reviewer for 9-point checklist execution
+# Before asking user, spawn teammate for 9-point checklist execution
 if [ "$BLOCKING" = true ]; then
-    echo "→ Delegating 9-point self-contained verification to plan-reviewer agent"
+    echo "→ Spawning plan-reviewer teammate for 9-point self-contained verification"
 
-    Task: subagent_type: plan-reviewer
-    prompt: |
-      Execute 9-point self-contained verification checklist for plan:
-      - Plan path: $PLAN_PATH
+    # Spawn teammate "plan-reviewer" (role: plan-reviewer)
+    # Prompt:
+    # "Execute 9-point self-contained verification checklist for plan:
+    # - Plan path: $PLAN_PATH
+    #
+    # Verify ALL 9 points:
+    # 1. References Embedded: All external links embedded or replaced
+    # 2. Executor Clarity: "What to build?" answerable from plan alone
+    # 3. Dependencies Pinned: All versions/configs specified
+    # 4. Testable Acceptance: SC verifiable from repo artifacts
+    # 5. Unknowns Enumerated: Gaps explicitly listed
+    # 6. Verification Commands: Commands map to SC
+    # 7. Concrete Examples: Ambiguity resolved with examples
+    # 8. Conversation Deleted Test: Plan self-sufficient
+    # 9. Zero-Knowledge TODO Test: TODOs executable without thinking
+    #
+    # Output: <COMPLETE> if all 9 pass, <BLOCKED: {failed_checks}> with details"
 
-      Verify ALL 9 points:
-      1. References Embedded: All external links embedded or replaced
-      2. Executor Clarity: "What to build?" answerable from plan alone
-      3. Dependencies Pinned: All versions/configs specified
-      4. Testable Acceptance: SC verifiable from repo artifacts
-      5. Unknowns Enumerated: Gaps explicitly listed
-      6. Verification Commands: Commands map to SC
-      7. Concrete Examples: Ambiguity resolved with examples
-      8. Conversation Deleted Test: Plan self-sufficient
-      9. Zero-Knowledge TODO Test: TODOs executable without thinking
-
-      Output: <COMPLETE> if all 9 pass, <BLOCKED: {failed_checks}> with details
-
-    # If still blocked after agent review, escalate to user with specific failures
-    if [ "$AGENT_STATUS" = "BLOCKED" ]; then
+    # If still blocked after teammate review, escalate to user with specific failures
+    if [ "$TEAMMATE_STATUS" = "BLOCKED" ]; then
         AskUserQuestion:
-          question: "Self-contained verification failed: ${AGENT_FINDINGS}. How to resolve?"
+          question: "Self-contained verification failed: ${TEAMMATE_FINDINGS}. How to resolve?"
           header: "Verify"
           options:
             - label: "Go back to /00_plan"

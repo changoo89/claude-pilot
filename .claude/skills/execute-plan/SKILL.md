@@ -14,10 +14,14 @@ description: Plan execution workflow - parallel SC implementation, worktree mode
 ```bash
 PROJECT_ROOT="$(pwd)"
 PLAN_PATH="$(find "$PROJECT_ROOT/.pilot/plan/pending" "$PROJECT_ROOT/.pilot/plan/in_progress" -name "*.md" -type f 2>/dev/null | sort | head -1)"
-Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-1 from $PLAN_PATH"
+
+# Spawn teammate for SC execution
+Spawn teammate "sc1-impl" with prompt: "You are a coder (see agents/coder.md).
+Execute SC-1 from $PLAN_PATH. Skills: tdd, ralph-loop, vibe-coding.
+Mark task done when complete. Message lead if blocked."
 ```
 
-**Scope**: Plan detection, SC dependency analysis, parallel execution, worktree mode, GPT delegation. TDD/Ralph/Vibe → separate skills.
+**Scope**: Plan detection, SC dependency analysis, parallel execution, worktree mode, GPT delegation. Team Lead operates in delegate mode (coordinate only, never implement). TDD/Ralph/Vibe → teammate skills.
 
 ---
 
@@ -25,21 +29,7 @@ Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-1 from $PLAN_PATH"
 
 **⚠️ EXECUTION DIRECTIVE**: Execute ALL steps IMMEDIATELY. NEVER move plan to done/ (only `/03_close` has this authority), do NOT call close-plan automatically, plan MUST remain in `.pilot/plan/in_progress/`
 
----
-
-## ⛔ MAIN ORCHESTRATOR RESTRICTIONS (ABSOLUTE)
-
-**FORBIDDEN** (orchestrator direct use prohibited):
-- Edit tool: Code file modifications
-- Write tool: Code file creation
-- Direct SC implementation without Task tool
-
-**MANDATORY** (must delegate via Task tool):
-- Sequential: `Task: subagent_type: coder, prompt: "SC-N..."`
-- Parallel: Multiple Task calls in SAME response for ParallelGroup
-- Even 1-2 SCs: Always delegate (Context Protection)
-
-**WHY**: Subagent isolation provides 50-80% context savings (CLAUDE.md:58-59)
+**Team Lead Role**: Operate in delegate mode (Shift+Tab). Coordinate teammates, never implement code directly. Spawn teammates for all SC execution.
 
 ---
 
@@ -59,8 +49,6 @@ Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-1 from $PLAN_PATH"
 
 ---
 
-**⚠️ REMINDER**: All SC execution MUST use Task tool. Main orchestrator NEVER uses Edit/Write directly.
-
 ## Step 3: Execute with Ralph Loop (Per-SC Agent Selection)
 
 **Dependency Analysis, File Extraction & Agent Selection** (supports both `### SC-N:` and `- [ ] **SC-N**` formats):
@@ -71,23 +59,33 @@ Task: subagent_type: $AGENT_TYPE, prompt: "Execute SC-1 from $PLAN_PATH"
 
 **Smart Grouping**: When SCs follow Atomic SC Principle (@.claude/skills/spec-driven-workflow/SKILL.md), parallel execution naturally emerges. SCs modifying same file type automatically group for specialized agents (e.g., frontend-engineer for `src/components/*`, backend-engineer for `src/api/*`). Test type detection automatically groups E2E SCs sequentially (path: `**/e2e/**`, `**/integration/**`, `**/*.e2e.*`; keywords: e2e, integration, playwright, cypress).
 
-**Execution Strategies**: Parallel (Independent SCs, 50-70% speedup): `Task: subagent_type: $SC_AGENT, prompt: "Execute SC-{N} from $PLAN_PATH. Skills: tdd, ralph-loop, vibe-coding. Output: <CODER_COMPLETE> or <CODER_BLOCKED>"` | Sequential (Dependent SCs): One agent with all SCs | Single Coder (1-2 SCs): Always delegate
+**Execution Strategies**:
+- **Parallel** (Independent SCs, 50-70% speedup): Spawn multiple teammates simultaneously
+  ```
+  Spawn teammate "sc{N}-impl" (role: $SC_AGENT) with prompt:
+  "You are a $SC_AGENT (see agents/$SC_AGENT.md).
+  Execute SC-{N} from $PLAN_PATH.
+  Skills to use: tdd, ralph-loop, vibe-coding.
+  Mark task done when complete. Message lead if blocked."
+  ```
+- **Sequential** (Dependent SCs): Spawn teammates with dependency ordering
+- **Single Teammate** (1-2 SCs): Spawn one teammate with all SCs
 
-**Note**: `$SC_AGENT` is selected per-SC (not per-plan), so parallel SCs may use different specialized agents (e.g., SC-1 → frontend-engineer, SC-2 → backend-engineer).
+**Note**: `$SC_AGENT` is selected per-SC (not per-plan), so parallel SCs may use different specialized teammates (e.g., SC-1 → frontend-engineer, SC-2 → backend-engineer).
 
-**Process Results**: Check `<CODER_COMPLETE>`, run `npm test`, mark complete or retry. Quality Gates: Tests pass, Coverage ≥80%, Type-check clean, Lint clean.
+**Process Results**: TaskCompleted hook auto-verifies tests pass, coverage ≥80%, type-check clean, lint clean. Quality Gates enforced automatically.
 
-**Handle CODER_BLOCKED**: Delegate to GPT Architect (gpt-5.2, workspace-write, reasoning_effort=medium). Fallback: Continue with Claude.
+**Handle CODER_BLOCKED**: Teammate messages Team Lead → Team Lead delegates to GPT Architect (gpt-5.2, workspace-write, reasoning_effort=medium). Fallback: Continue with Claude.
 
 ```bash
-if grep -q "<CODER_BLOCKED>" /tmp/coder_output.log 2>/dev/null; then
-    if command -v codex &> /dev/null; then
-        codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "$ARCHITECT_PROMPT"
-    fi
+# Teammate messages Team Lead when blocked
+# Team Lead delegates to GPT Architect
+if command -v codex &> /dev/null; then
+    codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "$ARCHITECT_PROMPT"
 fi
 ```
 
-**TaskCreate/TaskUpdate Pattern**: Create TaskList entry per SC before execution. Update on completion with `<CODER_COMPLETE>`. Progress tracking: `Task: status=in_progress, id=SC-N` → Execute → `TaskUpdate: status=completed, id=SC-N`.
+**TaskCompleted Hook Integration**: verify-task-completion.sh runs automatically when teammate marks task done. Checks: tests pass, coverage ≥80%, TODOs checked. Exit 0 allows completion, Exit 2 rejects with feedback.
 
 **No-Excuses Enforcement**: PROHIBITED phrases ("I cannot", "Too complex", "Out of scope"). Required pattern: "To achieve X, I will: [alternative]" or "Breaking down into: [steps]". Exception: User explicit abort only. Details: @REFERENCE.md
 
@@ -99,13 +97,13 @@ fi
 
 ## Step 3.5: Per-SC TODO Verification (BLOCKING)
 
-After each SC execution, verify all TODO checkboxes are marked `[x]`. If unchecked items remain, BLOCKING until coder completes them. Full implementation: @REFERENCE.md - Per-SC TODO Verification
+After each SC execution, TaskCompleted hook verifies all TODO checkboxes are marked `[x]`. If unchecked items remain, hook rejects completion (Exit 2) until teammate completes them. Full implementation: @REFERENCE.md - Per-SC TODO Verification
 
 ---
 
 ## Step 3.9: Final TODO Sweep (BLOCKING)
 
-Before E2E verification, sweep entire plan for unchecked TODOs. Max 50 retries with GPT escalation at 10, user escalation at 50. Full implementation: @REFERENCE.md - Final TODO Sweep
+Before E2E verification, Team Lead verifies entire plan for unchecked TODOs. If any remain, spawn verification teammate. Max 50 retries with GPT escalation at 10, user escalation at 50. Full implementation: @REFERENCE.md - Final TODO Sweep
 
 ---
 

@@ -1,6 +1,7 @@
 # Ralph Loop Reference Guide
 
-> **Purpose**: Detailed reference for autonomous quality verification loop
+> **Purpose**: Detailed reference for autonomous quality verification loop in Agent Teams
+> **Target**: Coder teammates executing Ralph Loop internally
 > **Complements**: @./SKILL.md (core methodology)
 
 ---
@@ -24,16 +25,16 @@
 | **Entry** | First code change | Verification | - |
 | **Verification** | Run all gates | Success → Complete; Fail → Fix | - |
 | **Fix** | iteration < 7 | Verification | - |
-| **Fix** | iteration = 7 | Blocked | `<RALPH_BLOCKED>` |
-| **Complete** | All gates pass | Exit | `<RALPH_COMPLETE>` |
+| **Fix** | iteration = 7 | Blocked | Message Team Lead |
+| **Complete** | All gates pass | Exit | `<RALPH_COMPLETE>` + TaskCompleted hook verifies |
 
 ### Exit Conditions
 
 | Condition | Check | Output |
 |-----------|-------|--------|
-| **Success** | All pass + coverage≥80% + todos complete | `<RALPH_COMPLETE>` |
-| **Failure** | Max 7 iterations reached | `<RALPH_BLOCKED>` |
-| **Blocked** | User intervention needed | `<RALPH_BLOCKED>` |
+| **Success** | All pass + coverage≥80% + todos complete | `<RALPH_COMPLETE>` + TaskCompleted hook |
+| **Failure** | Max 7 iterations reached | Message Team Lead |
+| **Blocked** | User intervention needed | Message Team Lead |
 
 ---
 

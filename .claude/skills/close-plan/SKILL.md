@@ -34,22 +34,22 @@ description: Plan completion workflow - archive plan, verify todos, create git c
 
 ---
 
-## ⛔ MAIN ORCHESTRATOR RESTRICTIONS (ABSOLUTE)
+## Agent Teams Delegation Pattern
 
-**FORBIDDEN** (orchestrator direct use prohibited):
-- Direct evidence verification without Task tool
-- Direct TODO gate resolution without agent delegation
-- Direct documentation sync without Task tool
+**Team Lead operates in delegate mode** (coordinates only, never implements):
+- Step 1 TODO analysis: Spawn teammate for TODO verification
+- Step 2 evidence verification: Spawn teammate for test execution
+- Step 3 docs sync: Spawn teammate for documentation updates (conditional)
 
-**MANDATORY** (must delegate via Task tool):
-- Step 1 TODO analysis: `Task: subagent_type: validator` before user escalation
-- Step 2 evidence verification: `Task: subagent_type: validator`
-- Step 3 docs sync: `Task: subagent_type: documenter` (conditional)
+**MANDATORY teammate delegation**:
+- TODO gate resolution (role: validator)
+- Evidence verification (role: validator)
+- Documentation sync (role: documenter, conditional)
 
 **TRIVIAL EXCEPTIONS** (no delegation needed):
 - Argument parsing, file existence check, timestamp/directory creation, git commit formatting
 
-**WHY**: Subagent isolation provides 50-80% context savings (CLAUDE.md:58-59)
+**WHY**: Agent Teams native isolation provides automatic context protection
 
 ---
 

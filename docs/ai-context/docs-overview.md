@@ -93,6 +93,7 @@ Feature-level implementation details.
 ### Workflows
 → **@.claude/commands/CONTEXT.md**: Command workflows, phase boundaries
 → **@.claude/skills/gpt-delegation/REFERENCE.md**: GPT delegation, Codex CLI
+→ **@.claude/skills/agent-teams/SKILL.md**: Agent Teams coordination, lifecycle hooks
 → **@.claude/skills/execute-plan/REFERENCE.md**: E2E verification framework with Chrome in Claude integration and retry loop pattern
 → **@.claude/skills/close-plan/SKILL.md**: OOM-optimized plan completion (5 steps, 2 agents)
 

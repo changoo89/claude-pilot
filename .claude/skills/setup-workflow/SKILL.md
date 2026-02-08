@@ -94,7 +94,48 @@ test -f .claude/scripts/statusline.sh && echo "statusline.sh: ✓" || echo "stat
 test -f .claude/settings.json && echo "settings.json: ✓" || echo "settings.json: ✗"
 ```
 
-### Step 3: MCP Servers (Informational)
+### Step 3: Agent Teams Configuration
+
+**Purpose**: Configure Agent Teams environment and hooks
+
+**Display to user**:
+```
+🤝 Agent Teams Configuration Required:
+
+Agent Teams is enabled by default in Claude Code. Configure hooks for quality gates:
+
+1. Open Claude Code settings.json (Cmd+Shift+P → "Preferences: Open User Settings (JSON)")
+
+2. Add Agent Teams hooks:
+
+{
+  "hooks": {
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [".claude/hooks/verify-task-completion.sh"]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "matcher": "",
+        "hooks": [".claude/hooks/teammate-idle-check.sh"]
+      }
+    ]
+  }
+}
+
+3. Terminal compatibility:
+   - Recommended: tmux or iTerm2 for split-pane display mode
+   - Fallback: in-process mode works in all terminals (VS Code, Windows Terminal, etc.)
+
+Note: If CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 environment variable is needed,
+      add to settings.json under "env" key.
+```
+
+**No action required** - informational only.
+
+### Step 4: MCP Servers (Informational)
 
 **Purpose**: Inform user about recommended MCP servers
 
@@ -109,7 +150,7 @@ Configuration: Add to ~/.claude.json under projects.<project-path>.mcpServers
 
 **No action required** - informational only.
 
-### Step 4: Initial Documentation (Optional)
+### Step 5: Initial Documentation (Optional)
 
 **Purpose**: Ask user if they want to generate initial documentation
 
@@ -128,7 +169,7 @@ echo "Invoke the three-tier-docs skill to generate initial documentation."
 echo "⏭️  Skipping documentation sync"
 ```
 
-### Step 5: GitHub Star Request (Optional)
+### Step 6: GitHub Star Request (Optional)
 
 **Purpose**: Ask user if they want to star the repository
 
@@ -157,7 +198,7 @@ fi
 echo "👋 Thanks for using claude-pilot!"
 ```
 
-### Step 6: Complete
+### Step 7: Complete
 
 **Purpose**: Show completion message and next steps
 

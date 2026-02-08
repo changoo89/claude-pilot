@@ -24,18 +24,20 @@ Slash commands for SPEC-First development workflow.
 ```
 User Request
        ↓
-/00_plan (read-only exploration)
+/00_plan (read-only exploration via planning-team)
        ↓
-/01_confirm (requirements verification)
+/01_confirm (requirements verification via plan-reviewer)
        ↓
-/02_execute (TDD + Ralph Loop)
+/02_execute (TDD + Ralph Loop via execution-team)
        ↓
-/03_close (archive + commit)
+/03_close (archive + commit with validator/documenter)
        ↓
-/review (anytime - optional)
+/review (anytime via review-team - optional)
 ```
 
 **Alternative**: `/04_fix` for simple bugs
+
+**Agent Teams Architecture**: All workflow commands leverage Agent Teams for parallel execution and direct teammate communication.
 
 ---
 
@@ -52,20 +54,52 @@ User Request
 ## Related Skills
 
 Each command delegates to appropriate skills:
-- **spec-driven-workflow**: Plan creation
-- **execute-plan**: Agent selection and implementation with single coder delegation
-- **confirm-plan**: Plan verification with explicit task delegation
-- **close-plan**: Archive and commit with task delegation patterns
-- **parallel-subagents**: Agent execution with single delegation pattern
-- **tdd**: Test-driven development
-- **ralph-loop**: Autonomous iteration
+- **agent-teams**: Agent Teams coordination patterns
+- **spec-driven-workflow**: Plan creation with planning-team
+- **execute-plan**: SC execution via execution-team (Team Lead spawns coder, frontend-engineer, backend-engineer teammates)
+- **confirm-plan**: Plan verification via plan-reviewer teammate
+- **close-plan**: Archive and commit with validator/documenter teammates
+- **parallel-subagents**: Rewritten for Agent Teams (teammate spawn patterns)
+- **tdd**: Test-driven development (used by coder teammates)
+- **ralph-loop**: Autonomous iteration (used by coder teammates)
 - **git-master**: Git operations
 
-## Agent Selection
+## Agent Teams Integration
 
-Commands invoke specialized agents based on task type:
-- `/02_execute`: Selects frontend-engineer, backend-engineer, build-error-resolver, or coder based on task keywords
-- `/review`: Invokes tester, validator, security-analyst, or code-reviewer based on review type
+### /02_execute (Execution Team)
+**Team Lead** (delegate mode): Spawns teammates based on SC analysis
+- **frontend-engineer**: Frontend SCs (React, UI, styling)
+- **backend-engineer**: Backend SCs (API, database, server)
+- **coder**: General SCs (fallback)
+- **build-error-resolver**: Build error recovery
+
+**Coordination**: Team Lead monitors progress, handles blocked teammates, aggregates results
+
+### /review (Review Team)
+**Team Lead** (delegate mode): Spawns review teammates in parallel
+- **tester**: Test coverage analysis
+- **validator**: Type-check, lint, coverage verification
+- **code-reviewer** (Opus): Deep code review with risk assessment
+- **security-analyst**: Security vulnerability analysis (on `/review security`)
+- **design-reviewer**: Design quality review (on `/review --design-review`)
+
+**Enhanced**: Reviewers discuss findings with each other via Message tool for cross-validation
+
+### /00_plan (Planning Team)
+**Team Lead** (delegate mode): Spawns exploration teammates in parallel
+- **explorer**: Codebase exploration (files, patterns)
+- **researcher**: External docs research (best practices)
+
+**Coordination**: Teammates share findings via Message, Team Lead synthesizes into plan
+
+### /01_confirm (Plan Review)
+**Team Lead** (delegate mode): Spawns plan-reviewer teammate
+- **plan-reviewer**: Verify requirements completeness, SC clarity, dependencies
+
+### /03_close (Completion)
+**Team Lead** (delegate mode): Spawns validation/documentation teammates sequentially
+- **validator**: TODO verification and resolution
+- **documenter**: Documentation sync with change detection
 
 ---
 

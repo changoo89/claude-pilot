@@ -30,7 +30,7 @@
 | Large plan (5+ SCs) | **Plan Reviewer** |
 | Architecture decisions | **Architect** |
 | 2+ failed fix attempts | **Architect** (progressive escalation) |
-| Coder blocked (automatic) | **Architect** (self-assessment) |
+| Teammate blocked (messages Team Lead) | **Architect** (self-assessment) |
 
 ---
 
@@ -92,7 +92,7 @@ OUTPUT FORMAT:
 
 ## Integration Examples
 
-### Pattern: Progressive Escalation (Coder Agent)
+### Pattern: Progressive Escalation (Coder Teammate)
 ```bash
 # After 2nd failure in Ralph Loop
 [ $iteration -ge 2 ] && [ $TEST_RESULT -ne 0 ] && {
@@ -100,6 +100,10 @@ OUTPUT FORMAT:
   #   -s workspace-write (NOT "read-only" or any variation)
   #   -c reasoning_effort=medium (NEVER use "high" or "low")
   codex exec -m gpt-5.2 -s workspace-write -c reasoning_effort=medium --json "$(build_architect_prompt)"
+
+  # Share GPT results with Team Lead and other teammates
+  echo "Message: Applied GPT Architect recommendations for test fix"
+
   npm test
 }
 ```

@@ -58,6 +58,13 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 ### Context Protection Pattern
 **Single Agent Delegation**: Always delegate even single tasks to subagents to protect main orchestrator context (~50-80% context savings). Implement mandatory Task tool patterns in all workflow skills.
 
+### Agent Teams (Experimental)
+**Team Lead Coordination**: Team Lead spawns teammates (delegate mode) for parallel execution
+**Team Templates**: execution-team, review-team, planning-team
+**Lifecycle Hooks**: TaskCompleted (verify quality gates), TeammateIdle (prevent premature idle)
+**Environment**: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
+**Full Guide**: `@.claude/skills/agent-teams/SKILL.md`
+
 ---
 
 ## Plugin Components
@@ -168,33 +175,26 @@ These two documents are Tier 1 documents that all AI agents MUST reference befor
 
 ---
 
-**Line Count**: 198 lines (Target: ≤200 lines) ✅
-
----
+**Line Count**: 200 lines (Target: ≤200 lines) ✅
 
 ## Version History
 
 ### v4.4.53 (2026-01-28)
-Certainty Enforcement - Evidence-based gates with Verified/Cannot Verify binary, 6-item Certainty Checklist, fail-closed loop, Cannot Verify escape hatch, and 6 False Certainty Anti-Patterns. Details: REFERENCE.md.
+Certainty Enforcement - Evidence-based gates, 6-item checklist, Cannot Verify escape hatch
 
 ### v4.4.50 (2026-01-28)
-TODO Enforcement Framework - Step 1 TODO Gate in /03_close (--force flag to override), Step 3.5 Per-SC TODO Verification, Step 3.9 Final TODO Sweep (max 50 retries with GPT/user escalation).
+TODO Enforcement - Gate in /03_close, per-SC verification, final sweep (max 50 retries)
 
 ### v4.4.49 (2026-01-27)
-Test Resource Optimization - Added test execution concurrency safeguards to prevent worker explosion. SC-1: Added `--maxWorkers=50%` to Jest commands in tester.md (parallel agent safety). SC-2: Added TEST_TYPE detection in execute-plan/SKILL.md (E2E vs unit test detection, sequential vs parallel routing). SC-3: Added "Test Execution Concurrency" section to parallel-subagents/SKILL.md and REFERENCE.md (test type-aware concurrency patterns, resource calculation examples).
+Test Resource Optimization - Concurrency safeguards, TEST_TYPE detection, worker limits
 
 ### v4.4.48 (2026-01-26)
-SC-Level Agent Selection - Moved agent selection from plan-level (Step 2.5) to per-SC (Step 3) in execute-plan/SKILL.md, enabling specialized agents (frontend-engineer, backend-engineer) for each Success Criterion based on its specific file paths and keywords. Updated parallel-subagents/SKILL.md to document per-SC agent selection pattern.
+SC-Level Agent Selection - Per-SC specialized agents (frontend-engineer, backend-engineer)
 
-### v4.4.47 (2026-01-26)
-Self-Contained Planning Framework - External Context Detection, Context Pack Structure, Self-Contained Verification, Zero-Knowledge TODO format
-
-### v4.4.45 (2026-01-26)
-Proactive GPT Consultation - Added confidence-based GPT consultation with centralized rubric in gpt-delegation/SKILL.md, Enhanced spec-driven-workflow/SKILL.md with MUST Consult GPT section (architecture keywords OR confidence < 0.5), Enhanced confirm-plan/REFERENCE.md with Proactive Consultation pattern, Enhanced execute-plan/SKILL.md with Pre-Execution Confidence check (Step 2.7), Enhanced ralph-loop/SKILL.md with Early Escalation option (--early flag)
-
-### v4.4.44 (2026-01-26)
-Atomic SC Principle - Added "One SC = One File OR One Concern" principle to spec-driven-workflow/SKILL.md for fine-grained Success Criteria, Enhanced confirm-plan/SKILL.md with SC Granularity Check (Step 1.9), Enhanced execute-plan/SKILL.md with Smart Grouping note for parallel execution by specialized agents
+### v4.4.47-v4.4.45 (2026-01-26)
+Self-Contained Planning, Proactive GPT Consultation, Atomic SC Principle
 
 ### v4.4.43 (2026-01-25)
-E2E Verification, QA/QC Framework Enhancement, OOM Optimization (33% reduction in /03_close)
+E2E Verification, QA/QC Framework, OOM Optimization (33% reduction)
+
 **Full History**: See `CHANGELOG.md`

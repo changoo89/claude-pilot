@@ -1,13 +1,13 @@
 ---
 name: tdd
-description: Test-Driven Development (TDD) skill for Red-Green-Refactor cycle. Use when implementing features with tests first, minimal code to pass, then refactor. Isolates test execution from main orchestrator context.
+description: Test-Driven Development (TDD) skill for Red-Green-Refactor cycle. Use when implementing features with tests first, minimal code to pass, then refactor. Teammates execute TDD autonomously within their own context in Agent Teams.
 ---
 
 # SKILL: Test-Driven Development (TDD)
 
 > **Purpose**: Execute TDD Red-Green-Refactor cycle for feature implementation
-> **Target**: Coder Agent implementing features with test-first methodology
-> **⚠️ Subagents Only**: This skill is for coder/tester subagents. Main orchestrator must delegate via Task tool.
+> **Target**: Coder teammates implementing features with test-first methodology in Agent Teams
+> **⚠️ Teammates Only**: This skill is for coder teammates in Agent Teams. Team Lead delegates via teammate spawn.
 
 ---
 

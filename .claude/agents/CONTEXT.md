@@ -96,113 +96,21 @@ Specialized agents with distinct capabilities, model allocations, and tool acces
 **Opus** (deep reasoning):
 - code-reviewer: Critical issues (async bugs, memory leaks, risk areas, assumptions tracking)
 
-## Frontmatter Pattern
+## Teammate Roles in Agent Teams
 
-All agents have standard frontmatter:
+Agents function as **teammates** in Agent Teams, with `teammate_role` frontmatter field enabling direct communication and autonomous coordination.
 
-```yaml
----
-name: {agent-name}
-description: {clear purpose statement}
-model: {haiku|sonnet|opus}
-tools: [tool list]
-skills: [skill list if any]
----
-```
-
-## Completion Marker Pattern
-
-Agents output completion markers:
-
-**Coder Agent**:
-- `<CODER_COMPLETE>`: All SC met, quality gates pass
-- `<CODER_BLOCKED>`: Max iterations reached, needs intervention
-
-**Frontend-Engineer Agent**:
-- `<FRONTEND_COMPLETE>`: Frontend implementation complete with design quality self-check
-- `<FRONTEND_BLOCKED>`: Build error, needs intervention or delegation
-
-**Backend-Engineer Agent**:
-- `<BACKEND_COMPLETE>`: Backend implementation complete, quality gates pass
-- `<BACKEND_BLOCKED>`: Max iterations reached, needs intervention
-
-**Build-Error-Resolver Agent**:
-- `<BUILD_RESOLVER_COMPLETE>`: Build errors resolved, build passes
-- `<BUILD_RESOLVER_BLOCKED>`: Cannot resolve build errors, needs escalation
-
-**Design-Reviewer Agent**:
-- `<DESIGN_REVIEW_COMPLETE>`: Design quality review passed, meets Awwwards standards
-- `<DESIGN_REVIEW_BLOCKED>`: Design quality issues found, needs fixes
-
-**Documenter Agent**:
-- `<DOCS_COMPLETE>`: Documentation synchronized across all 3 tiers
-- `<DOCS_BLOCKED>`: Documentation sync failed, needs manual intervention
-
-**Plan-Reviewer Agent**:
-- `<PLAN_COMPLETE>`: Plan approved, no gaps
-- `<PLAN_BLOCKED>`: BLOCKING gaps found
+**Full Details**: @.claude/skills/agent-teams/SKILL.md - Spawn prompts, coordination patterns, TaskCompleted hooks, and completion markers
 
 ## Parallel Execution Patterns
 
-### Planning Phase
-**Agents**: Explorer + Researcher (parallel)
-- **Explorer**: Discovers context, finds relevant files
-- **Researcher**: Deep dives into specific topics
-
-### Execution Phase
-**Agents**: Parallel Coder agents per SC (independent SCs)
-- Each Coder agent works on independent success criteria
-- No file conflicts when SCs are properly scoped
-
-### Verification Phase
-**Agents**: Tester + Validator + Code-Reviewer (parallel)
-- **Tester**: Runs test suite, measures coverage
-- **Validator**: Verifies all quality gates pass
-- **Code-Reviewer**: Deep code review for issues
-
-## Agent Coordination
-
-**Sequential Execution**: Single agent with `in_progress` status, mark todo as `completed` before next
-
-**Parallel Execution**: Multiple agents with `in_progress` simultaneously, used for independent SCs
-
-## Certainty Protocol
-
-### Mandatory Oracle Consultation Points
-
-All agents must consult GPT Oracle when confidence < 0.5 or at designated decision points:
-
-| Phase | Agent | Consultation Point | Trigger |
-|-------|-------|-------------------|---------|
-| /00_plan | planner | Architecture direction | Architecture keywords OR 5+ SCs |
-| /01_confirm | plan-reviewer | Plan quality audit | Large plans, complex deps |
-| /02_execute | coder | Implementation approach | Confidence < 0.5 OR 2+ failures |
-| /02_execute | frontend-engineer | Design decisions | Complex UI, multiple layouts |
-| /02_execute | backend-engineer | API design | Architecture changes, scalability |
-| /03_close | validator | Completion quality | Evidence verification |
-
-### No-Excuses Policy
-
-**PROHIBITED Phrases**: "I cannot...", "Too complex...", "Out of scope...", "Beyond my capabilities..."
-
-**Required Pattern**: "To achieve X, I will: [alternative approach]"
-
-**Only Exception**: User explicitly requests task abort
-
-### Graceful Fallback
-
-All Oracle consultations MUST include graceful fallback:
-```bash
-if ! command -v codex &> /dev/null; then
-  echo "Warning: Codex CLI not installed - falling back to Claude-only"
-  return 0  # Continue with Claude
-fi
-```
-
-**See**: @.claude/skills/gpt-delegation/SKILL.md - Complete delegation patterns
+**Planning**: Explorer + Researcher (parallel)
+**Execution**: Parallel agents per SC (frontend-engineer, backend-engineer, coder, build-error-resolver)
+**Verification**: Tester + Validator + Code-Reviewer (parallel)
 
 ## See Also
 
 - @.claude/commands/CONTEXT.md - Command workflow and agent invocation
 - @.claude/skills/CONTEXT.md - Agent capabilities and skills
-- @.claude/skills/parallel-subagents/SKILL.md - Parallel execution orchestration
+- @.claude/skills/agent-teams/SKILL.md - Agent Teams coordination patterns
+- @.claude/skills/gpt-delegation/SKILL.md - GPT Oracle consultation patterns

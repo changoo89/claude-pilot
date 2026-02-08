@@ -35,16 +35,13 @@ description: Comprehensive code review with multi-angle analysis using parallel 
 
 ---
 
-## ⛔ MAIN ORCHESTRATOR RESTRICTIONS
+## Team Lead Role
 
-**MANDATORY** (delegate via Task tool):
-- Step 2 parallel review: tester + validator + code-reviewer (parallel)
-- Step 4 plan updates: documenter
-- Step 9.5 multi-angle (5+ SCs): 3 parallel plan-reviewer agents
+**Delegate Mode**: Team Lead operates in coordinate-only mode (Shift+Tab)
 
-**TRIVIAL EXCEPTIONS**: Plan loading, type detection, severity classification
+**Pattern**: Spawn review-team → Monitor reviewers → Aggregate findings → Update plan
 
-**WHY**: 50-80% context savings
+**Native Context Isolation**: Agent Teams provides automatic context isolation per teammate
 
 ---
 
@@ -57,24 +54,51 @@ PLAN_PATH="${1:-$(find "$(pwd)/.pilot/plan/pending" "$(pwd)/.pilot/plan/in_progr
 
 ---
 
-## Step 2: Multi-Angle Parallel Review
+## Step 2: Multi-Angle Review Team
 
-Launch 3 parallel agents (60-70% faster):
+Create review-team with specialized teammates:
 
-**Task 2.1: Test Coverage**
+**Teammate 1: Test Coverage Reviewer**
 ```
-Task: subagent_type: tester, prompt: "Review plan: $PLAN_PATH. Test coverage: SCs verifiable? commands? coverage ≥80%? Output: PASS/FAIL + findings"
+Spawn teammate "test-reviewer" with prompt:
+  "You are a tester (see @.claude/agents/tester.md).
+  Review test coverage for plan: $PLAN_PATH.
+  Evaluate: SCs verifiable? test commands? coverage ≥80%?
+  Discuss findings with other reviewers via Message.
+  Output: PASS or FAIL with detailed findings."
 ```
 
-**Task 2.2: Type Safety & Lint**
+**Teammate 2: Type Safety & Quality Reviewer**
 ```
-Task: subagent_type: validator, prompt: "Review plan: $PLAN_PATH. Type safety: types? lint? quality (SRP/DRY/KISS)? Output: PASS/FAIL + findings"
+Spawn teammate "quality-reviewer" with prompt:
+  "You are a validator (see @.claude/agents/validator.md).
+  Review type safety and code quality for plan: $PLAN_PATH.
+  Evaluate: TypeScript types? lint config? quality (SRP/DRY/KISS)?
+  Discuss findings with other reviewers via Message.
+  Output: PASS or FAIL with detailed findings."
 ```
 
-**Task 2.3: Code Quality**
+**Teammate 3: Deep Code Reviewer**
 ```
-Task: subagent_type: code-reviewer, prompt: "Review plan: $PLAN_PATH. Quality: architecture? size (≤50/≤200)? nesting ≤3? edge cases? Output: PASS/FAIL + findings"
+Spawn teammate "deep-reviewer" with prompt:
+  "You are a code-reviewer (see @.claude/agents/code-reviewer.md).
+  Perform deep code quality review for plan: $PLAN_PATH.
+  Evaluate: architecture? function size (≤50)? file size (≤200)? nesting ≤3? edge cases?
+  Discuss findings with other reviewers via Message.
+  Output: PASS or FAIL with detailed findings."
 ```
+
+**Teammate 4: Security Reviewer**
+```
+Spawn teammate "security-reviewer" with prompt:
+  "You are a security-analyst (see @.claude/agents/security-analyst.md).
+  Review security aspects for plan: $PLAN_PATH.
+  Evaluate: input validation? auth/authz? secret management? OWASP Top 10?
+  Discuss findings with other reviewers via Message.
+  Output: PASS or FAIL with detailed findings."
+```
+
+**Key Enhancement**: Reviewers cross-reference and debate findings via direct messaging before Team Lead aggregates final report.
 
 ---
 
@@ -137,9 +161,10 @@ sc_count=$(grep -c "^- \[.\] \*\*SC-" "$PLAN_PATH" || echo "0")
 - 9.1: External API | 9.2: Database | 9.3: Async | 9.4: File Ops
 - 9.5: Env Vars | 9.6: Error Handling | 9.7: Test Plan (BLOCKING)
 
-**Step 9.5**: Parallel multi-angle (5+ SCs)
+**Step 9.5**: Multi-angle review-team (5+ SCs)
 ```bash
-[ "$sc_count" -ge 5 ] && echo "🚀 Parallel Security/Quality/Architecture"
+# For complex plans (5+ SCs), add design-reviewer teammate if frontend changes detected
+[ "$sc_count" -ge 5 ] && grep -qiE "component|UI|frontend|React|Vue" "$PLAN_PATH" && echo "🚀 Add design-reviewer teammate"
 ```
 
 **Step 10**: GPT expert (5+ SCs or architecture/security/auth)

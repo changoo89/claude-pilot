@@ -6,11 +6,30 @@
 
 ## Detailed Step Implementation
 
-### Step 1: Explore Codebase (Parallel)
+### Step 1: Explore Codebase via planning-team
 
-**Purpose**: Launch explorer and researcher in parallel for comprehensive discovery
+**Purpose**: Launch planning-team with explorer and researcher teammates for comprehensive discovery
 
-**Parallel Execution**: explorer (codebase files, patterns) + researcher (external docs, best practices)
+**Team Composition**:
+- Teammate "codebase-explorer" (role: explorer) - explore codebase files, patterns
+- Teammate "docs-researcher" (role: researcher) - research external docs, best practices
+
+**Spawn Pattern**:
+```markdown
+Spawn teammate "codebase-explorer" with prompt:
+  "You are an explorer (see @.claude/agents/explorer.md).
+  Explore codebase for [domain] related to [task].
+  Find: files, patterns, config, tests. Share findings via Message.
+  Output: File list with descriptions."
+
+Spawn teammate "docs-researcher" with prompt:
+  "You are a researcher (see @.claude/agents/researcher.md).
+  Research external docs for [task].
+  Find: official docs, best practices, security. Share findings via Message.
+  Output: Research summary with links."
+```
+
+**Coordination**: Teammates share findings via direct messaging, team lead synthesizes results
 
 **After Exploration: Self-Assess**
 - If scope is clear from task description → proceed to Step 2
@@ -103,10 +122,10 @@
 
 **Purpose**: Ensure 100% certainty before proceeding to requirements gathering
 
-**Agent Delegation**: BEFORE user escalation, delegate to explorer/researcher agents for gap investigation
+**Teammate Delegation**: BEFORE user escalation, delegate to planning-team teammates for gap investigation
 
 **Certainty Checklist** (ALL MUST PASS):
-1. **Codebase understanding**: 100% relevant files explored (use explorer + researcher agents)
+1. **Codebase understanding**: 100% relevant files explored (use planning-team: explorer + researcher)
 2. **Dependency tracking**: All import/require chains traced (check package.json, imports)
 3. **Impact scope**: All affected files identified (grep for references, check callers)
 4. **Test strategy**: Concrete verification methods defined (unit, integration, E2E)
@@ -142,19 +161,27 @@ while [ $iteration -lt $max_iterations ]; do
   ((iteration++))
 done
 
-# BEFORE user escalation, delegate to agents for gap investigation
+# BEFORE user escalation, delegate to teammates for gap investigation
 if ! all_checks_pass; then
-  # Task: subagent_type: explorer, prompt: "Investigate gaps in certainty checklist items: [missing items]"
-  # Task: subagent_type: researcher, prompt: "Research unknowns in certainty verification for: [missing items]"
+  # Spawn teammates for gap investigation
+  Spawn teammate "gap-explorer" with prompt:
+    "You are an explorer (see @.claude/agents/explorer.md).
+    Investigate gaps in certainty checklist items: [missing items].
+    Share findings via Message. Output: Gap investigation results."
 
-  # If agents cannot resolve gaps, then escalate to user
+  Spawn teammate "gap-researcher" with prompt:
+    "You are a researcher (see @.claude/agents/researcher.md).
+    Research unknowns in certainty verification for: [missing items].
+    Share findings via Message. Output: Research findings for unknowns."
+
+  # If teammates cannot resolve gaps, then escalate to user
   if ! all_checks_pass_after_delegation; then
     AskUserQuestion "Unable to achieve 100% certainty. Need help with: [missing items]"
   fi
 fi
 ```
 
-**BLOCKING if incomplete**: Delegate to explorer/researcher agents BEFORE user escalation. Only escalate to user if agents cannot resolve gaps.
+**BLOCKING if incomplete**: Delegate to planning-team teammates BEFORE user escalation. Only escalate to user if teammates cannot resolve gaps.
 
 ---
 
@@ -198,7 +225,7 @@ fi
 
 **Purpose**: Final readiness check before proceeding to plan creation
 
-**Agent Delegation**: BEFORE user escalation, delegate to explorer/researcher agents for unknowns investigation
+**Teammate Delegation**: BEFORE user escalation, delegate to planning-team teammates for unknowns investigation
 
 **Readiness Checklist** (ALL MUST PASS):
 1. **Unknowns Enumerated**: All unknowns listed in Assumptions & Unknowns table
@@ -222,7 +249,7 @@ while [ $retry -lt $max_retries ]; do
     break
   fi
 
-  # Parallel exploration for missing items
+  # Parallel exploration for missing items (spawn teammates)
   launch_explorer_for_unknowns &
   launch_researcher_for_assumptions &
   wait
@@ -235,12 +262,20 @@ while [ $retry -lt $max_retries ]; do
   ((retry++))
 done
 
-# BEFORE user escalation, delegate to agents for unknowns investigation
+# BEFORE user escalation, delegate to teammates for unknowns investigation
 if ! readiness_check_pass; then
-  # Task: subagent_type: explorer, prompt: "Investigate unknowns in readiness checklist: [missing items]"
-  # Task: subagent_type: researcher, prompt: "Research assumptions and dependencies for: [missing items]"
+  # Spawn teammates for unknowns investigation
+  Spawn teammate "unknowns-explorer" with prompt:
+    "You are an explorer (see @.claude/agents/explorer.md).
+    Investigate unknowns in readiness checklist: [missing items].
+    Share findings via Message. Output: Unknown items investigation results."
 
-  # If agents cannot resolve readiness gaps, then escalate to user
+  Spawn teammate "assumptions-researcher" with prompt:
+    "You are a researcher (see @.claude/agents/researcher.md).
+    Research assumptions and dependencies for: [missing items].
+    Share findings via Message. Output: Assumptions and dependency research."
+
+  # If teammates cannot resolve readiness gaps, then escalate to user
   if ! readiness_check_pass_after_delegation; then
     echo "❌ BLOCKING: Readiness Gate incomplete after $max_retries retries"
     AskUserQuestion "Cannot proceed with incomplete readiness. Missing: [items]"
@@ -249,7 +284,7 @@ if ! readiness_check_pass; then
 fi
 ```
 
-**BLOCKING if incomplete**: Delegate to explorer/researcher agents BEFORE user escalation. Only escalate to user if agents cannot resolve readiness gaps.
+**BLOCKING if incomplete**: Delegate to planning-team teammates BEFORE user escalation. Only escalate to user if teammates cannot resolve readiness gaps.
 
 ### Step 1.10 Readiness Checklist Details
 
